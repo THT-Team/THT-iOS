@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "top_pet.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
