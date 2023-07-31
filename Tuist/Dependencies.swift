@@ -9,8 +9,7 @@ let spm = SwiftPackageManagerDependencies([
     .remote(url: "https://github.com/RxSwiftCommunity/RxKeyboard", requirement: .upToNextMajor(from: "2.0.0")),
     .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .upToNextMajor(from: "7.0.0")),
     .remote(url: "https://github.com/airbnb/lottie-spm.git", requirement: .upToNextMajor(from: "4.0.0")),
-//    https://github.com/Moya/Moya
-//    .remote(url: "https://github.com/firebase/firebase-ios-sdk.git", requirement: .exact("10.10.0")),
+    .remote(url: "https://github.com/firebase/firebase-ios-sdk.git", requirement: .exact("10.10.0")),
 ])
 
 

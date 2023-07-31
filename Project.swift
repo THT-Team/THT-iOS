@@ -44,8 +44,7 @@ final class BaseProjectFactory: ProjectFactory {
     .external(name: "Kingfisher"),
     .external(name: "Lottie"),
     .external(name: "Moya"),
-//    .external(name: "FirebaseAuth"),
-//    .external(name: "FirebaseStorage")
+    .external(name: "FirebaseStorage"),
   ]
 
   let infoPlist: [String: InfoPlist.Value] = [
@@ -82,8 +81,7 @@ final class BaseProjectFactory: ProjectFactory {
       "OTHER_LDFLAGS": "-ObjC",
       "HEADER_SEARCH_PATHS": [
         "$(inherited)",
-        "$(SRCROOT)/../../Tuist/Dependencies/SwiftPackageManager/.build/checkouts/GTMAppAuth/GTMAppAuth/Sources/Public/GTMAppAuth",
-        "$(SRCROOT)/../../Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
+        "$(SRCROOT)/Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
       ]
     ]
   )
