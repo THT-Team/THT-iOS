@@ -9,39 +9,35 @@ import UIKit
 
 import SnapKit
 import Then
+import Lottie
 
 final class SplashViewController: UIViewController {
 	
-	private lazy var temporaryLabel: UILabel = UILabel().then {
-		$0.translatesAutoresizingMaskIntoConstraints = false
-		$0.text = "Splash View"
-		$0.textColor = .white
-		$0.font = .boldSystemFont(ofSize: 20)
-	}
+	private lazy var splashLottieView: LottieAnimationView = .init(name: LottieResourceName.splashLottie.rawValue)
 	
 	override func loadView() {
 		super.loadView()
-		self.view.addSubview(temporaryLabel)
-		temporaryLabel.snp.makeConstraints {
+		self.view.addSubview(splashLottieView)
+		splashLottieView.snp.makeConstraints {
 			$0.center.equalToSuperview()
+			$0.height.width.equalTo(view.bounds.height * 0.7)
 		}
+		
+		splashLottieView.play()
 	}
 	
-    override func viewDidLoad() {
-        super.viewDidLoad()
-		self.view.backgroundColor = .white
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		self.view.backgroundColor = FallingAsset.Color.netural700.color
 		self.changeMainView()
-    }
+	}
 	
 	func changeMainView() {
 		DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-			let rootViewController = SignUpRootViewController()
-			let naviController = UINavigationController(rootViewController: rootViewController)
-			
 			let keyWindow = UIApplication.shared.connectedScenes
 				.flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
 				.last { $0.isKeyWindow }
-			keyWindow?.rootViewController = naviController
+			Application.shared.configurationMainInterface(window: keyWindow)
 		}
 	}
 }
