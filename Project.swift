@@ -111,14 +111,15 @@ final class BaseProjectFactory: ProjectFactory {
              settings: projectSettings
             ),
 
-      //            Target(name: "\(projectName)Tests",
-      //                   platform: .iOS,
-      //                   product: .unitTests,
-      //                   bundleId: "com.tht.\(projectName).Tests"
-      //                   infoPlist: .default,
-      //                   sources: ["\(projectName)/\(projectName)Tests/**"],
-      //                   dependencies: [.target(name: projectName)]
-      //            )
+      Target(name: "\(projectName)Tests",
+             platform: .iOS,
+             product: .unitTests,
+             bundleId: "com.tht.\(projectName).Tests",
+             infoPlist: .extendingDefault(with: infoPlist),
+             sources: ["\(projectName)Tests/**"],
+             dependencies: [.target(name: projectName)],
+             settings: projectSettings
+            )
     ]
   }
 

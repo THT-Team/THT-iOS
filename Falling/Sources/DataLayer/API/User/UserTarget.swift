@@ -11,6 +11,7 @@ import Foundation
 enum UserTarget {
 
     case signUp(SignUpRequest)
+  
 }
 
 extension UserTarget: BaseTargetType {
@@ -31,4 +32,5 @@ extension UserTarget: BaseTargetType {
                                       encoding: JSONEncoding.default)
         }
     }
+
 }
