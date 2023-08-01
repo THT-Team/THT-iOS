@@ -13,7 +13,7 @@ import Lottie
 
 final class SplashViewController: UIViewController {
 	
-	private lazy var splashLottieView: LottieAnimationView = .init(name: "logo_splash")
+  private lazy var splashLottieView = LottieAnimationView(animation: AnimationAsset.logoSplashLottie.animation)
 	
 	override func loadView() {
 		super.loadView()
