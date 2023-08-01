@@ -86,6 +86,16 @@ final class BaseProjectFactory: ProjectFactory {
     ]
   )
 
+  let resourceSynthesizers: [ResourceSynthesizer] = [
+    .custom(
+      name: "Lottie",
+      parser: .json,
+      extensions: ["lottie"]
+    ),
+    .assets(),
+    .fonts(),
+  ]
+
   //  /Users/kanghos/Desktop/iOS/tuist-test/Projects/App/Support
   func generateTarget() -> [Target] {
     return [
@@ -125,7 +135,8 @@ let factory = BaseProjectFactory()
 let project = Project(name: factory.projectName,
                       organizationName: factory.organizationName,
                       settings: factory.projectSettings,
-                      targets: factory.generateTarget()
+                      targets: factory.generateTarget(),
+                      resourceSynthesizers: factory.resourceSynthesizers
 )
 
 
