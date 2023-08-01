@@ -35,7 +35,6 @@ final class SignUpRootViewController: UIViewController {
 	init(viewModel: SignUpRootViewModel) {
 		self.viewModel = viewModel
 		super.init(nibName: nil, bundle: nil)
-		print("[Init]: \(self)")
 	}
 
 	override func viewDidLoad() {
