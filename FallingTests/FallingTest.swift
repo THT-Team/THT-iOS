@@ -6,49 +6,60 @@
 //
 
 import XCTest
+import Moya
+import RxSwift
+
 @testable import Falling
 final class FallingTest: XCTestCase {
+  private var bag = DisposeBag()
+  override func setUpWithError() throws {
+    // Put setup code here. This method is called before the invocation of each test method in the class.
+  }
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+  override func tearDownWithError() throws {
+    // Put teardown code here. This method is called after the invocation of each test method in the class.
+  }
+
+  func testCertificate() throws {
+    AuthAPI.certificate(phoneNumber: "01089192466")
+      .subscribe { response in
+        print(response)
+      }.disposed(by: bag)
+    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
+  }
+
+  func testLogin() throws {
+    let request = makeMockLoginRequest()
+    AuthAPI.login(request: request)
+      .subscribe { response in
+        print(response)
+      }.disposed(by: bag)
+
+    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
+
+  }
+  func testRx() throws {
+
+    let request = makeMockSignUpRequest()
+
+    AuthAPI.signUpRequest(request: request)
+      .subscribe { response in
+        print(response)
+      }.disposed(by: bag)
+
+    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
+  }
+
+  func testPerformanceExample() throws {
+    // This is an example of a performance test case.
+    self.measure {
+      // Put the code you want to measure the time of here.
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-      let request = makeMockSignUpRequest()
-      AuthAPI.signUpRequest(
-        request: request) { result in
-          switch result {
-          case .success(let model):
-            guard let model = model else {
-              print("response is nil")
-              XCTAssertFalse(true, "reponse is nil")
-              return
-            }
-            print(model)
-            XCTAssertTrue(true)
-          case .failure(let error):
-            XCTAssertFalse(true, error.localizedDescription)
-          }
-        }
-      XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
-
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+  }
+  func makeMockLoginRequest() -> LoginRequest {
+    LoginRequest(phoneNumber: "01089192466",
+                 deviceKey: 123)
+  }
 
   func makeMockSignUpRequest() -> SignUpRequest {
     SignUpRequest(

@@ -44,6 +44,7 @@ final class BaseProjectFactory: ProjectFactory {
     .external(name: "Kingfisher"),
     .external(name: "Lottie"),
     .external(name: "Moya"),
+    .external(name: "RxMoya"),
     .external(name: "FirebaseStorage"),
   ]
 

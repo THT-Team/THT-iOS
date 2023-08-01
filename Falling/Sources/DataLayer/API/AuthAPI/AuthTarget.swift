@@ -12,7 +12,7 @@ enum AuthTarget {
 
   case signup(request: SignUpRequest)
   case signup_sns
-  case login
+  case login(request: LoginRequest)
   case login_sns
 
   case certificate(String)
@@ -29,7 +29,7 @@ extension AuthTarget: BaseTargetType {
     case .signup_sns:
       return "users/join/signup/sns"
     case .login:
-      return "users/login"
+      return "users/login/normal"
     case .login_sns:
       return "users/login/sns"
     case .certificate(let phoneNumber):
@@ -53,9 +53,13 @@ extension AuthTarget: BaseTargetType {
   // Request의 파라미터를 결정한다.
   var task: Task {
     switch self {
-    case .signup(let request) :
+    case .signup(let request):
       return .requestParameters(parameters: request.toDictionary(),
                                 encoding: JSONEncoding.default)
+    case .certificate:
+      return .requestPlain
+    case .login(let request):
+      return .requestParameters(parameters: request.toDictionary(), encoding: JSONEncoding.default)
     default:
       return .requestPlain
     }
