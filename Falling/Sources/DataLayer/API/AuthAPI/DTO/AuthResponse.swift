@@ -10,4 +10,8 @@ import Foundation
 struct SignUpResponse: Codable {
     let accessToken: String
     let accessTokenExpiresIn: Int
+
+  enum CodingKeys: String, CodingKey {
+      case accessToken, accessTokenExpiresIn
+  }
 }

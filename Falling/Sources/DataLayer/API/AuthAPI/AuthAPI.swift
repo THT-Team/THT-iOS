@@ -6,16 +6,31 @@
 //
 
 import Foundation
+import RxSwift
+import RxMoya
+import Moya
 
-struct AuthAPI: Networkable {
+final class AuthAPI: Networkable {
+  static let moya = makeProvider()
   typealias Target = AuthTarget
 
-  static func signUpRequest(request: SignUpRequest, completion: @escaping (Result<SignUpResponse?, Error>) -> Void) {
-    makeProvider().request(.signup(request: request)) { result in
-      switch ResponseData<SignUpResponse>.processResponse(result) {
-      case .success(let model): return completion(.success(model))
-      case .failure(let error): return completion(.failure(error))
-      }
-    }
+   static func signUpRequest(request: SignUpRequest) -> Single<SignUpResponse> {
+     return moya.rx
+       .request(.signup(request: request))
+       .map(SignUpResponse.self)
   }
+
+  static func certificate(phoneNumber: String) -> Single<CertificateResponse> {
+    return moya.rx
+      .request(.certificate(phoneNumber))
+      .map(CertificateResponse.self)
+  }
+
+  static func login(request: LoginRequest) -> Single<SignUpResponse> {
+    return moya.rx
+      .request(.login(request: request))
+      .map(SignUpResponse.self)
+  }
+
+
 }
