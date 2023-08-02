@@ -1,5 +1,5 @@
 //
-//  FallingTest.swift
+//  LoginTest.swift
 //  FallingTests
 //
 //  Created by Kanghos on 2023/08/01.
@@ -8,59 +8,46 @@
 import XCTest
 import Moya
 import RxSwift
-
 @testable import Falling
-final class FallingTest: XCTestCase {
-  private var bag = DisposeBag()
-  override func setUpWithError() throws {
-    // Put setup code here. This method is called before the invocation of each test method in the class.
-  }
 
-  override func tearDownWithError() throws {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
-  }
-
+final class LoginTest: XCTestCase {
+  private var disposeBag = DisposeBag()
+  
   func testCertificate() throws {
     AuthAPI.certificate(phoneNumber: "01089192466")
       .subscribe { response in
         print(response)
-      }.disposed(by: bag)
+      }.disposed(by: disposeBag)
     XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
   }
-
+  
   func testLogin() throws {
     let request = makeMockLoginRequest()
     AuthAPI.login(request: request)
       .subscribe { response in
         print(response)
-      }.disposed(by: bag)
-
+      }.disposed(by: disposeBag)
+    
     XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
-
+    
   }
   func testRx() throws {
-
+    
     let request = makeMockSignUpRequest()
-
+    
     AuthAPI.signUpRequest(request: request)
       .subscribe { response in
         print(response)
-      }.disposed(by: bag)
-
+      }.disposed(by: disposeBag)
+    
     XCTWaiter().wait(for: [XCTestExpectation()], timeout: 3)
   }
-
-  func testPerformanceExample() throws {
-    // This is an example of a performance test case.
-    self.measure {
-      // Put the code you want to measure the time of here.
-    }
-  }
+  
   func makeMockLoginRequest() -> LoginRequest {
     LoginRequest(phoneNumber: "01089192466",
                  deviceKey: 123)
   }
-
+  
   func makeMockSignUpRequest() -> SignUpRequest {
     SignUpRequest(
       phoneNumber: "01089192466",
@@ -90,5 +77,4 @@ final class FallingTest: XCTestCase {
       snsUniqueID: "snsUniqueId"
     )
   }
-
 }
