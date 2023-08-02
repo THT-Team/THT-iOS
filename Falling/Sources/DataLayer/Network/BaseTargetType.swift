@@ -11,16 +11,14 @@ import Moya
 protocol BaseTargetType: TargetType { }
 
 extension BaseTargetType {
-
-  // Protocol Default Implementation
   var baseURL: URL {
     return URL(string: "http://tht-talk.store/")!
   }
 
   var headers: [String: String]? {
-    if AppData.accessToken.isEmpty == false {
+    if let accessToken = Keychain.shared.get("accessToken") {
       return [
-        "Authorization": "Bearer \(AppData.accessToken)",
+        "Authorization": "Bearer \(accessToken)",
         "Content-Type": "application/json",
       ]
     } else {
