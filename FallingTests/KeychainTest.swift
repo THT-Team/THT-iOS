@@ -20,49 +20,50 @@ class KeychainTest: XCTestCase {
   
   // MARK: - Set
   func testSet() {
-    XCTAssertTrue(obj.set("Hello", forKey: "key 1"))
-    XCTAssertEqual("Hello", obj.get("key 1")!)
+    XCTAssertTrue(obj.set("Hello", forKey: .accessToken))
+    XCTAssertEqual("Hello", obj.get(.accessToken)!)
   }
   
   // MARK: - Get
   func testGet_returnNilWhenValueNotSet() {
-    XCTAssert(obj.get("key 1") == nil)
+    XCTAssert(obj.get(.accessToken) == nil)
   }
   
   // MARK: - Delete
   func testDelete() {
-    obj.set("Hello", forKey: "key 1")
-    obj.delete("key 1")
+    obj.set("Hello", forKey: .accessToken)
+    obj.delete(.accessToken)
     
-    XCTAssert(obj.get("key 1") == nil)
+    XCTAssert(obj.get(.accessToken) == nil)
   }
   
   func testDelete_deleteOnSingleKey() {
-    obj.set("Hello", forKey: "key 1")
-    obj.set("Hello!!", forKey: "key 2")
+    obj.set("Hello", forKey: .accessToken)
+    obj.set("Hello!!", forKey: .refreshToken)
     
-    obj.delete("key 1")
+    obj.delete(.accessToken)
     
-    XCTAssertEqual("Hello!!", obj.get("key 2")!)
+    XCTAssertEqual("Hello!!", obj.get(.refreshToken)!)
   }
   
   // MARK: - Clear
   func testClear() {
-    obj.set("Hello", forKey: "key 1")
-    obj.set("Hello!!", forKey: "key 2")
+    obj.set("Hello", forKey: .accessToken)
+    obj.set("Hello!!", forKey: .refreshToken)
     
     obj.clear()
     
-    XCTAssert(obj.get("key 1") == nil)
-    XCTAssert(obj.get("key 2") == nil)
+    XCTAssert(obj.get(.accessToken) == nil)
+    XCTAssert(obj.get(.refreshToken) == nil)
   }
   
+  // MARK: - Concurrency
   func testConcurrencyDoesntCrash() {
     let expectation = self.expectation(description: "Wait for write loop")
     let expectation2 = self.expectation(description: "Wait for write loop")
     
     let dataToWrite = "{ asdf ñlk BNALSKDJFÑLAKSJDFÑLKJ ZÑCLXKJ ÑALSKDFJÑLKASJDFÑLKJASDÑFLKJAÑSDLKFJÑLKJ}"
-    obj.set(dataToWrite, forKey: "test-key")
+    obj.set(dataToWrite, forKey: .accessToken)
     
     var writes = 0
     
@@ -70,7 +71,7 @@ class KeychainTest: XCTestCase {
     readQueue.async {
       for _ in 0..<400 {
         let _: String? = synchronize( { completion in
-          let result: String? = self.obj.get("test-key")
+          let result: String? = self.obj.get(.accessToken)
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
               completion(result)
@@ -83,7 +84,7 @@ class KeychainTest: XCTestCase {
     readQueue2.async {
       for _ in 0..<400 {
         let _: String? = synchronize( { completion in
-          let result: String? = self.obj.get("test-key")
+          let result: String? = self.obj.get(.accessToken)
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
               completion(result)
@@ -96,7 +97,7 @@ class KeychainTest: XCTestCase {
     readQueue3.async {
       for _ in 0..<400 {
         let _: String? = synchronize( { completion in
-          let result: String? = self.obj.get("test-key")
+          let result: String? = self.obj.get(.accessToken)
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
               completion(result)
@@ -110,7 +111,7 @@ class KeychainTest: XCTestCase {
     deleteQueue.async {
       for _ in 0..<400 {
         let _: Bool = synchronize( { completion in
-          let result = self.obj.delete("test-key")
+          let result = self.obj.delete(.accessToken)
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
               completion(result)
@@ -124,7 +125,7 @@ class KeychainTest: XCTestCase {
     deleteQueue2.async {
       for _ in 0..<400 {
         let _: Bool = synchronize( { completion in
-          let result = self.obj.delete("test-key")
+          let result = self.obj.delete(.accessToken)
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
               completion(result)
@@ -168,7 +169,7 @@ class KeychainTest: XCTestCase {
         let written: Bool = synchronize({ completion in
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
-              let result = self.obj.set(dataToWrite, forKey: "test-key")
+              let result = self.obj.set(dataToWrite, forKey: .accessToken)
               completion(result)
             }
           }
@@ -186,7 +187,7 @@ class KeychainTest: XCTestCase {
         let written: Bool = synchronize({ completion in
           DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(5)) {
-              let result = self.obj.set(dataToWrite, forKey: "test-key")
+              let result = self.obj.set(dataToWrite, forKey: .accessToken)
               completion(result)
             }
           }
@@ -199,8 +200,8 @@ class KeychainTest: XCTestCase {
     }
     
     for _ in 0..<1000 {
-      self.obj.set(dataToWrite, forKey: "test-key")
-      let _ = self.obj.get("test-key")
+      self.obj.set(dataToWrite, forKey: .accessToken)
+      let _ = self.obj.get(.accessToken)
     }
     self.waitForExpectations(timeout: 30, handler: nil)
     
