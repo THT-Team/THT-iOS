@@ -10,8 +10,8 @@ import UIKit
 
 extension UIFont {
 	static let thtH1R = FallingFontFamily.Pretendard.regular.font(size: 30)
-	static let thtH1M = FallingFontFamily.Pretendard.regular.font(size: 30)
-	static let thtH1Sb = FallingFontFamily.Pretendard.medium.font(size: 30)
+	static let thtH1M = FallingFontFamily.Pretendard.medium.font(size: 30)
+	static let thtH1Sb = FallingFontFamily.Pretendard.semiBold.font(size: 30)
 	static let thtH1B = FallingFontFamily.Pretendard.bold.font(size: 30)
 	static let thtH1Eb = FallingFontFamily.Pretendard.extraBold.font(size: 30)
 	
