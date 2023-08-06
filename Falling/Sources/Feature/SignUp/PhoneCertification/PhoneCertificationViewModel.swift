@@ -64,7 +64,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 			.compactMap { [weak self] in
 				try self?.phoneNum.value()
 			}
-			.flatMap { phoneNum -> Single<PhoneNumberValidationCodeResponse> in
+			.flatMap { phoneNum -> Single<PhoneValidationResponse> in
 //				AuthAPI.sendPhoneValidationCode(phoneNumber: phoneNum)
 				self.testApi(pNum: phoneNum)
 			}
@@ -91,9 +91,9 @@ final class PhoneCertificationViewModel: ViewModelType {
 
 // MARK: Test Code
 extension PhoneCertificationViewModel {
-	func testApi(pNum: String) -> Single<PhoneNumberValidationCodeResponse> {
-		return Single<PhoneNumberValidationCodeResponse>.just(
-			PhoneNumberValidationCodeResponse(phoneNumber: pNum, authNumber: 123456)
+	func testApi(pNum: String) -> Single<PhoneValidationResponse> {
+		return Single<PhoneValidationResponse>.just(
+			PhoneValidationResponse(phoneNumber: pNum, authNumber: 123456)
 		)
 	}
 }

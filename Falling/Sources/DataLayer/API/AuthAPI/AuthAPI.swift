@@ -32,15 +32,10 @@ final class AuthAPI: Networkable {
       .map(SignUpResponse.self)
   }
 
-	static func sendPhoneValidationCode(phoneNumber: String) -> Single<PhoneNumberValidationCodeResponse> {
+	static func sendPhoneValidationCode(phoneNumber: String) -> Single<PhoneValidationResponse> {
 		return moya.rx
 			.request(.phoneValidationCodeSend(phoneNumber: phoneNumber))
-			.map(PhoneNumberValidationCodeResponse.self)
+			.map(PhoneValidationResponse.self)
 	}
 	
-}
-
-struct PhoneNumberValidationCodeResponse: Codable {
-	let phoneNumber: String
-	let authNumber: Int
 }
