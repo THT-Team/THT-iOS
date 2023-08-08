@@ -34,7 +34,7 @@ final class SignUpRootViewModel: ViewModelType {
 		input.phoneBtn
 			.drive(onNext: { [weak self] in
 				guard let self else { return }
-				print("phone button")
+				navigator.toPhoenCertifiationView()
 			})
 			.disposed(by: disposeBag)
 		

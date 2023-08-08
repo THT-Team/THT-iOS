@@ -9,7 +9,7 @@ import Moya
 import Foundation
 
 enum AuthTarget {
-
+	case phoneValidationCodeSend(phoneNumber: String)
   case signup(request: SignUpRequest)
   case signup_sns
   case login(request: LoginRequest)
@@ -24,6 +24,8 @@ extension AuthTarget: BaseTargetType {
 
   var path: String {
     switch self {
+		case let .phoneValidationCodeSend(phoneNumber):
+			return "users/join/certification/phone-number/\(phoneNumber)"
     case .signup:
       return "users/join/signup"
     case .signup_sns:

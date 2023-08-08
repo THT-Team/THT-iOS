@@ -10,7 +10,7 @@ import UIKit
 import RxSwift
 import RxKeyboard
 
-final class SignUpRootViewController: UIViewController {
+final class SignUpRootViewController: TFBaseViewController {
 	private lazy var buttonStackView: UIStackView = UIStackView().then {
 		$0.axis = .vertical
 		$0.spacing = 16
@@ -30,8 +30,6 @@ final class SignUpRootViewController: UIViewController {
 	
 	private let viewModel: SignUpRootViewModel
 	
-	private lazy var disposeBag = DisposeBag()
-	
 	init(viewModel: SignUpRootViewModel) {
 		self.viewModel = viewModel
 		super.init(nibName: nil, bundle: nil)
@@ -39,12 +37,9 @@ final class SignUpRootViewController: UIViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		setUpView()
-		bindViewModel()
 	}
 	
-	func setUpView() {
-		self.view.backgroundColor = FallingAsset.Color.netural700.color
+	override func makeUI() {
 		view.addSubview(signitureImageView)
 		signitureImageView.snp.makeConstraints {
 			$0.centerX.equalToSuperview()
@@ -70,7 +65,7 @@ final class SignUpRootViewController: UIViewController {
 			}
 	}
 	
-	func bindViewModel() {
+	override func bindViewModel() {
 		let input = SignUpRootViewModel.Input(
 			phoneBtn: startPhoneBtn.rx.tap.asDriver(),
 			kakaoBtn: startKakaoButton.rx.tap.asDriver(),
@@ -89,3 +84,9 @@ final class SignUpRootViewController: UIViewController {
 		print("[Deinit]: \(self)")
 	}
 }
+
+//struct SignUpRootViewControllerPreview: PreviewProvider {
+//	static var previews: some View {
+//		SignUpRootViewController(viewModel: SignUpRootViewModel(navigator: SignUpNavigator(controller: UINavigationController()))).toPreView()
+//	}
+//}
