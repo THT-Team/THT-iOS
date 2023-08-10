@@ -28,7 +28,7 @@ final class SplashViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.view.backgroundColor = FallingAsset.Color.netural700.color
+		self.view.backgroundColor = FallingAsset.Color.neutral700.color
 		self.changeMainView()
 	}
 	

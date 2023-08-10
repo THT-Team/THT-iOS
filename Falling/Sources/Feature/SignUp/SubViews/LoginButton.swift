@@ -29,12 +29,12 @@ enum LoginButtonType {
 	var backGroundColor: UIColor {
 		switch self {
 		case .phone:
-			return FallingAsset.Color.netural900.color
+			return FallingAsset.Color.neutral900.color
 		case .kakao:
 			return .yellow
 //			return .kakaoPrimary
 		case .google:
-			return FallingAsset.Color.netural50.color
+			return FallingAsset.Color.neutral50.color
 		case .naver:
 			return .blue
 //			return .naverPrimary
@@ -44,9 +44,9 @@ enum LoginButtonType {
 	var titleColor: UIColor {
 		switch self {
 		case .phone, .naver:
-			return FallingAsset.Color.netural50.color
+			return FallingAsset.Color.neutral50.color
 		case .kakao, .google:
-			return FallingAsset.Color.netural900.color
+			return FallingAsset.Color.neutral900.color
 		}
 	}
 	

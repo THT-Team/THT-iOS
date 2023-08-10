@@ -38,8 +38,8 @@ final class TFTabBarController: UITabBarController {
   private func setAppearance() {
     let appearence = UITabBarAppearance()
 
-    appearence.backgroundColor = FallingAsset.Color.netural700.color
-    appearence.shadowColor = FallingAsset.Color.netural600.color
+    appearence.backgroundColor = FallingAsset.Color.neutral700.color
+    appearence.shadowColor = FallingAsset.Color.neutral600.color
     self.tabBar.isTranslucent = false
 
     setTabItemAppearence(appearence.stackedLayoutAppearance)
@@ -54,7 +54,7 @@ final class TFTabBarController: UITabBarController {
     ]
     itemAppearence.normal.titlePositionAdjustment.vertical = 10
     itemAppearence.selected.titleTextAttributes = [
-      .foregroundColor: FallingAsset.Color.netural50.color,
+      .foregroundColor: FallingAsset.Color.neutral50.color,
       .font: UIFont.thtCaption1M
     ]
 
