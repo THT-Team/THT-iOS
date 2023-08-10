@@ -73,7 +73,7 @@ final class BaseProjectFactory: ProjectFactory {
       "Item 3": "Pretendard-Bold.otf",
       "Item 4": "Pretendard-ExtraBold.otf"
     ],
-    "UIUserInterfaceStyle": "Light"
+    "UIUserInterfaceStyle": "Dark"
   ]
 
 
