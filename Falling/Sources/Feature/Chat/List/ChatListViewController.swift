@@ -41,7 +41,10 @@ final class ChatListViewController: TFBaseViewController {
     defaultNavigationSetting.shadowColor = nil
     navigationItem.standardAppearance = defaultNavigationSetting
     navigationItem.scrollEdgeAppearance = defaultNavigationSetting
+
     navigationItem.title = "채팅"
+    let noti = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
+    navigationItem.rightBarButtonItem = noti
   }
 
   private let emptyView = TFEmptyView(
