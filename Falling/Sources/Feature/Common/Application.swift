@@ -35,7 +35,7 @@ final class Application {
     fallingNavigationController.tabBarItem.imageInsets = .init(top: 5, left: 0, bottom: -5, right: 0)
 
     let heartNavigationController = UINavigationController()
-    //
+    let heartNavigator = HeartNavigator(controller: heartNavigationController)
     heartNavigationController.tabBarItem = UITabBarItem(
       title: "하트",
       image: FallingAsset.Image.heart.image.withRenderingMode(.alwaysOriginal),
@@ -71,7 +71,7 @@ final class Application {
       myPageNavigationController
     ]
     chatNavigator.toList()
-
+    heartNavigator.toList()
     return tabBarController
   }
 }
