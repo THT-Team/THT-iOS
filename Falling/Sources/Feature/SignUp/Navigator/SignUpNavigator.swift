@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxSwift
 
 final class SignUpNavigator {
 	let controller: UINavigationController
@@ -32,5 +33,14 @@ final class SignUpNavigator {
 		let viewController = PhoneValidationViewController(viewModel: viewModel)
 		
 		controller.pushViewController(viewController, animated: true)
+	}
+}
+
+extension SignUpNavigator: ReactiveCompatible { }
+extension Reactive where Base: SignUpNavigator {
+	var toPhoneValidationView: Binder<Int> {
+		return Binder(base.self) { navigator, code in
+			navigator.toPhoneValidationView(validationCode: code)
+		}
 	}
 }

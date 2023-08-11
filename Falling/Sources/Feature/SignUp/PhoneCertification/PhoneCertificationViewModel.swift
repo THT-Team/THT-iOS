@@ -9,20 +9,29 @@ import Foundation
 
 import RxSwift
 import RxCocoa
+import RxRelay
 
 final class PhoneCertificationViewModel: ViewModelType {
 	
 	var disposeBag = DisposeBag()
 	
+	enum viewType {
+		case phoneNumber
+		case authCode
+	}
+	
 	struct Input {
-		let phoneNum: Observable<String>
+		let phoneNum: Driver<String>
 		let clearBtn: Driver<Void>
-		let verifyBtn: Driver<Void>
+		let verifyBtn: Driver<String>
 	}
 	
 	struct Output {
-		let phoneNum: Observable<String>
-		let validate: Observable<Bool>
+		let phoneNum: Driver<String>
+		let validate: Driver<Bool>
+		let error: PublishRelay<Void>
+		let clearButtonTapped: Driver<String>
+		let viewStatus: Driver<viewType>
 	}
 	
 	private let navigator: SignUpNavigator
@@ -31,69 +40,82 @@ final class PhoneCertificationViewModel: ViewModelType {
 		self.navigator = navigator
 	}
 	
-	private let phoneNum = BehaviorSubject(value: "")
-	private let validate = BehaviorSubject(value: false)
-	
 	func transform(input: Input) -> Output {
-		input.phoneNum
-			.map { [weak self] phoneNum -> String in
-				guard let self else { return phoneNum }
-				if phoneNum.isEmpty { return phoneNum }
-				
-				if phoneNum.phoneNumValidation() {
-					self.validate.onNext(true)
-				} else {
-					self.validate.onNext(false)
-				}
-				
-				return phoneNum
-			}
-			.bind(to: phoneNum)
-			.disposed(by: disposeBag)
+		let error = PublishRelay<Void>()
 		
-		input.clearBtn
-			.drive(onNext: { [weak self] in
-				guard let self else { return }
-				self.phoneNum.onNext("")
-			})
-			.disposed(by: disposeBag)
+		let validate = input.phoneNum
+			.map { $0.phoneNumValidation() }
+			
+		let phoneNum = input.phoneNum
+			
+		let clearButtonTapped = input.clearBtn
+			.map { "" }.asDriver()
 		
-		input.verifyBtn
-			.throttle(.milliseconds(1500))
+//		input.verifyBtn
+//			.throttle(.milliseconds(1500), latest: false)
+//			.asObservable()
+//			.withUnretained(self)
+//			.flatMap { vm, phoneNum -> Observable<PhoneValidationResponse> in
+////				AuthAPI.sendPhoneValidationCode(phoneNumber: phoneNum)
+////					.asObservable()
+////					.catch { _ in
+////						error.accept(Void())
+////						return .empty()
+////					}
+//				vm.testApi(pNum: phoneNum).asObservable()
+//					.catch({ _ in
+//						error.accept(Void())
+//						return .empty()
+//					})
+//			}
+//			.map({ $0.authNumber })
+//			.bind(to: navigator.rx.toPhoneValidationView)
+//			.disposed(by: disposeBag)
+		
+	let viewStatus = input.verifyBtn
+			.throttle(.milliseconds(1500), latest: false)
 			.asObservable()
-			.compactMap { [weak self] in
-				try self?.phoneNum.value()
-			}
-			.flatMap { phoneNum -> Single<PhoneValidationResponse> in
+			.withUnretained(self)
+			.flatMap { vm, phoneNum -> Observable<PhoneValidationResponse> in
 //				AuthAPI.sendPhoneValidationCode(phoneNumber: phoneNum)
-				self.testApi(pNum: phoneNum)
+//					.asObservable()
+//					.catch { _ in
+//						error.accept(Void())
+//						return .empty()
+//					}
+				vm.testApi(pNum: phoneNum).asObservable()
+					.catch({ _ in
+						error.accept(Void())
+						return .empty()
+					})
 			}
-			.subscribe { [weak self] in
-				guard let self else { return }
-				switch $0 {
-				case .next(let res):
-					print(res)
-					self.navigator.toPhoneValidationView(validationCode: res.authNumber)
-				case let .error(err):
-					print(err)
-				case .completed:
-					print("complete")
-				}
-			}
-			.disposed(by: disposeBag)
+			.map({ _ in viewType.authCode })
+			.asDriver(onErrorJustReturn: .authCode)
 		
 		return Output(
 			phoneNum: phoneNum,
-			validate: validate
+		  validate: validate,
+			error: error,
+			clearButtonTapped: clearButtonTapped,
+			viewStatus: viewStatus
 		)
 	}
 }
 
 // MARK: Test Code
 extension PhoneCertificationViewModel {
-	func testApi(pNum: String) -> Single<PhoneValidationResponse> {
-		return Single<PhoneValidationResponse>.just(
-			PhoneValidationResponse(phoneNumber: pNum, authNumber: 123456)
-		)
+	func testApi(pNum: String) -> Observable<PhoneValidationResponse> {
+		return Single<PhoneValidationResponse>
+			.just(PhoneValidationResponse(phoneNumber: pNum, authNumber: 123456))
+			.asObservable()
+//		return Observable.create {
+//			$0.onError(MyError.testError)
+//
+//			return Disposables.create()
+//		}
 	}
+}
+
+enum MyError: Error {
+	case testError
 }
