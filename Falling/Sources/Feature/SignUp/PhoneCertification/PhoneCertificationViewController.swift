@@ -17,7 +17,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	private lazy var titleLabel: UILabel = UILabel().then {
 		$0.text = "핸드폰 번호 인증"
 		$0.font = .thtH1B
-		$0.textColor = FallingAsset.Color.netural50.color
+		$0.textColor = FallingAsset.Color.neutral50.color
 	}
 	
 	private lazy var phoneNumTextField: UITextField = UITextField().then {
@@ -34,25 +34,25 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	private lazy var divider: UIView = UIView().then {
-		$0.backgroundColor = FallingAsset.Color.netural300.color
+		$0.backgroundColor = FallingAsset.Color.neutral300.color
 	}
 	
 	private lazy var infoImageView: UIImageView = UIImageView().then {
 		$0.image = FallingAsset.Image.explain.image.withRenderingMode(.alwaysTemplate)
-		$0.tintColor = FallingAsset.Color.netural400.color
+		$0.tintColor = FallingAsset.Color.neutral400.color
 	}
 	
 	private lazy var descLabel: UILabel = UILabel().then {
 		$0.text = "핸드폰 번호 입력 시, 인증 코드를 문자 메세지로 발송합니다.\n핸드폰 번호는 다른 사람들에게 공유되거나 프로필에 표시하지 않습니다."
 		$0.font = .thtCaption1M
-		$0.textColor = FallingAsset.Color.netural400.color
+		$0.textColor = FallingAsset.Color.neutral400.color
 		$0.textAlignment = .left
 		$0.numberOfLines = 4
 	}
 	
 	private lazy var verifyBtn: UIButton = UIButton().then {
 		$0.setTitle("인증하기", for: .normal)
-		$0.setTitleColor(FallingAsset.Color.netural600.color, for: .normal)
+		$0.setTitleColor(FallingAsset.Color.neutral600.color, for: .normal)
 		$0.titleLabel?.font = .thtH5B
 		$0.backgroundColor = FallingAsset.Color.primary500.color
 		$0.layer.cornerRadius = 16

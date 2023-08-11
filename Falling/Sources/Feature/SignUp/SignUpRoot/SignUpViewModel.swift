@@ -33,8 +33,8 @@ final class SignUpRootViewModel: ViewModelType {
 	func transform(input: Input) -> Output {
 		input.phoneBtn
 			.drive(onNext: { [weak self] in
-				guard let self else { return }
-				navigator.toPhoenCertifiationView()
+				guard let self = self else { return }
+        self.navigator.toPhoenCertifiationView()
 			})
 			.disposed(by: disposeBag)
 		

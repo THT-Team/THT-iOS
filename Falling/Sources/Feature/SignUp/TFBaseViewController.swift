@@ -15,7 +15,7 @@ class TFBaseViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		view.backgroundColor = FallingAsset.Color.netural700.color
+		view.backgroundColor = FallingAsset.Color.neutral700.color
 		navigationSetting()
 		makeUI()
 		bindViewModel()
@@ -31,6 +31,6 @@ class TFBaseViewController: UIViewController {
 		navigationController?.navigationBar.topItem?.title = ""
 		navigationController?.navigationBar.backIndicatorImage = FallingAsset.Image.chevron.image
 		navigationController?.navigationBar.backIndicatorTransitionMaskImage = FallingAsset.Image.chevron.image
-		navigationController?.navigationBar.tintColor = FallingAsset.Color.netural50.color
+		navigationController?.navigationBar.tintColor = FallingAsset.Color.neutral50.color
 	}
 }
