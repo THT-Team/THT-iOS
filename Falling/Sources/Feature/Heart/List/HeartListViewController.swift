@@ -34,14 +34,6 @@ final class HeartListViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
 
-    let defaultNavigationSetting = UINavigationBarAppearance()
-    defaultNavigationSetting.titlePositionAdjustment.horizontal = -CGFloat.greatestFiniteMagnitude
-    defaultNavigationSetting.titleTextAttributes = [.font: UIFont.thtH4Sb, .foregroundColor: FallingAsset.Color.neutral50.color]
-    defaultNavigationSetting.backgroundColor = FallingAsset.Color.neutral700.color
-    defaultNavigationSetting.shadowColor = nil
-    navigationItem.standardAppearance = defaultNavigationSetting
-    navigationItem.scrollEdgeAppearance = defaultNavigationSetting
-
     navigationItem.title = "나를 좋아요한 무디"
     let noti = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
