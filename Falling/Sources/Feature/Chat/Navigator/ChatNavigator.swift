@@ -18,6 +18,12 @@ final class ChatNavigator {
 
   }
 
+  func toImageTest() {
+    let viewmodel = ImageTestViewModel(navigator: self)
+    let viewController = ImageTestViewController(viewModel: viewmodel)
+    self.controller.pushViewController(viewController, animated: true)
+  }
+
   func toList() {
     let viewModel = ChatListViewModel(navigator: self)
     let viewController = ChatListViewController(viewModel: viewModel)
