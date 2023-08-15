@@ -1,5 +1,5 @@
 //
-//  ChatListViewController.swift
+//  HeartListViewController.swift
 //  Falling
 //
 //  Created by Kanghos on 2023/07/11.
@@ -11,18 +11,18 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-final class ChatListViewController: TFBaseViewController {
+final class HeartListViewController: TFBaseViewController {
 
-  private let viewModel: ChatListViewModel
+  private let viewModel: HeartListViewModel
   private lazy var tableView: UITableView = {
-    let tableView = UITableView(frame: .zero, style: .plain)
-    tableView.register(cellType: ChatListTableViewCell.self)
+    let tableView = UITableView(frame: .zero, style: .grouped)
+    tableView.register(cellType: HeartListTableViewCell.self)
     tableView.backgroundColor = FallingAsset.Color.neutral700.color
-    tableView.rowHeight = 50 + (13 * 2)
+    tableView.rowHeight = 84 + (12 * 2)
     return tableView
   }()
 
-  init(viewModel: ChatListViewModel) {
+  init(viewModel: HeartListViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -34,14 +34,14 @@ final class ChatListViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
 
-    navigationItem.title = "채팅"
+    navigationItem.title = "나를 좋아요한 무디"
     let noti = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
   }
 
   private let emptyView = TFEmptyView(
-    image: FallingAsset.Bx.noMudy.image,
-    title: "진행 중인 대화가 없어요",
+    image: FallingAsset.Bx.noLike.image,
+    title: "아직 만난 무디가 없네요.",
     subTitle: "먼저 마음이 잘 맞는 무디들을 찾아볼까요?",
     buttonTitle: "무디들 만나러 가기"
   )
@@ -59,15 +59,15 @@ final class ChatListViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
-    let input = ChatListViewModel.Input(
+    let input = HeartListViewModel.Input(
 
     )
     Driver.just([1,2,3])
       .debug()
-      .drive(self.tableView.rx.items(cellIdentifier: ChatListTableViewCell.reuseIdentifier, cellType: ChatListTableViewCell.self)) { value, row, cell in
+      .drive(self.tableView.rx.items(cellIdentifier: HeartListTableViewCell.reuseIdentifier, cellType: HeartListTableViewCell.self)) { value, row, cell in
         cell.configure()
       }.disposed(by: self.disposeBag)
-    emptyView.isHidden = false
+    emptyView.isHidden = true
 
     let output = viewModel.transform(input: input)
 
@@ -76,8 +76,4 @@ final class ChatListViewController: TFBaseViewController {
   deinit {
     print("[Deinit]: \(self)")
   }
-}
-
-extension ChatListViewController: UITableViewDelegate {
-
 }
