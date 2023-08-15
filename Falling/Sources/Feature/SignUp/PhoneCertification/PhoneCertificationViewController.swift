@@ -16,7 +16,7 @@ import RxKeyboard
 final class PhoneCertificationViewController: TFBaseViewController {
 	
 	private lazy var phoneNumberInputeView = UIView().then {
-		$0.backgroundColor = FallingAsset.Color.netural700.color
+		$0.backgroundColor = FallingAsset.Color.neutral700.color
 	}
 
 	private lazy var titleLabel: UILabel = UILabel().then {
@@ -64,13 +64,13 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	private lazy var codeInputView = UIView().then {
-		$0.backgroundColor = FallingAsset.Color.netural700.color
+		$0.backgroundColor = FallingAsset.Color.neutral700.color
 	}
 	
 	private lazy var codeInputTitle = UILabel().then {
 		$0.text = "인증 코드 입력"
 		$0.font = .thtH1B
-		$0.textColor = FallingAsset.Color.netural50.color
+		$0.textColor = FallingAsset.Color.neutral50.color
 	}
 	
 	private let tapGesture = UITapGestureRecognizer()

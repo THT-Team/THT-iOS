@@ -65,7 +65,7 @@ final class BaseProjectFactory: ProjectFactory {
       ]
     ],
     "App Transport Security Settings": ["Allow Arbitrary Loads": true],
-    "Privacy - Photo Library Additions Usage Description": "프로필에 사용됨"
+    "Privacy - Photo Library Additions Usage Description": "프로필에 사용됨",
     "NSAppTransportSecurity": ["NSAllowsArbitraryLoads": true],
     "UIAppFonts": [
       "Item 0": "Pretendard-Medium.otf",
