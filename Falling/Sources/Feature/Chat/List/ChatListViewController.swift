@@ -45,6 +45,7 @@ final class ChatListViewController: TFBaseViewController {
     navigationItem.title = "채팅"
     let noti = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
+
   }
 
   private let emptyView = TFEmptyView(
@@ -76,6 +77,7 @@ final class ChatListViewController: TFBaseViewController {
       .drive(self.tableView.rx.items(cellIdentifier: ChatListTableViewCell.reuseIdentifier, cellType: ChatListTableViewCell.self)) { value, row, cell in
         cell.configure()
       }.disposed(by: self.disposeBag)
+
     emptyView.isHidden = true
 
     let output = viewModel.transform(input: input)
