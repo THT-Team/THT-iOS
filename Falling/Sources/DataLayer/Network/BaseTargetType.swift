@@ -16,7 +16,7 @@ extension BaseTargetType {
   }
 
   var headers: [String: String]? {
-    if let accessToken = Keychain.shared.get("accessToken") {
+    if let accessToken = Keychain.shared.get(.accessToken) {
       return [
         "Authorization": "Bearer \(accessToken)",
         "Content-Type": "application/json",
