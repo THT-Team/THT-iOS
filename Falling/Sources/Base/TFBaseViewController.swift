@@ -32,5 +32,13 @@ class TFBaseViewController: UIViewController {
 		navigationController?.navigationBar.backIndicatorImage = FallingAsset.Image.chevron.image
 		navigationController?.navigationBar.backIndicatorTransitionMaskImage = FallingAsset.Image.chevron.image
 		navigationController?.navigationBar.tintColor = FallingAsset.Color.neutral50.color
+    
+    let navBarAppearance = UINavigationBarAppearance()
+    navBarAppearance.titlePositionAdjustment.horizontal = -CGFloat.greatestFiniteMagnitude
+    navBarAppearance.titleTextAttributes = [.font: UIFont.thtH4Sb, .foregroundColor: FallingAsset.Color.neutral50.color]
+    navBarAppearance.backgroundColor = FallingAsset.Color.neutral700.color
+    navBarAppearance.shadowColor = nil
+    navigationItem.standardAppearance = navBarAppearance
+    navigationItem.scrollEdgeAppearance = navBarAppearance
 	}
 }
