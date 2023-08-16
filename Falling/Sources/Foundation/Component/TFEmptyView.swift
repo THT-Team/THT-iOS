@@ -20,7 +20,7 @@ class TFEmptyView: UIView {
     return cardView
   }()
 
-  private lazy var button: WhiteStrokeMediumButton = {
+  lazy var button: WhiteStrokeMediumButton = {
     let button = WhiteStrokeMediumButton(title: buttonTitle)
 
     return button

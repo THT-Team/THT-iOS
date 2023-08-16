@@ -8,6 +8,11 @@
 import Security
 import Foundation
 
+enum TokenType: String {
+  case accessToken
+  case refreshToken
+}
+
 final class Keychain {
   private let lock: NSLock = NSLock() // 멀티 스레드 환경에서 객체의 멤버에 동시 접근 방지
   private var lastResultCode: OSStatus = noErr
@@ -17,7 +22,7 @@ final class Keychain {
   private init() { }
   
   @discardableResult
-  func set(_ value: String, forKey key: String) -> Bool {
+  func set(_ value: String, forKey key: TokenType) -> Bool {
     if let value = value.data(using: String.Encoding.utf8) {
       return set(value, forKey: key)
     }
@@ -26,13 +31,13 @@ final class Keychain {
   }
   
   @discardableResult
-  func set(_ value: Data, forKey key: String) -> Bool {
+  func set(_ value: Data, forKey key: TokenType) -> Bool {
     lock.lock()
     defer { lock.unlock() }
     
     let keyChainQuery: NSDictionary = [
       kSecClass : kSecClassGenericPassword,
-      kSecAttrAccount: key,
+      kSecAttrAccount: key.rawValue,
       kSecValueData: value
     ]
     
@@ -42,7 +47,7 @@ final class Keychain {
     return lastResultCode == noErr
   }
   
-  func get(_ key: String) -> String? {
+  func get(_ key: TokenType) -> String? {
     if let data = getData(key) {
       if let currentString = String(data: data, encoding: .utf8) {
         return currentString
@@ -54,13 +59,13 @@ final class Keychain {
     return nil
   }
   
-  func getData(_ key: String) -> Data? {
+  func getData(_ key: TokenType) -> Data? {
     lock.lock()
     defer { lock.unlock() }
     
     let query: NSDictionary = [
       kSecClass: kSecClassGenericPassword,
-      kSecAttrAccount: key,
+      kSecAttrAccount: key.rawValue,
       kSecReturnData: kCFBooleanTrue as Any,
       kSecMatchLimit: kSecMatchLimitOne
     ]
@@ -77,7 +82,7 @@ final class Keychain {
   }
   
   @discardableResult
-  func delete(_ key: String) -> Bool {
+  func delete(_ key: TokenType) -> Bool {
     lock.lock()
     defer { lock.unlock() }
     
@@ -85,10 +90,10 @@ final class Keychain {
   }
   
   @discardableResult
-  func deleteNolock(_ key: String) -> Bool {
+  func deleteNolock(_ key: TokenType) -> Bool {
     let keyChainQuery: NSDictionary = [
       kSecClass: kSecClassGenericPassword,
-      kSecAttrAccount: key
+      kSecAttrAccount: key.rawValue
     ]
     
     lastResultCode = SecItemDelete(keyChainQuery)

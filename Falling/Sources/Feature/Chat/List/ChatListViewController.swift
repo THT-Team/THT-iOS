@@ -59,18 +59,22 @@ final class ChatListViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
+    let selected = self.tableView.rx.itemSelected.map { $0.item }.asDriver(onErrorJustReturn: 0)
     let input = ChatListViewModel.Input(
-
+      selectedRoom: selected
     )
     Driver.just([1,2,3])
       .debug()
       .drive(self.tableView.rx.items(cellIdentifier: ChatListTableViewCell.reuseIdentifier, cellType: ChatListTableViewCell.self)) { value, row, cell in
         cell.configure()
       }.disposed(by: self.disposeBag)
-    emptyView.isHidden = false
+
+    emptyView.isHidden = true
 
     let output = viewModel.transform(input: input)
-
+    output.toRoom
+      .drive()
+      .disposed(by: disposeBag)
   }
 
   deinit {

@@ -14,6 +14,11 @@ import RxSwift
 import RxKeyboard
 
 final class PhoneCertificationViewController: TFBaseViewController {
+	
+	private lazy var phoneNumberInputeView = UIView().then {
+		$0.backgroundColor = FallingAsset.Color.neutral700.color
+	}
+
 	private lazy var titleLabel: UILabel = UILabel().then {
 		$0.text = "핸드폰 번호 인증"
 		$0.font = .thtH1B
@@ -58,6 +63,16 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		$0.layer.cornerRadius = 16
 	}
 	
+	private lazy var codeInputView = UIView().then {
+		$0.backgroundColor = FallingAsset.Color.neutral700.color
+	}
+	
+	private lazy var codeInputTitle = UILabel().then {
+		$0.text = "인증 코드 입력"
+		$0.font = .thtH1B
+		$0.textColor = FallingAsset.Color.neutral50.color
+	}
+	
 	private let tapGesture = UITapGestureRecognizer()
 	
 	private let viewModel: PhoneCertificationViewModel
@@ -72,27 +87,44 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	override func makeUI() {
-		[titleLabel, phoneNumTextField, clearBtn, divider, infoImageView, descLabel, verifyBtn].forEach {
+		[phoneNumberInputeView, codeInputView].forEach {
 			view.addSubview($0)
+			$0.addGestureRecognizer(tapGesture)
 		}
 		
-		view.addGestureRecognizer(tapGesture)
+		[titleLabel, phoneNumTextField, clearBtn, divider, infoImageView, descLabel, verifyBtn].forEach {
+			phoneNumberInputeView.addSubview($0)
+		}
 		
+		[codeInputTitle].forEach { codeInputView.addSubview($0) }
+		
+//		view.addGestureRecognizer(tapGesture)
+		phoneNumberInputeView.snp.makeConstraints {
+			$0.top.bottom.equalTo(view.safeAreaLayoutGuide)
+			$0.leading.trailing.equalToSuperview()
+		}
+		
+		codeInputView.snp.makeConstraints {
+			$0.top.bottom.equalTo(view.safeAreaLayoutGuide)
+			$0.leading.trailing.equalToSuperview()
+		}
+		
+				
 		titleLabel.snp.makeConstraints {
-			$0.top.equalTo(view.safeAreaLayoutGuide).inset(view.frame.height * 0.09)
-			$0.leading.equalTo(view.safeAreaLayoutGuide).inset(38)
+			$0.top.equalToSuperview().inset(view.frame.height * 0.09)
+			$0.leading.equalToSuperview().inset(38)
 		}
 		
 		phoneNumTextField.snp.makeConstraints {
 			$0.top.equalTo(titleLabel.snp.bottom).offset(32)
-			$0.leading.equalTo(view.safeAreaLayoutGuide).inset(38)
+			$0.leading.equalToSuperview().inset(38)
 			$0.trailing.equalTo(clearBtn.snp.trailing)
 		}
 		
 		clearBtn.snp.makeConstraints {
 			$0.centerY.equalTo(phoneNumTextField.snp.centerY)
 			$0.width.height.equalTo(24)
-			$0.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
+			$0.trailing.equalToSuperview().inset(38)
 		}
 		
 		divider.snp.makeConstraints {
@@ -111,13 +143,18 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		descLabel.snp.makeConstraints {
 			$0.leading.equalTo(infoImageView.snp.trailing).offset(6)
 			$0.top.equalTo(divider.snp.bottom).offset(16)
-			$0.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
+			$0.trailing.equalToSuperview().inset(38)
 		}
 		
 		verifyBtn.snp.makeConstraints {
-			$0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-			$0.bottom.equalTo(view.safeAreaLayoutGuide)
+			$0.leading.trailing.equalToSuperview().inset(38)
+			$0.bottom.equalToSuperview()
 			$0.height.equalTo(54)
+		}
+		
+		codeInputTitle.snp.makeConstraints {
+			$0.top.equalToSuperview().inset(view.frame.height * 0.09)
+			$0.leading.equalToSuperview().inset(38)
 		}
 	}
 	
@@ -133,27 +170,55 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	
 	override func bindViewModel() {
 		let input = PhoneCertificationViewModel.Input(
-			phoneNum: phoneNumTextField.rx.text.orEmpty.asObservable(),
+			phoneNum: phoneNumTextField.rx.text.orEmpty.asDriver(),
 			clearBtn: clearBtn.rx.tap.asDriver(),
-			verifyBtn: verifyBtn.rx.tap.asDriver()
+			verifyBtn: verifyBtn.rx.tap.withLatestFrom(phoneNumTextField.rx.text.orEmpty).asDriver(onErrorJustReturn: "")
 		)
 		
 		let output = viewModel.transform(input: input)
 		
-		output.phoneNum.bind(to: phoneNumTextField.rx.text).disposed(by: disposeBag)
+		output.phoneNum
+			.drive(phoneNumTextField.rx.text)
+			.disposed(by: disposeBag)
 		
-		output.validate.subscribe(
-			onNext: { [weak self] result in
-				guard let self else { return }
-				self.verifyBtn.isEnabled = result
-				if result {
-					self.verifyBtn.backgroundColor = FallingAsset.Color.primary500.color
-				} else {
-					self.verifyBtn.backgroundColor = FallingAsset.Color.disabled.color
-				}
-			}
-		)
-		.disposed(by: disposeBag)
+//		let validate = output.validate.publish()
+//
+		output.validate
+			.filter { $0 == true }
+			.map { _ in FallingAsset.Color.primary500.color }
+			.drive(verifyBtn.rx.backgroundColor)
+			.disposed(by: disposeBag)
+
+		output.validate
+			.filter { $0 == false }
+			.map { _ in FallingAsset.Color.disabled.color }
+			.drive(verifyBtn.rx.backgroundColor)
+			.disposed(by: disposeBag)
+//
+//		validate.connect().disposed(by: disposeBag)
+		
+		output.error
+			.asSignal()
+			.emit {
+				print($0)
+			}.disposed(by: disposeBag)
+		
+		output.clearButtonTapped
+			.drive(phoneNumTextField.rx.text)
+			.disposed(by: disposeBag)
+		
+		output.viewStatus
+			.debug()
+			.map { $0 != .phoneNumber }
+			.drive(phoneNumberInputeView.rx.isHidden)
+			.disposed(by: disposeBag)
+
+		output.viewStatus
+			.debug()
+			.map { $0 != .authCode }
+			.drive(codeInputView.rx.isHidden)
+			.disposed(by: disposeBag)
+			
 	}
 	
 	func keyBoardSetting() {

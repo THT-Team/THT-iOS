@@ -12,11 +12,11 @@ import RxCocoa
 
 final class ChatListViewModel: ViewModelType {
   struct Input {
-    
+    let selectedRoom: Driver<Int>
   }
 
   struct Output {
-
+    let toRoom: Driver<Void>
   }
 
   private let navigator: ChatNavigator
@@ -28,9 +28,12 @@ final class ChatListViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
 
   func transform(input: Input) -> Output {
-   
-
-    return Output()
+    let selected = input.selectedRoom
+    let toRoom = selected
+      .do(onNext: { [weak self] index in
+        self?.navigator.toImageTest()
+      }).map { _ in }
+    return Output(toRoom: toRoom)
 
   }
 }
