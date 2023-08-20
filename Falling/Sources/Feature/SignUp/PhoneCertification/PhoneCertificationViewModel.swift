@@ -132,12 +132,12 @@ final class PhoneCertificationViewModel: ViewModelType {
 		let timerLabelColor = timer
 			.map { vm, _ in
 				if vm.isAvailableCode(vm.authNumber.timeStamp) {
-					return FallingAsset.Color.netural50
+					return FallingAsset.Color.neutral50
 				} else {
 					return FallingAsset.Color.error
 				}
 			}
-			.asDriver(onErrorJustReturn: FallingAsset.Color.netural50)
+			.asDriver(onErrorJustReturn: FallingAsset.Color.neutral50)
 		
 		input.finishAnimationTrigger
 			.debug()

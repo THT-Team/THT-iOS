@@ -77,13 +77,13 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	private lazy var codeInputDescLabel = UILabel().then {
 		$0.numberOfLines = 2
 		$0.font = .thtSubTitle1R
-		$0.textColor = FallingAsset.Color.netural400.color
+		$0.textColor = FallingAsset.Color.neutral400.color
 	}
 	
 	private lazy var timerLabel = UILabel().then {
 		$0.text = "00:00"
 		$0.font = .thtSubTitle1R
-		$0.textColor = FallingAsset.Color.netural50.color
+		$0.textColor = FallingAsset.Color.neutral50.color
 	}
 	
 	private lazy var codeInputTextField = UITextField().then {
@@ -93,7 +93,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	private lazy var codeInputUnderLine = UIView().then {
-		$0.backgroundColor = FallingAsset.Color.netural300.color
+		$0.backgroundColor = FallingAsset.Color.neutral300.color
 	}
 	
 	private lazy var codeInputErrDesc = UILabel().then {

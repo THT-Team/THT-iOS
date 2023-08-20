@@ -15,14 +15,14 @@ final class SuccessCertificationView: UIView {
 	
 	private lazy var backCardView = UIView().then {
 		$0.layer.cornerRadius = 12
-		$0.backgroundColor = FallingAsset.Color.netural600.color
+		$0.backgroundColor = FallingAsset.Color.neutral600.color
 	}
 	
 	private lazy var animationView = LottieAnimationView(animation: AnimationAsset.authSuccess.animation)
 	
 	private lazy var titleLabel = UILabel().then {
 		$0.font = .thtH2B
-		$0.textColor = FallingAsset.Color.netural50.color
+		$0.textColor = FallingAsset.Color.neutral50.color
 		$0.text = "핸드폰 번호 인증 완료"
 	}
 	

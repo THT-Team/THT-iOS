@@ -27,11 +27,11 @@ final class TFTextButton: UIButton {
 																	range: NSRange(location: 0, length: title.count))
 	
 		attributedString.addAttribute(.underlineColor,
-																	value: FallingAsset.Color.netural400.color,
+																	value: FallingAsset.Color.neutral400.color,
 																	range: NSRange(location: 0, length: title.count))
 		
 		attributedString.addAttribute(.foregroundColor,
-																	value: FallingAsset.Color.netural400.color,
+																	value: FallingAsset.Color.neutral400.color,
 																	range: NSRange(location: 0, length: title.count))
 		
 		setAttributedTitle(attributedString, for: .normal)
