@@ -1,5 +1,5 @@
 //
-//  PhoneValidationViewController.swift
+//  EmailInputViewController.swift
 //  Falling
 //
 //  Created by Hoo's MacBookPro on 2023/08/06.
@@ -13,11 +13,11 @@ import RxKeyboard
 import Then
 import SnapKit
 
-class PhoneValidationViewController: TFBaseViewController {
+class EmailInputViewController: TFBaseViewController {
 		
-	private let viewModel: PhoneValidationViewModel
+	private let viewModel: EmailInputViewModel
 	
-	init(viewModel: PhoneValidationViewModel) {
+	init(viewModel: EmailInputViewModel) {
 		self.viewModel = viewModel
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -36,7 +36,7 @@ class PhoneValidationViewController: TFBaseViewController {
 	}
 	
 	override func bindViewModel() {
-		let input = PhoneValidationViewModel.Input()
+		let input = EmailInputViewModel.Input()
 		let output = viewModel.transform(input: input)
 		
 		

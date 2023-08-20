@@ -1,5 +1,5 @@
 //
-//  PhoneValidationViewModel.swift
+//  EmailInputViewModel.swift
 //  Falling
 //
 //  Created by Hoo's MacBookPro on 2023/08/06.
@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-final class PhoneValidationViewModel: ViewModelType {
+final class EmailInputViewModel: ViewModelType {
 	
 	
 	init() { }

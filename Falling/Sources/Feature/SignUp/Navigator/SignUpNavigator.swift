@@ -29,8 +29,8 @@ final class SignUpNavigator {
 	}
 	
 	func toPhoneValidationView() {
-		let viewModel = PhoneValidationViewModel()
-		let viewController = PhoneValidationViewController(viewModel: viewModel)
+		let viewModel = EmailInputViewModel()
+		let viewController = EmailInputViewController(viewModel: viewModel)
 		
 		controller.pushViewController(viewController, animated: true)
 	}
