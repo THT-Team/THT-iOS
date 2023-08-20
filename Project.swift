@@ -46,6 +46,7 @@ final class BaseProjectFactory: ProjectFactory {
     .external(name: "Moya"),
     .external(name: "RxMoya"),
     .external(name: "FirebaseStorage"),
+		.external(name: "RxGesture")
   ]
 
   let infoPlist: [String: InfoPlist.Value] = [

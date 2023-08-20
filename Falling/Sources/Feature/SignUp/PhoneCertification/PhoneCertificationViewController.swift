@@ -12,6 +12,7 @@ import Then
 import RxCocoa
 import RxSwift
 import RxKeyboard
+import RxGesture
 
 final class PhoneCertificationViewController: TFBaseViewController {
 	
@@ -73,6 +74,41 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		$0.textColor = FallingAsset.Color.neutral50.color
 	}
 	
+	private lazy var codeInputDescLabel = UILabel().then {
+		$0.numberOfLines = 2
+		$0.font = .thtSubTitle1R
+		$0.textColor = FallingAsset.Color.netural400.color
+	}
+	
+	private lazy var timerLabel = UILabel().then {
+		$0.text = "00:00"
+		$0.font = .thtSubTitle1R
+		$0.textColor = FallingAsset.Color.netural50.color
+	}
+	
+	private lazy var codeInputTextField = UITextField().then {
+		$0.font = .thtH1B
+		$0.textColor = FallingAsset.Color.primary500.color
+		$0.keyboardType = .numberPad
+	}
+	
+	private lazy var codeInputUnderLine = UIView().then {
+		$0.backgroundColor = FallingAsset.Color.netural300.color
+	}
+	
+	private lazy var codeInputErrDesc = UILabel().then {
+		$0.isHidden = true
+		$0.font = .thtCaption1R
+		$0.text = "인증 코드를 다시 확인 해 주세요."
+		$0.textColor = FallingAsset.Color.error.color
+	}
+	
+	private lazy var resendButton = TFTextButton(title: "인증 코드 다시 받기")
+	
+	private lazy var successPopup = SuccessCertificationView().then {
+		$0.isHidden = true
+	}
+	
 	private let tapGesture = UITapGestureRecognizer()
 	
 	private let viewModel: PhoneCertificationViewModel
@@ -87,7 +123,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	override func makeUI() {
-		[phoneNumberInputeView, codeInputView].forEach {
+		[phoneNumberInputeView, codeInputView, successPopup].forEach {
 			view.addSubview($0)
 			$0.addGestureRecognizer(tapGesture)
 		}
@@ -96,9 +132,11 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			phoneNumberInputeView.addSubview($0)
 		}
 		
-		[codeInputTitle].forEach { codeInputView.addSubview($0) }
+		[codeInputTitle, codeInputDescLabel,
+		 timerLabel, codeInputTextField,
+		 codeInputUnderLine, resendButton, codeInputErrDesc]
+			.forEach { codeInputView.addSubview($0) }
 		
-//		view.addGestureRecognizer(tapGesture)
 		phoneNumberInputeView.snp.makeConstraints {
 			$0.top.bottom.equalTo(view.safeAreaLayoutGuide)
 			$0.leading.trailing.equalToSuperview()
@@ -108,8 +146,11 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			$0.top.bottom.equalTo(view.safeAreaLayoutGuide)
 			$0.leading.trailing.equalToSuperview()
 		}
-		
 				
+		successPopup.snp.makeConstraints {
+			$0.edges.equalToSuperview()
+		}
+		
 		titleLabel.snp.makeConstraints {
 			$0.top.equalToSuperview().inset(view.frame.height * 0.09)
 			$0.leading.equalToSuperview().inset(38)
@@ -156,6 +197,39 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			$0.top.equalToSuperview().inset(view.frame.height * 0.09)
 			$0.leading.equalToSuperview().inset(38)
 		}
+		
+		codeInputDescLabel.snp.makeConstraints {
+			$0.leading.equalToSuperview().inset(38)
+			$0.top.equalTo(codeInputTitle.snp.bottom).offset(18)
+		}
+	
+		timerLabel.snp.makeConstraints {
+			$0.trailing.equalToSuperview().inset(38)
+			$0.bottom.equalTo(codeInputDescLabel.snp.bottom)
+		}
+		
+		codeInputTextField.snp.makeConstraints {
+			$0.leading.trailing.equalToSuperview().inset(38)
+			$0.top.equalTo(codeInputDescLabel.snp.bottom).offset(33)
+			$0.height.equalTo(40)
+		}
+		
+		codeInputUnderLine.snp.makeConstraints {
+			$0.leading.trailing.equalToSuperview().inset(38)
+			$0.top.equalTo(codeInputTextField.snp.bottom)
+			$0.height.equalTo(2)
+		}
+		
+		resendButton.snp.makeConstraints {
+			$0.top.equalTo(codeInputUnderLine.snp.bottom).offset(24)
+			$0.leading.equalToSuperview().inset(38)
+		}
+		
+		codeInputErrDesc.snp.makeConstraints {
+			$0.top.equalTo(codeInputUnderLine.snp.bottom).offset(6)
+			$0.leading.equalToSuperview().inset(38)
+		}
+		
 	}
 	
 	override func viewDidLoad() {
@@ -169,10 +243,20 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	}
 	
 	override func bindViewModel() {
+		let viewWillAppear = rx.sentMessage(#selector(UIViewController.viewWillAppear(_:)))
+			.map { _ in () }
+			.asDriver(onErrorJustReturn: ())
+		
+		let finishAnimationTrigger = PublishSubject<Void>()
+		
 		let input = PhoneCertificationViewModel.Input(
+			viewWillAppear: viewWillAppear,
 			phoneNum: phoneNumTextField.rx.text.orEmpty.asDriver(),
 			clearBtn: clearBtn.rx.tap.asDriver(),
-			verifyBtn: verifyBtn.rx.tap.withLatestFrom(phoneNumTextField.rx.text.orEmpty).asDriver(onErrorJustReturn: "")
+			verifyBtn: verifyBtn.rx.tap.withLatestFrom(phoneNumTextField.rx.text.orEmpty)
+				.asDriver(onErrorJustReturn: ""),
+			codeInput: codeInputTextField.rx.text.orEmpty.asDriver(),
+			finishAnimationTrigger: finishAnimationTrigger.asDriver(onErrorJustReturn: ())
 		)
 		
 		let output = viewModel.transform(input: input)
@@ -181,8 +265,11 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.drive(phoneNumTextField.rx.text)
 			.disposed(by: disposeBag)
 		
-//		let validate = output.validate.publish()
-//
+		output.phoneNum
+			.map { $0 + "으로\n전송된 코드를 입력해주세요."}
+			.drive(codeInputDescLabel.rx.text)
+			.disposed(by: disposeBag)
+		
 		output.validate
 			.filter { $0 == true }
 			.map { _ in FallingAsset.Color.primary500.color }
@@ -194,8 +281,11 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.map { _ in FallingAsset.Color.disabled.color }
 			.drive(verifyBtn.rx.backgroundColor)
 			.disposed(by: disposeBag)
-//
-//		validate.connect().disposed(by: disposeBag)
+		
+		output.validate
+			.map { $0 == true }
+			.drive(verifyBtn.rx.isEnabled)
+			.disposed(by: disposeBag)
 		
 		output.error
 			.asSignal()
@@ -208,17 +298,62 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.disposed(by: disposeBag)
 		
 		output.viewStatus
-			.debug()
 			.map { $0 != .phoneNumber }
 			.drive(phoneNumberInputeView.rx.isHidden)
 			.disposed(by: disposeBag)
 
 		output.viewStatus
-			.debug()
 			.map { $0 != .authCode }
 			.drive(codeInputView.rx.isHidden)
 			.disposed(by: disposeBag)
 			
+		output.viewStatus
+			.map { $0 != .phoneNumber }
+			.drive(onNext: { [weak self] in
+				guard let self else { return }
+				if $0 {
+					self.codeInputTextField.becomeFirstResponder()
+				}
+			})
+			.disposed(by: disposeBag)
+
+		output.certificateSuccess
+			.map { !$0 }
+			.drive(onNext: { [weak self] isSuccess in
+				guard let self else { return }
+				self.successPopup.isHidden = isSuccess
+				self.successPopup.animationPlay {
+					finishAnimationTrigger.onNext(Void())
+				}
+			})
+			.disposed(by: disposeBag)
+
+		output.certificateSuccess
+			.asObservable()
+			.observe(on: MainScheduler.asyncInstance)
+			.subscribe(onNext: { [weak self] _ in
+				guard let self else { return }
+				view.endEditing(true)
+			})
+			.disposed(by: disposeBag)
+			
+		output.certificateFailuer
+			.map { _ in FallingAsset.Color.error.color }
+			.drive(codeInputUnderLine.rx.backgroundColor)
+			.disposed(by: disposeBag)
+		
+		output.certificateFailuer
+			.drive(codeInputErrDesc.rx.isHidden)
+			.disposed(by: disposeBag)
+		
+		output.timeStampLabel
+			.drive(timerLabel.rx.text)
+			.disposed(by: disposeBag)
+		
+		output.timeLabelTextColor
+			.map { return $0.color }
+			.drive(timerLabel.rx.textColor)
+			.disposed(by: disposeBag)
 	}
 	
 	func keyBoardSetting() {
@@ -234,7 +369,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.drive(onNext: { [weak self] keyboardHeight in
 				guard let self else { return }
 				self.verifyBtn.snp.updateConstraints {
-					$0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight)
+					$0.bottom.equalToSuperview().inset(keyboardHeight)
 				}
 			})
 			.disposed(by: disposeBag)

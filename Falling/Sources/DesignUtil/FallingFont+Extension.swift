@@ -7,6 +7,11 @@
 //
 
 import UIKit
+// Regular : weight = 400
+// Meduim : weight = 500
+// SemiBold : weight = 600
+// Bodl : weight = 700
+// ExtraBold : weight = 800
 
 extension UIFont {
 	static let thtH1R = FallingFontFamily.Pretendard.regular.font(size: 30)

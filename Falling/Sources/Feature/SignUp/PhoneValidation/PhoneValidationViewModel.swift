@@ -12,13 +12,8 @@ import RxCocoa
 
 final class PhoneValidationViewModel: ViewModelType {
 	
-	private let validationCode: Int
 	
-	init(
-		validationCode: Int
-	) {
-		self.validationCode = validationCode
-	}
+	init() { }
 	
 	var disposeBag = DisposeBag()
 	
@@ -27,10 +22,10 @@ final class PhoneValidationViewModel: ViewModelType {
 	}
 	
 	struct Output {
-		let validationCode: Observable<String>
+		
 	}
 	
 	func transform(input: Input) -> Output {
-		return Output(validationCode: Observable.just("\(validationCode)"))
+		return Output()
 	}
 }
