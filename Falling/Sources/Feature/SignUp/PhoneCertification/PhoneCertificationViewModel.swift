@@ -23,10 +23,21 @@ final class PhoneCertificationViewModel: ViewModelType {
 	struct AuthCodeWithTimeStamp {
 		let authCode: Int
 		let timeStamp = Date.now
-		
+    var timeString: String {
+      let timeInterval = timeStamp.timeIntervalSinceNow
+      let min = abs(Int(timeInterval.truncatingRemainder(dividingBy: 3600)) / 60)
+      let sec = abs(Int(timeInterval.truncatingRemainder(dividingBy: 60)))
+      return String(format: "%02d:%02d", min, sec)
+    }
 		init(authCode: Int) {
 			self.authCode = authCode
 		}
+
+    func isAvailableCode() -> Bool {
+      let timeInterval = timeStamp.timeIntervalSinceNow
+      let sec = Int(timeInterval)
+      return abs(sec) <= 180
+    }
 	}
 	
 	struct Input {
@@ -50,9 +61,6 @@ final class PhoneCertificationViewModel: ViewModelType {
 		let timeLabelTextColor: Driver<FallingColors>
 	}
 	
-	private var authNumber: AuthCodeWithTimeStamp = AuthCodeWithTimeStamp(authCode: 0)
-	private var timerRealy = BehaviorRelay(value: 0)
-	private var viewType: ViewType = .phoneNumber
 	private let navigator: SignUpNavigator
 	
 	init(navigator: SignUpNavigator) {
@@ -62,10 +70,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 	func transform(input: Input) -> Output {
 		
 		let error = PublishRelay<Void>()
-
-		let viewInit = input.viewWillAppear
-			.map { ViewType.phoneNumber }
-			.asDriver()
+    let viewType = BehaviorSubject<ViewType>(value: .authCode)
 		
 		let validate = input.phoneNum
 			.map { $0.phoneNumValidation() }
@@ -77,9 +82,9 @@ final class PhoneCertificationViewModel: ViewModelType {
 		
 		let verifyButtonTapped = input.verifyBtn
 			.throttle(.milliseconds(1500), latest: false)
-			.asObservable()
+      .asObservable()
 			.withUnretained(self)
-			.flatMap { vm, phoneNum -> Observable<PhoneValidationResponse> in
+			.flatMap { vm, phoneNum in
 //				AuthAPI.sendPhoneValidationCode(phoneNumber: phoneNum)
 //					.asObservable()
 //					.catch { _ in
@@ -91,52 +96,52 @@ final class PhoneCertificationViewModel: ViewModelType {
 						error.accept(Void())
 						return .empty()
 					})
-			}
-			.withUnretained(self)
-			.map { vm, res in
-				vm.authNumber = AuthCodeWithTimeStamp(authCode: res.authNumber)
-				vm.viewType = .authCode
-				return Void()
-			}
-			.map({ _ in ViewType.authCode })
-			.asDriver(onErrorJustReturn: .authCode)
+      }.asDriver(onErrorDriveWith: Driver<PhoneValidationResponse>.empty())
+
+    let authNumber = verifyButtonTapped
+      .map { AuthCodeWithTimeStamp(authCode: $0.authNumber) }
 		
-		let viewStatus = Driver.merge(viewInit, verifyButtonTapped)
+    let viewStatus = authNumber.map { _ in ViewType.authCode }
+      .startWith(.phoneNumber)
 		
 		let inputtedCode = input.codeInput
 			.distinctUntilChanged()
 			.filter { $0.count == 6 }
-			.asObservable()
-			.withUnretained(self)
-			.map { vm, inputtedCode in
-				guard vm.isAvailableCode(vm.authNumber.timeStamp) else { return false }
-				return "\(vm.authNumber.authCode)" == inputtedCode
-			}
+      .withLatestFrom(authNumber) { inputCode, authNumber -> Bool in
+        guard authNumber.isAvailableCode() else {
+          return false
+        }
+        return inputCode == "\(authNumber.authCode)"
+      }
 			.debug()
 			.asDriver(onErrorJustReturn: false)
 		
-		let timer = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
-			.withUnretained(self)
-			.filter { vm, _ in vm.viewType == .authCode }
-			.debug()
-			.filter { vm, _ in vm.isAvailableCode(vm.authNumber.timeStamp) }
-			.take(until: inputtedCode.filter{ $0 == true }.asObservable())
-			.share()
+		let timer = authNumber
+      .flatMap { authNumber in
+        return Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+          .filter { _ in authNumber.isAvailableCode() }
+          .take(until: inputtedCode.filter{ $0 == true }
+            .asObservable()
+          )
+          .share()
+          .asDriver(onErrorDriveWith: Driver<Int>.empty())
+      }
 			
 		let timeLabelStr = timer
-			.map { vm, _ in
-				return vm.getTimeStr(vm.authNumber.timeStamp)
-			}
-			.asDriver(onErrorJustReturn: "")
-		
+      .withLatestFrom(authNumber) { _, authNumber in
+        authNumber.timeString
+      }
+      .debug("timer")
+      .asDriver(onErrorJustReturn: "")
+
 		let timerLabelColor = timer
-			.map { vm, _ in
-				if vm.isAvailableCode(vm.authNumber.timeStamp) {
-					return FallingAsset.Color.neutral50
-				} else {
-					return FallingAsset.Color.error
-				}
-			}
+      .withLatestFrom(authNumber) { _, authNumber in
+        if authNumber.isAvailableCode() {
+          return FallingAsset.Color.neutral50
+        } else {
+          return FallingAsset.Color.error
+        }
+      }
 			.asDriver(onErrorJustReturn: FallingAsset.Color.neutral50)
 		
 		input.finishAnimationTrigger
@@ -156,26 +161,6 @@ final class PhoneCertificationViewModel: ViewModelType {
 			timeStampLabel: timeLabelStr,
 			timeLabelTextColor: timerLabelColor
 		)
-	}
-}
-
-extension PhoneCertificationViewModel {
-	func isAvailableCode(_ timeStamp: Date) -> Bool {
-		let timeInterval = timeStamp.timeIntervalSinceNow
-		let sec = Int(timeInterval)
-		return abs(sec) <= 180
-	}
-	
-	func getTimeStr(_ timeStamp: Date) -> String {
-		let timeInterval = timeStamp.timeIntervalSinceNow
-		let min = abs(Int(timeInterval.truncatingRemainder(dividingBy: 3600)) / 60)
-		let sec = abs(Int(timeInterval.truncatingRemainder(dividingBy: 60)))
-		
-		if sec < 10 {
-			return "0\(min):0\(sec)"
-		} else {
-			return "0\(min):\(sec)"
-		}
 	}
 }
 
