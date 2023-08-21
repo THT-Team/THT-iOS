@@ -60,7 +60,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 		let timeStampLabel: Driver<String>
 		let timeLabelTextColor: Driver<FallingColors>
 	}
-	
+
 	private let navigator: SignUpNavigator
 	
 	init(navigator: SignUpNavigator) {
@@ -70,7 +70,6 @@ final class PhoneCertificationViewModel: ViewModelType {
 	func transform(input: Input) -> Output {
 		
 		let error = PublishRelay<Void>()
-    let viewType = BehaviorSubject<ViewType>(value: .authCode)
 		
 		let validate = input.phoneNum
 			.map { $0.phoneNumValidation() }
