@@ -16,13 +16,13 @@ final class SignUpRootViewController: TFBaseViewController {
 		$0.spacing = 16
 	}
 	
-	private lazy var startPhoneBtn: LoginButton = LoginButton(btnType: .phone)
+	private lazy var startPhoneBtn = TFLoginButton(btnType: .phone)
 	
-	private lazy var startKakaoButton: LoginButton = LoginButton(btnType: .kakao)
+	private lazy var startKakaoButton = TFLoginButton(btnType: .kakao)
 	
-	private lazy var startGoogleBtn: LoginButton = LoginButton(btnType: .google)
+	private lazy var startGoogleBtn = TFLoginButton(btnType: .google)
 	
-	private lazy var startNaverBtn: LoginButton = LoginButton(btnType: .naver)
+	private lazy var startNaverBtn = TFLoginButton(btnType: .naver)
 	
 	private lazy var signitureImageView: UIImageView = UIImageView(image: FallingAsset.Bx.signitureVertical.image).then {
 		$0.contentMode = .scaleAspectFit
@@ -37,6 +37,7 @@ final class SignUpRootViewController: TFBaseViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
+    setupAccessibilityIdentifier()
 	}
 	
 	override func makeUI() {
@@ -83,6 +84,16 @@ final class SignUpRootViewController: TFBaseViewController {
 	deinit {
 		print("[Deinit]: \(self)")
 	}
+}
+
+extension SignUpRootViewController {
+  
+  private func setupAccessibilityIdentifier() {
+    startPhoneBtn.accessibilityIdentifier = AccessibilityIdentifier.phoneBtn
+    startKakaoButton.accessibilityIdentifier = AccessibilityIdentifier.kakoBtn
+    startNaverBtn.accessibilityIdentifier = AccessibilityIdentifier.naverBtn
+    startGoogleBtn.accessibilityIdentifier = AccessibilityIdentifier.googleBtn
+  }
 }
 
 //struct SignUpRootViewControllerPreview: PreviewProvider {

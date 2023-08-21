@@ -15,14 +15,14 @@ import ProjectDescriptionHelpers
  |   Kit    |                   |     UI    |   Two independent frameworks to share code and start modularising your app
  |          |                   |           |
  +----------+                   +-----------+
-
+ 
  */
 
 // MARK: - ProjectFactory
 protocol ProjectFactory {
   var projectName: String { get }
   //    var dependencies: [TargetDependency] { get }
-
+  
   func generateTarget() -> [Target]
   //  func generateConfigurations() -> Settings
 }
@@ -33,7 +33,7 @@ final class BaseProjectFactory: ProjectFactory {
   let organizationName: String = ""
   let bundleID: String = "com.tht.falling.Falling"
   let targetVersion: String = "16.1"
-
+  
   let dependencies: [TargetDependency] = [
     .external(name: "SnapKit"),
     .external(name: "Then"),
@@ -46,8 +46,9 @@ final class BaseProjectFactory: ProjectFactory {
     .external(name: "Moya"),
     .external(name: "RxMoya"),
     .external(name: "FirebaseStorage"),
+    .external(name: "RxGesture")
   ]
-
+  
   let infoPlist: [String: InfoPlist.Value] = [
     "CFBundleName": "THT",
     "CFBundleShortVersionString": "1.0.0",
@@ -76,8 +77,8 @@ final class BaseProjectFactory: ProjectFactory {
     ],
     "UIUserInterfaceStyle": "Dark"
   ]
-
-
+  
+  
   let projectSettings: Settings = .settings(
     base: [
       "OTHER_LDFLAGS": "-ObjC",
@@ -87,7 +88,7 @@ final class BaseProjectFactory: ProjectFactory {
       ]
     ]
   )
-
+  
   let resourceSynthesizers: [ResourceSynthesizer] = [
     .custom(
       name: "Lottie",
@@ -97,7 +98,7 @@ final class BaseProjectFactory: ProjectFactory {
     .assets(),
     .fonts(),
   ]
-
+  
   //  /Users/kanghos/Desktop/iOS/tuist-test/Projects/App/Support
   func generateTarget() -> [Target] {
     return [
@@ -112,7 +113,7 @@ final class BaseProjectFactory: ProjectFactory {
              dependencies: dependencies,
              settings: projectSettings
             ),
-
+      
       Target(name: "\(projectName)Tests",
              platform: .iOS,
              product: .unitTests,
@@ -121,10 +122,20 @@ final class BaseProjectFactory: ProjectFactory {
              sources: ["\(projectName)Tests/**"],
              dependencies: [.target(name: projectName)],
              settings: projectSettings
-            )
+            ),
+      
+      Target(name: "\(projectName)UITests",
+             platform: .iOS,
+             product: .uiTests,
+             bundleId: "com.tht.\(projectName).UITests",
+             infoPlist: .extendingDefault(with: infoPlist),
+             sources: ["\(projectName)UITests/**"],
+             dependencies: [.target(name: projectName)],
+             settings: projectSettings
+            ),
     ]
   }
-
+  
   //      func generateConfigurations() -> Settings {
   //          Setting.settings(configurations: [
   //              .debug(name: , xcconfig: ),

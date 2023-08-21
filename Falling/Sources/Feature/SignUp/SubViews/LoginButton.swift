@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum LoginButtonType {
+enum TFLoginButtonType {
 	case phone
 	case kakao
 	case google
@@ -64,10 +64,10 @@ enum LoginButtonType {
 //	}
 }
 
-final class LoginButton: UIButton {
-	let btnType: LoginButtonType
+final class TFLoginButton: UIButton {
+	let btnType: TFLoginButtonType
 	
-	init(btnType: LoginButtonType) {
+	init(btnType: TFLoginButtonType) {
 		self.btnType = btnType
 		super.init(frame: .zero)
 		

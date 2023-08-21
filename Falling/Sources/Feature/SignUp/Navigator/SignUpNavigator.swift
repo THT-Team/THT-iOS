@@ -28,19 +28,20 @@ final class SignUpNavigator {
 		controller.pushViewController(viewcontroller, animated: true)
 	}
 	
-	func toPhoneValidationView(validationCode: Int) {
-		let viewModel = PhoneValidationViewModel(validationCode: validationCode)
-		let viewController = PhoneValidationViewController(viewModel: viewModel)
+	func toPhoneValidationView() {
+		let viewModel = EmailInputViewModel()
+		let viewController = EmailInputViewController(viewModel: viewModel)
 		
 		controller.pushViewController(viewController, animated: true)
 	}
 }
 
 extension SignUpNavigator: ReactiveCompatible { }
+
 extension Reactive where Base: SignUpNavigator {
-	var toPhoneValidationView: Binder<Int> {
+	var toPhoneValidationView: Binder<Void> {
 		return Binder(base.self) { navigator, code in
-			navigator.toPhoneValidationView(validationCode: code)
+			navigator.toPhoneValidationView()
 		}
 	}
 }
