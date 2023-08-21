@@ -235,6 +235,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		keyBoardSetting()
+    setupAccessibilityIdentifier()
 	}
 	
 	override func viewDidAppear(_ animated: Bool) {
@@ -374,5 +375,12 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			})
 			.disposed(by: disposeBag)
 	}
+}
 
+extension PhoneCertificationViewController {
+  
+  private func setupAccessibilityIdentifier() {
+    phoneNumTextField.accessibilityIdentifier = AccessibilityIdentifier.phoneNumberTextField
+    verifyBtn.accessibilityIdentifier = AccessibilityIdentifier.verifyBtn
+  }
 }

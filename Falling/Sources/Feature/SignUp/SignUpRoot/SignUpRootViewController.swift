@@ -37,6 +37,7 @@ final class SignUpRootViewController: TFBaseViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
+    setupAccessibilityIdentifier()
 	}
 	
 	override func makeUI() {
@@ -83,6 +84,16 @@ final class SignUpRootViewController: TFBaseViewController {
 	deinit {
 		print("[Deinit]: \(self)")
 	}
+}
+
+extension SignUpRootViewController {
+  
+  private func setupAccessibilityIdentifier() {
+    startPhoneBtn.accessibilityIdentifier = AccessibilityIdentifier.phoneBtn
+    startKakaoButton.accessibilityIdentifier = AccessibilityIdentifier.kakoBtn
+    startNaverBtn.accessibilityIdentifier = AccessibilityIdentifier.naverBtn
+    startGoogleBtn.accessibilityIdentifier = AccessibilityIdentifier.googleBtn
+  }
 }
 
 //struct SignUpRootViewControllerPreview: PreviewProvider {

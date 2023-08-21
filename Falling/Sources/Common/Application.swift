@@ -14,7 +14,13 @@ final class Application {
     let signUpController = UINavigationController()
     let signUpNavigator = SignUpNavigator(controller: signUpController)
     
-    guard let _ = AppData.accessToken else {
+    // TODO: 임시 토큰 저장
+    Keychain.shared.set("test", forKey: .accessToken)
+    
+    // TODO: 임시 토큰 삭제
+    Keychain.shared.delete(.accessToken)
+    
+    guard let _ = Keychain.shared.get(.accessToken) else {
       window?.rootViewController = signUpController
       signUpNavigator.toRootView()
       return
