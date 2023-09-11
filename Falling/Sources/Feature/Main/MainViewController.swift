@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxCocoa
 
 final class MainViewController: TFBaseViewController {
   
@@ -21,9 +22,20 @@ final class MainViewController: TFBaseViewController {
     fatalError("init(coder:) has not been implemented")
   }
   
-  override func makeUI() {
-    self.navigationController?.navigationBar.isHidden = true
+  override func navigationSetting() {
+    super.navigationSetting()
     
+    navigationItem.title = "가치관"
+    let mindImage = FallingAsset.Image.mind.image
+    let mindImageItem = UIBarButtonItem(customView: UIImageView(image: mindImage))
+    
+    let notificationButtonItem = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
+    
+    navigationItem.leftBarButtonItem = mindImageItem
+    navigationItem.rightBarButtonItem = notificationButtonItem
+  }
+  
+  override func makeUI() {
     self.view.addSubview(mainView)
     mainView.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide)
@@ -34,6 +46,21 @@ final class MainViewController: TFBaseViewController {
   }
   
   override func bindViewModel() {
+    let output = viewModel.transform(input: MainViewModel.Input())
+    output.timerText
+      .drive(mainView.timerLabel.rx.text)
+      .disposed(by: disposeBag)
     
+    output.progress
+      .drive(mainView.progressView.rx.progress)
+      .disposed(by: disposeBag)
+    
+    output.timerColor
+      .drive(mainView.timerLabel.rx.textColor)
+      .disposed(by: disposeBag)
+    
+    output.timerColor
+      .drive(mainView.progressView.rx.progressTintColor)
+      .disposed(by: disposeBag)
   }
 }

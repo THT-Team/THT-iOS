@@ -9,7 +9,7 @@ import UIKit
 
 final class MainView: TFBaseView {
   
-  let progressBarContainerView: UIView = {
+  let progressContainerView: UIView = {
     let v = UIView()
     v.layer.cornerRadius = 15
     v.backgroundColor = FallingAsset.Color.dimColor.color.withAlphaComponent(0.5)
@@ -30,45 +30,36 @@ final class MainView: TFBaseView {
     return l
   }()
   
-  let progressBarBackgoundView: UIView = {
-    let v = UIView()
+  let progressView: UIProgressView = {
+    let v = UIProgressView()
     v.layer.cornerRadius = 3
     v.backgroundColor = FallingAsset.Color.neutral600.color
     return v
   }()
   
-  let progressBarView: UIView = {
-    let v = UIView()
-    v.layer.cornerRadius = 3
-    v.backgroundColor = FallingAsset.Color.primary500.color
-    return v
-  }()
-  
-//  override func layoutSubviews() {
-//    super.layoutSubviews()
-//
-//    // 디바이스의 너비에 따라 conerRadius를 동적 지정
-//    let width = self.frame.width
-//
-//    progressBarContainerView.layer.cornerRadius = width / 10
-//    progressBarBackgoundView.layer.cornerRadius = width / 60
-//    progressBarView.layer.cornerRadius = width / 60
-//  }
+  //  override func layoutSubviews() {
+  //    super.layoutSubviews()
+  //
+  //    // 디바이스의 너비에 따라 conerRadius를 동적 지정
+  //    let width = self.frame.width
+  //
+  //    progressBarContainerView.layer.cornerRadius = width / 10
+  //    progressBarBackgoundView.layer.cornerRadius = width / 60
+  //    progressBarView.layer.cornerRadius = width / 60
+  //  }
   
   override func setup() {
     self.backgroundColor = .systemGray
-    self.addSubview(progressBarContainerView)
+    self.addSubview(progressContainerView)
     
-    progressBarContainerView.addSubviews([
+    progressContainerView.addSubviews([
       timerLabel,
-      progressBarBackgoundView
+      progressView
     ])
-    
-    progressBarBackgoundView.addSubview(progressBarView)
   }
   
   override func bindConstraints() {
-    progressBarContainerView.snp.makeConstraints {
+    progressContainerView.snp.makeConstraints {
       $0.top.equalToSuperview().inset(12)
       $0.leading.equalToSuperview().inset(12)
       $0.trailing.equalToSuperview().inset(12)
@@ -81,19 +72,12 @@ final class MainView: TFBaseView {
       $0.width.equalTo(22)
       $0.height.equalTo(22)
     }
-
-    progressBarBackgoundView.snp.makeConstraints {
+    
+    progressView.snp.makeConstraints {
       $0.leading.equalTo(timerLabel.snp.trailing).offset(9)
       $0.trailing.equalToSuperview().inset(12)
       $0.centerY.equalToSuperview()
       $0.height.equalTo(6)
-    }
-    
-    progressBarView.snp.makeConstraints {
-      $0.top.equalToSuperview()
-      $0.leading.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.trailing.equalToSuperview()
     }
   }
 }

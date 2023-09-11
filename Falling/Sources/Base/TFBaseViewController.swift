@@ -21,12 +21,7 @@ class TFBaseViewController: UIViewController {
 		bindViewModel()
 	}
 	
-	/// call in super viewDidLoad
-	func makeUI() { }
-	
-	/// call in super viewDidLoad
-	func bindViewModel() { }
-	
+  /// Set up Navigation Bar
 	func navigationSetting() {
 		navigationController?.navigationBar.topItem?.title = ""
 		navigationController?.navigationBar.backIndicatorImage = FallingAsset.Image.chevron.image
@@ -41,4 +36,10 @@ class TFBaseViewController: UIViewController {
     navigationItem.standardAppearance = navBarAppearance
     navigationItem.scrollEdgeAppearance = navBarAppearance
 	}
+  
+  /// call in super viewDidLoad
+  func makeUI() { }
+  
+  /// call in super viewDidLoad
+  func bindViewModel() { }
 }
