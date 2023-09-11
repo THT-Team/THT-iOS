@@ -26,8 +26,8 @@ final class MainViewController: TFBaseViewController {
     super.navigationSetting()
     
     navigationItem.title = "가치관"
-    let mindImage = FallingAsset.Image.mind.image
-    let mindImageItem = UIBarButtonItem(customView: UIImageView(image: mindImage))
+    let mindImageView = UIImageView(image: FallingAsset.Image.mind.image)
+    let mindImageItem = UIBarButtonItem(customView: mindImageView)
     
     let notificationButtonItem = UIBarButtonItem(image: FallingAsset.Image.bell.image, style: .plain, target: nil, action: nil)
     
