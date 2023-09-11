@@ -5,7 +5,6 @@
 //  Created by SeungMin on 2023/08/15.
 //
 
-import UIKit
 import RxSwift
 import RxCocoa
 
@@ -21,7 +20,7 @@ final class MainViewModel: ViewModelType {
   struct Output {
     let timerText: Driver<String>
     let progress: Driver<Float>
-    let timerColor: Driver<UIColor>
+    let timerColor: Driver<FallingColors>
   }
   
   init(navigator: MainNavigator) {
@@ -35,33 +34,33 @@ final class MainViewModel: ViewModelType {
       .map { 5 - $0 }
       .asDriver(onErrorDriveWith: Driver<Int>.empty())
     
-    let timerText = timer.flatMapLatest { timer in
+    let timerText = timer.map { timer in
       switch timer {
       case -1:
-        return Driver.just("-")
+        return "-"
       default:
-        return Driver.just(String(timer))
+        return String(timer)
       }
     }
     
-    let progress = timer.flatMapLatest { timer in
-      return Driver.just(Float(timer) * 0.2)
+    let progress = timer.map { timer in
+      return Float(timer) * 0.2
     }
     
-    let timerColor = timer.flatMapLatest { timer in
+    let timerColor = timer.map { timer in
       switch timer {
       case -1:
-        return Driver.just(FallingAsset.Color.neutral300.color)
+        return FallingAsset.Color.neutral300
       case 0, 5:
-        return Driver.just(FallingAsset.Color.primary500.color)
+        return FallingAsset.Color.primary500
       case 1:
-        return Driver.just(FallingAsset.Color.thtRed.color)
+        return FallingAsset.Color.thtRed
       case 2, 3, 4:
-        return Driver.just(FallingAsset.Color.thtOrange.color)
+        return FallingAsset.Color.thtOrange
       default:
-        return Driver.just(FallingAsset.Color.neutral300.color)
+        return FallingAsset.Color.neutral300
       }
-    }
+    }.asDriver(onErrorJustReturn: FallingAsset.Color.neutral300)
     
     return Output(
       timerText: timerText,
