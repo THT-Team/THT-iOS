@@ -19,7 +19,7 @@ extension Logger {
   static let data = Logger(subsystem: subsystem, category: "data")
 }
 
-struct RMLogger {
+struct TFLogger {
   static var viewCycle = Logger.viewCycle
 
   static let data = Logger.data
