@@ -9,15 +9,20 @@ import UIKit
 
 import SnapKit
 import RxSwift
+import RxCocoa
+import RxGesture
 
-final class HeartListTableViewCell: UITableViewCell {
+final class HeartCollectionViewCell: UICollectionViewCell {
   private var disposeBag = DisposeBag()
+
+  private var model: LikeDTO?
 
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 10
     imageView.clipsToBounds = true
     imageView.contentMode = .scaleAspectFit
+    imageView.backgroundColor = FallingAsset.Color.primary300.color
     return imageView
   }()
 
@@ -30,7 +35,7 @@ final class HeartListTableViewCell: UITableViewCell {
   }()
   private lazy var locationIconImageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.image = FallingAsset.Image.pinSmall.image.withRenderingMode(.alwaysOriginal)
+    imageView.image = FallingAsset.Image.pinSmall.image.withTintColor(FallingAsset.Color.neutral400.color, renderingMode: .alwaysOriginal)
     imageView.contentMode = .scaleAspectFit
     return imageView
   }()
@@ -46,14 +51,23 @@ final class HeartListTableViewCell: UITableViewCell {
 
   private lazy var nextTimeButton: UIButton = {
     let button = UIButton()
-    button.setTitle("다음에", for: .normal)
-    button.setTitleColor(FallingAsset.Color.neutral50.color, for: .normal)
-    button.setImage(FallingAsset.Image.face.image, for: .normal)
-    button.backgroundColor = .clear
-    button.layer.borderColor = FallingAsset.Color.neutral400.color.cgColor
-    button.layer.borderWidth = 1
-    button.layer.cornerRadius = 16
-    button.layer.masksToBounds = true
+    var config = UIButton.Configuration.filled()
+
+    config.image = FallingAsset.Image.face.image.withTintColor(FallingAsset.Color.neutral50.color, renderingMode: .alwaysOriginal)
+    config.imagePadding = 10
+    config.imagePlacement = .leading
+    config.cornerStyle = .capsule
+
+    var titleAttribute = AttributedString("다음에")
+    titleAttribute.font = UIFont.thtSubTitle2Sb
+    titleAttribute.foregroundColor = FallingAsset.Color.neutral50.color
+    config.baseBackgroundColor = FallingAsset.Color.neutral600.color
+    config.attributedTitle = titleAttribute
+    config.background.strokeWidth = 1
+    config.background.strokeColor = FallingAsset.Color.neutral400.color
+
+    button.configuration = config
+
     return button
   }()
 
@@ -62,18 +76,27 @@ final class HeartListTableViewCell: UITableViewCell {
     stackView.axis = .horizontal
     stackView.alignment = .fill
     stackView.distribution = .fillEqually
-    stackView.spacing = 10
+    stackView.spacing = 16
     return stackView
   }()
 
   private lazy var chatButton: UIButton = {
     let button = UIButton()
-    button.setTitle("대화하기", for: .normal)
-    button.setTitleColor(FallingAsset.Color.neutral700.color, for: .normal)
-    button.setImage(FallingAsset.Image.messageSquare.image, for: .normal)
-    button.backgroundColor = FallingAsset.Color.primary500.color
-    button.layer.cornerRadius = 16
-    button.layer.masksToBounds = true
+    var config = UIButton.Configuration.filled()
+
+    config.image = FallingAsset.Image.messageSquare1.image.withTintColor(FallingAsset.Color.neutral700.color, renderingMode: .alwaysOriginal)
+    config.imagePadding = 10
+    config.imagePlacement = .leading
+    config.cornerStyle = .capsule
+
+    var titleAttribute = AttributedString("대화히기")
+    titleAttribute.font = UIFont.thtSubTitle2Sb
+    titleAttribute.foregroundColor = FallingAsset.Color.neutral700.color
+    config.baseBackgroundColor = FallingAsset.Color.primary500.color
+    config.attributedTitle = titleAttribute
+
+    button.configuration = config
+
     return button
   }()
 
@@ -85,9 +108,8 @@ final class HeartListTableViewCell: UITableViewCell {
     return view
   }()
 
-  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-    super.init(style: style, reuseIdentifier: reuseIdentifier)
-
+  override init(frame: CGRect) {
+    super.init(frame: .zero)
     makeUI()
   }
 
@@ -95,7 +117,12 @@ final class HeartListTableViewCell: UITableViewCell {
     fatalError("init(coder:) has not been implemented")
   }
 
+
+
   func makeUI() {
+    self.contentView.backgroundColor = FallingAsset.Color.neutral600.color
+    self.contentView.layer.cornerRadius = 12
+
     [profileImageView, nickNameLabel, locationIconImageView, locationLabel,
      newArriavalView, stackView
     ].forEach {
@@ -104,34 +131,33 @@ final class HeartListTableViewCell: UITableViewCell {
 
     [nextTimeButton, chatButton].forEach {
       stackView.addArrangedSubview($0)
-      $0.snp.makeConstraints {
-        $0.height.equalTo(33)
-      }
+
     }
 
     profileImageView.snp.makeConstraints {
-      $0.size.equalTo(84)
+      $0.width.equalTo((UIScreen.main.bounds.width - 14 * 2) * 84 / 358)
       $0.top.bottom.equalToSuperview().inset(12)
       $0.leading.equalToSuperview().offset(12)
     }
 
     nickNameLabel.snp.makeConstraints {
       $0.top.equalTo(profileImageView)
-      $0.leading.equalTo(profileImageView.snp.trailing).offset(10)
+      $0.leading.equalTo(profileImageView.snp.trailing).offset(14)
     }
     locationIconImageView.snp.makeConstraints {
       $0.leading.equalTo(nickNameLabel)
-      $0.top.equalTo(nickNameLabel.snp.bottom)
+      $0.top.equalTo(nickNameLabel.snp.bottom).offset(3)
     }
     locationLabel.snp.makeConstraints {
-      $0.top.equalTo(locationIconImageView)
+      $0.centerY.equalTo(locationIconImageView)
       $0.leading.equalTo(locationIconImageView.snp.trailing)
     }
 
     stackView.snp.makeConstraints {
+      $0.top.equalTo(locationIconImageView.snp.bottom).offset(10)
       $0.leading.equalTo(nickNameLabel)
       $0.trailing.bottom.equalToSuperview().inset(12)
-      $0.height.equalTo(33)
+      $0.height.equalTo((UIScreen.main.bounds.width - 14 * 2) * 33 / 358)
     }
 
     newArriavalView.snp.makeConstraints {
@@ -144,14 +170,34 @@ final class HeartListTableViewCell: UITableViewCell {
 
   override func prepareForReuse() {
     super.prepareForReuse()
-
+    self.disposeBag = DisposeBag()
     profileImageView.image = nil
     nickNameLabel.text = nil
+    locationLabel.text = nil
   }
 
-  func configure() {
-    profileImageView.image = FallingAsset.Image.face.image
-    nickNameLabel.text = "우리닉네임열두글자입니다, 24"
-    locationLabel.text = "서울시 강남구 대치동"
+  func configure(_ item: LikeDTO) {
+    self.model = item
+    profileImageView.image = nil
+    nickNameLabel.text = item.username
+    locationLabel.text = item.address
+  }
+
+  func bind<O>(_ observer: O, index: IndexPath) where O:ObserverType, O.Element == (LikeCellButtonAction) {
+    nextTimeButton.rx.tap
+      .map { LikeCellButtonAction.reject(index) }
+      .bind(to: observer)
+      .disposed(by: disposeBag)
+
+    chatButton.rx.tap
+      .map { LikeCellButtonAction.chat(index) }
+      .bind(to: observer)
+      .disposed(by: disposeBag)
+
+    profileImageView.rx.tapGesture()
+      .when(.recognized).mapToVoid()
+      .map { LikeCellButtonAction.profile(index) }
+      .bind(to: observer)
+      .disposed(by: disposeBag)
   }
 }
