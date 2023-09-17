@@ -11,17 +11,22 @@ import OSLog
 extension Logger {
   /// Using your bundle identifier is a great way to ensure a unique identifier.
   private static var subsystem = Bundle.main.bundleIdentifier!
-
-  /// Logs the view cycles like a view that appeared.
-  static let viewCycle = Logger(subsystem: subsystem, category: "viewcycle")
-
-  /// All logs related to tracking and analytics.
+  
+  /// All logs related to presentation logic
+  static let view = Logger(subsystem: subsystem, category: "view")
+  
+  /// All logs related to business logic
+  static let logic = Logger(subsystem: subsystem, category: "logic")
+  
+  /// All logs related to response data from the server or storage data
   static let data = Logger(subsystem: subsystem, category: "data")
 }
 
 struct TFLogger {
-  static var viewCycle = Logger.viewCycle
-
+  static var view = Logger.view
+  
+  static var logic = Logger.logic
+  
   static let data = Logger.data
 }
 
