@@ -9,22 +9,34 @@ import UIKit
 
 final class HeartNavigator {
   let controller: UINavigationController
+  let heartService: HeartAPI
 
-  init(controller: UINavigationController) {
+  init(controller: UINavigationController, heartService: HeartAPI) {
     self.controller = controller
-  }
-
-  func toChatRoom(id: String) {
-
+    self.heartService = heartService
   }
 
   func toProfile(id: String) {
+    let vc = ProfileViewController()
+    vc.modalPresentationStyle = .overFullScreen
+    vc.modalTransitionStyle = .crossDissolve
+    controller.present(vc, animated: true)
+  }
 
+  func popToList() {
+    controller.popViewController(animated: true)
+  }
+
+  func toChatRoom(id: String) {
+    let viewController = UIViewController()
+    viewController.view.backgroundColor = FallingAsset.Color.neutral700.color
+    viewController.title = "채팅룸"
+    self.controller.pushViewController(viewController, animated: true)
   }
   
 
   func toList() {
-    let viewModel = HeartListViewModel(navigator: self)
+    let viewModel = HeartListViewModel(navigator: self, service: self.heartService)
     let viewController = HeartListViewController(viewModel: viewModel)
     self.controller.pushViewController(viewController, animated: true)
   }

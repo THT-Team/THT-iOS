@@ -10,16 +10,33 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import RxDataSources
+
+enum LikeCellButtonAction {
+  case reject(IndexPath)
+  case chat(IndexPath)
+  case profile(IndexPath)
+}
 
 final class HeartListViewController: TFBaseViewController {
-
   private let viewModel: HeartListViewModel
-  private lazy var tableView: UITableView = {
-    let tableView = UITableView(frame: .zero, style: .grouped)
-    tableView.register(cellType: HeartListTableViewCell.self)
-    tableView.backgroundColor = FallingAsset.Color.neutral700.color
-    tableView.rowHeight = 84 + (12 * 2)
-    return tableView
+  private lazy var collectionView: UICollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.headerReferenceSize = CGSize(width: UIScreen.main.bounds.width, height: 44)
+    layout.minimumLineSpacing = 8
+    layout.scrollDirection = .vertical
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    collectionView.register(cellType: HeartCollectionViewCell.self)
+    collectionView.register(viewType: TFCollectionReusableView.self, kind: UICollectionView.elementKindSectionHeader)
+    collectionView.backgroundColor = FallingAsset.Color.neutral700.color
+    collectionView.delegate = self
+    collectionView.refreshControl = self.refreshControl
+    return collectionView
+  }()
+
+  private lazy var refreshControl: UIRefreshControl = {
+    let refreshControl = UIRefreshControl()
+    return refreshControl
   }()
 
   init(viewModel: HeartListViewModel) {
@@ -47,33 +64,71 @@ final class HeartListViewController: TFBaseViewController {
   )
 
   override func makeUI() {
-    self.view.addSubview(tableView)
+    self.view.addSubview(collectionView)
     self.view.addSubview(emptyView)
 
-    tableView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+    collectionView.snp.makeConstraints {
+      $0.edges.equalTo(self.view.safeAreaLayoutGuide)
     }
     emptyView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.edges.equalTo(self.view.safeAreaLayoutGuide)
     }
   }
 
   override func bindViewModel() {
-    let input = HeartListViewModel.Input(
+    let likeCellButtonSubject = PublishSubject<LikeCellButtonAction>()
 
+    let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection> {  dataSource, collectionView, indexPath, item in
+      let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: HeartCollectionViewCell.self)
+      cell.bind(likeCellButtonSubject.asObserver(), index: indexPath)
+      cell.configure(item)
+      return cell
+    }  configureSupplementaryView: { dataSource, collectionView, kind, indexPath in
+      let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
+      let title = dataSource[indexPath.section].header
+      header.title = title
+      return header
+    } canMoveItemAtIndexPath: { dataSource, indexPath in
+      let item = dataSource[indexPath]
+      return true
+    }
+    let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
+    let refreshControl = self.refreshControl.rx.controlEvent(.valueChanged).asDriver()
+
+
+    let input = HeartListViewModel.Input(
+      trigger: Driver.merge(initialTrigger, refreshControl),
+      cellButtonAction: likeCellButtonSubject.asDriverOnErrorJustEmpty()
     )
-    Driver.just([1,2,3])
-      .debug()
-      .drive(self.tableView.rx.items(cellIdentifier: HeartListTableViewCell.reuseIdentifier, cellType: HeartListTableViewCell.self)) { value, row, cell in
-        cell.configure()
-      }.disposed(by: self.disposeBag)
     emptyView.isHidden = true
 
     let output = viewModel.transform(input: input)
 
+    output.chatRoom
+      .drive()
+      .disposed(by: disposeBag)
+
+    output.heartList
+      .do(onNext: { [weak self] list in
+        self?.emptyView.isHidden = !list.isEmpty
+        self?.refreshControl.endRefreshing()
+      })
+      .drive(collectionView.rx.items(dataSource: dataSource))
+      .disposed(by: disposeBag)
+        output.profile
+        .drive()
+        .disposed(by: disposeBag)
   }
 
   deinit {
     print("[Deinit]: \(self)")
+  }
+}
+extension HeartListViewController: UICollectionViewDelegateFlowLayout {
+  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    let bound = UIScreen.main.bounds
+    let width = bound.width - 14 * 2
+    let height = width * (108 / 358)
+    return CGSize(width: width, height: height)
   }
 }
