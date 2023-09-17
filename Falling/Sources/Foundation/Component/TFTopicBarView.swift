@@ -83,6 +83,14 @@ final class TFTopicBarView: TFBaseView {
     titleLabel.layer.cornerRadius = titleLabel.frame.height / 2
     titleLabel.layer.masksToBounds = true
     titleLabel.layoutIfNeeded()
+
+    contentLabel.snp.remakeConstraints({
+      $0.centerY.equalToSuperview()
+      $0.top.bottom.equalToSuperview().inset(14)
+      $0.leading.equalTo(titleLabel.snp.trailing).offset(8)
+      $0.trailing.equalTo(closeButton.snp.leading).offset(-8)
+      $0.height.lessThanOrEqualTo(round(contentLabel.font.lineHeight) * 2)
+    })
   }
   
   func configure(title: String, content: String) {
