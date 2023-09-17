@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-class TFEmptyView: UIView {
+class TFEmptyView: TFBaseView {
   private let image: UIImage
   private let title: String
   private let subTitle: String?
@@ -32,17 +32,14 @@ class TFEmptyView: UIView {
     self.subTitle = subTitle
     self.buttonTitle = buttonTitle
     super.init(frame: .zero)
-
-    makeUI()
   }
 
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
 
-  private func makeUI() {
-    self.addSubview(bxCardView)
-    self.addSubview(button)
+  override func makeUI() {
+    self.addSubviews([bxCardView, button])
 
     self.backgroundColor = FallingAsset.Color.neutral700.color
     bxCardView.snp.makeConstraints {

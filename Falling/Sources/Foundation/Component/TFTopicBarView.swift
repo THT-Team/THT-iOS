@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-final class TFTopicBarView: UIView {
+final class TFTopicBarView: TFBaseView {
   private lazy var titleLabel: TFPaddingLabel = {
     let label = TFPaddingLabel()
     label.layer.borderWidth = 1
@@ -45,21 +45,19 @@ final class TFTopicBarView: UIView {
   
   override init(frame: CGRect) {
     super.init(frame: .zero)
-    setUpViews()
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
-  private func setUpViews() {
+  override func makeUI() {
     self.backgroundColor = UIColor(named: "TopicBackground")
     self.layer.borderWidth = 1
     self.layer.borderColor = UIColor(named: "TopicBorder")?.cgColor
     
-    [titleLabel, contentLabel, closeButton].forEach {
-      self.addSubview($0)
-    }
+    self.addSubviews([titleLabel, contentLabel, closeButton])
+    
     titleLabel.setContentHuggingPriority(.defaultLow + 1, for: .horizontal)
     titleLabel.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(12)

@@ -48,7 +48,7 @@ final class MainView: TFBaseView {
   //    progressBarView.layer.cornerRadius = width / 60
   //  }
   
-  override func setup() {
+  override func makeUI() {
     self.backgroundColor = .systemGray
     self.addSubview(progressContainerView)
     
@@ -56,9 +56,7 @@ final class MainView: TFBaseView {
       timerLabel,
       progressView
     ])
-  }
-  
-  override func bindConstraints() {
+    
     progressContainerView.snp.makeConstraints {
       $0.top.equalToSuperview().inset(12)
       $0.leading.equalToSuperview().inset(12)
