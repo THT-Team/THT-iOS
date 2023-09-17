@@ -20,16 +20,16 @@ final class TFTopicBarView: UIView {
     label.clipsToBounds = true
     return label
   }()
-
+  
   private lazy var contentLabel: UILabel = {
     let label = UILabel()
     label.textColor = FallingAsset.Color.neutral50.color
     label.font = UIFont.thtSubTitle2Sb
-    label.numberOfLines = 2
+    label.numberOfLines = 0
     label.lineBreakMode = .byCharWrapping
     return label
   }()
-
+  
   lazy var closeButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
@@ -42,22 +42,21 @@ final class TFTopicBarView: UIView {
     button.configuration = config
     return button
   }()
-
+  
   override init(frame: CGRect) {
     super.init(frame: .zero)
-
     setUpViews()
   }
-
+  
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-
+  
   private func setUpViews() {
     self.backgroundColor = UIColor(named: "TopicBackground")
     self.layer.borderWidth = 1
     self.layer.borderColor = UIColor(named: "TopicBorder")?.cgColor
-
+    
     [titleLabel, contentLabel, closeButton].forEach {
       self.addSubview($0)
     }
@@ -80,23 +79,14 @@ final class TFTopicBarView: UIView {
       $0.trailing.equalToSuperview().inset(20)
     }
   }
-
+  
   override func layoutSubviews() {
     self.layer.cornerRadius = self.frame.height / 2
     titleLabel.layer.cornerRadius = titleLabel.frame.height / 2
     titleLabel.layer.masksToBounds = true
     titleLabel.layoutIfNeeded()
-
-    if contentLabel.countCurrentLines() == 1 {
-      contentLabel.snp.remakeConstraints {
-        $0.centerY.equalToSuperview()
-        $0.top.bottom.equalToSuperview().inset(20)
-        $0.leading.equalTo(titleLabel.snp.trailing).offset(8)
-        $0.trailing.equalTo(closeButton.snp.leading).offset(-8)
-      }
-    }
   }
-
+  
   func configure(title: String, content: String) {
     titleLabel.text = title
     contentLabel.text = content
