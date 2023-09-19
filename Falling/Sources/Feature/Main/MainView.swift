@@ -9,14 +9,14 @@ import UIKit
 
 final class MainView: TFBaseView {
   
-  let progressContainerView: UIView = {
+  lazy var backgroundView: UIView = {
     let v = UIView()
     v.layer.cornerRadius = 15
     v.backgroundColor = FallingAsset.Color.dimColor.color.withAlphaComponent(0.5)
     return v
   }()
   
-  let timerLabel: UILabel = {
+  lazy var timerLabel: UILabel = {
     let l = UILabel()
     l.text = "-"
     l.font = .thtCaption1M
@@ -30,34 +30,18 @@ final class MainView: TFBaseView {
     return l
   }()
   
-  let progressView: UIProgressView = {
-    let v = UIProgressView()
-    v.layer.cornerRadius = 3
-    v.backgroundColor = FallingAsset.Color.neutral600.color
-    return v
-  }()
-  
-  //  override func layoutSubviews() {
-  //    super.layoutSubviews()
-  //
-  //    // 디바이스의 너비에 따라 conerRadius를 동적 지정
-  //    let width = self.frame.width
-  //
-  //    progressBarContainerView.layer.cornerRadius = width / 10
-  //    progressBarBackgoundView.layer.cornerRadius = width / 60
-  //    progressBarView.layer.cornerRadius = width / 60
-  //  }
+  lazy var progressView = CardProgressView()
   
   override func makeUI() {
     self.backgroundColor = .systemGray
-    self.addSubview(progressContainerView)
+    self.addSubview(backgroundView)
     
-    progressContainerView.addSubviews([
+    backgroundView.addSubviews([
       timerLabel,
       progressView
     ])
     
-    progressContainerView.snp.makeConstraints {
+    backgroundView.snp.makeConstraints {
       $0.top.equalToSuperview().inset(12)
       $0.leading.equalToSuperview().inset(12)
       $0.trailing.equalToSuperview().inset(12)

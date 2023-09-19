@@ -62,7 +62,7 @@ final class MainViewController: TFBaseViewController {
     
     output.timerColor
       .map { $0.color }
-      .drive(mainView.progressView.rx.progressTintColor)
+      .drive(mainView.progressView.rx.progressBarColor)
       .disposed(by: disposeBag)
   }
 }
