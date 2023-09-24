@@ -75,8 +75,8 @@ final class CardTimerView: TFBaseView {
     
     let dotPath = UIBezierPath(arcCenter: center,
                                radius: strokeLayer.lineWidth / 2,
-                               startAngle: 0,
-                               endAngle: 2 * CGFloat.pi,
+                               startAngle: -CGFloat.pi / 2,
+                               endAngle: 3 * CGFloat.pi / 2,
                                clockwise: true)
     dotLayer.path = dotPath.cgPath
   }
