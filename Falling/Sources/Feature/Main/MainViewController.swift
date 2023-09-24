@@ -47,20 +47,56 @@ final class MainViewController: TFBaseViewController {
   
   override func bindViewModel() {
     let output = viewModel.transform(input: MainViewModel.Input())
-    output.timerText
-      .drive(mainView.timerLabel.rx.text)
+    output.timeText
+      .drive(mainView.timerView.timerLabel.rx.text)
+      .disposed(by: disposeBag)
+    
+    output.timeColor
+      .map { $0.color }
+      .drive(mainView.timerView.timerLabel.rx.textColor)
+      .disposed(by: disposeBag)
+    
+    output.timeColor
+      .map { $0.color.cgColor }
+      .drive(mainView.timerView.dotLayer.rx.strokeColor)
+      .disposed(by: disposeBag)
+    
+    output.timeColor
+      .map { $0.color.cgColor }
+      .drive(mainView.timerView.dotLayer.rx.fillColor)
+      .disposed(by: disposeBag)
+    
+    output.timeColor
+      .map { $0.color.cgColor }
+      .drive(mainView.timerView.strokeLayer.rx.strokeColor)
+      .disposed(by: disposeBag)
+    
+    output.trackFillColor
+      .map { $0.color.cgColor }
+      .drive(mainView.timerView.trackLayer.rx.strokeColor)
+      .disposed(by: disposeBag)
+    
+    output.dotPosition
+      .map { CGPoint(x: self.mainView.timerView.bounds.midX + $0.x,
+                     y: self.mainView.timerView.bounds.midY + $0.y) }
+      .drive(mainView.timerView.dotLayer.rx.position)
+      .disposed(by: disposeBag)
+    
+    output.isDotHidden
+      .drive(mainView.timerView.dotLayer.rx.isHidden)
       .disposed(by: disposeBag)
     
     output.progress
+      .map { round(CGFloat($0) * 100) / 100 }
+      .drive(mainView.timerView.strokeLayer.rx.strokeEnd)
+      .disposed(by: disposeBag)
+    
+    output.progress
+      .map { CGFloat($0) }
       .drive(mainView.progressView.rx.progress)
       .disposed(by: disposeBag)
     
-    output.timerColor
-      .map { $0.color }
-      .drive(mainView.timerLabel.rx.textColor)
-      .disposed(by: disposeBag)
-    
-    output.timerColor
+    output.timeColor
       .map { $0.color }
       .drive(mainView.progressView.rx.progressBarColor)
       .disposed(by: disposeBag)

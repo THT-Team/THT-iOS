@@ -16,19 +16,7 @@ final class MainView: TFBaseView {
     return v
   }()
   
-  lazy var timerLabel: UILabel = {
-    let l = UILabel()
-    l.text = "-"
-    l.font = .thtCaption1M
-    l.textAlignment = .center
-    l.textColor = FallingAsset.Color.neutral300.color
-    l.backgroundColor = FallingAsset.Color.unSelected.color
-    l.layer.borderWidth = 2
-    l.layer.cornerRadius = 10
-    l.layer.borderColor = FallingAsset.Color.neutral300.color.cgColor
-    l.layer.masksToBounds = true
-    return l
-  }()
+  lazy var timerView = CardTimerView()
   
   lazy var progressView = CardProgressView()
   
@@ -37,7 +25,7 @@ final class MainView: TFBaseView {
     self.addSubview(backgroundView)
     
     backgroundView.addSubviews([
-      timerLabel,
+      timerView,
       progressView
     ])
     
@@ -48,7 +36,7 @@ final class MainView: TFBaseView {
       $0.height.equalTo(32)
     }
     
-    timerLabel.snp.makeConstraints {
+    timerView.snp.makeConstraints {
       $0.leading.equalToSuperview().inset(9)
       $0.centerY.equalToSuperview()
       $0.width.equalTo(22)
@@ -56,7 +44,7 @@ final class MainView: TFBaseView {
     }
     
     progressView.snp.makeConstraints {
-      $0.leading.equalTo(timerLabel.snp.trailing).offset(9)
+      $0.leading.equalTo(timerView.snp.trailing).offset(9)
       $0.trailing.equalToSuperview().inset(12)
       $0.centerY.equalToSuperview()
       $0.height.equalTo(6)
