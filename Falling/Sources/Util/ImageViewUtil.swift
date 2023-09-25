@@ -10,15 +10,16 @@ import UIKit
 import Kingfisher
 
 extension UIImageView {
-  func setResource(_ resource: URL) {
+  func setResource(_ resource: URL, completion: (() -> Void)? = nil) {
     self.kf.setImage(
       with: resource,
       placeholder: nil,
       options: [
-        .processor(DownsamplingImageProcessor(size: CGSize(width: 200, height: 300))),
+//        .processor(DownsamplingImageProcessor(size: CGSize(width: 200, height: 300))),
         .scaleFactor(UIScreen.main.scale),
         .cacheOriginalImage
-      ]
-    )
+      ]) { result in
+        completion?()
+      }
   }
 }
