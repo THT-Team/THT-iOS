@@ -174,20 +174,6 @@ final class ProfileViewController: TFBaseViewController {
   private func closeButtonTap(sender: UIButton) {
     self.dismiss(animated: true)
   }
-
-  func createLayout() -> UICollectionViewLayout {
-      let estimatedHeight = CGFloat(100)
-      let layoutSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                             heightDimension: .estimated(estimatedHeight))
-      let item = NSCollectionLayoutItem(layoutSize: layoutSize)
-    let group = NSCollectionLayoutGroup.vertical(layoutSize: layoutSize,
-                                                 subitems: [item])
-      let section = NSCollectionLayoutSection(group: group)
-      section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-      section.interGroupSpacing = 10
-      let layout = UICollectionViewCompositionalLayout(section: section)
-      return layout
-  }
 }
 
 extension ProfileViewController: UICollectionViewDelegateFlowLayout {
