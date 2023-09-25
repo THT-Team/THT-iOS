@@ -11,7 +11,7 @@ import RxCocoa
 final class MainViewController: TFBaseViewController {
   
   private let viewModel: MainViewModel
-  private let mainView = MainView()
+  private lazy var mainView = MainView()
   
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
@@ -34,15 +34,8 @@ final class MainViewController: TFBaseViewController {
     navigationItem.leftBarButtonItem = mindImageItem
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
-  
-  override func makeUI() {
-    self.view.addSubview(mainView)
-    mainView.snp.makeConstraints {
-      $0.top.equalTo(view.safeAreaLayoutGuide)
-      $0.leading.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.trailing.equalToSuperview()
-    }
+  override func loadView() {
+    self.view = mainView
   }
   
   override func bindViewModel() {

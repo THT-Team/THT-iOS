@@ -7,6 +7,9 @@
 
 import UIKit
 
+import RxSwift
+import SnapKit
+
 final class MainView: TFBaseView {
   
   lazy var backgroundView: UIView = {
@@ -19,9 +22,12 @@ final class MainView: TFBaseView {
   lazy var timerView = CardTimerView()
   
   lazy var progressView = CardProgressView()
-  
-  override func makeUI() {
+
+  override func layoutSubviews() {
     self.backgroundColor = .systemGray
+  }
+
+  override func makeUI() {
     self.addSubview(backgroundView)
     
     backgroundView.addSubviews([
@@ -30,9 +36,8 @@ final class MainView: TFBaseView {
     ])
     
     backgroundView.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(12)
-      $0.leading.equalToSuperview().inset(12)
-      $0.trailing.equalToSuperview().inset(12)
+      $0.top.equalTo(self.safeAreaLayoutGuide).inset(12)
+      $0.leading.trailing.equalToSuperview().inset(12)
       $0.height.equalTo(32)
     }
     
