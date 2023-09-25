@@ -11,7 +11,7 @@ import RxCocoa
 final class MainViewController: TFBaseViewController {
   
   private let viewModel: MainViewModel
-  private let mainView = MainView()
+  private lazy var mainView = MainView()
   
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
@@ -35,34 +35,15 @@ final class MainViewController: TFBaseViewController {
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
   
-  override func makeUI() {
-    self.view.addSubview(mainView)
-    mainView.snp.makeConstraints {
-      $0.top.equalTo(view.safeAreaLayoutGuide)
-      $0.leading.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.trailing.equalToSuperview()
-    }
+  override func loadView() {
+    self.view = mainView
   }
   
   override func bindViewModel() {
     let output = viewModel.transform(input: MainViewModel.Input())
-    output.timerText
-      .drive(mainView.timerLabel.rx.text)
-      .disposed(by: disposeBag)
-    
-    output.progress
-      .drive(mainView.progressView.rx.progress)
-      .disposed(by: disposeBag)
-    
-    output.timerColor
-      .map { $0.color }
-      .drive(mainView.timerLabel.rx.textColor)
-      .disposed(by: disposeBag)
-    
-    output.timerColor
-      .map { $0.color }
-      .drive(mainView.progressView.rx.progressTintColor)
+
+    output.state
+      .drive(mainView.rx.timeState)
       .disposed(by: disposeBag)
   }
 }
