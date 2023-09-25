@@ -34,6 +34,7 @@ final class MainViewController: TFBaseViewController {
     navigationItem.leftBarButtonItem = mindImageItem
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
+  
   override func loadView() {
     self.view = mainView
   }

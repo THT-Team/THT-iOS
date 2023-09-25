@@ -13,9 +13,11 @@ final class MainViewModel: ViewModelType {
   
   enum TimeState {
     case initial(value: Double) // 7~8
-    case high(value: Double)  // 6~7
-    case middle(value: Double) // 3~6
-    case low(value: Double) // 2~3
+    case five(value: Double)  // 6~7
+    case four(value: Double) // 5~6
+    case three(value: Double) // 4~5
+    case two(value: Double) // 3~4
+    case one(value: Double) // 2~3
     case zero(value: Double) // 1~2
     case over(value: Double) // 0~1
     
@@ -24,11 +26,15 @@ final class MainViewModel: ViewModelType {
       case 7.0..<8.0:
         self = .initial(value: rawValue)
       case 6.0..<7.0:
-        self = .high(value: rawValue)
-      case 3.0..<6.0:
-        self = .middle(value: rawValue)
+        self = .five(value: rawValue)
+      case 5.0..<6.0:
+        self = .four(value: rawValue)
+      case 4.0..<5.0:
+        self = .three(value: rawValue)
+      case 3.0..<4.0:
+        self = .two(value: rawValue)
       case 2.0..<3.0:
-        self = .low(value: rawValue)
+        self = .one(value: rawValue)
       case 1.0..<2.0:
         self = .zero(value: rawValue)
       default:
@@ -38,11 +44,15 @@ final class MainViewModel: ViewModelType {
     
     var color: FallingColors {
       switch self {
-      case .zero, .high:
+      case .zero, .five:
         return FallingAsset.Color.primary500
-      case .middle:
-        return FallingAsset.Color.thtOrange
-      case .low:
+      case .four:
+        return FallingAsset.Color.thtOrange100
+      case .three:
+        return FallingAsset.Color.thtOrange200
+      case .two:
+        return FallingAsset.Color.thtOrange300
+      case .one:
         return FallingAsset.Color.thtRed
       default:
         return FallingAsset.Color.neutral300
@@ -71,7 +81,7 @@ final class MainViewModel: ViewModelType {
       switch self {
       case .initial, .over:
         return String("-")
-      case .high(let value), .low(let value), .middle(let value), .zero(let value):
+      case .five(let value), .four(let value), .three(let value), .two(let value), .one(let value), .zero(let value):
         return String(Int(value) - 1)
       }
     }
@@ -80,8 +90,8 @@ final class MainViewModel: ViewModelType {
       switch self {
       case .initial:
         return 1
-      case .high(let value), .low(let value), .middle(let value), .zero(let value), .over(let value):
-        return ((value - 2) / 5)
+      case .five(let value), .four(let value), .three(let value), .two(let value), .one(let value), .zero(let value), .over(let value):
+        return (value - 2) / 5
       }
     }
   }
@@ -107,9 +117,8 @@ final class MainViewModel: ViewModelType {
       .take(8 * 100 + 1)
       .map { round((8 - Double($0) / 100) * 100) / 100 }
       .asDriver(onErrorDriveWith: Driver<Double>.empty())
-
+    
     let state = time.map { TimeState(rawValue: $0) }
-      .debug()
     
     return Output(
       state: state

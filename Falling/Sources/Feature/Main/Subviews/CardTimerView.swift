@@ -8,7 +8,7 @@
 import UIKit
 
 final class CardTimerView: TFBaseView {
-    
+  
   lazy var timerLabel: UILabel = {
     let l = UILabel()
     l.font = .thtCaption1M
@@ -17,13 +17,6 @@ final class CardTimerView: TFBaseView {
     l.layer.cornerRadius = 16 / 2
     l.clipsToBounds = true
     return l
-  }()
-  
-  lazy var dotLayer: CAShapeLayer = {
-    let layer = CAShapeLayer()
-    layer.lineWidth = 1
-    layer.fillColor = FallingAsset.Color.clear.color.cgColor
-    return layer
   }()
   
   lazy var trackLayer: CAShapeLayer = {
@@ -36,6 +29,13 @@ final class CardTimerView: TFBaseView {
   lazy var strokeLayer: CAShapeLayer = {
     let layer = CAShapeLayer()
     layer.lineWidth = 2
+    layer.fillColor = FallingAsset.Color.clear.color.cgColor
+    return layer
+  }()
+  
+  lazy var dotLayer: CAShapeLayer = {
+    let layer = CAShapeLayer()
+    layer.lineWidth = 1
     layer.fillColor = FallingAsset.Color.clear.color.cgColor
     return layer
   }()
