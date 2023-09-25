@@ -8,6 +8,9 @@
 import UIKit
 
 import SnapKit
+import RxSwift
+import RxCocoa
+import RxDataSources
 
 final class ProfileViewController: TFBaseViewController {
 
@@ -17,16 +20,46 @@ final class ProfileViewController: TFBaseViewController {
     return view
   }()
 
-  private lazy var topicBarView = TFTopicBarView()
+  var viewModel: HeartProfileViewModel!
 
+  private lazy var topicBarView = TFTopicBarView()
+  private var images: [UserProfilePhoto] = []
   private lazy var profileCollectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.minimumLineSpacing = 10
-    layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 20, height: 300)
+    let size = NSCollectionLayoutSize(
+      widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
+      heightDimension: NSCollectionLayoutDimension.estimated(300)
+    )
+    let item = NSCollectionLayoutItem(layoutSize: size)
+    let group = NSCollectionLayoutGroup.vertical(layoutSize: size, repeatingSubitem: item, count: 1)
+
+    let section = NSCollectionLayoutSection(group: group)
+    section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+    section.interGroupSpacing = 10
+
+    let headerFooterSize = NSCollectionLayoutSize(
+      widthDimension: .fractionalWidth(1.0),
+      heightDimension: .estimated(300)
+    )
+    let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+      layoutSize: headerFooterSize,
+      elementKind: UICollectionView.elementKindSectionFooter,
+      alignment: .bottom
+    )
+    section.boundarySupplementaryItems = [sectionHeader]
+    let layout = UICollectionViewCompositionalLayout(section: section)
+
+//    let layout = UICollectionViewFlowLayout()
+//    layout.minimumLineSpacing = 10
+//    let width = UIScreen.main.bounds.width
+//    layout.estimatedItemSize = CGSize(width: width - 20, height: width - 20)
+//    //    layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 20, height: 300)
+//    layout.footerReferenceSize = CGSize(width: width - 20, height: 150)
+
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.dataSource = self
-    collectionView.delegate = self
-    collectionView.register(cellType: UICollectionViewCell.self)
+    collectionView.backgroundColor  = FallingAsset.Color.disabled.color
+    //    collectionView.delegate = self
+    collectionView.register(cellType: ProfileCollectionViewCell.self)
+    collectionView.register(viewType: ProfileInfoReusableView.self, kind: UICollectionView.elementKindSectionFooter)
     collectionView.layer.cornerRadius = 12
     collectionView.clipsToBounds = true
     return collectionView
@@ -109,21 +142,67 @@ final class ProfileViewController: TFBaseViewController {
   override func bindViewModel() {
     topicBarView.configure(title: "애완동물aa", content: "띄어쓰기 asdfasdfasd\n 띄어쓰기 ")
     topicBarView.closeButton.addTarget(self, action: #selector(closeButtonTap), for: .touchUpInside)
+
+    let input = HeartProfileViewModel.Input(
+      trigger: self.rx.viewWillAppear.asDriver().map { _ in },
+      rejectTrigger: nextTimeButton.rx.tap.asDriver(),
+      chatRoomTrigger: chatButton.rx.tap.asDriver()
+    )
+    let dataSource = RxCollectionViewSectionedReloadDataSource<ProfileSection> { dataSource, collectionView, indexPath, item in
+      let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileCollectionViewCell.self)
+      cell.configure(imageURL: item.url)
+      return cell
+    } configureSupplementaryView: { dataSource, collectionView, kind, indexPath in
+      let footer = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: ProfileInfoReusableView.self)
+      let item = dataSource[indexPath.section].info
+      footer.configure(info: item)
+      return footer
+    }
+    let output = viewModel.transform(input: input)
+    output.userInfo
+      .map { [weak self] userInfo -> [ProfileSection] in
+        let section = ProfileSection(items: userInfo.userProfilePhotos, info: userInfo)
+        self?.images = userInfo.userProfilePhotos
+        return [section]
+      }.drive(profileCollectionView.rx.items(dataSource: dataSource))
+      .disposed(by: disposeBag)
+
+    output.navigate.drive()
+      .disposed(by: disposeBag)
   }
   @objc
   private func closeButtonTap(sender: UIButton) {
     self.dismiss(animated: true)
   }
+
+  func createLayout() -> UICollectionViewLayout {
+      let estimatedHeight = CGFloat(100)
+      let layoutSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                             heightDimension: .estimated(estimatedHeight))
+      let item = NSCollectionLayoutItem(layoutSize: layoutSize)
+    let group = NSCollectionLayoutGroup.vertical(layoutSize: layoutSize,
+                                                 subitems: [item])
+      let section = NSCollectionLayoutSection(group: group)
+      section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+      section.interGroupSpacing = 10
+      let layout = UICollectionViewCompositionalLayout(section: section)
+      return layout
+  }
 }
 
-extension ProfileViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return 3
-  }
+extension ProfileViewController: UICollectionViewDelegateFlowLayout {
 
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: UICollectionViewCell.self)
-    cell.backgroundColor = FallingAsset.Color.disabled.color
-    return cell
+}
+
+struct ProfileSection {
+  var items: [Item]
+  let info: HeartUserResponse
+}
+extension ProfileSection: SectionModelType {
+  typealias Item = UserProfilePhoto
+
+  init(original: ProfileSection, items: [UserProfilePhoto]) {
+    self = original
+    self.items = items
   }
 }

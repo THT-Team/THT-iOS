@@ -78,7 +78,7 @@ final class HeartListViewController: TFBaseViewController {
   override func bindViewModel() {
     let likeCellButtonSubject = PublishSubject<LikeCellButtonAction>()
 
-    let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection> {  dataSource, collectionView, indexPath, item in
+    let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection>(animationConfiguration: AnimationConfiguration(reloadAnimation: .fade, deleteAnimation: .fade)) {  dataSource, collectionView, indexPath, item in
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: HeartCollectionViewCell.self)
       cell.bind(likeCellButtonSubject.asObserver(), index: indexPath)
       cell.configure(item)
@@ -92,9 +92,18 @@ final class HeartListViewController: TFBaseViewController {
       let item = dataSource[indexPath]
       return true
     }
+
+    collectionView.rx.didEndDisplayingCell.map { cell, indexPath in
+      guard let heartCell = cell as? HeartCollectionViewCell else {
+        TFLogger.view.error("didEndDisplay: cell 변환 error")
+        return
+      }
+      heartCell.disposeBag = DisposeBag()
+    }.subscribe(onNext: {
+      TFLogger.view.debug("disebose bag refresh")
+    }).disposed(by: disposeBag)
     let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
     let refreshControl = self.refreshControl.rx.controlEvent(.valueChanged).asDriver()
-
 
     let input = HeartListViewModel.Input(
       trigger: Driver.merge(initialTrigger, refreshControl),

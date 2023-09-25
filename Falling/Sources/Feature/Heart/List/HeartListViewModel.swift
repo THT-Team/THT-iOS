@@ -38,7 +38,7 @@ final class HeartListViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
 
   func transform(input: Input) -> Output {
-    let listSubject = BehaviorSubject<[LikeSection]>(value: [])
+    let listSubject = PublishSubject<[LikeSection]>()
 
     let refreshResponse = input.trigger
       .flatMapLatest { [unowned self] _ in
@@ -63,7 +63,15 @@ final class HeartListViewModel: ViewModelType {
       return nil
     }.compactMap { $0 }
 
-    rejectItem
+    let deleteCommand = rejectItem.withLatestFrom(listSubject.asDriverOnErrorJustEmpty()) { indexPath, sections -> [LikeSection] in
+      var original = sections
+      original[indexPath.section].items.remove(at: indexPath.item)
+      return original
+    }.do(onNext: { listSubject.onNext($0) })
+
+    let outputList = Driver.of(newList, deleteCommand)
+      .merge()
+      .withLatestFrom(listSubject.asDriverOnErrorJustEmpty())
 
     let rejectResponse = rejectItem
       .debug("reject Trigger")
@@ -84,10 +92,10 @@ final class HeartListViewModel: ViewModelType {
       return nil
       }.compactMap { $0 }
       .withLatestFrom(listSubject.asDriverOnErrorJustEmpty()) {
-        indexPath, dataSource -> String in
-        dataSource[indexPath.section].items[indexPath.item].userUUID
-      }.do(onNext: { [weak self] id in
-        self?.navigator.toProfile(id: id)
+        indexPath, dataSource in
+        dataSource[indexPath.section].items[indexPath.item]
+      }.do(onNext: { [weak self] item in
+        self?.navigator.toProfile(item: item)
       })
 
 
@@ -114,7 +122,7 @@ final class HeartListViewModel: ViewModelType {
       }.map { _ in }
 
     return Output(
-      heartList: newList,
+      heartList: outputList,
       chatRoom: chatRoomSubject.asDriver(),
       profile: profile.map { _ in }
     )

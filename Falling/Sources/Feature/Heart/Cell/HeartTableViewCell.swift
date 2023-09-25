@@ -13,9 +13,18 @@ import RxCocoa
 import RxGesture
 
 final class HeartCollectionViewCell: UICollectionViewCell {
-  private var disposeBag = DisposeBag()
+  var disposeBag = DisposeBag()
 
   private var model: LikeDTO?
+
+  private var indexPath: IndexPath? {
+    guard let collectionView = self.superview as? UICollectionView,
+          let indexPath = collectionView.indexPath(for: self) else {
+      TFLogger.view.error("indexPath 얻기 실패")
+      return nil
+    }
+    return indexPath
+  }
 
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()
@@ -184,19 +193,34 @@ final class HeartCollectionViewCell: UICollectionViewCell {
   }
 
   func bind<O>(_ observer: O, index: IndexPath) where O:ObserverType, O.Element == (LikeCellButtonAction) {
+
     nextTimeButton.rx.tap
-      .map { LikeCellButtonAction.reject(index) }
+      .debug()
+      .map {
+        guard let collectionView = self.superview as? UICollectionView else {
+          TFLogger.view.error("변환 실패")
+          return IndexPath(row: 0, section: 0)
+        }
+        guard let indexPath = collectionView.indexPath(for: self) else {
+          TFLogger.view.error("indexPath 얻기 실패")
+          return IndexPath(row: 0, section: 0)
+        }
+        return indexPath
+      }
+      .map { LikeCellButtonAction.reject($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     chatButton.rx.tap
-      .map { LikeCellButtonAction.chat(index) }
+      .compactMap { self.indexPath }
+      .map { LikeCellButtonAction.chat($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     profileImageView.rx.tapGesture()
       .when(.recognized).mapToVoid()
-      .map { LikeCellButtonAction.profile(index) }
+      .compactMap { self.indexPath }
+      .map { LikeCellButtonAction.profile($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
   }
