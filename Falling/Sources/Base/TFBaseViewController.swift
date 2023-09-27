@@ -10,23 +10,23 @@ import UIKit
 import RxSwift
 
 class TFBaseViewController: UIViewController {
-	
-	var disposeBag = DisposeBag()
-	
-	override func viewDidLoad() {
-		super.viewDidLoad()
-		view.backgroundColor = FallingAsset.Color.neutral700.color
-		navigationSetting()
-		makeUI()
-		bindViewModel()
-	}
-	
+  
+  var disposeBag = DisposeBag()
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = FallingAsset.Color.neutral700.color
+    navigationSetting()
+    makeUI()
+    bindViewModel()
+  }
+  
   /// Set up Navigation Bar
-	func navigationSetting() {
-		navigationController?.navigationBar.topItem?.title = ""
-		navigationController?.navigationBar.backIndicatorImage = FallingAsset.Image.chevron.image
-		navigationController?.navigationBar.backIndicatorTransitionMaskImage = FallingAsset.Image.chevron.image
-		navigationController?.navigationBar.tintColor = FallingAsset.Color.neutral50.color
+  func navigationSetting() {
+    navigationController?.navigationBar.topItem?.title = ""
+    navigationController?.navigationBar.backIndicatorImage = FallingAsset.Image.chevron.image
+    navigationController?.navigationBar.backIndicatorTransitionMaskImage = FallingAsset.Image.chevron.image
+    navigationController?.navigationBar.tintColor = FallingAsset.Color.neutral50.color
     
     let navBarAppearance = UINavigationBarAppearance()
     navBarAppearance.titlePositionAdjustment.horizontal = -CGFloat.greatestFiniteMagnitude
@@ -35,7 +35,7 @@ class TFBaseViewController: UIViewController {
     navBarAppearance.shadowColor = nil
     navigationItem.standardAppearance = navBarAppearance
     navigationItem.scrollEdgeAppearance = navBarAppearance
-	}
+  }
   
   /// call in super viewDidLoad
   func makeUI() { }

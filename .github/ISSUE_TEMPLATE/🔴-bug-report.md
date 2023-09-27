@@ -10,8 +10,7 @@ assignees: ''
 ## Detail
 - 
 
-## Cause
-- 
-
-## Solution
--
+## Environment
+- Mac: 
+- Xcode: 
+- Device: 

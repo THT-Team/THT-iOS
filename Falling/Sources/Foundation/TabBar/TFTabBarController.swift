@@ -10,11 +10,11 @@ import UIKit
 import RxSwift
 
 protocol TabBarDependnecy: AnyObject {
-
+  var tabBarHeight: CGFloat { get }
 }
 
 final class TabBarComponent: TabBarDependnecy {
-
+  var tabBarHeight: CGFloat = 56
 }
 
 final class TFTabBarController: UITabBarController {
@@ -30,33 +30,35 @@ final class TFTabBarController: UITabBarController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-
     setAppearance()
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    tabBar.frame.size.height = dependnecy.tabBarHeight + UIWindow.safeAreaInsetBottom
+    tabBar.frame.origin.y = self.view.frame.height - dependnecy.tabBarHeight - UIWindow.safeAreaInsetBottom
   }
 
 // https://emptytheory.com/2019/12/31/using-uitabbarappearance-for-tab-bar-changes-in-ios-13/
   private func setAppearance() {
-    let appearence = UITabBarAppearance()
-
-    appearence.backgroundColor = FallingAsset.Color.neutral700.color
-    appearence.shadowColor = FallingAsset.Color.neutral600.color
+    let tabBarAppearance = UITabBarAppearance()
+    tabBarAppearance.backgroundColor = FallingAsset.Color.neutral700.color
+    tabBarAppearance.shadowColor = FallingAsset.Color.neutral600.color
     self.tabBar.isTranslucent = false
 
-    setTabItemAppearence(appearence.stackedLayoutAppearance)
-    self.tabBar.scrollEdgeAppearance = appearence
-    self.tabBar.standardAppearance = appearence
+    setTabItemAppearence(tabBarAppearance.stackedLayoutAppearance)
+    self.tabBar.standardAppearance = tabBarAppearance
+    self.tabBar.scrollEdgeAppearance = tabBarAppearance
   }
 
-  private func setTabItemAppearence(_ itemAppearence: UITabBarItemAppearance) {
-    itemAppearence.normal.titleTextAttributes = [
+  private func setTabItemAppearence(_ itemAppearance: UITabBarItemAppearance) {
+    itemAppearance.normal.titleTextAttributes = [
       .foregroundColor: FallingAsset.Color.unSelected.color,
       .font: UIFont.thtCaption1M
     ]
-    itemAppearence.normal.titlePositionAdjustment.vertical = 10
-    itemAppearence.selected.titleTextAttributes = [
+    itemAppearance.selected.titleTextAttributes = [
       .foregroundColor: FallingAsset.Color.neutral50.color,
       .font: UIFont.thtCaption1M
     ]
-
   }
 }
