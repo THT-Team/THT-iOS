@@ -36,7 +36,7 @@ final class TFTabBarController: UITabBarController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     tabBar.frame.size.height = dependnecy.tabBarHeight + UIWindow.safeAreaInsetBottom
-    tabBar.frame.origin.y = self.view.frame.height - dependnecy.tabBarHeight - UIWindow.safeAreaInsetBottom
+    tabBar.frame.origin.y = self.view.frame.height - tabBar.frame.size.height
   }
 
 // https://emptytheory.com/2019/12/31/using-uitabbarappearance-for-tab-bar-changes-in-ios-13/
