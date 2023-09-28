@@ -32,7 +32,7 @@ final class Application {
   
   private func makeTabBarController() -> UIViewController {
     let heartService = HeartAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
-
+    
     let mainNavigationController = UINavigationController()
     let heartNavigationController = UINavigationController()
     let chatNavigationController = UINavigationController()
@@ -81,7 +81,6 @@ final class Application {
       image: image,
       selectedImage: selectedImage
     )
-    navigationController.tabBarItem.imageInsets = .init(top: 5, left: 0, bottom: -5, right: 0)
     return navigationController
   }
 }

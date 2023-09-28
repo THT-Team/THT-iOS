@@ -18,6 +18,10 @@ final class MainViewController: TFBaseViewController {
     super.init(nibName: nil, bundle: nil)
   }
   
+  override func loadView() {
+    self.view = mainView
+  }
+  
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
@@ -35,13 +39,9 @@ final class MainViewController: TFBaseViewController {
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
   
-  override func loadView() {
-    self.view = mainView
-  }
-  
   override func bindViewModel() {
     let output = viewModel.transform(input: MainViewModel.Input())
-
+    
     output.state
       .drive(mainView.rx.timeState)
       .disposed(by: disposeBag)
