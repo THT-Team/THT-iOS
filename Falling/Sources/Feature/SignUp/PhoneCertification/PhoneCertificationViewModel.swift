@@ -13,8 +13,6 @@ import RxRelay
 
 final class PhoneCertificationViewModel: ViewModelType {
 	
-	var disposeBag = DisposeBag()
-	
 	enum ViewType {
 		case phoneNumber
 		case authCode
@@ -59,6 +57,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 		let certificateFailuer: Driver<Bool>
 		let timeStampLabel: Driver<String>
 		let timeLabelTextColor: Driver<FallingColors>
+		let navigatorDisposble: Disposable
 	}
 
 	private let navigator: SignUpNavigator
@@ -143,11 +142,10 @@ final class PhoneCertificationViewModel: ViewModelType {
       }
 			.asDriver(onErrorJustReturn: FallingAsset.Color.neutral50)
 		
-		input.finishAnimationTrigger
+		let pushEmailVC = input.finishAnimationTrigger
 			.debug()
 			.asDriver()
-			.drive(navigator.rx.toPhoneValidationView)
-			.disposed(by: disposeBag)
+			.drive(navigator.rx.toEmailInputView)
 			
 		return Output(
 			phoneNum: phoneNum,
@@ -158,7 +156,8 @@ final class PhoneCertificationViewModel: ViewModelType {
 			certificateSuccess: inputtedCode.filter { $0 == true },
 			certificateFailuer: inputtedCode.filter { $0 == false },
 			timeStampLabel: timeLabelStr,
-			timeLabelTextColor: timerLabelColor
+			timeLabelTextColor: timerLabelColor,
+			navigatorDisposble: pushEmailVC
 		)
 	}
 }

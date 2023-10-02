@@ -189,7 +189,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		
 		verifyBtn.snp.makeConstraints {
 			$0.leading.trailing.equalToSuperview().inset(38)
-			$0.bottom.equalToSuperview()
+			$0.bottom.equalToSuperview().offset(14)
 			$0.height.equalTo(54)
 		}
 		
@@ -355,6 +355,9 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.map { return $0.color }
 			.drive(timerLabel.rx.textColor)
 			.disposed(by: disposeBag)
+		
+		output.navigatorDisposble
+			.disposed(by: disposeBag)
 	}
 	
 	func keyBoardSetting() {
@@ -370,7 +373,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.drive(onNext: { [weak self] keyboardHeight in
 				guard let self else { return }
 				self.verifyBtn.snp.updateConstraints {
-					$0.bottom.equalToSuperview().inset(keyboardHeight)
+					$0.bottom.equalToSuperview().inset(keyboardHeight + 14)
 				}
 			})
 			.disposed(by: disposeBag)

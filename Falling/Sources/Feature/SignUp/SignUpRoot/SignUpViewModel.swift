@@ -10,6 +10,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
+// FIXME: Refactor Need
 final class SignUpRootViewModel: ViewModelType {
 	struct Input {
 		let phoneBtn: Driver<Void>

@@ -28,8 +28,8 @@ final class SignUpNavigator {
 		controller.pushViewController(viewcontroller, animated: true)
 	}
 	
-	func toPhoneValidationView() {
-		let viewModel = EmailInputViewModel()
+	func toEmailInputView() {
+		let viewModel = EmailInputViewModel(navigator: self)
 		let viewController = EmailInputViewController(viewModel: viewModel)
 		
 		controller.pushViewController(viewController, animated: true)
@@ -39,9 +39,9 @@ final class SignUpNavigator {
 extension SignUpNavigator: ReactiveCompatible { }
 
 extension Reactive where Base: SignUpNavigator {
-	var toPhoneValidationView: Binder<Void> {
+	var toEmailInputView: Binder<Void> {
 		return Binder(base.self) { navigator, code in
-			navigator.toPhoneValidationView()
+			navigator.toEmailInputView()
 		}
 	}
 }
