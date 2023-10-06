@@ -6,7 +6,10 @@
 //
 
 import UIKit
+
 import RxCocoa
+import RxDataSources
+import SwiftUI
 
 final class MainViewController: TFBaseViewController {
   
@@ -16,6 +19,7 @@ final class MainViewController: TFBaseViewController {
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
+    setupDelegate()
   }
   
   override func loadView() {
@@ -40,10 +44,43 @@ final class MainViewController: TFBaseViewController {
   }
   
   override func bindViewModel() {
-    let output = viewModel.transform(input: MainViewModel.Input())
+    let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
     
-    output.state
-      .drive(mainView.rx.timeState)
-      .disposed(by: disposeBag)
+    let output = viewModel.transform(input: MainViewModel.Input(trigger: initialTrigger))
+    
+    //    output.state
+    //      .drive(mainView.rx.timeState)
+    //      .disposed(by: disposeBag)
+    
+    let dataSource = RxCollectionViewSectionedAnimatedDataSource<UserSection> { dataSource, collectionView, indexPath, item in
+      
+      let cell = collectionView.dequeueReusableCell(for: indexPath,
+                                                    cellType: MainCollectionViewCell.self)
+      output.timeState
+        .drive(cell.rx.timeState)
+        .disposed(by: self.disposeBag)
+      return cell
+    }
+    
+    output.userList
+      .drive(mainView.collectionView.rx.items(dataSource: dataSource))
+      .disposed(by: self.disposeBag)
+  }
+  
+  private func setupDelegate() {
+    mainView.collectionView.delegate = self
+  }
+}
+
+extension MainViewController: UICollectionViewDelegateFlowLayout {
+  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    return CGSize(width: view.frame.width - 32,
+                  height: (view.frame.width - 32) * 1.64)
+  }
+}
+
+struct MainViewControllerPreView: PreviewProvider {
+  static var previews: some View {
+    MainViewController(viewModel: MainViewModel(navigator: MainNavigator(controller: UINavigationController()))).toPreView()
   }
 }

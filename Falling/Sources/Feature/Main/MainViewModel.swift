@@ -100,11 +100,12 @@ final class MainViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
-    
+    let trigger: Driver<Void>
   }
   
   struct Output {
-    let state: Driver<TimeState>
+    let userList: Driver<[UserSection]>
+    let timeState: Driver<TimeState>
   }
   
   init(navigator: MainNavigator) {
@@ -112,16 +113,34 @@ final class MainViewModel: ViewModelType {
   }
   
   func transform(input: Input) -> Output {
+    let listSubject = BehaviorSubject<[UserSection]>(value: [])
+    
+    let userSections = [UserSection(header: "ass",
+                                   items: [
+                                    UserDTO(userIdx: 0),
+                                    UserDTO(userIdx: 1),
+                                    UserDTO(userIdx: 2),
+                                   ])]
+    
+//    let userList = listSubject.onNext(userSections)
+    
+//    let refreshResponse = input.trigger.map {
+//      listSubject.onNext(userSections)
+//    }
+    
+    let userList = Observable.just(userSections).asDriver(onErrorJustReturn: [])
+    
     let time = Observable<Int>.interval(.milliseconds(10),
                                         scheduler: MainScheduler.instance)
       .take(8 * 100 + 1)
       .map { round((8 - Double($0) / 100) * 100) / 100 }
       .asDriver(onErrorDriveWith: Driver<Double>.empty())
     
-    let state = time.map { TimeState(rawValue: $0) }
+    let timeState = time.map { TimeState(rawValue: $0) }
     
     return Output(
-      state: state
+      userList: userList,
+      timeState: timeState
     )
   }
 }
