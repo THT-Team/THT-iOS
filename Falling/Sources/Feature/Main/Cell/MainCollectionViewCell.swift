@@ -8,7 +8,14 @@
 import UIKit
 import RxSwift
 
+@objc protocol TimeOverDelegate: AnyObject {
+  @objc func scrollToNext()
+}
+
 final class MainCollectionViewCell: TFBaseCollectionViewCell {
+  
+  var viewModel: MainCollectionViewItemViewModel!
+  weak var delegate: TimeOverDelegate?
   
   lazy var userImageView: UIImageView = {
     let imageView = UIImageView()
@@ -86,6 +93,29 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     }
   }
   
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    disposeBag = DisposeBag()
+  }
+  
+  func setup(item: UserDTO) {
+    viewModel = MainCollectionViewItemViewModel(userDTO: item)
+  }
+  
+  func bindViewModel() {
+    let output = viewModel.transform(input: MainCollectionViewItemViewModel.Input())
+    
+    output.timeState
+      .drive(self.rx.timeState)
+      .disposed(by: self.disposeBag)
+    
+    output.isTimeOver
+      .do { value in
+        if value { self.delegate?.scrollToNext() }
+      }.drive()
+      .disposed(by: self.disposeBag)
+  }
+  
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {
     var progress = progress
     // progress가 -0.05미만 혹은 1이상은 점(dot)을 0초에 위치시키기 위함
@@ -106,7 +136,7 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
 }
 
 extension Reactive where Base: MainCollectionViewCell {
-  var timeState: Binder<MainViewModel.TimeState> {
+  var timeState: Binder<MainCollectionViewItemViewModel.TimeState> {
     return Binder(self.base) { (base, timeState) in
       base.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
       base.timerView.strokeLayer.strokeColor = timeState.color.color.cgColor

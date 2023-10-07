@@ -7,6 +7,7 @@
 
 import UIKit
 
+import RxSwift
 import RxCocoa
 import RxDataSources
 import SwiftUI
@@ -46,24 +47,47 @@ final class MainViewController: TFBaseViewController {
   override func bindViewModel() {
     let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
     
-    let output = viewModel.transform(input: MainViewModel.Input(trigger: initialTrigger))
+    let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
+    }.asDriverOnErrorJustEmpty()
     
-    //    output.state
-    //      .drive(mainView.rx.timeState)
-    //      .disposed(by: disposeBag)
+    let output = viewModel.transform(input: MainViewModel.Input(trigger: initialTrigger, timeOverTrigger: timerOverTrigger))
+    
+    var count = 0
+    output.userList
+      .drive { userSection in
+        count = userSection[0].items.count
+      }.disposed(by: disposeBag)
+    
+    
     
     let dataSource = RxCollectionViewSectionedAnimatedDataSource<UserSection> { dataSource, collectionView, indexPath, item in
       
       let cell = collectionView.dequeueReusableCell(for: indexPath,
                                                     cellType: MainCollectionViewCell.self)
-      output.timeState
-        .drive(cell.rx.timeState)
+      cell.setup(item: item)
+      output.currentPage
+        .do { index in
+          if index == indexPath.row {
+            cell.bindViewModel()
+          }
+        }.drive()
         .disposed(by: self.disposeBag)
+      cell.delegate = self
       return cell
     }
     
     output.userList
       .drive(mainView.collectionView.rx.items(dataSource: dataSource))
+      .disposed(by: self.disposeBag)
+    
+    output.currentPage
+      .do(onNext: { index in
+        let index = index >= count ? count - 1 : index
+        let indexPath = IndexPath(row: index, section: 0)
+        self.mainView.collectionView.scrollToItem(at: indexPath,
+                                                  at: .top,
+                                                  animated: true)
+      }).drive()
       .disposed(by: self.disposeBag)
   }
   
@@ -76,6 +100,17 @@ extension MainViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     return CGSize(width: view.frame.width - 32,
                   height: (view.frame.width - 32) * 1.64)
+  }
+}
+
+extension MainViewController: TimeOverDelegate {
+  @objc func scrollToNext() { }
+}
+
+extension Reactive where Base: MainViewController {
+  var timeOverTrigger: ControlEvent<Void> {
+    let source = methodInvoked(#selector(Base.scrollToNext)).map { _ in }
+    return ControlEvent(events: source)
   }
 }
 

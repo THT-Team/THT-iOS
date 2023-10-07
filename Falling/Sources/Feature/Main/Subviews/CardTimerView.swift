@@ -23,6 +23,7 @@ final class CardTimerView: TFBaseView {
     let layer = CAShapeLayer()
     layer.lineWidth = 2
     layer.fillColor = FallingAsset.Color.clear.color.cgColor
+    layer.strokeColor = FallingAsset.Color.neutral300.color.cgColor
     return layer
   }()
   
