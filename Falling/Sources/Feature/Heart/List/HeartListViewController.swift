@@ -20,6 +20,11 @@ enum LikeCellButtonAction {
 
 final class HeartListViewController: TFBaseViewController {
   private let viewModel: HeartListViewModel
+
+
+  private lazy var blurEffect = UIBlurEffect(style: .regular)
+  private lazy var visualEffectView = UIVisualEffectView(effect: blurEffect)
+
   private lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.headerReferenceSize = CGSize(width: UIScreen.main.bounds.width, height: 44)
@@ -64,15 +69,31 @@ final class HeartListViewController: TFBaseViewController {
   )
 
   override func makeUI() {
+    self.view.addSubview(visualEffectView)
     self.view.addSubview(collectionView)
     self.view.addSubview(emptyView)
 
+    visualEffectView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
     collectionView.snp.makeConstraints {
       $0.edges.equalTo(self.view.safeAreaLayoutGuide)
     }
     emptyView.snp.makeConstraints {
       $0.edges.equalTo(self.view.safeAreaLayoutGuide)
     }
+  }
+
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+
+    visualEffectView.isHidden = true
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+
+    visualEffectView.isHidden = false
   }
 
   override func bindViewModel() {

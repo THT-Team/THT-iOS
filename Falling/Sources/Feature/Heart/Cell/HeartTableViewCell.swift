@@ -225,3 +225,29 @@ final class HeartCollectionViewCell: UICollectionViewCell {
       .disposed(by: disposeBag)
   }
 }
+
+#if DEBUG
+import SwiftUI
+
+struct LikeCellRepresentable: UIViewRepresentable {
+    typealias UIViewType = HeartCollectionViewCell
+
+    func makeUIView(context: Context) -> UIViewType {
+      return UIViewType()
+    }
+
+    func updateUIView(_ uiView: UIViewType, context: Context) {
+      uiView.configure(LikeDTO(dailyFallingIdx: 1, likeIdx: 1, topic: "topic", issue: "issue", userUUID: "1", username: "name", profileURL: "123", age: 1, address: "asdf", receivedTime: "asdf"))
+    }
+}
+struct LikeCellPreview: PreviewProvider {
+    static var previews: some View {
+        Group {
+            LikeCellRepresentable()
+                .frame(width: 375, height: 110)
+        }
+        .previewLayout(.sizeThatFits)
+        .padding(10)
+    }
+}
+#endif

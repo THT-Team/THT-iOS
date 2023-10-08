@@ -24,8 +24,7 @@ final class HeartNavigator {
     let viewModel = HeartProfileViewModel(service: self.heartService,
                                          navigator: navigator,
                                          likeItem: item)
-    let vc = ProfileViewController()
-    vc.viewModel = viewModel
+    let vc = ProfileViewController(viewModel: viewModel)
     vc.modalPresentationStyle = .overFullScreen
     vc.modalTransitionStyle = .crossDissolve
     controller.present(vc, animated: true)
