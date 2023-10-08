@@ -10,7 +10,6 @@ import UIKit
 import RxSwift
 import RxCocoa
 import RxDataSources
-import SwiftUI
 
 final class MainViewController: TFBaseViewController {
   
@@ -113,9 +112,17 @@ extension Reactive where Base: MainViewController {
     return ControlEvent(events: source)
   }
 }
+#if DEBUG
+import SwiftUI
 
 struct MainViewControllerPreView: PreviewProvider {
   static var previews: some View {
-    MainViewController(viewModel: MainViewModel(navigator: MainNavigator(controller: UINavigationController()))).toPreView()
+    let navigator = MainNavigator(controller: UINavigationController())
+
+    let viewModel = MainViewModel(navigator: navigator)
+
+    return MainViewController(viewModel: viewModel)
+      .toPreView()
   }
 }
+#endif

@@ -4,6 +4,7 @@
 //
 //  Created by SeungMin on 2023/08/15.
 //
+import Foundation
 
 import RxSwift
 import RxCocoa
@@ -40,16 +41,12 @@ final class MainViewModel: ViewModelType {
                                         UserDTO(userIdx: 2),
                                        ])]
     
-    let userList = Observable.just(userSectionList).asDriver(onErrorJustReturn: [])
-    
-    let currentPage = currentIndex.map{ $0 }.asDriver(onErrorJustReturn: 0)
-    
-    timeOverTrigger.do(onNext: {
-      do {
-        currentIndex.onNext(try currentIndex.value() + 1)
-      } catch { }
-    }).drive()
-      .disposed(by: disposeBag)
+    let userList = Driver.just(userSectionList)
+
+    let currentPage = timeOverTrigger.withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0)) { _, page in
+      currentIndex.onNext(page + 1)
+      return page + 1
+    }.startWith(0)
     
     return Output(
       userList: userList,
