@@ -12,10 +12,10 @@ import RxCocoa
 
 final class MainCollectionViewItemViewModel: ViewModelType {
   
-  let userDTO: UserDTO
+  let userDomain: UserDomain
   
-  init(userDTO: UserDTO) {
-    self.userDTO = userDTO
+  init(userDomain: UserDomain) {
+    self.userDomain = userDomain
   }
   
   enum TimeState {

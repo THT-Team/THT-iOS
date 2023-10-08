@@ -4,8 +4,24 @@
 //
 //  Created by SeungMin on 2023/10/06.
 //
+import Foundation
 
 import RxDataSources
+
+enum MainProfileSection {
+  case profile
+}
+
+struct UserDomain: Hashable {
+  let identifier = UUID()
+  let userIdx: Int
+}
+
+extension UserDTO {
+  func toDomain() -> UserDomain {
+    UserDomain(userIdx: self.userIdx)
+  }
+}
 
 struct UserSection {
   var header: String

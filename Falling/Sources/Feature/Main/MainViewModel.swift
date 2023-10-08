@@ -20,7 +20,7 @@ final class MainViewModel: ViewModelType {
   }
   
   struct Output {
-    let userList: Driver<[UserSection]>
+    let userList: Driver<[UserDomain]>
     let currentPage: Driver<Int>
   }
   
@@ -41,7 +41,11 @@ final class MainViewModel: ViewModelType {
                                         UserDTO(userIdx: 2),
                                        ])]
     
-    let userList = Driver.just(userSectionList)
+    let userList = Driver.just([
+      UserDomain(userIdx: 0),
+      UserDomain(userIdx: 1),
+      UserDomain(userIdx: 2),
+    ])
 
     let currentPage = timeOverTrigger.withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0)) { _, page in
       currentIndex.onNext(page + 1)

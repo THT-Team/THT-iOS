@@ -15,7 +15,7 @@ final class MainViewController: TFBaseViewController {
   
   private let viewModel: MainViewModel
   private lazy var mainView = MainView()
-  
+  private var dataSource: UICollectionViewDiffableDataSource<MainProfileSection, UserDomain>!
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -54,30 +54,32 @@ final class MainViewController: TFBaseViewController {
     var count = 0
     output.userList
       .drive { userSection in
-        count = userSection[0].items.count
+        count = userSection.count
       }.disposed(by: disposeBag)
-    
-    
-    
-    let dataSource = RxCollectionViewSectionedAnimatedDataSource<UserSection> { dataSource, collectionView, indexPath, item in
-      
-      let cell = collectionView.dequeueReusableCell(for: indexPath,
-                                                    cellType: MainCollectionViewCell.self)
+
+    // DiffableDataSource
+
+    let profileCellRegistration = UICollectionView.CellRegistration<MainCollectionViewCell, UserDomain> { [weak self] cell, indexPath, item in
       cell.setup(item: item)
-      output.currentPage
-        .do { index in
-          if index == indexPath.row {
-            cell.bindViewModel()
-          }
-        }.drive()
-        .disposed(by: self.disposeBag)
       cell.delegate = self
-      return cell
+      output.currentPage
+        .filter { $0 == indexPath.item }
+        .drive(onNext: {_ in
+        cell.bindViewModel()
+      })
+      .disposed(by: cell.disposeBag)
     }
-    
+
+    dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
+      return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
+    })
     output.userList
-      .drive(mainView.collectionView.rx.items(dataSource: dataSource))
-      .disposed(by: self.disposeBag)
+      .drive(onNext: { [weak self] list in
+        var snapshot = NSDiffableDataSourceSnapshot<MainProfileSection, UserDomain>()
+        snapshot.appendSections([.profile])
+        snapshot.appendItems(list)
+        self?.dataSource.apply(snapshot, animatingDifferences: true)
+      }).disposed(by: disposeBag)
     
     output.currentPage
       .do(onNext: { index in
@@ -112,6 +114,7 @@ extension Reactive where Base: MainViewController {
     return ControlEvent(events: source)
   }
 }
+
 #if DEBUG
 import SwiftUI
 

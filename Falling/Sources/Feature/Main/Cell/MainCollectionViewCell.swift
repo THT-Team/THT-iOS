@@ -98,8 +98,8 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     disposeBag = DisposeBag()
   }
   
-  func setup(item: UserDTO) {
-    viewModel = MainCollectionViewItemViewModel(userDTO: item)
+  func setup(item: UserDomain) {
+    viewModel = MainCollectionViewItemViewModel(userDomain: item)
   }
   
   func bindViewModel() {
