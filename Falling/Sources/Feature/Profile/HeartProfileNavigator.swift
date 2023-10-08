@@ -35,5 +35,14 @@ final class HeartProfileNavigator: HeartProfileNavigatorType {
     }
     TFLogger.view.notice("toChatRoom")
   }
+}
 
+class MockProfileNavigator: HeartProfileNavigatorType {
+  func toHeartList() {
+
+  }
+
+  func toChatRoom(id: String) {
+
+  }
 }

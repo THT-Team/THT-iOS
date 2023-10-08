@@ -148,14 +148,34 @@ extension HeartTarget: BaseTargetType {
           "idealTypeList": [
             {
               "idx": 1,
-              "name": "멋진",
+              "name": "자극을 주는",
+              "emojiCode": "#2425fa"
+            },
+            {
+              "idx": 2,
+              "name": "피부가 좋은",
+              "emojiCode": "#2425fa"
+            },
+            {
+              "idx": 3,
+              "name": "집순이/집돌이",
               "emojiCode": "#2425fa"
             }
           ],
           "interestsList": [
             {
               "idx": 1,
-              "name": "등산",
+              "name": "등산하기",
+              "emojiCode": "#123df3"
+            },
+            {
+              "idx": 2,
+              "name": "영화/드라마",
+              "emojiCode": "#123df3"
+            },
+            {
+              "idx": 3,
+              "name": "게임",
               "emojiCode": "#123df3"
             }
           ],

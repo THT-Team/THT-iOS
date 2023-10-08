@@ -20,17 +20,22 @@ struct HeartUserResponse: Codable {
         case userUUID = "userUuid"
         case age, introduction, address, phoneNumber, email, idealTypeList, interestsList, userProfilePhotos
     }
+
+  var description: String {
+    username + ", " + "\(age)"
+  }
 }
 
 // MARK: - List
 struct EmojiType: Codable {
+  let identifier = UUID()
     let idx: Int
     let name, emojiCode: String
 }
 
 // MARK: - UserProfilePhoto
 struct UserProfilePhoto: Codable {
-    let url: String
-    let priority: Int
+  let url: String
+  let priority: Int
 }
 
