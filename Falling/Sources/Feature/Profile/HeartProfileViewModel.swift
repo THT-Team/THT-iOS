@@ -10,8 +10,8 @@ import Foundation
 import RxSwift
 import RxCocoa
 import RxDataSources
-
-final class HeartProfileViewModel: ViewModelType {
+protocol HeartProfileViewModelType: ViewModelType { }
+final class HeartProfileViewModel: HeartProfileViewModelType {
 
   private let service: any HeartAPIType
   private let navigator: HeartProfileNavigatorType
@@ -30,17 +30,22 @@ final class HeartProfileViewModel: ViewModelType {
     let trigger: Driver<Void>
     let rejectTrigger: Driver<Void>
     let chatRoomTrigger: Driver<Void>
+    let closeTrigger: Driver<Void>
+    let reportTrigger: Driver<Void>
   }
 
   struct Output {
+    let topic: Driver<TopicViewModel>
     let userInfo: Driver<HeartUserResponse>
     let photos: Driver<[UserProfilePhoto]>
     let navigate: Driver<Void>
   }
 
   func transform(input: Input) -> Output {
+    let topic = Driver.just(self.likItem).map {
+      TopicViewModel(topic: $0.topic, issue: $0.issue)
+    }
     let userIDSubject = BehaviorSubject<LikeDTO>(value: self.likItem)
-
     let userInfo = input.trigger.withLatestFrom(userIDSubject.asDriverOnErrorJustEmpty())
       .flatMapLatest { [unowned self] item in
         service.user(id: item.userUUID)
@@ -67,16 +72,26 @@ final class HeartProfileViewModel: ViewModelType {
       }.do(onNext: { [weak self] response in
         self?.navigator.toChatRoom(id: "\(response.chatRoomIdx)")
       }).map { _ in }
+    let toHeartList = Driver.of(input.closeTrigger, input.reportTrigger)
+      .merge()
+      .do(onNext: { [weak self] in
+        self?.navigator.toHeartList()
+      })
 
-    let navigate = Driver.of(chatRoom, reject)
+    let navigate = Driver.of(chatRoom, reject, toHeartList)
       .merge()
 
-
     return Output(
+      topic: topic,
       userInfo: userInfo,
       photos: photos,
       navigate: navigate
     )
   }
 
+}
+
+struct TopicViewModel {
+  let topic: String
+  let issue: String
 }

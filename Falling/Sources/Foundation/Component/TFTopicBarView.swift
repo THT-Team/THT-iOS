@@ -47,7 +47,7 @@ final class TFTopicBarView: TFBaseView {
       renderingMode: .alwaysOriginal
     )
     config.imagePlacement = .all
-    config.baseBackgroundColor = UIColor(named: "TopicBackground")
+    config.baseBackgroundColor = FallingAsset.Color.topicBackground.color
     button.configuration = config
     return button
   }()
@@ -91,5 +91,10 @@ final class TFTopicBarView: TFBaseView {
   func configure(title: String, content: String) {
     titleLabel.text = title
     contentLabel.text = content
+  }
+
+  func configure(_ viewModel: TopicViewModel) {
+    titleLabel.text = viewModel.topic
+    contentLabel.text = viewModel.issue
   }
 }

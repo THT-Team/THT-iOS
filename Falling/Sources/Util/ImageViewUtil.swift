@@ -16,7 +16,6 @@ extension UIImageView {
       placeholder: nil,
       options: [
 //        .processor(DownsamplingImageProcessor(size: CGSize(width: 200, height: 300))),
-        .scaleFactor(UIScreen.main.scale),
         .cacheOriginalImage
       ]) { result in
         completion?()

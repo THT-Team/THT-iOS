@@ -13,7 +13,7 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
-    imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
+    imageView.layer.masksToBounds = true
     return imageView
   }()
 
@@ -22,14 +22,6 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
 
     makeUI()
   }
-  override func layoutSubviews() {
-    super.layoutSubviews()
-
-    guard let image = imageView.image else {
-      return
-    }
-  }
-
 
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -53,11 +45,11 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
     guard let url = URL(string: imageURL) else {
       return
     }
+//    self.imageView.image = UIImage(named: "test_1", in: FallingResources.bundle, compatibleWith: nil)
+
     self.imageView.setResource(url) { [weak self] in
-      TFLogger.view.notice("imageDownload 끝")
-      let size = "\((self?.imageView.image?.size) ?? CGSize(width: 100, height: 100))"
-      print(self?.imageView.image?.scale)
-      TFLogger.view.debug("\(size)")
+      self?.imageView.sizeToFit()
+      self?.imageView.layoutIfNeeded()
     }
   }
 }
