@@ -10,19 +10,20 @@ import UIKit
 final class CardTimerView: TFBaseView {
   
   lazy var timerLabel: UILabel = {
-    let l = UILabel()
-    l.font = .thtCaption1M
-    l.textAlignment = .center
-    l.backgroundColor = FallingAsset.Color.unSelected.color
-    l.layer.cornerRadius = 16 / 2
-    l.clipsToBounds = true
-    return l
+    let label = UILabel()
+    label.font = .thtCaption1M
+    label.textAlignment = .center
+    label.backgroundColor = FallingAsset.Color.unSelected.color
+    label.layer.cornerRadius = 16 / 2
+    label.clipsToBounds = true
+    return label
   }()
   
   lazy var trackLayer: CAShapeLayer = {
     let layer = CAShapeLayer()
     layer.lineWidth = 2
     layer.fillColor = FallingAsset.Color.clear.color.cgColor
+    layer.strokeColor = FallingAsset.Color.neutral300.color.cgColor
     return layer
   }()
   
