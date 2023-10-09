@@ -14,7 +14,8 @@ final class TagCollectionViewCell: UICollectionViewCell {
     let stackView = UIStackView()
     stackView.axis = .horizontal
     stackView.spacing = 5
-    stackView.distribution = .fill
+    stackView.alignment = .center
+//    stackView.distribution = .fill
     return stackView
   }()
   private lazy var emojiView: UILabel = {
@@ -51,16 +52,15 @@ final class TagCollectionViewCell: UICollectionViewCell {
     contentView.addSubview(stackView)
     
     stackView.addArrangedSubviews([emojiView, titleLabel])
-
+    stackView.arrangedSubviews.forEach { subViews in
+      subViews.snp.makeConstraints {
+        $0.height.equalTo(40)
+      }
+    }
     stackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview()
-      $0.width.equalTo(40).priority(.low)
       $0.leading.equalToSuperview().offset(10)
       $0.trailing.equalToSuperview().offset(-15)
-      $0.height.equalTo(40)
-    }
-    emojiView.snp.makeConstraints {
-      $0.size.equalTo(20)
     }
   }
 //

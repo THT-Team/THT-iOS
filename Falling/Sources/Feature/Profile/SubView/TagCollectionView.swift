@@ -12,32 +12,25 @@ import SnapKit
 final class TagCollectionView: TFBaseView {
 
   lazy var collectionView: UICollectionView = {
-    let layout = Self.leftAlignFlowLayout()
+    let layout = LeftAlignCollectionViewFlowLayout()
+    layout.scrollDirection = .vertical
+    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+    layout.headerReferenceSize = CGSize(width: 200, height: 50)
 
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    return collectionView
-  }()
-
-  override func makeUI() {
-    collectionView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
-    configure()
-  }
-
-  private func configure() {
     collectionView.register(cellType: TagCollectionViewCell.self)
     collectionView.register(cellType: ProfileIntroduceCell.self)
     collectionView.register(viewType: TFCollectionReusableView.self, kind: UICollectionView.elementKindSectionHeader)
     collectionView.backgroundColor = FallingAsset.Color.neutral600.color
-  }
+    collectionView.isScrollEnabled = false
+    return collectionView
+  }()
 
-  static func leftAlignFlowLayout() -> UICollectionViewLayout {
-    let layout = LeftAlignCollectionViewFlowLayout()
-    layout.scrollDirection = .vertical
-    layout.headerReferenceSize = CGSize(width: 200, height: 40)
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    return layout
+  override func makeUI() {
+    addSubview(collectionView)
+    collectionView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
   }
 }
 

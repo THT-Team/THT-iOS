@@ -33,7 +33,6 @@ final class ProfileViewController: TFBaseViewController {
 
   override func makeUI() {
     self.view.backgroundColor = .clear
-    mainView.profileCollectionView.isHidden = true
   }
 
   override func bindViewModel() {

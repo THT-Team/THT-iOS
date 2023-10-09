@@ -7,7 +7,6 @@
 
 import UIKit
 
-import RxDataSources
 import SnapKit
 import RxSwift
 
@@ -16,7 +15,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
   private lazy var sections: [profileInfoSection] = [] {
     didSet {
       DispatchQueue.main.async {
-        self.collectionView.reloadData()
+        self.tagCollectionView.collectionView.reloadData()
       }
     }
   }
@@ -67,21 +66,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     return stackView
   }()
 
-  //  private lazy var tagView = TagCollectionView()
-  private lazy var collectionView: UICollectionView = {
-    let layout = LeftAlignCollectionViewFlowLayout()
-    layout.scrollDirection = .vertical
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    layout.headerReferenceSize = CGSize(width: 200, height: 50)
-
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.register(cellType: TagCollectionViewCell.self)
-    collectionView.register(cellType: ProfileIntroduceCell.self)
-    collectionView.register(viewType: TFCollectionReusableView.self, kind: UICollectionView.elementKindSectionHeader)
-    collectionView.backgroundColor = FallingAsset.Color.neutral600.color
-    collectionView.isScrollEnabled = false
-    return collectionView
-  }()
+  private lazy var tagCollectionView = TagCollectionView()
 
   override init(frame: CGRect) {
     super.init(frame: .zero)
@@ -94,7 +79,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
   }
 
   private func makeUI() {
-    self.addSubviews([vStackView, collectionView, reportButton])
+    self.addSubviews([vStackView, tagCollectionView, reportButton])
 
     vStackView.snp.makeConstraints {
       $0.leading.top.equalToSuperview().offset(15)
@@ -102,7 +87,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     reportButton.snp.makeConstraints {
       $0.trailing.top.equalToSuperview().inset(15)
     }
-    collectionView.snp.makeConstraints {
+    tagCollectionView.snp.makeConstraints {
       $0.top.equalTo(vStackView.snp.bottom)
       $0.leading.trailing.bottom.equalToSuperview()
     }
@@ -116,7 +101,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
 
   func configure(info: HeartUserResponse) {
     TFLogger.view.debug("\(info.username)")
-    self.collectionView.dataSource = self
+    self.tagCollectionView.collectionView.dataSource = self
 
     self.titleLabel.text = info.description
     self.addressLabel.text = info.address
