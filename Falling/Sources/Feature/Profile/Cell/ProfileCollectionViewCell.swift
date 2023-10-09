@@ -45,11 +45,11 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
     guard let url = URL(string: imageURL) else {
       return
     }
-//    self.imageView.image = UIImage(named: "test_1", in: FallingResources.bundle, compatibleWith: nil)
+    self.imageView.image = UIImage(named: "test_1", in: FallingResources.bundle, compatibleWith: nil)
 
-    self.imageView.setResource(url) { [weak self] in
-      self?.imageView.sizeToFit()
-      self?.imageView.layoutIfNeeded()
-    }
+//    self.imageView.setResource(url) { [weak self] in
+//      self?.imageView.sizeToFit()
+//      self?.imageView.layoutIfNeeded()
+//    }
   }
 }

@@ -10,6 +10,27 @@ import UIKit
 import SnapKit
 
 final class TagCollectionView: TFBaseView {
+  lazy var sections: [profileInfoSection] = [] {
+    didSet {
+      DispatchQueue.main.async {
+        self.collectionView.reloadData()
+      }
+    }
+  }
+  lazy var reportButton: UIButton = {
+    let button = UIButton()
+    var config = UIButton.Configuration.plain()
+    config.image = FallingAsset.Image.reportFill.image.withTintColor(
+      FallingAsset.Color.neutral50.color,
+      renderingMode: .alwaysOriginal
+    )
+    config.imagePlacement = .all
+    config.baseBackgroundColor = FallingAsset.Color.topicBackground.color
+    button.configuration = config
+
+    config.automaticallyUpdateForSelection = true
+    return button
+  }()
 
   lazy var collectionView: UICollectionView = {
     let layout = LeftAlignCollectionViewFlowLayout()
@@ -23,14 +44,49 @@ final class TagCollectionView: TFBaseView {
     collectionView.register(viewType: TFCollectionReusableView.self, kind: UICollectionView.elementKindSectionHeader)
     collectionView.backgroundColor = FallingAsset.Color.neutral600.color
     collectionView.isScrollEnabled = false
+    collectionView.dataSource = self
     return collectionView
   }()
 
   override func makeUI() {
     addSubview(collectionView)
+    addSubview(reportButton)
     collectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
+    reportButton.snp.makeConstraints {
+      $0.trailing.top.equalToSuperview().inset(12)
+    }
+  }
+}
+
+extension TagCollectionView: UICollectionViewDataSource {
+
+  func numberOfSections(in collectionView: UICollectionView) -> Int {
+    return self.sections.count
+  }
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    guard section < 2 else {
+      return 1
+    }
+    return self.sections[section].items.count
+  }
+
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    guard indexPath.section < 2 else {
+      let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileIntroduceCell.self)
+      cell.configure(self.sections[indexPath.section].introduce)
+      return cell
+    }
+    let item = self.sections[indexPath.section].items[indexPath.item]
+    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
+    cell.configure(TagItemViewModel(item))
+    return cell
+  }
+  func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
+    header.title = self.sections[indexPath.section].header
+    return header
   }
 }
 

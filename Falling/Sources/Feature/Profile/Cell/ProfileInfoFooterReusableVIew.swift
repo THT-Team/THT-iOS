@@ -15,7 +15,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
   private lazy var sections: [profileInfoSection] = [] {
     didSet {
       DispatchQueue.main.async {
-        self.tagCollectionView.collectionView.reloadData()
+        self.tagCollectionView.sections = self.sections
       }
     }
   }
@@ -79,13 +79,10 @@ final class ProfileInfoReusableView: UICollectionReusableView {
   }
 
   private func makeUI() {
-    self.addSubviews([vStackView, tagCollectionView, reportButton])
+    self.addSubviews([vStackView, tagCollectionView])
 
     vStackView.snp.makeConstraints {
       $0.leading.top.equalToSuperview().offset(15)
-    }
-    reportButton.snp.makeConstraints {
-      $0.trailing.top.equalToSuperview().inset(15)
     }
     tagCollectionView.snp.makeConstraints {
       $0.top.equalTo(vStackView.snp.bottom)
@@ -101,8 +98,6 @@ final class ProfileInfoReusableView: UICollectionReusableView {
 
   func configure(info: HeartUserResponse) {
     TFLogger.view.debug("\(info.username)")
-    self.tagCollectionView.collectionView.dataSource = self
-
     self.titleLabel.text = info.description
     self.addressLabel.text = info.address
     self.sections = [
@@ -112,38 +107,3 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     ]
   }
 }
-
-extension ProfileInfoReusableView: UICollectionViewDataSource {
-
-  func numberOfSections(in collectionView: UICollectionView) -> Int {
-    return self.sections.count
-  }
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    guard section < 2 else {
-      return 1
-    }
-    return self.sections[section].items.count
-  }
-
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    guard indexPath.section < 2 else {
-      let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileIntroduceCell.self)
-      cell.configure(self.sections[indexPath.section].introduce)
-      return cell
-    }
-    let item = self.sections[indexPath.section].items[indexPath.item]
-    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
-    cell.configure(TagItemViewModel(item))
-    return cell
-  }
-  func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-    let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
-    header.title = self.sections[indexPath.section].header
-    return header
-  }
-}
-
-
-
-
-

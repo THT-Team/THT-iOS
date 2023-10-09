@@ -6,7 +6,9 @@
 //
 
 import UIKit
+
 import RxSwift
+import SnapKit
 
 @objc protocol TimeOverDelegate: AnyObject {
   @objc func scrollToNext()
@@ -28,6 +30,8 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     view.backgroundColor = FallingAsset.Color.clear.color
     return view
   }()
+
+  lazy var profileCarouselView = ProfileCarouselView()
   
   lazy var progressContainerView: UIView = {
     let view = UIView()
@@ -50,8 +54,9 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     
     self.addSubview(userImageView)
     self.addSubview(userContentView)
+
     
-    self.userContentView.addSubview(progressContainerView)
+    self.userContentView.addSubviews([profileCarouselView, progressContainerView])
     
     self.progressContainerView.addSubviews([
       timerView,
@@ -90,6 +95,10 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       $0.trailing.equalToSuperview().inset(12)
       $0.centerY.equalToSuperview()
       $0.height.equalTo(6)
+    }
+
+    self.profileCarouselView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
     }
   }
   
