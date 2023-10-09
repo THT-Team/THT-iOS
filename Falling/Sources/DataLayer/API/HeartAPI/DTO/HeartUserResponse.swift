@@ -12,7 +12,7 @@ struct HeartUserResponse: Codable {
     let username, userUUID: String
     let age: Int
     let introduction, address, phoneNumber, email: String
-    let idealTypeList, interestsList: [EmojiType]
+    let idealTypeList, interestsList: [IdealTypeResponseList]
     let userProfilePhotos: [UserProfilePhoto]
 
     enum CodingKeys: String, CodingKey {
@@ -27,7 +27,7 @@ struct HeartUserResponse: Codable {
 }
 
 // MARK: - List
-struct EmojiType: Codable {
+struct EmojiType {
   let identifier = UUID()
     let idx: Int
     let name, emojiCode: String
