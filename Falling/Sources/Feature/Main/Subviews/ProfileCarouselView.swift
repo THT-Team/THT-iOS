@@ -31,11 +31,12 @@ class ProfileCarouselView: TFBaseView {
     config.automaticallyUpdateForSelection = true
     return button
   }()
-  private lazy var tagCollectionView: TagCollectionView = {
+  lazy var tagCollectionView: TagCollectionView = {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
     tagCollection.clipsToBounds = true
     tagCollection.collectionView.backgroundColor = FallingAsset.Color.dimColor2.color
+    tagCollection.isHidden = true
     return tagCollection
   }()
   lazy var collectionView: UICollectionView = {
@@ -176,14 +177,14 @@ class ProfileCarouselView: TFBaseView {
     }
   }
 
-  func configure(_ items: [UserProfilePhoto]) {
-    self.photos = items
-    self.titleLabel.text = "우리의닉네임은열두글자요, 24"
-    self.addressLabel.text = "서울시 강남구 강남대로"
+  func configure(_ userDomain: UserDomain) {
+    self.photos = userDomain.userProfilePhotos
+    self.titleLabel.text = userDomain.username + ", \(userDomain.age)"
+    self.addressLabel.text = userDomain.address
     self.tagCollectionView.sections = [
-      profileInfoSection(header: "이상형", items: []),
-      profileInfoSection(header: "흥미", items: []),
-      profileInfoSection(header: "자기소개", introduce: "자기소개")
+      profileInfoSection(header: "이상형", items: userDomain.idealTypes),
+      profileInfoSection(header: "흥미", items: userDomain.interests),
+      profileInfoSection(header: "자기소개", introduce: userDomain.introduction)
     ]
   }
 }
@@ -218,7 +219,7 @@ struct CarouselViewRepresentable: UIViewRepresentable {
       let items = [UserProfilePhoto(url: "http", priority: 1),
       UserProfilePhoto(url: "http", priority: 2),
       UserProfilePhoto(url: "http", priority: 3),]
-      uiView.configure(items)
+//      uiView.configure(items)
     }
 }
 struct CarouselViewPreview: PreviewProvider {

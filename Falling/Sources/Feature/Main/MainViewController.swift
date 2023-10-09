@@ -120,9 +120,10 @@ import SwiftUI
 
 struct MainViewControllerPreView: PreviewProvider {
   static var previews: some View {
-    let navigator = MainNavigator(controller: UINavigationController())
+    let service = FallingAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
+    let navigator = MainNavigator(controller: UINavigationController(), fallingService: service)
 
-    let viewModel = MainViewModel(navigator: navigator)
+    let viewModel = MainViewModel(navigator: navigator, service: service)
 
     return MainViewController(viewModel: viewModel)
       .toPreView()

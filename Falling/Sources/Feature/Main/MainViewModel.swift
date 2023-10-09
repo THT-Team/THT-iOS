@@ -12,6 +12,7 @@ import RxCocoa
 final class MainViewModel: ViewModelType {
   
   private let navigator: MainNavigator
+  private let service: FallingAPI
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
@@ -24,36 +25,37 @@ final class MainViewModel: ViewModelType {
     let currentPage: Driver<Int>
   }
   
-  init(navigator: MainNavigator) {
+  init(navigator: MainNavigator, service: FallingAPI) {
     self.navigator = navigator
+    self.service = service
   }
   
   func transform(input: Input) -> Output {
     let listSubject = BehaviorSubject<[UserSection]>(value: [])
     let currentIndex = BehaviorSubject<Int>(value: 0)
-    
     let timeOverTrigger = input.timeOverTrigger
-    
-    let userSectionList = [UserSection(header: "header",
-                                       items: [
-                                        UserDTO(userIdx: 0),
-                                        UserDTO(userIdx: 1),
-                                        UserDTO(userIdx: 2),
-                                       ])]
-    
-    let userList = Driver.just([
-      UserDomain(userIdx: 0),
-      UserDomain(userIdx: 1),
-      UserDomain(userIdx: 2),
-    ])
 
-    let currentPage = timeOverTrigger.withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0)) { _, page in
-      currentIndex.onNext(page + 1)
-      return page + 1
-    }.startWith(0)
+    let dailyUsers = input.trigger
+      .flatMapLatest { [unowned self] in
+        self.service.user(DailyFallingUserRequest(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100))
+          .asDriver(onErrorJustReturn: .init(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, userInfos: []))
+      }
+    let users = dailyUsers.map { $0.userInfos.map { $0.toDomain() } }
+      .flatMap { list in
+        currentIndex.onNext(0)
+        return Driver.just(list)
+      }
+    let initialPage = users.map { _ in
+      currentIndex.onNext(0)
+    }
+    let nextPage = timeOverTrigger.withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0)) { _, page in
+        currentIndex.onNext(page + 1)
+      }
+
+    let currentPage = Driver.merge(initialPage, nextPage).withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0))
     
     return Output(
-      userList: userList,
+      userList: users,
       currentPage: currentPage
     )
   }

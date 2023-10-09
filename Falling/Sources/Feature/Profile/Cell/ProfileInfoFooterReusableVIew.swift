@@ -101,8 +101,8 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     self.titleLabel.text = info.description
     self.addressLabel.text = info.address
     self.sections = [
-      profileInfoSection(header: "이상형", items: info.idealTypeList),
-      profileInfoSection(header: "흥미", items: info.interestsList),
+      profileInfoSection(header: "이상형", items: info.idealTypeList.map { $0.toDomain() }),
+      profileInfoSection(header: "흥미", items: info.interestsList.map { $0.toDomain() }),
       profileInfoSection(header: "자기소개", introduce: info.introduction)
     ]
   }

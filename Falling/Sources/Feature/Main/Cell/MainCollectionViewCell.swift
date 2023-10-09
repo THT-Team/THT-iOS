@@ -8,6 +8,7 @@
 import UIKit
 
 import RxSwift
+import RxCocoa
 import SnapKit
 
 @objc protocol TimeOverDelegate: AnyObject {
@@ -105,6 +106,7 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
   override func prepareForReuse() {
     super.prepareForReuse()
     disposeBag = DisposeBag()
+    profileCarouselView.tagCollectionView.isHidden = true
   }
   
   func setup(item: UserDomain) {
@@ -112,6 +114,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
   }
   
   func bindViewModel() {
+    profileCarouselView.infoButton.rx.tap.asDriver()
+      .scan(true) { lastValue, _ in
+        return !lastValue
+      }.drive(profileCarouselView.tagCollectionView.rx.isHidden)
+      .disposed(by: disposeBag)
+
     let output = viewModel.transform(input: MainCollectionViewItemViewModel.Input())
     
     output.timeState
@@ -123,6 +131,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
         if value { self.delegate?.scrollToNext() }
       }.drive()
       .disposed(by: self.disposeBag)
+
+    output.user
+      .drive(onNext: { [weak self] user in
+        self?.profileCarouselView.configure(user)
+      })
+    .disposed(by: disposeBag)
   }
   
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {

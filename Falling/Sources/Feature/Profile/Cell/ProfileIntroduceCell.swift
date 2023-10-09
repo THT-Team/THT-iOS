@@ -30,7 +30,7 @@ final class ProfileIntroduceCell: TFBaseCollectionViewCell {
 
     textView.snp.makeConstraints {
       $0.edges.equalToSuperview()
-      $0.width.equalTo(UIScreen.main.bounds.width - 10 - 12 - 20).priority(.high)
+      $0.width.equalTo(self.superview?.bounds.width ?? 200)
       $0.height.equalTo(100).priority(.low)
     }
   }

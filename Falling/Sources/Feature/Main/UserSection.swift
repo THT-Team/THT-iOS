@@ -13,14 +13,31 @@ enum MainProfileSection {
 }
 
 struct UserDomain: Hashable {
-  let identifier = UUID()
-  let userIdx: Int
-}
-
-extension UserDTO {
-  func toDomain() -> UserDomain {
-    UserDomain(userIdx: self.userIdx)
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(identifier)
   }
+  static func == (lhs: UserDomain, rhs: UserDomain) -> Bool {
+    lhs.identifier == rhs.identifier
+  }
+
+  let identifier = UUID()
+  let username: String
+  let userUUID: String
+  let age: Int
+  let address: String
+  let idealTypes, interests: [EmojiType]
+  let userProfilePhotos: [UserProfilePhoto]
+  let introduction: String
+}
+extension UserInfo {
+  func toDomain() -> UserDomain {
+    UserDomain(username: self.username, userUUID: self.userUUID, age: self.age, address: self.address, idealTypes: self.idealTypeResponseList.map { $0.toDomain() }, interests: self.interestResponses.map { $0.toDomain() }, userProfilePhotos: self.userProfilePhotos, introduction: self.introduction)
+  }
+}
+extension UserDTO {
+//  func toDomain() -> UserDomain {
+//    UserDomain(userIdx: self.userIdx)
+//  }
 }
 
 struct UserSection {
