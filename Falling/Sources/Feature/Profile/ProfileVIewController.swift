@@ -97,7 +97,7 @@ final class ProfileViewController: TFBaseViewController {
       guard let item = self.info else {
         return
       }
-      supplementaryView.reportButton.rx.tap.asDriver()
+      supplementaryView.tagCollectionView.reportButton.rx.tap.asDriver()
         .drive(onNext: { [weak self] in
           self?.reportRelay.accept(Void())
         })

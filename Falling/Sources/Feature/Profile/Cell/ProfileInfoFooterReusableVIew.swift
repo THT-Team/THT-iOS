@@ -19,20 +19,6 @@ final class ProfileInfoReusableView: UICollectionReusableView {
       }
     }
   }
-  lazy var reportButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.plain()
-    config.image = FallingAsset.Image.reportFill.image.withTintColor(
-      FallingAsset.Color.neutral50.color,
-      renderingMode: .alwaysOriginal
-    )
-    config.imagePlacement = .all
-    config.baseBackgroundColor = FallingAsset.Color.topicBackground.color
-    button.configuration = config
-
-    config.automaticallyUpdateForSelection = true
-    return button
-  }()
 
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
@@ -66,7 +52,7 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     return stackView
   }()
 
-  private lazy var tagCollectionView = TagCollectionView()
+  lazy var tagCollectionView = TagCollectionView()
 
   override init(frame: CGRect) {
     super.init(frame: .zero)
@@ -102,7 +88,9 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     self.addressLabel.text = info.address
     self.sections = [
       profileInfoSection(header: "이상형", items: info.idealTypeList.map { $0.toDomain() }),
-      profileInfoSection(header: "흥미", items: info.interestsList.map { $0.toDomain() }),
+      profileInfoSection(header: "흥미", items: info.interestsList.map { $0.toDomain()
+
+      }),
       profileInfoSection(header: "자기소개", introduce: info.introduction)
     ]
   }
