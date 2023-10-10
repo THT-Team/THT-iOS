@@ -92,8 +92,9 @@ final class EmailInputViewModel: ViewModelType {
 		
 		let emailTextStatus = emailValidate.asDriver(onErrorJustReturn: .empty)
 		
+		// TODO: Email 로 로그인 문제 생겼을때 계정 복구 진행하는데 저장하는 api 를 찾을수 없음. 추후 저장로직 개발 필요해 보임
 		let buttonTappedResult = input.nextBtnTap
-			.drive(onNext: { print("123") })
+			.drive(navigator.rx.toPolicyAgreementView)
 			
 		let _ = Driver
 			.merge([input.naverBtnTapped.map { "@naver.com" },

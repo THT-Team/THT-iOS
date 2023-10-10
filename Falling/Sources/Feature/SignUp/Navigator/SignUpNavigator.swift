@@ -34,6 +34,13 @@ final class SignUpNavigator {
 		
 		controller.pushViewController(viewController, animated: true)
 	}
+	
+	func toPolicyAgreementView() {
+		let viewModel = PolicyAgreementViewModel(navigator: self)
+		let viewController = PolicyAgreementViewController(viewModel: viewModel)
+		
+		controller.pushViewController(viewController, animated: true)
+	}
 }
 
 extension SignUpNavigator: ReactiveCompatible { }
@@ -42,6 +49,12 @@ extension Reactive where Base: SignUpNavigator {
 	var toEmailInputView: Binder<Void> {
 		return Binder(base.self) { navigator, code in
 			navigator.toEmailInputView()
+		}
+	}
+	
+	var toPolicyAgreementView: Binder<Void> {
+		return Binder(base.self) { navigator, code in
+			navigator.toPolicyAgreementView()
 		}
 	}
 }

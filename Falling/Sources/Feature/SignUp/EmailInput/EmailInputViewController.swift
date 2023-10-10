@@ -242,10 +242,16 @@ class EmailInputViewController: TFBaseViewController {
 			.skip(1)
 			.drive(onNext: { [weak self] keyboardHeight in
 				guard let self else { return }
-				
-				self.nextButton.snp.updateConstraints {
-					$0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight - self.view.safeAreaInsets.bottom + 14)
+				if keyboardHeight == 0 {
+					self.nextButton.snp.updateConstraints {
+						$0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(14)
+					}
+				} else {
+					self.nextButton.snp.updateConstraints {
+						$0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight - self.view.safeAreaInsets.bottom + 14)
+					}
 				}
+				
 				if keyboardHeight == 0 {
 					self.titleLable.snp.updateConstraints {
 						$0.top.equalTo(self.view.safeAreaLayoutGuide).inset(76)

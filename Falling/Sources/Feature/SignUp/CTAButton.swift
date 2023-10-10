@@ -18,6 +18,7 @@ final class CTAButton: UIButton {
 		updateColors(status: initialStatus)
 	}
 	
+	/// update CTA button color by status
 	func updateColors(status: Bool) {
 		if status {
 			backgroundColor = FallingAsset.Color.primary500.color
