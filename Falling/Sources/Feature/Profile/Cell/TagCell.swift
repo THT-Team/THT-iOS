@@ -76,6 +76,7 @@ final class TagCollectionViewCell: UICollectionViewCell {
 
   func configure(_ viewModel: TagItemViewModel) {
     self.titleLabel.text = viewModel.title
+    self.emojiView.text = viewModel.emoji
   }
 }
 
@@ -84,12 +85,8 @@ struct TagItemViewModel {
   let title: String
 
   var emoji: String {
-    return "🍅"
+    emojiCode.unicodeToEmoji()
   }
-  var emojiImage: UIImage {
-    return UIImage(systemName: "xmark")!
-  }
-
   init(_ emojiType: EmojiType) {
     self.title = emojiType.name
     self.emojiCode = emojiType.emojiCode
@@ -100,31 +97,30 @@ struct TagItemViewModel {
     self.title = title
   }
 }
-#if DEBUG
+#if canImport(SwiftUI) && DEBUG
 import SwiftUI
 
-struct TagCellRepresentable: UIViewRepresentable {
-    typealias UIViewType = TagCollectionViewCell
+struct PreviewRepresentable<UIViewType: UIView>: UIViewRepresentable {
+  let view: UIViewType
 
+  init(_ builder: @escaping () -> UIViewType) {
+    view = builder()
+  }
     func makeUIView(context: Context) -> UIViewType {
-      return TagCollectionViewCell()
+      return view
     }
 
     func updateUIView(_ uiView: UIViewType, context: Context) {
-      uiView.configure(TagItemViewModel(
-        emojiCode: "1233",
-        title: "산책하기")
-      )
+      view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+      view.setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 }
-struct TagCellPreview: PreviewProvider {
-    static var previews: some View {
-        Group {
-            TagCellRepresentable()
-                .frame(width: 100, height: 40)
-        }
-        .previewLayout(.sizeThatFits)
-        .padding(10)
-    }
-}
+//struct TagCellPreview: PreviewProvider {
+////    static var previews: some View {
+////          PreviewRepresentable {
+////
+////          }.frame(width: 200, height: 150)
+////        .previewLayout(.sizeThatFits)
+////    }
+//}
 #endif
