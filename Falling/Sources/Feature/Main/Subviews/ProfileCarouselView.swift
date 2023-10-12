@@ -17,20 +17,6 @@ class ProfileCarouselView: TFBaseView {
       collectionView.reloadData()
     }
   }
-  lazy var reportButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.plain()
-    config.image = FallingAsset.Image.reportFill.image.withTintColor(
-      FallingAsset.Color.neutral50.color,
-      renderingMode: .alwaysOriginal
-    )
-    config.imagePlacement = .all
-    config.baseBackgroundColor = FallingAsset.Color.topicBackground.color
-    button.configuration = config
-
-    config.automaticallyUpdateForSelection = true
-    return button
-  }()
   lazy var tagCollectionView: TagCollectionView = {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
@@ -38,6 +24,20 @@ class ProfileCarouselView: TFBaseView {
     tagCollection.collectionView.backgroundColor = FallingAsset.Color.dimColor2.color
     tagCollection.isHidden = true
     return tagCollection
+  }()
+  private lazy var shadowView = UIView()
+  private lazy var layer0: CAGradientLayer = {
+    let layer = CAGradientLayer()
+    layer.colors = [
+      UIColor.clear.cgColor,
+      FallingAsset.Color.cardShadow.color.withAlphaComponent(0.7).cgColor
+    ]
+    layer.locations = [0, 0.7]
+    layer.startPoint = CGPoint(x: 0.25, y: 0.5)
+    layer.endPoint = CGPoint(x: 0.75, y: 0.5)
+    layer.transform = CATransform3DMakeAffineTransform(CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 1, ty: 0))
+    shadowView.layer.addSublayer(layer)
+    return layer
   }()
   lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
@@ -95,9 +95,21 @@ class ProfileCarouselView: TFBaseView {
   lazy var likeButton: UIButton = {
     let button = UIButton()
     var config = defaultButtonConfig()
-
-    config.image = FallingAsset.Image.heartSelected.image.withTintColor(FallingAsset.Color.error.color)
+    let image = FallingAsset.Image.cardLike.image.resize(targetSize: .card)
     button.configuration = config
+    button.configurationUpdateHandler = { button in
+      switch button.state {
+      case .highlighted:
+        button.configuration?.background.backgroundColor = FallingAsset.Color.error.color
+        button.configuration?.image = image
+        button.configuration?.background.strokeColor = FallingAsset.Color.error.color
+      default:
+        button.configuration?.background.backgroundColor =  FallingAsset.Color.neutral700.color.withAlphaComponent(0.5)
+        button.configuration?.image = image?.withTintColor(FallingAsset.Color.error.color)
+        button.configuration?.background.strokeColor = FallingAsset.Color.neutral50.color
+      }
+    }
+
 
     return button
   }()
@@ -105,17 +117,27 @@ class ProfileCarouselView: TFBaseView {
   lazy var refuseButton: UIButton = {
     let button = UIButton()
     var config = defaultButtonConfig()
-    config.image = FallingAsset.Image.close.image
-    config.preferredSymbolConfigurationForImage = .init(pointSize: 100)
+    let image = FallingAsset.Image.cardRefuse.image.resize(targetSize: .init(width: 30, height: 30))
+    config.image = image
     button.configuration = config
+    button.configurationUpdateHandler = { button in
+      switch button.state {
+      case .highlighted:
+        button.configuration?.background.backgroundColor = FallingAsset.Color.neutral600.color.withAlphaComponent(0.5)
+        button.configuration?.background.strokeColor = FallingAsset.Color.neutral600.color
+      default:
+        button.configuration?.background.backgroundColor = FallingAsset.Color.neutral700.color.withAlphaComponent(0.5)
+        button.configuration?.background.strokeColor = FallingAsset.Color.neutral50.color
+      }
+    }
 
     return button
   }()
 
   func defaultButtonConfig() -> UIButton.Configuration {
     var config = UIButton.Configuration.plain()
-    config.imagePlacement = .all
     config.cornerStyle = .capsule
+//    config.cornerStyle = .
     config.background.strokeColor = FallingAsset.Color.neutral50.color
     config.background.strokeWidth = 1.5
     config.background.backgroundColor = FallingAsset.Color.dimColor2.color
@@ -125,8 +147,18 @@ class ProfileCarouselView: TFBaseView {
     let button = UIButton()
     var config = defaultButtonConfig()
 
-    config.image = FallingAsset.Image.setting.image
+    config.image = FallingAsset.Image.cardInfo.image.resize(targetSize: .card)
     button.configuration = config
+    button.configurationUpdateHandler = { button in
+      switch button.state {
+      case .highlighted:
+        button.configuration?.background.backgroundColor = FallingAsset.Color.neutral600.color.withAlphaComponent(0.5)
+        button.configuration?.background.strokeColor = FallingAsset.Color.neutral600.color
+      default:
+        button.configuration?.background.backgroundColor = FallingAsset.Color.neutral700.color.withAlphaComponent(0.5)
+        button.configuration?.background.strokeColor = FallingAsset.Color.neutral50.color
+      }
+    }
 
     return button
   }()
@@ -134,13 +166,15 @@ class ProfileCarouselView: TFBaseView {
   private lazy var buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
+    stackView.spacing = 10
     return stackView
   }()
 
   override func makeUI() {
     self.backgroundColor = .white
+
     addSubviews([
-      collectionView, tagCollectionView, vStackView,
+      collectionView, tagCollectionView, vStackView, shadowView,
       buttonStackView, pageControl
                 ])
     [infoButton, spacerView, refuseButton, likeButton].forEach { subView in
@@ -151,7 +185,7 @@ class ProfileCarouselView: TFBaseView {
     }
     spacerView.snp.remakeConstraints {
       $0.height.equalTo(80)
-      $0.width.equalTo(100).priority(.low)
+      $0.width.equalTo(90).priority(.low)
     }
     collectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -175,6 +209,17 @@ class ProfileCarouselView: TFBaseView {
       $0.leading.trailing.equalToSuperview().inset(12)
       $0.bottom.equalToSuperview().offset(-30)
     }
+
+    shadowView.snp.makeConstraints {
+      $0.top.equalTo(vStackView)
+      $0.leading.trailing.bottom.equalToSuperview()
+    }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+
+    layer0.frame = shadowView.bounds.insetBy(dx: -0.5*shadowView.bounds.size.width, dy: -0.5*shadowView.bounds.size.height)
   }
 
   func configure(_ userDomain: UserDomain) {
@@ -191,7 +236,7 @@ class ProfileCarouselView: TFBaseView {
 
 extension ProfileCarouselView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return self.bounds.size// CGSize(width: 200, height: 100)
+    return self.bounds.size
   }
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return photos.count
@@ -216,9 +261,7 @@ struct CarouselViewRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIViewType, context: Context) {
-      let items = [UserProfilePhoto(url: "http", priority: 1),
-      UserProfilePhoto(url: "http", priority: 2),
-      UserProfilePhoto(url: "http", priority: 3),]
+
 //      uiView.configure(items)
     }
 }
