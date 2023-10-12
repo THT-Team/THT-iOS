@@ -177,8 +177,8 @@ class EmailInputViewController: TFBaseViewController {
 			clearBtnTapped: clearBtn.rx.tap.asDriver(),
 			nextBtnTap: nextButton.rx.tap.asDriver(),
 			naverBtnTapped: naverDomainBtn.rx.tap.asDriver(),
-			kakaoBtnTapped: gmailDomainBtn.rx.tap.asDriver(),
-			gmailBtnTapped: kakaoDomainBtn.rx.tap.asDriver()
+			kakaoBtnTapped: kakaoDomainBtn.rx.tap.asDriver(),
+			gmailBtnTapped: gmailDomainBtn.rx.tap.asDriver()
 		)
 		
 		let output = viewModel.transform(input: input)

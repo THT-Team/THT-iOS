@@ -43,18 +43,17 @@ final class EmailInputViewModel: ViewModelType {
 	}
 	
 	func transform(input: Input) -> Output {
-		let textFieldTextRealy = BehaviorRelay<String>(value: "")
-		
-		input.emailText
-			.drive(textFieldTextRealy)
-			.disposed(by: disposeBag)
-		
-		input.clearBtnTapped
-			.map { "" }
-			.drive(textFieldTextRealy)
-			.disposed(by: disposeBag)
-		
-		let emailValidate = textFieldTextRealy.asDriver()
+    let text = input.emailText
+    let autoComplete = Driver
+      .merge([input.naverBtnTapped.map { "@naver.com" },
+              input.gmailBtnTapped.map { "@gmail.com" },
+              input.kakaoBtnTapped.map { "@kakao.com" }])
+      .withLatestFrom(text) { $1 + $0 }
+
+    let outputText = Driver.merge(text, autoComplete, input.clearBtnTapped.map { "" })
+
+    let emailValidate = outputText
+      .debug("emailValidate")
 			.map {
 				if $0.isEmpty {
 					return EmailTextState.empty
@@ -95,22 +94,13 @@ final class EmailInputViewModel: ViewModelType {
 		// TODO: Email 로 로그인 문제 생겼을때 계정 복구 진행하는데 저장하는 api 를 찾을수 없음. 추후 저장로직 개발 필요해 보임
 		let buttonTappedResult = input.nextBtnTap
 			.drive(navigator.rx.toPolicyAgreementView)
-			
-		let _ = Driver
-			.merge([input.naverBtnTapped.map { "@naver.com" },
-							input.gmailBtnTapped.map { "@gmail.com" },
-							input.kakaoBtnTapped.map { "@kakao.com" }])
-			.asDriver()
-			.map { textFieldTextRealy.value + $0 }
-			.drive(textFieldTextRealy)
-			.disposed(by: disposeBag)
 		
 		return Output(
 			buttonState: buttonState,
 			warningLblState: warningLblState,
 			emailTextStatus: emailTextStatus,
 			buttonTappedResult: buttonTappedResult,
-			emailText: textFieldTextRealy.asDriver()
+			emailText: outputText
 		)
 	}
 }
