@@ -116,11 +116,12 @@ class EmailInputViewController: TFBaseViewController {
 		
 		emailTextField.snp.makeConstraints {
 			$0.leading.equalTo(view.safeAreaLayoutGuide).inset(38)
+			$0.trailing.equalTo(clearBtn.snp.leading).offset(2)
 			$0.top.equalTo(titleLable.snp.bottom).offset(32)
 		}
 		
 		clearBtn.snp.makeConstraints {
-			$0.leading.equalTo(emailTextField.snp.trailing)
+			$0.width.height.equalTo(24)
 			$0.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
 			$0.centerY.equalTo(emailTextField)
 		}

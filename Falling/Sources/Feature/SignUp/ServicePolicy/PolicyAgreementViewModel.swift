@@ -17,8 +17,6 @@ final class PolicyAgreementViewModel: ViewModelType {
 		self.navigator = navigator
 	}
 	
-	private let disposeBag = DisposeBag()
-	
 	struct Input {
 		let agreeAllBtn: Driver<Void>
 		let tosAgreeBtn: Driver<Void>
@@ -38,6 +36,7 @@ final class PolicyAgreementViewModel: ViewModelType {
 		let locationServiceAgreeRowImage: Driver<FallingImages>
 		let marketingServiceRowImage: Driver<FallingImages>
 		let nextBtnStatus: Driver<Bool>
+		let disposeble: Disposable
 	}
 
   struct AgreeStatus {
@@ -61,54 +60,67 @@ final class PolicyAgreementViewModel: ViewModelType {
     let agreeStatus = BehaviorRelay<AgreeStatus>(value: AgreeStatus(
       tos: false, privacy: false, location: false, marketing: false
     ))
-     let totalStatus = input.agreeAllBtn.withLatestFrom(agreeStatus.asDriver()) { _, status in
-       return status.reverse()
-    }.do(onNext: { agreeStatus.accept($0) })
 		
-    let tosStatus = input.tosAgreeBtn.withLatestFrom(agreeStatus.asDriver()) { _, status in
-      var mutable = status
-      mutable.tos.toggle()
-      return mutable
-    }.do { agreeStatus.accept($0) }
+		let totalStatus = input.agreeAllBtn
+			.withLatestFrom(agreeStatus.asDriver()) { _, status in
+				return status.reverse()
+			}
+			.do(onNext: { agreeStatus.accept($0) })
+		
+		let tosStatus = input.tosAgreeBtn
+			.withLatestFrom(agreeStatus.asDriver()) { _, status in
+				var mutable = status
+				mutable.tos.toggle()
+				return mutable
+			}
+			.do { agreeStatus.accept($0) }
 		
 		let privacyStatus = input.privacyAgreeBtn
-      .withLatestFrom(agreeStatus.asDriver()) { _, status in
-        var mutable = status
-        mutable.privacy.toggle()
-        return mutable
-      }.do { agreeStatus.accept($0) }
+			.withLatestFrom(agreeStatus.asDriver()) { _, status in
+				var mutable = status
+				mutable.privacy.toggle()
+				return mutable
+			}
+			.do { agreeStatus.accept($0) }
 		
 		let locationStatus = input.locationServiceAgreeBtn
-      .withLatestFrom(agreeStatus.asDriver()) { _, status in
-        var mutable = status
-        mutable.location.toggle()
-        return mutable
-      }.do { agreeStatus.accept($0) }
+			.withLatestFrom(agreeStatus.asDriver()) { _, status in
+				var mutable = status
+				mutable.location.toggle()
+				return mutable
+			}
+			.do { agreeStatus.accept($0) }
 		
 		let marketingStatus = input.marketingServiceAgreeBtn
-      .withLatestFrom(agreeStatus.asDriver()) { _, status in
-        var mutable = status
-        mutable.marketing.toggle()
-        return mutable
-      }.do { agreeStatus.accept($0) }
+			.withLatestFrom(agreeStatus.asDriver()) { _, status in
+				var mutable = status
+				mutable.marketing.toggle()
+				return mutable
+			}
+			.do { agreeStatus.accept($0) }
 	
-    let agreeAllRowImage = agreeStatus.asDriver().map { $0.total }
+    let agreeAllRowImage = agreeStatus.asDriver()
+			.map { $0.total }
 			.map { $0 ? FallingAsset.Image.checkCirSelect : FallingAsset.Image.checkCir }
 			.asDriver(onErrorJustReturn: FallingAsset.Image.checkCir)
 		
-    let tosAgreeRowImage = agreeStatus.asDriver().map { $0.tos }
+    let tosAgreeRowImage = agreeStatus.asDriver()
+			.map { $0.tos }
 			.map { $0 ? FallingAsset.Image.checkSelect : FallingAsset.Image.check }
 			.asDriver(onErrorJustReturn: FallingAsset.Image.check)
 		
-    let privacyAgreeRowImage = agreeStatus.asDriver().map { $0.privacy }
+    let privacyAgreeRowImage = agreeStatus.asDriver()
+			.map { $0.privacy }
 			.map { $0 ? FallingAsset.Image.checkSelect : FallingAsset.Image.check }
 			.asDriver(onErrorJustReturn: FallingAsset.Image.check)
 		
-    let locationServiceAgreeRowImage = agreeStatus.asDriver().map { $0.location }
+    let locationServiceAgreeRowImage = agreeStatus.asDriver()
+			.map { $0.location }
 			.map { $0 ? FallingAsset.Image.checkSelect : FallingAsset.Image.check }
 			.asDriver(onErrorJustReturn: FallingAsset.Image.check)
 		
-    let marketingServiceRowImage = agreeStatus.asDriver().map { $0.marketing }
+    let marketingServiceRowImage = agreeStatus.asDriver()
+			.map { $0.marketing }
 			.map { $0 ? FallingAsset.Image.checkSelect : FallingAsset.Image.check }
 			.asDriver(onErrorJustReturn: FallingAsset.Image.check)
 		
@@ -118,16 +130,16 @@ final class PolicyAgreementViewModel: ViewModelType {
 
     // TODO: Disposable로 만들어서 VC로 넘겨야할지 여기서 Disposed해야할지 아니면
     // 더 좋은 방법이 있을지 고민
-    Driver.merge(totalStatus, tosStatus, privacyStatus, locationStatus, marketingStatus).drive()
-      .disposed(by: disposeBag)
-		
+    let disposeble = Driver.merge(totalStatus, tosStatus, privacyStatus, locationStatus, marketingStatus).drive()
+
 		return Output(
 			agreeAllRowImage: agreeAllRowImage,
 			tosAgreeRowImage: tosAgreeRowImage,
 			privacyAgreeRowImage: privacyAgreeRowImage,
 			locationServiceAgreeRowImage: locationServiceAgreeRowImage,
 			marketingServiceRowImage: marketingServiceRowImage,
-			nextBtnStatus: nextBtnStatus
+			nextBtnStatus: nextBtnStatus,
+			disposeble: disposeble
 		)
 	}
 }
