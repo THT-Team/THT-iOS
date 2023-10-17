@@ -17,6 +17,7 @@ class ProfileCarouselView: TFBaseView {
       collectionView.reloadData()
     }
   }
+  
   lazy var reportButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
@@ -31,6 +32,7 @@ class ProfileCarouselView: TFBaseView {
     config.automaticallyUpdateForSelection = true
     return button
   }()
+  
   lazy var tagCollectionView: TagCollectionView = {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
@@ -39,6 +41,7 @@ class ProfileCarouselView: TFBaseView {
     tagCollection.isHidden = true
     return tagCollection
   }()
+  
   lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
@@ -50,7 +53,7 @@ class ProfileCarouselView: TFBaseView {
     collectionView.delegate = self
     collectionView.register(cellType: ProfileCollectionViewCell.self)
     collectionView.isPagingEnabled = true
-    collectionView.backgroundColor = FallingAsset.Color.neutral50.color
+    collectionView.backgroundColor = FallingAsset.Color.neutral700.color
     return collectionView
   }()
 
@@ -72,18 +75,21 @@ class ProfileCarouselView: TFBaseView {
     imageView.image = FallingAsset.Image.pinSmall.image
     return imageView
   }()
+  
   private lazy var addressLabel: UILabel = {
     let label = UILabel()
     label.textColor = FallingAsset.Color.neutral50.color
     label.font = UIFont.thtP2M
     return label
   }()
+  
   private lazy var hStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.addArrangedSubviews([pinImageView, addressLabel])
     stackView.axis = .horizontal
     return stackView
   }()
+  
   private lazy var vStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.addArrangedSubviews([titleLabel, hStackView])
@@ -108,7 +114,6 @@ class ProfileCarouselView: TFBaseView {
     config.image = FallingAsset.Image.close.image
     config.preferredSymbolConfigurationForImage = .init(pointSize: 100)
     button.configuration = config
-
     return button
   }()
 
@@ -121,16 +126,17 @@ class ProfileCarouselView: TFBaseView {
     config.background.backgroundColor = FallingAsset.Color.dimColor2.color
     return config
   }
+  
   lazy var infoButton: UIButton = {
     let button = UIButton()
     var config = defaultButtonConfig()
-
     config.image = FallingAsset.Image.setting.image
     button.configuration = config
-
     return button
   }()
+  
   private lazy var spacerView = UIView()
+  
   private lazy var buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
@@ -149,10 +155,12 @@ class ProfileCarouselView: TFBaseView {
         $0.size.equalTo(80)
       }
     }
+    
     spacerView.snp.remakeConstraints {
       $0.height.equalTo(80)
       $0.width.equalTo(100).priority(.low)
     }
+    
     collectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
@@ -167,10 +175,12 @@ class ProfileCarouselView: TFBaseView {
       $0.height.equalTo(300).priority(.low)
       $0.bottom.equalTo(vStackView.snp.top).offset(-10)
     }
+    
     vStackView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(12)
       $0.bottom.equalTo(buttonStackView.snp.top).offset(-10)
     }
+    
     buttonStackView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(12)
       $0.bottom.equalToSuperview().offset(-30)

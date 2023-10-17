@@ -20,18 +20,6 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
   var viewModel: MainCollectionViewItemViewModel!
   weak var delegate: TimeOverDelegate?
   
-  lazy var userImageView: UIImageView = {
-    let imageView = UIImageView()
-    imageView.image = .add
-    return imageView
-  }()
-  
-  lazy var userContentView: UIView = {
-    let view = UIView()
-    view.backgroundColor = FallingAsset.Color.clear.color
-    return view
-  }()
-
   lazy var profileCarouselView = ProfileCarouselView()
   
   lazy var progressContainerView: UIView = {
@@ -50,33 +38,14 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
   }
   
   override func makeUI() {
-    // TODO: cornerRadius 동적으로 설정해야 할 것.
-    self.layer.cornerRadius = 15
-    
-    self.addSubview(userImageView)
-    self.addSubview(userContentView)
-
-    
-    self.userContentView.addSubviews([profileCarouselView, progressContainerView])
+    self.contentView.addSubviews([
+      profileCarouselView,
+      progressContainerView])
     
     self.progressContainerView.addSubviews([
       timerView,
       progressView
     ])
-    
-    self.userImageView.snp.makeConstraints {
-      $0.top.equalToSuperview()
-      $0.leading.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.trailing.equalToSuperview()
-    }
-    
-    self.userContentView.snp.makeConstraints {
-      $0.top.equalToSuperview()
-      $0.leading.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.trailing.equalToSuperview()
-    }
     
     self.progressContainerView.snp.makeConstraints {
       $0.top.equalTo(self.safeAreaLayoutGuide).inset(12)
@@ -97,7 +66,7 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       $0.centerY.equalToSuperview()
       $0.height.equalTo(6)
     }
-
+    
     self.profileCarouselView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
@@ -117,10 +86,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     profileCarouselView.infoButton.rx.tap.asDriver()
       .scan(true) { lastValue, _ in
         return !lastValue
-      }.drive(profileCarouselView.tagCollectionView.rx.isHidden)
+      }
+      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
       .disposed(by: disposeBag)
-
-    let output = viewModel.transform(input: MainCollectionViewItemViewModel.Input())
+    
+    let output = viewModel
+      .transform(input: MainCollectionViewItemViewModel.Input())
     
     output.timeState
       .drive(self.rx.timeState)
@@ -131,12 +102,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
         if value { self.delegate?.scrollToNext() }
       }.drive()
       .disposed(by: self.disposeBag)
-
+    
     output.user
       .drive(onNext: { [weak self] user in
         self?.profileCarouselView.configure(user)
       })
-    .disposed(by: disposeBag)
+      .disposed(by: disposeBag)
   }
   
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {

@@ -14,8 +14,9 @@ import RxDataSources
 final class MainViewController: TFBaseViewController {
   
   private let viewModel: MainViewModel
-  private lazy var mainView = MainView()
   private var dataSource: UICollectionViewDiffableDataSource<MainProfileSection, UserDomain>!
+  private lazy var mainView = MainView()
+    
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -44,12 +45,11 @@ final class MainViewController: TFBaseViewController {
   }
   
   override func bindViewModel() {
-    let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
-    
+    let initialTrigger = Driver<Void>.just(()).asDriver()
     let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
     }.asDriverOnErrorJustEmpty()
     
-    let output = viewModel.transform(input: MainViewModel.Input(trigger: initialTrigger, timeOverTrigger: timerOverTrigger))
+    let output = viewModel.transform(input: MainViewModel.Input(initialTrigger: initialTrigger, timeOverTrigger: timerOverTrigger))
     
     var count = 0
     output.userList
@@ -57,12 +57,10 @@ final class MainViewController: TFBaseViewController {
         count = userSection.count
       }.disposed(by: disposeBag)
 
-    // DiffableDataSource
-
     let profileCellRegistration = UICollectionView.CellRegistration<MainCollectionViewCell, UserDomain> { [weak self] cell, indexPath, item in
       cell.setup(item: item)
       cell.delegate = self
-      output.currentPage
+      output.userCardScrollIndex
         .filter { $0 == indexPath.item }
         .drive(onNext: {_ in
         cell.bindViewModel()
@@ -73,6 +71,7 @@ final class MainViewController: TFBaseViewController {
     dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
+      
     output.userList
       .drive(onNext: { [weak self] list in
         var snapshot = NSDiffableDataSourceSnapshot<MainProfileSection, UserDomain>()
@@ -81,7 +80,7 @@ final class MainViewController: TFBaseViewController {
         self?.dataSource.apply(snapshot, animatingDifferences: true)
       }).disposed(by: disposeBag)
     
-    output.currentPage
+    output.userCardScrollIndex
       .do(onNext: { index in
         let index = index >= count ? count - 1 : index
         let indexPath = IndexPath(row: index, section: 0)

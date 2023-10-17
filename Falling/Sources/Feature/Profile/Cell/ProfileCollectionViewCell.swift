@@ -13,6 +13,8 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
+    imageView.clipsToBounds = true
+    imageView.layer.cornerRadius = 20
     imageView.layer.masksToBounds = true
     return imageView
   }()
