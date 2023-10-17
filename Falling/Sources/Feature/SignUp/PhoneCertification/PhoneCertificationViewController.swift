@@ -109,8 +109,6 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		$0.isHidden = true
 	}
 	
-	private let tapGesture = UITapGestureRecognizer()
-	
 	private let viewModel: PhoneCertificationViewModel
 	
 	init(viewModel: PhoneCertificationViewModel) {
@@ -125,7 +123,6 @@ final class PhoneCertificationViewController: TFBaseViewController {
 	override func makeUI() {
 		[phoneNumberInputeView, codeInputView, successPopup].forEach {
 			view.addSubview($0)
-			$0.addGestureRecognizer(tapGesture)
 		}
 		
 		[titleLabel, phoneNumTextField, clearBtn, divider, infoImageView, descLabel, verifyBtn].forEach {
@@ -189,7 +186,7 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		
 		verifyBtn.snp.makeConstraints {
 			$0.leading.trailing.equalToSuperview().inset(38)
-			$0.bottom.equalToSuperview()
+			$0.bottom.equalToSuperview().offset(14)
 			$0.height.equalTo(54)
 		}
 		
@@ -355,13 +352,17 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.map { return $0.color }
 			.drive(timerLabel.rx.textColor)
 			.disposed(by: disposeBag)
+		
+		output.navigatorDisposble
+			.disposed(by: disposeBag)
 	}
 	
 	func keyBoardSetting() {
-		tapGesture.rx.event
-			.subscribe { [weak self] _ in
-				guard let self else { return }
-				self.view.endEditing(true)
+		view.rx.tapGesture()
+			.when(.recognized)
+			.withUnretained(self)
+			.subscribe { vc, _ in
+				vc.view.endEditing(true)
 			}
 			.disposed(by: disposeBag)
 		
@@ -369,8 +370,14 @@ final class PhoneCertificationViewController: TFBaseViewController {
 			.skip(1)
 			.drive(onNext: { [weak self] keyboardHeight in
 				guard let self else { return }
-				self.verifyBtn.snp.updateConstraints {
-					$0.bottom.equalToSuperview().inset(keyboardHeight)
+				if keyboardHeight == 0 {
+					self.verifyBtn.snp.updateConstraints {
+						$0.bottom.equalToSuperview().inset(14)
+					}
+				} else {
+					self.verifyBtn.snp.updateConstraints {
+						$0.bottom.equalToSuperview().inset(keyboardHeight - self.view.safeAreaInsets.bottom + 14)
+					}
 				}
 			})
 			.disposed(by: disposeBag)
