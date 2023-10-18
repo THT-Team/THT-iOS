@@ -33,6 +33,16 @@ extension UIImage {
     self.aspectFittedToHeight(200)
       .jpegData(compressionQuality: 0.2)
   }
+  
+  func resize(targetSize: CGSize) -> UIImage? {
+    let newRect = CGRect(x: 0, y: 0, width: targetSize.width, height: targetSize.height).integral
+    UIGraphicsBeginImageContextWithOptions(newRect.size, false, 0)
+    guard let context = UIGraphicsGetCurrentContext() else { return nil }
+    context.interpolationQuality = .high
+    draw(in: newRect)
+    let newImage = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+    return newImage
+  }
 }
-
 

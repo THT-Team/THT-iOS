@@ -16,8 +16,15 @@ final class HeartNavigator {
     self.heartService = heartService
   }
 
-  func toProfile(id: String) {
-    let vc = ProfileViewController()
+  func toProfile(item: LikeDTO) {
+    let navigator = HeartProfileNavigator(
+      controller: self.controller,
+      heartService: self.heartService)
+
+    let viewModel = HeartProfileViewModel(service: self.heartService,
+                                         navigator: navigator,
+                                         likeItem: item)
+    let vc = ProfileViewController(viewModel: viewModel)
     vc.modalPresentationStyle = .overFullScreen
     vc.modalTransitionStyle = .crossDissolve
     controller.present(vc, animated: true)

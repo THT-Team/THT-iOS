@@ -112,21 +112,24 @@ final class MainCollectionViewItemViewModel: ViewModelType {
   struct Output {
     let timeState: Driver<TimeState>
     let isTimeOver: Driver<Bool>
+    let user: Driver<UserDomain>
   }
   
   func transform(input: Input) -> Output {
+    let user = Driver.just(self.userDomain)
     let time = Observable<Int>.interval(.milliseconds(10),
                                         scheduler: MainScheduler.instance)
       .take(8 * 100 + 1)
       .map { round((8 - Double($0) / 100) * 100) / 100 }
       .asDriver(onErrorDriveWith: Driver<Double>.empty())
-    
+
     let timeState = time.map { TimeState(rawValue: $0) }
     let isTimeOver = time.map { $0 == 0.0 }
     
     return Output(
       timeState: timeState,
-      isTimeOver: isTimeOver
+      isTimeOver: isTimeOver,
+      user: user
     )
   }
 }

@@ -18,7 +18,6 @@ final class MainView: TFBaseView {
     flowLayout.scrollDirection = .vertical
     let collectionView = UICollectionView(frame: .zero,
                                           collectionViewLayout: flowLayout)
-    collectionView.register(cellType: MainCollectionViewCell.self)
     collectionView.isScrollEnabled = false
     collectionView.backgroundColor = FallingAsset.Color.neutral700.color
     return collectionView

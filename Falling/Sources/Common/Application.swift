@@ -32,13 +32,14 @@ final class Application {
   
   private func makeTabBarController() -> UIViewController {
     let heartService = HeartAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
+    let fallingService = FallingAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
     
     let mainNavigationController = UINavigationController()
     let heartNavigationController = UINavigationController()
     let chatNavigationController = UINavigationController()
     let myPageNavigationController = UINavigationController()
     
-    let mainNavigator = MainNavigator(controller: mainNavigationController)
+    let mainNavigator = MainNavigator(controller: mainNavigationController, fallingService: fallingService)
     let heartNavigator = HeartNavigator(controller: heartNavigationController, heartService: heartService)
     let chatNavigator = ChatNavigator(controller: chatNavigationController)
     let myPageNavigator = MyPageNavigator(controller: myPageNavigationController)

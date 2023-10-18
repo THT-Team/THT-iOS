@@ -134,6 +134,68 @@ extension HeartTarget: BaseTargetType {
         }
         """.utf8
       )
+    case .userInfo:
+      return Data(
+        """
+        {
+          "username": "유저이름",
+          "userUuid": "makeUuid-2mnk-41",
+          "age": 345,
+          "introduction": "내 나이는 서른마흔다섯",
+          "address": "서울시 성동구 저쩌구 동작구",
+          "phoneNumber": "01010041004",
+          "email": "beenZino@naver.com",
+          "idealTypeList": [
+            {
+              "idx": 1,
+              "name": "자극을 주는",
+              "emojiCode": "1F4DA"
+            },
+            {
+              "idx": 2,
+              "name": "피부가 좋은",
+              "emojiCode": "1F3AC"
+            },
+            {
+              "idx": 3,
+              "name": "집순이/집돌이",
+              "emojiCode": "1F3B5"
+            }
+          ],
+          "interestsList": [
+            {
+              "idx": 1,
+              "name": "등산하기",
+              "emojiCode": "1F3A4"
+            },
+            {
+              "idx": 2,
+              "name": "영화/드라마",
+              "emojiCode": "1F642"
+            },
+            {
+              "idx": 3,
+              "name": "게임",
+              "emojiCode": "1F963"
+            }
+          ],
+          "userProfilePhotos": [
+            {
+              "url": "https://firebasestorage.googleapis.com/v0/b/tht-falling.appspot.com/o/images%2Fprofile_example1.png?alt=media&token=dc28c0cd-98b2-4332-9660-35530283d77c",
+              "priority": 1
+            },
+            {
+              "url": "https://firebasestorage.googleapis.com/v0/b/tht-falling.appspot.com/o/images%2Fprofile_example2.png?alt=media&token=e19493ed-10ba-4784-bf94-f4b99af84161",
+              "priority": 2
+            },
+            {
+              "url": "https://firebasestorage.googleapis.com/v0/b/tht-falling.appspot.com/o/images%2Fprofile_example2.png?alt=media&token=e19493ed-10ba-4784-bf94-f4b99af84161",
+              "priority": 3
+            }
+          ]
+        }
+        """.utf8
+        )
     default:
       return Data(
     """

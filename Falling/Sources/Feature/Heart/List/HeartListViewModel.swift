@@ -38,7 +38,7 @@ final class HeartListViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
 
   func transform(input: Input) -> Output {
-    let listSubject = BehaviorSubject<[LikeSection]>(value: [])
+    let listSubject = PublishSubject<[LikeSection]>()
 
     let refreshResponse = input.trigger
       .flatMapLatest { [unowned self] _ in
@@ -51,72 +51,73 @@ final class HeartListViewModel: ViewModelType {
 
     let newList = refreshResponse.map { $0.likeList }
       .map(HeartSectionMapper.map)
-      .do(onNext: { listSubject.onNext($0) })
+      .do(onNext: {
+        listSubject.onNext($0)
+      })
 
     let cellAction = input.cellButtonAction
 
     let rejectItem = cellAction
       .map { action -> IndexPath? in
-      if case let .reject(indexPath) = action {
-        return indexPath
+        if case let .reject(indexPath) = action {
+          return indexPath
+        }
+        return nil
       }
-      return nil
-    }.compactMap { $0 }
+      .compactMap { $0 }
 
-    rejectItem
+    let deleteCommand = rejectItem.withLatestFrom(listSubject.asDriverOnErrorJustEmpty()) { indexPath, sections -> [LikeSection] in
+      var original = sections
+      original[indexPath.section].items.remove(at: indexPath.item)
+      return original
+    }
+      .do(onNext: { listSubject.onNext($0) })
 
-    let rejectResponse = rejectItem
-      .debug("reject Trigger")
-      .withLatestFrom(listSubject.asDriverOnErrorJustEmpty()) {
-        indexPath, dataSource -> LikeDTO in
-        dataSource[indexPath.section].items[indexPath.item]
-      }
-      .flatMapLatest { [unowned self] model in
-        service.reject(index: model.likeIdx)
-          .asObservable()
-          .asDriverOnErrorJustEmpty()
-      }
+    let outputList = Driver.merge(newList, deleteCommand)
+      .withLatestFrom(listSubject.asDriverOnErrorJustEmpty())
+
     let profile = cellAction
       .map { action -> IndexPath? in
-      if case let .profile(indexPath) = action {
-        return indexPath
-      }
-      return nil
+        if case let .profile(indexPath) = action {
+          return indexPath
+        }
+        return nil
       }.compactMap { $0 }
       .withLatestFrom(listSubject.asDriverOnErrorJustEmpty()) {
-        indexPath, dataSource -> String in
-        dataSource[indexPath.section].items[indexPath.item].userUUID
-      }.do(onNext: { [weak self] id in
-        self?.navigator.toProfile(id: id)
-      })
+        indexPath, dataSource in
+        dataSource[indexPath.section].items[indexPath.item]
+      }
+      .do(onNext: { [weak self] item in
+        self?.navigator.toProfile(item: item)
+      }).map { _ in }
 
 
     let chatRoomSubject = cellAction
-      .map { action -> IndexPath? in
-      if case let .chat(indexPath) = action {
-        return indexPath
+      .compactMap { action -> IndexPath? in
+        if case let .chat(indexPath) = action {
+          return indexPath
+        }
+        return nil
       }
-      return nil
-    }
-      .compactMap { $0 }
       .debug("chat Trigger")
       .withLatestFrom(listSubject.asDriver(onErrorDriveWith: .empty())) { indexPath, dataSource -> LikeDTO in
         let section = dataSource[indexPath.section]
         let item = section.items[indexPath.row]
         return item
-    }.flatMapLatest { [unowned self] item in
-      service.like(id: item.userUUID, topicIndex: 1)
-        .asDriver(onErrorDriveWith: .empty())
-    }.filter { $0.isMatching }
+      }.flatMapLatest { [unowned self] item in
+        service.like(id: item.userUUID, topicIndex: 1)
+          .asDriver(onErrorDriveWith: .empty())
+      }.filter { $0.isMatching }
       .map { String($0.chatRoomIdx) }
       .do { [weak self] roomIndex in
         self?.navigator.toChatRoom(id: roomIndex)
-      }.map { _ in }
+      }
+      .map { _ in }
 
     return Output(
-      heartList: newList,
-      chatRoom: chatRoomSubject.asDriver(),
-      profile: profile.map { _ in }
+      heartList: outputList,
+      chatRoom: chatRoomSubject,
+      profile: profile
     )
 
   }

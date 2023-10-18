@@ -11,7 +11,15 @@ import RxSwift
 import RxMoya
 import Moya
 
-final class HeartAPI: ProviderProtocol {
+protocol HeartAPIType: ProviderProtocol {
+  
+  func like(id: String, topicIndex: Int) -> Single<HeartLikeResponse>
+  func reject(index: Int) -> Single<Void>
+  func list(pagingRequest: HeartListRequest) -> Single<HeartListResponse>
+  func user(id: String) -> Single<HeartUserResponse>
+}
+
+final class HeartAPI: HeartAPIType {
 
   typealias Target = HeartTarget
   var provider: MoyaProvider<Target>
@@ -29,5 +37,9 @@ final class HeartAPI: ProviderProtocol {
   }
   func list(pagingRequest: HeartListRequest) -> Single<HeartListResponse> {
     request(type: HeartListResponse.self, target: .list(request: pagingRequest))
+  }
+
+  func user(id: String) -> Single<HeartUserResponse> {
+    request(type: HeartUserResponse.self, target: .userInfo(id: id))
   }
 }

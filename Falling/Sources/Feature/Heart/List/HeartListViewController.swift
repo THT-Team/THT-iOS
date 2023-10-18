@@ -20,6 +20,11 @@ enum LikeCellButtonAction {
 
 final class HeartListViewController: TFBaseViewController {
   private let viewModel: HeartListViewModel
+
+
+  private lazy var blurEffect = UIBlurEffect(style: .regular)
+  private lazy var visualEffectView = UIVisualEffectView(effect: blurEffect)
+
   private lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.headerReferenceSize = CGSize(width: UIScreen.main.bounds.width, height: 44)
@@ -64,9 +69,13 @@ final class HeartListViewController: TFBaseViewController {
   )
 
   override func makeUI() {
+    self.view.addSubview(visualEffectView)
     self.view.addSubview(collectionView)
     self.view.addSubview(emptyView)
 
+    visualEffectView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
     collectionView.snp.makeConstraints {
       $0.edges.equalTo(self.view.safeAreaLayoutGuide)
     }
@@ -75,13 +84,25 @@ final class HeartListViewController: TFBaseViewController {
     }
   }
 
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+
+    visualEffectView.isHidden = true
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+
+    visualEffectView.isHidden = false
+  }
+
   override func bindViewModel() {
     let likeCellButtonSubject = PublishSubject<LikeCellButtonAction>()
 
-    let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection> {  dataSource, collectionView, indexPath, item in
+    let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection>(animationConfiguration: AnimationConfiguration(reloadAnimation: .fade, deleteAnimation: .fade)) {  dataSource, collectionView, indexPath, item in
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: HeartCollectionViewCell.self)
       cell.bind(likeCellButtonSubject.asObserver(), index: indexPath)
-      cell.configure(item)
+      cell.bind(viewModel: item)
       return cell
     }  configureSupplementaryView: { dataSource, collectionView, kind, indexPath in
       let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
@@ -92,9 +113,18 @@ final class HeartListViewController: TFBaseViewController {
       let item = dataSource[indexPath]
       return true
     }
+
+    collectionView.rx.didEndDisplayingCell.map { cell, indexPath in
+      guard let heartCell = cell as? HeartCollectionViewCell else {
+        TFLogger.view.error("didEndDisplay: cell 변환 error")
+        return
+      }
+      heartCell.disposeBag = DisposeBag()
+    }.subscribe(onNext: {
+      TFLogger.view.debug("disebose bag refresh")
+    }).disposed(by: disposeBag)
     let initialTrigger = self.rx.viewWillAppear.map { _ in }.asDriverOnErrorJustEmpty()
     let refreshControl = self.refreshControl.rx.controlEvent(.valueChanged).asDriver()
-
 
     let input = HeartListViewModel.Input(
       trigger: Driver.merge(initialTrigger, refreshControl),

@@ -8,122 +8,136 @@
 import UIKit
 
 import SnapKit
+import RxSwift
+import RxCocoa
+import RxDataSources
 
 final class ProfileViewController: TFBaseViewController {
+  private lazy var mainView = ProfileView()
 
-  private lazy var dimmedView: UIView = {
-    let view = UIView()
-    view.backgroundColor = .black.withAlphaComponent(0.5)
-    return view
-  }()
+  private let viewModel: HeartProfileViewModel
+  private var dataSource: UICollectionViewDiffableDataSource<ProfilePhotoSection, ProfilePhotoDomain>!
+  private var info: HeartUserResponse!
+  private let reportRelay = PublishRelay<Void>()
+  init(viewModel: HeartProfileViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
 
-  private lazy var topicBarView = TFTopicBarView()
-
-  private lazy var profileCollectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.minimumLineSpacing = 10
-    layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 20, height: 300)
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.dataSource = self
-    collectionView.delegate = self
-    collectionView.register(cellType: UICollectionViewCell.self)
-    collectionView.layer.cornerRadius = 12
-    collectionView.clipsToBounds = true
-    return collectionView
-  }()
-
-  private lazy var nextTimeButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("다음에")
-    titleAttribute.font = UIFont.thtSubTitle2Sb
-    titleAttribute.foregroundColor = FallingAsset.Color.neutral50.color
-    config.baseBackgroundColor = FallingAsset.Color.neutral500.color
-    config.attributedTitle = titleAttribute
-
-    button.configuration = config
-
-    return button
-  }()
-
-  private lazy var stackView: UIStackView = {
-    let stackView = UIStackView()
-    stackView.axis = .horizontal
-    stackView.alignment = .fill
-    stackView.distribution = .fillEqually
-    stackView.spacing = 20
-    return stackView
-  }()
-
-  private lazy var chatButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("대화히기")
-    titleAttribute.font = UIFont.thtSubTitle2Sb
-    titleAttribute.foregroundColor = FallingAsset.Color.neutral700.color
-    config.baseBackgroundColor = FallingAsset.Color.primary500.color
-    config.attributedTitle = titleAttribute
-
-    button.configuration = config
-
-    return button
-  }()
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  override func loadView() {
+    self.view = mainView
+  }
 
   override func makeUI() {
-    self.view.backgroundColor = .black.withAlphaComponent(0.1)
-    self.view.isOpaque = false
-    [dimmedView, topicBarView, profileCollectionView, stackView].forEach {
-      self.view.addSubview($0)
-    }
-
-    stackView.addArrangedSubview(nextTimeButton)
-    stackView.addArrangedSubview(chatButton)
-
-    dimmedView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
-
-    topicBarView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(10)
-      $0.top.equalToSuperview().offset(100)
-    }
-    profileCollectionView.snp.makeConstraints {
-      $0.top.equalTo(topicBarView.snp.bottom).offset(10)
-      $0.bottom.equalToSuperview().inset(100)
-      $0.leading.trailing.equalTo(topicBarView)
-    }
-
-    stackView.snp.makeConstraints {
-      $0.centerY.equalTo(profileCollectionView.snp.bottom)
-      $0.leading.trailing.equalTo(profileCollectionView).inset(10)
-      $0.height.equalTo(46)
-    }
+    self.view.backgroundColor = .clear
   }
 
   override func bindViewModel() {
-    topicBarView.configure(title: "애완동물aa", content: "띄어쓰기 asdfasdfasd\n 띄어쓰기 ")
-    topicBarView.closeButton.addTarget(self, action: #selector(closeButtonTap), for: .touchUpInside)
+    setupDataSource()
+
+    let reportTrigger = reportRelay.flatMap {
+      return Observable<Void>.create { observer in
+
+        let alert = UIAlertController(title: "Report",
+                                      message: "message",
+                                      preferredStyle: .actionSheet
+        )
+        let blockAction = UIAlertAction(title: "차단하기", style: .default, handler: { _ -> () in observer.onNext(()) })
+        let reportAction = UIAlertAction(title: "신고하기", style: .destructive, handler: { _ -> () in observer.onNext(()) })
+        let noAction = UIAlertAction(title: "취소", style: .cancel, handler: nil)
+        alert.addAction(blockAction)
+        alert.addAction(reportAction)
+        alert.addAction(noAction)
+        self.present(alert, animated: true, completion: nil)
+        return Disposables.create()
+      }
+    }.asDriverOnErrorJustEmpty()
+
+    let input = HeartProfileViewModel.Input(
+      trigger: self.rx.viewWillAppear.asDriver().map { _ in },
+      rejectTrigger: mainView.nextTimeButton.rx.tap.asDriver(),
+      likeTrigger: mainView.chatButton.rx.tap.asDriver(),
+      closeTrigger: mainView.topicBarView.closeButton.rx.tap.asDriver(),
+      reportTrigger: reportTrigger
+    )
+    let output = viewModel.transform(input: input)
+    output.topic.drive(onNext: { [weak self] topic in
+      self?.mainView.topicBarView.bind(topic)
+    }).disposed(by: disposeBag
+    )
+    output.userInfo
+      .map {
+        $0.userProfilePhotos
+          .map { $0.toDomain() }
+      }.drive(onNext: {[weak self] items in
+        self?.performQuery(with: items)
+      })
+      .disposed(by: disposeBag)
+    output.userInfo
+      .drive(onNext: { [weak self] info in
+        self?.info = info
+      }).disposed(by: disposeBag)
+    //
+    output.navigate.drive()
+      .disposed(by: disposeBag)
   }
-  @objc
-  private func closeButtonTap(sender: UIButton) {
-    self.dismiss(animated: true)
+  func setupDataSource() {
+    let cellRegistration = UICollectionView.CellRegistration
+    <ProfileCollectionViewCell, ProfilePhotoDomain> { (cell, indexPath, item) in
+      // Populate the cell with our item description.
+      cell.bind(imageURL: item.url)
+    }
+    //
+    let footerRegistration = UICollectionView.SupplementaryRegistration
+    <ProfileInfoReusableView>(elementKind: UICollectionView.elementKindSectionFooter) {
+      (supplementaryView, string, indexPath) in
+      guard let item = self.info else {
+        return
+      }
+      supplementaryView.tagCollectionView.reportButton.rx.tap.asDriver()
+        .drive(onNext: { [weak self] in
+          self?.reportRelay.accept(Void())
+        })
+        .disposed(by: supplementaryView.disposeBag)
+      supplementaryView.bind(viewModel: item)
+    }
+
+
+    dataSource = UICollectionViewDiffableDataSource<ProfilePhotoSection, ProfilePhotoDomain>(collectionView: mainView.profileCollectionView) {
+      (collectionView: UICollectionView, indexPath: IndexPath, identifier: ProfilePhotoDomain) -> UICollectionViewCell? in
+      // Return the cell.
+      return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: identifier)
+    }
+    dataSource.supplementaryViewProvider = { (view, kind, index) in
+      return self.mainView.profileCollectionView.dequeueConfiguredReusableSupplementary(
+        using: footerRegistration, for: index)
+    }
+  }
+
+  /// - Tag: MountainsPerformQuery
+  func performQuery(with items: [ProfilePhotoDomain]) {
+    var snapshot = NSDiffableDataSourceSnapshot<ProfilePhotoSection, ProfilePhotoDomain>()
+    snapshot.appendSections([.main])
+    snapshot.appendItems(items)
+    dataSource.apply(snapshot, animatingDifferences: true)
   }
 }
 
-extension ProfileViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return 3
-  }
+#if DEBUG
+import SwiftUI
 
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: UICollectionViewCell.self)
-    cell.backgroundColor = FallingAsset.Color.disabled.color
-    return cell
+struct profileviewPreview: PreviewProvider {
+  static var previews: some View {
+    let service = HeartAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
+    let viewModel = HeartProfileViewModel(
+      service: service,
+      navigator: MockProfileNavigator(),
+      likeItem: .mock)
+    let vc = ProfileViewController(viewModel: viewModel)
+    return vc.toPreView()
   }
 }
+#endif

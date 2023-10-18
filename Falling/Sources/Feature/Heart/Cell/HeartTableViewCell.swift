@@ -13,9 +13,18 @@ import RxCocoa
 import RxGesture
 
 final class HeartCollectionViewCell: UICollectionViewCell {
-  private var disposeBag = DisposeBag()
+  var disposeBag = DisposeBag()
 
   private var model: LikeDTO?
+
+  private var indexPath: IndexPath? {
+    guard let collectionView = self.superview as? UICollectionView,
+          let indexPath = collectionView.indexPath(for: self) else {
+      TFLogger.view.error("indexPath 얻기 실패")
+      return nil
+    }
+    return indexPath
+  }
 
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()
@@ -176,28 +185,69 @@ final class HeartCollectionViewCell: UICollectionViewCell {
     locationLabel.text = nil
   }
 
-  func configure(_ item: LikeDTO) {
-    self.model = item
+  func bind(viewModel: LikeDTO) {
+    self.model = viewModel
     profileImageView.image = nil
-    nickNameLabel.text = item.username
-    locationLabel.text = item.address
+    nickNameLabel.text = viewModel.username
+    locationLabel.text = viewModel.address
   }
 
   func bind<O>(_ observer: O, index: IndexPath) where O:ObserverType, O.Element == (LikeCellButtonAction) {
+
     nextTimeButton.rx.tap
-      .map { LikeCellButtonAction.reject(index) }
+      .debug()
+      .map {
+        guard let collectionView = self.superview as? UICollectionView else {
+          TFLogger.view.error("변환 실패")
+          return IndexPath(row: 0, section: 0)
+        }
+        guard let indexPath = collectionView.indexPath(for: self) else {
+          TFLogger.view.error("indexPath 얻기 실패")
+          return IndexPath(row: 0, section: 0)
+        }
+        return indexPath
+      }
+      .map { LikeCellButtonAction.reject($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     chatButton.rx.tap
-      .map { LikeCellButtonAction.chat(index) }
+      .compactMap { self.indexPath }
+      .map { LikeCellButtonAction.chat($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     profileImageView.rx.tapGesture()
       .when(.recognized).mapToVoid()
-      .map { LikeCellButtonAction.profile(index) }
+      .compactMap { self.indexPath }
+      .map { LikeCellButtonAction.profile($0) }
       .bind(to: observer)
       .disposed(by: disposeBag)
   }
 }
+
+#if DEBUG
+import SwiftUI
+
+struct LikeCellRepresentable: UIViewRepresentable {
+    typealias UIViewType = HeartCollectionViewCell
+
+    func makeUIView(context: Context) -> UIViewType {
+      return UIViewType()
+    }
+
+    func updateUIView(_ uiView: UIViewType, context: Context) {
+      uiView.bind(viewModel: LikeDTO(dailyFallingIdx: 1, likeIdx: 1, topic: "topic", issue: "issue", userUUID: "1", username: "name", profileURL: "123", age: 1, address: "asdf", receivedTime: "asdf"))
+    }
+}
+struct LikeCellPreview: PreviewProvider {
+    static var previews: some View {
+        Group {
+            LikeCellRepresentable()
+                .frame(width: 375, height: 110)
+        }
+        .previewLayout(.sizeThatFits)
+        .padding(10)
+    }
+}
+#endif

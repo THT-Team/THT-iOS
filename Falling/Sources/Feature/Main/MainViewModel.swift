@@ -12,49 +12,52 @@ import RxCocoa
 final class MainViewModel: ViewModelType {
   
   private let navigator: MainNavigator
+  private let service: FallingAPI
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
-    let trigger: Driver<Void>
+    let initialTrigger: Driver<Void>
     let timeOverTrigger: Driver<Void>
   }
   
   struct Output {
     let userList: Driver<[UserDomain]>
-    let currentPage: Driver<Int>
+    let userCardScrollIndex: Driver<Int>
   }
   
-  init(navigator: MainNavigator) {
+  init(navigator: MainNavigator, service: FallingAPI) {
     self.navigator = navigator
+    self.service = service
   }
   
   func transform(input: Input) -> Output {
-    let listSubject = BehaviorSubject<[UserSection]>(value: [])
-    let currentIndex = BehaviorSubject<Int>(value: 0)
-    
+    let currentIndexRelay = BehaviorRelay<Int>(value: 0)
     let timeOverTrigger = input.timeOverTrigger
     
-    let userSectionList = [UserSection(header: "header",
-                                       items: [
-                                        UserDTO(userIdx: 0),
-                                        UserDTO(userIdx: 1),
-                                        UserDTO(userIdx: 2),
-                                       ])]
+    let userSequence = input.initialTrigger
+      .flatMapLatest { [unowned self] _ in
+        self.service.user(DailyFallingUserRequest(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100))
+          .asDriver(onErrorJustReturn: .init(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, userInfos: []))
+      }
     
-    let userList = Driver.just([
-      UserDomain(userIdx: 0),
-      UserDomain(userIdx: 1),
-      UserDomain(userIdx: 2),
-    ])
-
-    let currentPage = timeOverTrigger.withLatestFrom(currentIndex.asDriver(onErrorJustReturn: 0)) { _, page in
-      currentIndex.onNext(page + 1)
-      return page + 1
-    }.startWith(0)
+    let userList = userSequence.map { $0.userInfos.map { $0.toDomain() } }
+      .flatMap { list in
+        return Driver.just(list)
+      }
+    
+    let userListObservable = userList.map { _ in
+      currentIndexRelay.accept(currentIndexRelay.value)
+    }
+    
+    let nextScrollIndex = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, page in
+      currentIndexRelay.accept(currentIndexRelay.value + 1)
+    }
+    
+    let userCardScrollIndex = Driver.merge(userListObservable, nextScrollIndex).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0))
     
     return Output(
       userList: userList,
-      currentPage: currentPage
+      userCardScrollIndex: userCardScrollIndex
     )
   }
 }
