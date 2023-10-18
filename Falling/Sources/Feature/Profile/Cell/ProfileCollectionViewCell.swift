@@ -12,9 +12,7 @@ import SnapKit
 final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.contentMode = .scaleAspectFill
-    imageView.clipsToBounds = true
-    imageView.layer.cornerRadius = 20
+    imageView.contentMode = .scaleAspectFit
     imageView.layer.masksToBounds = true
     return imageView
   }()
@@ -31,7 +29,7 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
 
   func makeUI() {
     contentView.addSubview(imageView)
-
+    contentView.backgroundColor = FallingAsset.Color.neutral600.color
     imageView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
@@ -47,7 +45,8 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
     guard let url = URL(string: imageURL) else {
       return
     }
-    self.imageView.image = UIImage(named: "test_1", in: FallingResources.bundle, compatibleWith: nil)
+    let random = ["test_1", "test_2"]
+    self.imageView.image = UIImage(named: random.randomElement() ?? "test_1", in: FallingResources.bundle, compatibleWith: nil)
 
 //    self.imageView.setResource(url) { [weak self] in
 //      self?.imageView.sizeToFit()
