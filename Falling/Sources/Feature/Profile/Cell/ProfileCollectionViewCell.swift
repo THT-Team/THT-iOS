@@ -41,7 +41,7 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
     self.imageView.image = nil
   }
 
-  func configure(imageURL: String) {
+  func bind(imageURL: String) {
     guard let url = URL(string: imageURL) else {
       return
     }
