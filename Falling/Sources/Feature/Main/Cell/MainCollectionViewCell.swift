@@ -105,7 +105,7 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     
     output.user
       .drive(onNext: { [weak self] user in
-        self?.profileCarouselView.configure(user)
+        self?.profileCarouselView.bind(user)
       })
       .disposed(by: disposeBag)
   }

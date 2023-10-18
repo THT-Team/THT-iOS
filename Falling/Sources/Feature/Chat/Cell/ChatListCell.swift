@@ -108,7 +108,7 @@ final class ChatListTableViewCell: UITableViewCell {
     notiLabel.isHidden = true
   }
 
-  func configure() {
+  func bind() {
     profileImageView.image = FallingAsset.Image.face.image
     nickNameLabel.text = "test"
     contentLabel.text = "내용 테스트"

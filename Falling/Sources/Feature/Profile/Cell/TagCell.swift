@@ -74,7 +74,7 @@ final class TagCollectionViewCell: UICollectionViewCell {
     contentView.layer.masksToBounds = true
   }
 
-  func configure(_ viewModel: TagItemViewModel) {
+  func bind(_ viewModel: TagItemViewModel) {
     self.titleLabel.text = viewModel.title
     self.emojiView.text = viewModel.emoji
   }

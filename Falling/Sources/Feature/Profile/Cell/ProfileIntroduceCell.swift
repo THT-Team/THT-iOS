@@ -41,7 +41,7 @@ final class ProfileIntroduceCell: TFBaseCollectionViewCell {
     self.textView.text = nil
   }
 
-  func configure(_ text: String?) {
+  func bind(_ text: String?) {
     self.textView.text = text
     self.textView.invalidateIntrinsicContentSize()
     self.textView.sizeToFit()

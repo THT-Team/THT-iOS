@@ -187,14 +187,14 @@ class ProfileCarouselView: TFBaseView {
     }
   }
 
-  func configure(_ userDomain: UserDomain) {
-    self.photos = userDomain.userProfilePhotos
-    self.titleLabel.text = userDomain.username + ", \(userDomain.age)"
-    self.addressLabel.text = userDomain.address
+  func bind(_ viewModel: UserDomain) {
+    self.photos = viewModel.userProfilePhotos
+    self.titleLabel.text = viewModel.username + ", \(viewModel.age)"
+    self.addressLabel.text = viewModel.address
     self.tagCollectionView.sections = [
-      profileInfoSection(header: "이상형", items: userDomain.idealTypes),
-      profileInfoSection(header: "흥미", items: userDomain.interests),
-      profileInfoSection(header: "자기소개", introduce: userDomain.introduction)
+      profileInfoSection(header: "이상형", items: viewModel.idealTypes),
+      profileInfoSection(header: "흥미", items: viewModel.interests),
+      profileInfoSection(header: "자기소개", introduce: viewModel.introduction)
     ]
   }
 }
@@ -210,7 +210,7 @@ extension ProfileCarouselView: UICollectionViewDataSource, UICollectionViewDeleg
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileCollectionViewCell.self)
     let item = photos[indexPath.item]
-    cell.configure(imageURL: item.url)
+    cell.bind(imageURL: item.url)
     return cell
   }
 }
@@ -229,7 +229,6 @@ struct CarouselViewRepresentable: UIViewRepresentable {
       let items = [UserProfilePhoto(url: "http", priority: 1),
       UserProfilePhoto(url: "http", priority: 2),
       UserProfilePhoto(url: "http", priority: 3),]
-//      uiView.configure(items)
     }
 }
 struct CarouselViewPreview: PreviewProvider {

@@ -82,16 +82,16 @@ final class ProfileInfoReusableView: UICollectionReusableView {
     disposeBag = DisposeBag()
   }
 
-  func configure(info: HeartUserResponse) {
-    TFLogger.view.debug("\(info.username)")
-    self.titleLabel.text = info.description
-    self.addressLabel.text = info.address
+  func bind(viewModel: HeartUserResponse) {
+    TFLogger.view.debug("\(viewModel.username)")
+    self.titleLabel.text = viewModel.description
+    self.addressLabel.text = viewModel.address
     self.sections = [
-      profileInfoSection(header: "이상형", items: info.idealTypeList.map { $0.toDomain() }),
-      profileInfoSection(header: "흥미", items: info.interestsList.map { $0.toDomain()
+      profileInfoSection(header: "이상형", items: viewModel.idealTypeList.map { $0.toDomain() }),
+      profileInfoSection(header: "흥미", items: viewModel.interestsList.map { $0.toDomain()
 
       }),
-      profileInfoSection(header: "자기소개", introduce: info.introduction)
+      profileInfoSection(header: "자기소개", introduce: viewModel.introduction)
     ]
   }
 }

@@ -88,12 +88,12 @@ final class TFTopicBarView: TFBaseView {
 
   }
   
-  func configure(title: String, content: String) {
+  func bind(title: String, content: String) {
     titleLabel.text = title
     contentLabel.text = content
   }
 
-  func configure(_ viewModel: TopicViewModel) {
+  func bind(_ viewModel: TopicViewModel) {
     titleLabel.text = viewModel.topic
     contentLabel.text = viewModel.issue
   }

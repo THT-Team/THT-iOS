@@ -6,8 +6,6 @@
 //
 import Foundation
 
-import RxDataSources
-
 enum MainProfileSection {
   case profile
 }
@@ -29,40 +27,9 @@ struct UserDomain: Hashable {
   let userProfilePhotos: [UserProfilePhoto]
   let introduction: String
 }
+
 extension UserInfo {
   func toDomain() -> UserDomain {
     UserDomain(username: self.username, userUUID: self.userUUID, age: self.age, address: self.address, idealTypes: self.idealTypeResponseList.map { $0.toDomain() }, interests: self.interestResponses.map { $0.toDomain() }, userProfilePhotos: self.userProfilePhotos, introduction: self.introduction)
-  }
-}
-extension UserDTO {
-//  func toDomain() -> UserDomain {
-//    UserDomain(userIdx: self.userIdx)
-//  }
-}
-
-struct UserSection {
-  var header: String
-  var items: [Item]
-}
-
-extension UserSection: AnimatableSectionModelType {
-  typealias Item = UserDTO
-  var identity: String {
-    return self.header
-  }
-  
-  init(original: UserSection, items: [Item]) {
-    self = original
-    self.items = items
-  }
-}
-
-extension UserDTO: IdentifiableType, Equatable {
-  static func == (lhs: UserDTO, rhs: UserDTO) -> Bool {
-    lhs.identity == rhs.identity
-  }
-
-  var identity: Int {
-    return userIdx
   }
 }

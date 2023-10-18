@@ -185,11 +185,11 @@ final class HeartCollectionViewCell: UICollectionViewCell {
     locationLabel.text = nil
   }
 
-  func configure(_ item: LikeDTO) {
-    self.model = item
+  func bind(viewModel: LikeDTO) {
+    self.model = viewModel
     profileImageView.image = nil
-    nickNameLabel.text = item.username
-    locationLabel.text = item.address
+    nickNameLabel.text = viewModel.username
+    locationLabel.text = viewModel.address
   }
 
   func bind<O>(_ observer: O, index: IndexPath) where O:ObserverType, O.Element == (LikeCellButtonAction) {
@@ -237,7 +237,7 @@ struct LikeCellRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIViewType, context: Context) {
-      uiView.configure(LikeDTO(dailyFallingIdx: 1, likeIdx: 1, topic: "topic", issue: "issue", userUUID: "1", username: "name", profileURL: "123", age: 1, address: "asdf", receivedTime: "asdf"))
+      uiView.bind(viewModel: LikeDTO(dailyFallingIdx: 1, likeIdx: 1, topic: "topic", issue: "issue", userUUID: "1", username: "name", profileURL: "123", age: 1, address: "asdf", receivedTime: "asdf"))
     }
 }
 struct LikeCellPreview: PreviewProvider {

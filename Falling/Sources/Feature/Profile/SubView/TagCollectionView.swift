@@ -75,12 +75,12 @@ extension TagCollectionView: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard indexPath.section < 2 else {
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileIntroduceCell.self)
-      cell.configure(self.sections[indexPath.section].introduce)
+      cell.bind(self.sections[indexPath.section].introduce)
       return cell
     }
     let item = self.sections[indexPath.section].items[indexPath.item]
     let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
-    cell.configure(TagItemViewModel(item))
+    cell.bind(TagItemViewModel(item))
     return cell
   }
   func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {

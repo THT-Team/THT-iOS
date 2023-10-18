@@ -29,7 +29,7 @@ final class HeartProfileViewModel: HeartProfileViewModelType {
   struct Input {
     let trigger: Driver<Void>
     let rejectTrigger: Driver<Void>
-    let chatRoomTrigger: Driver<Void>
+    let likeTrigger: Driver<Void>
     let closeTrigger: Driver<Void>
     let reportTrigger: Driver<Void>
   }
@@ -63,7 +63,7 @@ final class HeartProfileViewModel: HeartProfileViewModelType {
       }.do(onNext: { [weak self] in
         self?.navigator.toHeartList()
       }).map { _ in }
-    let chatRoom = input.chatRoomTrigger
+    let chatRoom = input.likeTrigger
       .withLatestFrom(userIDSubject.asDriverOnErrorJustEmpty())
       .flatMapLatest { [unowned self] item in
         service.like(id: item.userUUID, topicIndex: item.dailyFallingIdx)

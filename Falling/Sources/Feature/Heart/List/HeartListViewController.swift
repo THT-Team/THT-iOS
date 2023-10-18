@@ -102,7 +102,7 @@ final class HeartListViewController: TFBaseViewController {
     let dataSource = RxCollectionViewSectionedAnimatedDataSource<LikeSection>(animationConfiguration: AnimationConfiguration(reloadAnimation: .fade, deleteAnimation: .fade)) {  dataSource, collectionView, indexPath, item in
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: HeartCollectionViewCell.self)
       cell.bind(likeCellButtonSubject.asObserver(), index: indexPath)
-      cell.configure(item)
+      cell.bind(viewModel: item)
       return cell
     }  configureSupplementaryView: { dataSource, collectionView, kind, indexPath in
       let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)

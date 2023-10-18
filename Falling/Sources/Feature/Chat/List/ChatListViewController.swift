@@ -66,7 +66,7 @@ final class ChatListViewController: TFBaseViewController {
     Driver.just([1,2,3])
       .debug()
       .drive(self.tableView.rx.items(cellIdentifier: ChatListTableViewCell.reuseIdentifier, cellType: ChatListTableViewCell.self)) { value, row, cell in
-        cell.configure()
+        cell.bind()
       }.disposed(by: self.disposeBag)
 
     emptyView.isHidden = true

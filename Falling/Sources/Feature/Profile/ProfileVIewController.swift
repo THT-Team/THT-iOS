@@ -36,7 +36,7 @@ final class ProfileViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
-    configureDataSource()
+    setupDataSource()
 
     let reportTrigger = reportRelay.flatMap {
       return Observable<Void>.create { observer in
@@ -59,13 +59,13 @@ final class ProfileViewController: TFBaseViewController {
     let input = HeartProfileViewModel.Input(
       trigger: self.rx.viewWillAppear.asDriver().map { _ in },
       rejectTrigger: mainView.nextTimeButton.rx.tap.asDriver(),
-      chatRoomTrigger: mainView.chatButton.rx.tap.asDriver(),
+      likeTrigger: mainView.chatButton.rx.tap.asDriver(),
       closeTrigger: mainView.topicBarView.closeButton.rx.tap.asDriver(),
       reportTrigger: reportTrigger
     )
     let output = viewModel.transform(input: input)
     output.topic.drive(onNext: { [weak self] topic in
-      self?.mainView.topicBarView.configure(topic)
+      self?.mainView.topicBarView.bind(topic)
     }).disposed(by: disposeBag
     )
     output.userInfo
@@ -84,11 +84,11 @@ final class ProfileViewController: TFBaseViewController {
     output.navigate.drive()
       .disposed(by: disposeBag)
   }
-  func configureDataSource() {
+  func setupDataSource() {
     let cellRegistration = UICollectionView.CellRegistration
     <ProfileCollectionViewCell, ProfilePhotoDomain> { (cell, indexPath, item) in
       // Populate the cell with our item description.
-      cell.configure(imageURL: item.url)
+      cell.bind(imageURL: item.url)
     }
     //
     let footerRegistration = UICollectionView.SupplementaryRegistration
@@ -102,7 +102,7 @@ final class ProfileViewController: TFBaseViewController {
           self?.reportRelay.accept(Void())
         })
         .disposed(by: supplementaryView.disposeBag)
-      supplementaryView.configure(info: item)
+      supplementaryView.bind(viewModel: item)
     }
 
 
