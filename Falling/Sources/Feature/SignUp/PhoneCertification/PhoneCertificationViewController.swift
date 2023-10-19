@@ -355,6 +355,9 @@ final class PhoneCertificationViewController: TFBaseViewController {
 		
 		output.navigatorDisposble
 			.disposed(by: disposeBag)
+		
+		output.disposable
+			.disposed(by: disposeBag)
 	}
 	
 	func keyBoardSetting() {

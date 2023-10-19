@@ -82,5 +82,9 @@ final class PolicyAgreementViewController: TFBaseViewController {
 		output.nextBtnStatus
 			.drive(customView.nextBtn.rx.buttonStatus)
 			.disposed(by: disposeBag)
+		
+		output.navigateDisposable
+			.disposed(by: disposeBag)
+			
 	}
 }

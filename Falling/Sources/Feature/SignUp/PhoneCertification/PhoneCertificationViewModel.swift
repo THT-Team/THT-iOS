@@ -58,6 +58,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 		let timeStampLabel: Driver<String>
 		let timeLabelTextColor: Driver<FallingColors>
 		let navigatorDisposble: Disposable
+		let disposable: Disposable
 	}
 
 	private let navigator: SignUpNavigator
@@ -114,6 +115,15 @@ final class PhoneCertificationViewModel: ViewModelType {
 			.debug()
 			.asDriver(onErrorJustReturn: false)
 		
+		let savePhoneNumber = inputtedCode.filter { $0 }
+			.withLatestFrom(phoneNum) { isSuccess, phoneNumber in
+				if isSuccess {
+					SignupUserDefault.shared.phoneNumber = phoneNumber
+				}
+			}
+			.asDriver()
+			.debug("saved PhoneNumber: \(SignupUserDefault.shared.phoneNumber)")
+					
 		let timer = authNumber
       .flatMap { authNumber in
         return Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
@@ -143,9 +153,11 @@ final class PhoneCertificationViewModel: ViewModelType {
 			.asDriver(onErrorJustReturn: FallingAsset.Color.neutral50)
 		
 		let pushEmailVC = input.finishAnimationTrigger
-			.debug()
 			.asDriver()
 			.drive(navigator.rx.toEmailInputView)
+		
+		let disposable = Driver.merge([savePhoneNumber]).asDriver()
+			.drive()
 			
 		return Output(
 			phoneNum: phoneNum,
@@ -157,7 +169,8 @@ final class PhoneCertificationViewModel: ViewModelType {
 			certificateFailuer: inputtedCode.filter { $0 == false },
 			timeStampLabel: timeLabelStr,
 			timeLabelTextColor: timerLabelColor,
-			navigatorDisposble: pushEmailVC
+			navigatorDisposble: pushEmailVC,
+			disposable: disposable
 		)
 	}
 }

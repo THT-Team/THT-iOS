@@ -15,10 +15,10 @@ final class Application {
     let signUpNavigator = SignUpNavigator(controller: signUpController)
     
     // TODO: 임시 토큰 저장
-    Keychain.shared.set("test", forKey: .accessToken)
+//    Keychain.shared.set("test", forKey: .accessToken)
     
     // TODO: 임시 토큰 삭제
-//    Keychain.shared.delete(.accessToken)
+    Keychain.shared.delete(.accessToken)
     
     guard let _ = Keychain.shared.get(.accessToken) else {
       window?.rootViewController = signUpController

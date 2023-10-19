@@ -37,6 +37,7 @@ final class PolicyAgreementViewModel: ViewModelType {
 		let marketingServiceRowImage: Driver<FallingImages>
 		let nextBtnStatus: Driver<Bool>
 		let disposeble: Disposable
+		let navigateDisposable: Disposable
 	}
 
   struct AgreeStatus {
@@ -127,6 +128,16 @@ final class PolicyAgreementViewModel: ViewModelType {
     let nextBtnStatus = agreeStatus.asDriver()
       .debug("agreeStatus")
       .map { $0.isValid }
+		
+		let pushToNicknameView = input.nextBtn
+			.withLatestFrom(agreeStatus.asDriver()) { _, agreeStatus in
+				SignupUserDefault.shared.serviceUseAgree = agreeStatus.tos
+				SignupUserDefault.shared.personalPrivacyInfoAgree = agreeStatus.privacy
+				SignupUserDefault.shared.locationServiceAgree = agreeStatus.location
+				SignupUserDefault.shared.marketingAgree = agreeStatus.marketing
+			}
+			.asDriver()
+			.drive()
 
     // TODO: Disposable로 만들어서 VC로 넘겨야할지 여기서 Disposed해야할지 아니면
     // 더 좋은 방법이 있을지 고민
@@ -139,7 +150,8 @@ final class PolicyAgreementViewModel: ViewModelType {
 			locationServiceAgreeRowImage: locationServiceAgreeRowImage,
 			marketingServiceRowImage: marketingServiceRowImage,
 			nextBtnStatus: nextBtnStatus,
-			disposeble: disposeble
+			disposeble: disposeble,
+			navigateDisposable: pushToNicknameView
 		)
 	}
 }

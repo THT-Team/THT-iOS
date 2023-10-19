@@ -91,8 +91,11 @@ final class EmailInputViewModel: ViewModelType {
 		
 		let emailTextStatus = emailValidate.asDriver(onErrorJustReturn: .empty)
 		
-		// TODO: Email 로 로그인 문제 생겼을때 계정 복구 진행하는데 저장하는 api 를 찾을수 없음. 추후 저장로직 개발 필요해 보임
 		let buttonTappedResult = input.nextBtnTap
+			.withLatestFrom(outputText, resultSelector: { _, emailAddress in
+				SignupUserDefault.shared.email = emailAddress
+			})
+			.debug("savedEmail \(SignupUserDefault.shared.email)")
 			.drive(navigator.rx.toPolicyAgreementView)
 		
 		return Output(
