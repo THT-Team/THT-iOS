@@ -46,7 +46,9 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
       return
     }
     let random = ["test_1", "test_2"]
-    self.imageView.image = UIImage(named: random.randomElement() ?? "test_1", in: FallingResources.bundle, compatibleWith: nil)
+    self.imageView.image = UIImage(named: "test_1",
+                                   in: FallingResources.bundle,
+                                   compatibleWith: nil)
 
 //    self.imageView.setResource(url) { [weak self] in
 //      self?.imageView.sizeToFit()
