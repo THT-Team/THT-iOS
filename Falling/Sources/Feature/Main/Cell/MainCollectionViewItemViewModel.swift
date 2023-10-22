@@ -106,7 +106,7 @@ final class MainCollectionViewItemViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
-    
+    let timerActiveTrigger: Driver<Bool>
   }
   
   struct Output {
@@ -116,20 +116,37 @@ final class MainCollectionViewItemViewModel: ViewModelType {
   }
   
   func transform(input: Input) -> Output {
+//    let timerActiveRelay = BehaviorRelay<Bool>(value: true)
     let user = Driver.just(self.userDomain)
+    
+    let timerActiveTrigger = input.timerActiveTrigger
+      .startWith(true)
+      .asObservable()
+    
     let time = Observable<Int>.interval(.milliseconds(10),
                                         scheduler: MainScheduler.instance)
       .take(8 * 100 + 1)
-      .map { round((8 - Double($0) / 100) * 100) / 100 }
+      .debug()
+      .pausableBuffered(timerActiveTrigger, limit: nil)
+//      .pausable(timerActiveTrigger)
+      .map {
+        round((8 - Double($0) / 100) * 100) / 100 }
       .asDriver(onErrorDriveWith: Driver<Double>.empty())
 
     let timeState = time.map { TimeState(rawValue: $0) }
     let isTimeOver = time.map { $0 == 0.0 }
     
+//    let _ = input.timerActive.map { () in
+//      print("function call@@")
+//      timerActiveRelay.accept(!timerActiveRelay.value)
+//    }
+//    let timerActive = timerActiveRelay.asDriver()
+    
     return Output(
       timeState: timeState,
       isTimeOver: isTimeOver,
       user: user
+//      timerActive: timerActive
     )
   }
 }

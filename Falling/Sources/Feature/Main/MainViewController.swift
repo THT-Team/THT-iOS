@@ -10,6 +10,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 import RxDataSources
+import RxGesture
 
 final class MainViewController: TFBaseViewController {
   
@@ -23,12 +24,12 @@ final class MainViewController: TFBaseViewController {
     setupDelegate()
   }
   
-  override func loadView() {
-    self.view = mainView
-  }
-  
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func loadView() {
+    self.view = mainView
   }
   
   override func navigationSetting() {
@@ -45,33 +46,55 @@ final class MainViewController: TFBaseViewController {
   }
   
   override func bindViewModel() {
-    let initialTrigger = Driver<Void>.just(()).asDriver()
+    let initialTrigger = Driver<Void>.just(())
     let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
     }.asDriverOnErrorJustEmpty()
     
-    let output = viewModel.transform(input: MainViewModel.Input(initialTrigger: initialTrigger, timeOverTrigger: timerOverTrigger))
+    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in }.asDriverOnErrorJustEmpty()
+    
+    let doubleTapGesture = UITapGestureRecognizer()
+    doubleTapGesture.numberOfTapsRequired = 2
+    
+    let cardDoubleTapTrigger = self.mainView.collectionView.rx
+      .gesture(doubleTapGesture)
+      .when(.recognized)
+      .map { _ in }
+      .asDriverOnErrorJustEmpty()
+      
+    let timerActiveTrigger = Driver.merge( viewWillDisAppearTrigger,
+                                          cardDoubleTapTrigger).map { _ in }
+    
+    let input = MainViewModel.Input(initialTrigger: initialTrigger,
+                                    timeOverTrigger: timerOverTrigger,
+                                    timerActiveTrigger: timerActiveTrigger)
+    
+    let output = viewModel.transform(input: input)
     
     var count = 0
     output.userList
-      .drive { userSection in
-        count = userSection.count
+      .drive { userDomains in
+        count = userDomains.count
       }.disposed(by: disposeBag)
 
     let profileCellRegistration = UICollectionView.CellRegistration<MainCollectionViewCell, UserDomain> { [weak self] cell, indexPath, item in
-      cell.setup(item: item)
+//      let viewModel = MainCollectionViewItemViewModel(userDomain: item)
+//      viewModel.
+//      viewMo/del.Inpu
+//      cell.bind(model: item)
+      cell.bind(model: item)
       cell.delegate = self
       output.userCardScrollIndex
         .filter { $0 == indexPath.item }
         .drive(onNext: {_ in
-        cell.bindViewModel()
-      })
-      .disposed(by: cell.disposeBag)
+          cell.bindViewModel(action: output.timerActiveTrigger)
+        })
+        .disposed(by: cell.disposeBag)
     }
 
     dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
-      
+    
     output.userList
       .drive(onNext: { [weak self] list in
         var snapshot = NSDiffableDataSourceSnapshot<MainProfileSection, UserDomain>()
@@ -116,6 +139,7 @@ extension Reactive where Base: MainViewController {
 
 #if DEBUG
 import SwiftUI
+import RxGesture
 
 struct MainViewControllerPreView: PreviewProvider {
   static var previews: some View {

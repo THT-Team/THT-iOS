@@ -48,11 +48,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     profileCarouselView.tagCollectionView.isHidden = true
   }
   
-  func setup(item: UserDomain) {
-    viewModel = MainCollectionViewItemViewModel(userDomain: item)
+  func bind(model: UserDomain) {
+    viewModel = MainCollectionViewItemViewModel(userDomain: model)
+    profileCarouselView.bind(viewModel.userDomain)
   }
-  
-  func bindViewModel() {
+
+  func bindViewModel(action: Driver<Bool>) {
     profileCarouselView.infoButton.rx.tap.asDriver()
       .scan(true) { lastValue, _ in
         return !lastValue
@@ -60,8 +61,11 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       .drive(profileCarouselView.tagCollectionView.rx.isHidden)
       .disposed(by: disposeBag)
     
+    let input = MainCollectionViewItemViewModel.Input(timerActiveTrigger: action)
+//    let input = MainCollectionViewItemViewModel.Input()
+    
     let output = viewModel
-      .transform(input: MainCollectionViewItemViewModel.Input())
+      .transform(input: input)
     
     output.timeState
       .drive(self.rx.timeState)
@@ -73,11 +77,15 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       }.drive()
       .disposed(by: self.disposeBag)
     
-    output.user
-      .drive(onNext: { [weak self] user in
-        self?.profileCarouselView.bind(user)
-      })
-      .disposed(by: disposeBag)
+//    output.timerActive.map { value in
+//      if value { }
+//    }
+    
+//    output.user
+//      .drive(onNext: { [weak self] user in
+//        self?.profileCarouselView.bind(user)
+//      })
+//      .disposed(by: disposeBag)
   }
   
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {

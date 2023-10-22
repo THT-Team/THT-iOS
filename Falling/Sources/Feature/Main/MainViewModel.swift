@@ -18,11 +18,13 @@ final class MainViewModel: ViewModelType {
   struct Input {
     let initialTrigger: Driver<Void>
     let timeOverTrigger: Driver<Void>
+    let timerActiveTrigger: Driver<Void>
   }
   
   struct Output {
     let userList: Driver<[UserDomain]>
     let userCardScrollIndex: Driver<Int>
+    let timerActiveTrigger: Driver<Bool>
   }
   
   init(navigator: MainNavigator, service: FallingAPI) {
@@ -33,6 +35,7 @@ final class MainViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     let currentIndexRelay = BehaviorRelay<Int>(value: 0)
     let timeOverTrigger = input.timeOverTrigger
+    let timerActiveRelay = BehaviorRelay<Bool>(value: true)
     
     let userSequence = input.initialTrigger
       .flatMapLatest { [unowned self] _ in
@@ -55,9 +58,16 @@ final class MainViewModel: ViewModelType {
     
     let userCardScrollIndex = Driver.merge(userListObservable, nextScrollIndex).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0))
     
+    let timerActiveTrigger = input.timerActiveTrigger
+      .flatMapLatest { () in
+        timerActiveRelay.accept(!timerActiveRelay.value)
+        return Driver.just(timerActiveRelay.value)
+      }
+        
     return Output(
       userList: userList,
-      userCardScrollIndex: userCardScrollIndex
+      userCardScrollIndex: userCardScrollIndex,
+      timerActiveTrigger: timerActiveTrigger
     )
   }
 }

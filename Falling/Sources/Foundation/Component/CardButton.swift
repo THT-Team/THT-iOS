@@ -9,6 +9,31 @@ import UIKit
 
 final class CardButton: UIButton {
   
+  let type: CardButtonType
+  
+  init(type: CardButtonType) {
+    self.type = type
+    super.init(frame: .zero)
+    let config = defaultButtonConfig()
+    configuration = config
+    configurationUpdateHandler = { button in
+      switch self.state {
+      case .highlighted:
+        button.configuration?.background.backgroundColor = type.highlightedBackgoundColor
+        button.configuration?.image = type.highlightedImage
+        button.configuration?.background.strokeColor = type.highlightedStrokeColor
+      default:
+        button.configuration?.background.backgroundColor = type.normalBackgoundColor
+        button.configuration?.image = type.normalImage
+        button.configuration?.background.strokeColor = type.normalStrokeColor
+      }
+    }
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   enum CardButtonType {
     case info, refuse, like
     
@@ -28,7 +53,7 @@ final class CardButton: UIButton {
           .withTintColor(FallingAsset.Color.error.color)
       }
     }
-      
+    
     var highlightedImage: UIImage? {
       switch self {
       case .info:
@@ -45,7 +70,7 @@ final class CardButton: UIButton {
           .withTintColor(FallingAsset.Color.neutral50.color)
       }
     }
-      
+    
     var normalBackgoundColor: UIColor {
       return FallingAsset.Color.neutral700.color
     }
@@ -71,31 +96,6 @@ final class CardButton: UIButton {
         return FallingAsset.Color.neutral600.color
       }
     }
-  }
-  
-  let type: CardButtonType
-  
-  init(type: CardButtonType) {
-    self.type = type
-    super.init(frame: .zero)
-    let config = defaultButtonConfig()
-    configuration = config
-    configurationUpdateHandler = { button in
-      switch self.state {
-      case .highlighted:
-        button.configuration?.background.backgroundColor = type.highlightedBackgoundColor
-        button.configuration?.image = type.highlightedImage
-        button.configuration?.background.strokeColor = type.highlightedStrokeColor
-      default:
-        button.configuration?.background.backgroundColor = type.normalBackgoundColor
-        button.configuration?.image = type.normalImage
-        button.configuration?.background.strokeColor = type.normalStrokeColor
-      }
-    }
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
   
   func defaultButtonConfig() -> UIButton.Configuration {
