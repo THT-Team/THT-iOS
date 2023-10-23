@@ -62,7 +62,6 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
     
     let input = MainCollectionViewItemViewModel.Input(timerActiveTrigger: action)
-//    let input = MainCollectionViewItemViewModel.Input()
     
     let output = viewModel
       .transform(input: input)

@@ -116,37 +116,46 @@ final class MainCollectionViewItemViewModel: ViewModelType {
   }
   
   func transform(input: Input) -> Output {
-//    let timerActiveRelay = BehaviorRelay<Bool>(value: true)
+    var currentTime: Double = 8.0
+    var startTime: Double = 8.0
     let user = Driver.just(self.userDomain)
+    
+//    let inputTimerActiveTrigger = input.timerActiveTrigger
+//
+//    let initialTimerActive = BehaviorRelay(value: false)
+//    inputTimerActiveTrigger.drive { value in initialTimerActive.accept(value)
+//    }.disposed(by: disposeBag)
     
     let timerActiveTrigger = input.timerActiveTrigger
       .startWith(true)
       .asObservable()
     
-    let time = Observable<Int>.interval(.milliseconds(10),
-                                        scheduler: MainScheduler.instance)
-      .take(8 * 100 + 1)
-      .debug()
-      .pausableBuffered(timerActiveTrigger, limit: nil)
-//      .pausable(timerActiveTrigger)
-      .map {
-        round((8 - Double($0) / 100) * 100) / 100 }
-      .asDriver(onErrorDriveWith: Driver<Double>.empty())
-
-    let timeState = time.map { TimeState(rawValue: $0) }
-    let isTimeOver = time.map { $0 == 0.0 }
+    let timer = timerActiveTrigger
+      .flatMapLatest { value in
+        if !value {
+          if currentTime == 0 { currentTime = 8.0 } // 다음 셀로 넘어가도 0이면 자동 스크롤되므로 0초가 되면 다시 8.0으로 갱신
+          startTime = currentTime
+          return Driver.just(currentTime)
+        } else {
+          return Observable<Int>.interval(.milliseconds(10),
+                                          scheduler: MainScheduler.instance)
+          .take(Int(startTime * 100) + 1) // 시간의 총 개수
+          .map { value in
+            let time = round((startTime * 100) - Double(value)) / 100
+            currentTime = time
+            return time
+          }
+          .asDriver(onErrorDriveWith: Driver<Double>.empty())
+        }
+      }.asDriver(onErrorJustReturn: 8.0)
     
-//    let _ = input.timerActive.map { () in
-//      print("function call@@")
-//      timerActiveRelay.accept(!timerActiveRelay.value)
-//    }
-//    let timerActive = timerActiveRelay.asDriver()
+    let timeState = timer.map { TimeState(rawValue: $0) }
+    let isTimeOver = timer.map { $0 == 0.0 }
     
     return Output(
       timeState: timeState,
       isTimeOver: isTimeOver,
       user: user
-//      timerActive: timerActive
     )
   }
 }

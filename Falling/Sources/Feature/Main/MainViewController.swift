@@ -50,8 +50,10 @@ final class MainViewController: TFBaseViewController {
     let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
     }.asDriverOnErrorJustEmpty()
     
-    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in }.asDriverOnErrorJustEmpty()
+    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
     
+    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
+        
     let doubleTapGesture = UITapGestureRecognizer()
     doubleTapGesture.numberOfTapsRequired = 2
     
@@ -59,10 +61,16 @@ final class MainViewController: TFBaseViewController {
       .gesture(doubleTapGesture)
       .when(.recognized)
       .map { _ in }
-      .asDriverOnErrorJustEmpty()
-      
-    let timerActiveTrigger = Driver.merge( viewWillDisAppearTrigger,
-                                          cardDoubleTapTrigger).map { _ in }
+    
+    let doubleTapIsNotActiveRelay = BehaviorRelay(value: true)
+    
+    let doubleTapIsNotActive = cardDoubleTapTrigger.withLatestFrom(doubleTapIsNotActiveRelay)
+      .map { value in
+        doubleTapIsNotActiveRelay.accept(!value)
+        return doubleTapIsNotActiveRelay.value
+      }.asDriver(onErrorJustReturn: false)
+    
+    let timerActiveTrigger = Driver.merge(viewWillAppearTrigger, viewWillDisAppearTrigger, doubleTapIsNotActive)
     
     let input = MainViewModel.Input(initialTrigger: initialTrigger,
                                     timeOverTrigger: timerOverTrigger,
@@ -77,18 +85,34 @@ final class MainViewController: TFBaseViewController {
       }.disposed(by: disposeBag)
 
     let profileCellRegistration = UICollectionView.CellRegistration<MainCollectionViewCell, UserDomain> { [weak self] cell, indexPath, item in
-//      let viewModel = MainCollectionViewItemViewModel(userDomain: item)
-//      viewModel.
-//      viewMo/del.Inpu
-//      cell.bind(model: item)
+      
       cell.bind(model: item)
-      cell.delegate = self
+      
+//      cell.bind(model: item,
+//                action: timerActiveTrigger.withLatestFrom(output.userCardScrollIndex) {
+//        print("timerActiveTrigger - \($0)")
+//        print("is currentindex - \($1 == indexPath.item)")
+//        print($1)
+//        print(indexPath.item)
+//        return $0 && $1 == indexPath.row })
+        
+          
+//          return value && isCurrentIndex
+      
+//          output.userCardScrollIndex
+//            .filter { $0 == indexPath.row }
+//            .drive { _ in
+//              cell.bindViewModel(action: timerActiveTrigger)
+//            }
+      
       output.userCardScrollIndex
         .filter { $0 == indexPath.item }
         .drive(onNext: {_ in
           cell.bindViewModel(action: output.timerActiveTrigger)
         })
         .disposed(by: cell.disposeBag)
+            
+      cell.delegate = self
     }
 
     dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
