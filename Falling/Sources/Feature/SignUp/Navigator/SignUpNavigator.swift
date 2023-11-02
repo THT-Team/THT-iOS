@@ -41,6 +41,17 @@ final class SignUpNavigator {
 		
 		controller.pushViewController(viewController, animated: true)
 	}
+	
+	func toUserInformationAcceptMainView() {
+		let viewModel = UserInformationMainViewModel(navigator: self)
+		let viewController = UserInformationMainViewController(viewModel: viewModel)
+		
+		controller.pushViewController(viewController, animated: true)
+	}
+	
+	func popBackViewController() {
+		controller.popViewController(animated: true)
+	}
 }
 
 extension SignUpNavigator: ReactiveCompatible { }
@@ -55,6 +66,18 @@ extension Reactive where Base: SignUpNavigator {
 	var toPolicyAgreementView: Binder<Void> {
 		return Binder(base.self) { navigator, code in
 			navigator.toPolicyAgreementView()
+		}
+	}
+	
+	var toUserInformationMainView: Binder<Void> {
+		return Binder(base.self) { navigator, code in
+			navigator.toUserInformationAcceptMainView()
+		}
+	}
+	
+	var popBack: Binder<Void> {
+		return Binder(base.self) { navigator, code in
+			navigator.popBackViewController()
 		}
 	}
 }

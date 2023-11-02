@@ -137,7 +137,7 @@ final class PolicyAgreementViewModel: ViewModelType {
 				SignupUserDefault.shared.marketingAgree = agreeStatus.marketing
 			}
 			.asDriver()
-			.drive()
+			.drive(navigator.rx.toUserInformationMainView)
 
     // TODO: Disposable로 만들어서 VC로 넘겨야할지 여기서 Disposed해야할지 아니면
     // 더 좋은 방법이 있을지 고민

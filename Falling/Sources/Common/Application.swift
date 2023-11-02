@@ -22,7 +22,8 @@ final class Application {
     
     guard let _ = Keychain.shared.get(.accessToken) else {
       window?.rootViewController = signUpController
-      signUpNavigator.toRootView()
+//      signUpNavigator.toRootView()
+			signUpNavigator.toUserInformationAcceptMainView()
       return
     }
     window?.rootViewController = makeTabBarController()
