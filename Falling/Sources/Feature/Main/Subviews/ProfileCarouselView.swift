@@ -140,12 +140,12 @@ final class ProfileCarouselView: TFBaseView {
       $0.bottom.equalToSuperview().offset(-30)
     }
     
-    DimViewManager.shared.showDimView(
-      frame: CGRect(x: 0,
-                    y: 0,
-                    width: (UIWindow.keyWindow?.frame.width ?? 0) - 32,
-                    height: UIWindow.keyWindow?.frame.height ?? 0),
-      targetView: collectionView)
+    self.dimView.layer.cornerRadius = 12
+    
+    self.showDimView(frame: CGRect(x: 0,
+                                   y: 0,
+                                   width: (UIWindow.keyWindow?.frame.width ?? 0) - 32,
+                                   height: UIWindow.keyWindow?.frame.height ?? 0))
   }
 
   func bind(_ viewModel: UserDomain) {

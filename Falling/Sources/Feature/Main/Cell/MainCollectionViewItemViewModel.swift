@@ -120,14 +120,7 @@ final class MainCollectionViewItemViewModel: ViewModelType {
     var startTime: Double = 8.0
     let user = Driver.just(self.userDomain)
     
-//    let inputTimerActiveTrigger = input.timerActiveTrigger
-//
-//    let initialTimerActive = BehaviorRelay(value: false)
-//    inputTimerActiveTrigger.drive { value in initialTimerActive.accept(value)
-//    }.disposed(by: disposeBag)
-    
     let timerActiveTrigger = input.timerActiveTrigger
-      .startWith(true)
       .asObservable()
     
     let timer = timerActiveTrigger

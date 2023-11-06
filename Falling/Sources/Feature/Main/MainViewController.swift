@@ -17,7 +17,7 @@ final class MainViewController: TFBaseViewController {
   private let viewModel: MainViewModel
   private var dataSource: UICollectionViewDiffableDataSource<MainProfileSection, UserDomain>!
   private lazy var mainView = MainView()
-    
+  
   init(viewModel: MainViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -50,10 +50,10 @@ final class MainViewController: TFBaseViewController {
     let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
     }.asDriverOnErrorJustEmpty()
     
-    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
+    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }
     
-    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
-        
+    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }
+    
     let doubleTapGesture = UITapGestureRecognizer()
     doubleTapGesture.numberOfTapsRequired = 2
     
@@ -62,65 +62,51 @@ final class MainViewController: TFBaseViewController {
       .when(.recognized)
       .map { _ in }
     
-    let doubleTapIsNotActiveRelay = BehaviorRelay(value: true)
+    let timerActiveRelay = BehaviorRelay(value: true)
     
-    let doubleTapIsNotActive = cardDoubleTapTrigger.withLatestFrom(doubleTapIsNotActiveRelay)
-      .map { value in
-        doubleTapIsNotActiveRelay.accept(!value)
-        return doubleTapIsNotActiveRelay.value
-      }.asDriver(onErrorJustReturn: false)
+    cardDoubleTapTrigger
+      .withLatestFrom(timerActiveRelay)
+      .do { value in
+        timerActiveRelay.accept(!value)
+      }
+      .asDriver(onErrorJustReturn: false)
+      .drive()
+      .disposed(by: disposeBag)
     
-    let timerActiveTrigger = Driver.merge(viewWillAppearTrigger, viewWillDisAppearTrigger, doubleTapIsNotActive)
+    Observable.merge(viewWillAppearTrigger, viewWillDisAppearTrigger)
+      .do { value in
+        timerActiveRelay.accept(value)
+      }
+      .asDriver(onErrorJustReturn: false)
+      .drive()
+      .disposed(by: disposeBag)
     
     let input = MainViewModel.Input(initialTrigger: initialTrigger,
-                                    timeOverTrigger: timerOverTrigger,
-                                    timerActiveTrigger: timerActiveTrigger)
+                                    timeOverTrigger: timerOverTrigger)
     
     let output = viewModel.transform(input: input)
     
-    var count = 0
-    output.userList
-      .drive { userDomains in
-        count = userDomains.count
-      }.disposed(by: disposeBag)
-
+    var usersCount = 0
+    
     let profileCellRegistration = UICollectionView.CellRegistration<MainCollectionViewCell, UserDomain> { [weak self] cell, indexPath, item in
       
+      let observer = MainCollectionViewCellObserver(userCardScrollIndex: output.userCardScrollIndex.asObservable(),
+                                                    timerActiveTrigger: timerActiveRelay.asObservable())
+      
       cell.bind(model: item)
-      
-//      cell.bind(model: item,
-//                action: timerActiveTrigger.withLatestFrom(output.userCardScrollIndex) {
-//        print("timerActiveTrigger - \($0)")
-//        print("is currentindex - \($1 == indexPath.item)")
-//        print($1)
-//        print(indexPath.item)
-//        return $0 && $1 == indexPath.row })
-        
-          
-//          return value && isCurrentIndex
-      
-//          output.userCardScrollIndex
-//            .filter { $0 == indexPath.row }
-//            .drive { _ in
-//              cell.bindViewModel(action: timerActiveTrigger)
-//            }
-      
-      output.userCardScrollIndex
-        .filter { $0 == indexPath.item }
-        .drive(onNext: {_ in
-          cell.bindViewModel(action: output.timerActiveTrigger)
-        })
-        .disposed(by: cell.disposeBag)
-            
+      cell.bind(observer,
+                index: indexPath,
+                usersCount: usersCount)
       cell.delegate = self
     }
-
+    
     dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
     
     output.userList
       .drive(onNext: { [weak self] list in
+        usersCount = list.count
         var snapshot = NSDiffableDataSourceSnapshot<MainProfileSection, UserDomain>()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
@@ -129,7 +115,7 @@ final class MainViewController: TFBaseViewController {
     
     output.userCardScrollIndex
       .do(onNext: { index in
-        let index = index >= count ? count - 1 : index
+        let index = index >= usersCount ? usersCount - 1 : index
         let indexPath = IndexPath(row: index, section: 0)
         self.mainView.collectionView.scrollToItem(at: indexPath,
                                                   at: .top,
@@ -169,9 +155,9 @@ struct MainViewControllerPreView: PreviewProvider {
   static var previews: some View {
     let service = FallingAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
     let navigator = MainNavigator(controller: UINavigationController(), fallingService: service)
-
+    
     let viewModel = MainViewModel(navigator: navigator, service: service)
-
+    
     return MainViewController(viewModel: viewModel)
       .toPreView()
   }

@@ -11,6 +11,11 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
+struct MainCollectionViewCellObserver {
+  var userCardScrollIndex: Observable<Int>
+  var timerActiveTrigger: Observable<Bool>
+}
+
 @objc protocol TimeOverDelegate: AnyObject {
   @objc func scrollToNext()
 }
@@ -52,16 +57,26 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     viewModel = MainCollectionViewItemViewModel(userDomain: model)
     profileCarouselView.bind(viewModel.userDomain)
   }
-
-  func bindViewModel(action: Driver<Bool>) {
-    profileCarouselView.infoButton.rx.tap.asDriver()
-      .scan(true) { lastValue, _ in
-        return !lastValue
-      }
-      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
-      .disposed(by: disposeBag)
+  
+  func bind(_ observer: MainCollectionViewCellObserver,
+            index: IndexPath,
+            usersCount: Int) {
     
-    let input = MainCollectionViewItemViewModel.Input(timerActiveTrigger: action)
+    let timerActiveTrigger =
+    observer.userCardScrollIndex
+      .observe(on: MainScheduler.asyncInstance)
+      .withLatestFrom(observer.timerActiveTrigger) { userCardScrollIndex, timerActiveTrigger in
+        if index.row == userCardScrollIndex {
+          self.profileCarouselView.hiddenDimView()
+          return observer.timerActiveTrigger
+          //        return timerActiveTrigger
+        }
+        //        else { return false }
+        else { return Observable.just(false) }
+      }.map { $0 }
+      .flatMapLatest { return $0 }
+    
+    let input = MainCollectionViewItemViewModel.Input(timerActiveTrigger: timerActiveTrigger.asDriver(onErrorJustReturn: false))
     
     let output = viewModel
       .transform(input: input)
@@ -76,15 +91,12 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       }.drive()
       .disposed(by: self.disposeBag)
     
-//    output.timerActive.map { value in
-//      if value { }
-//    }
-    
-//    output.user
-//      .drive(onNext: { [weak self] user in
-//        self?.profileCarouselView.bind(user)
-//      })
-//      .disposed(by: disposeBag)
+    profileCarouselView.infoButton.rx.tap.asDriver()
+      .scan(true) { lastValue, _ in
+        return !lastValue
+      }
+      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
+      .disposed(by: disposeBag)
   }
   
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {
