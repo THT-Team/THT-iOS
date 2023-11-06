@@ -23,7 +23,7 @@ struct MainCollectionViewCellObserver {
 final class MainCollectionViewCell: TFBaseCollectionViewCell {
   
   var viewModel: MainCollectionViewItemViewModel!
-  weak var delegate: TimeOverDelegate?
+  weak var delegate: TimeOverDelegate? = nil
   
   lazy var profileCarouselView = ProfileCarouselView()
   
@@ -85,10 +85,9 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
     
-    output.isTimeOver
-      .do { value in
-        if value { self.delegate?.scrollToNext() }
-      }.drive()
+    output.timeZero
+      .do { [weak self] _ in self?.delegate?.scrollToNext() }
+      .drive()
       .disposed(by: self.disposeBag)
     
     profileCarouselView.infoButton.rx.tap.asDriver()

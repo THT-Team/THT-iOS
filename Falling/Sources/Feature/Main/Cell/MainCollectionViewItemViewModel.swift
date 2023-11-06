@@ -111,7 +111,7 @@ final class MainCollectionViewItemViewModel: ViewModelType {
   
   struct Output {
     let timeState: Driver<TimeState>
-    let isTimeOver: Driver<Bool>
+    let timeZero: Driver<Double>
     let user: Driver<UserDomain>
   }
   
@@ -137,17 +137,17 @@ final class MainCollectionViewItemViewModel: ViewModelType {
             let time = round((startTime * 100) - Double(value)) / 100
             currentTime = time
             return time
-          }
+          } 
           .asDriver(onErrorDriveWith: Driver<Double>.empty())
         }
       }.asDriver(onErrorJustReturn: 8.0)
     
     let timeState = timer.map { TimeState(rawValue: $0) }
-    let isTimeOver = timer.map { $0 == 0.0 }
+    let timeZero = timer.filter { $0 == 0 }
     
     return Output(
       timeState: timeState,
-      isTimeOver: isTimeOver,
+      timeZero: timeZero,
       user: user
     )
   }
