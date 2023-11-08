@@ -9,7 +9,6 @@ import UIKit
 
 import RxSwift
 import RxCocoa
-import RxDataSources
 import RxGesture
 
 final class MainViewController: TFBaseViewController {
@@ -56,29 +55,23 @@ final class MainViewController: TFBaseViewController {
     
     let doubleTapGesture = UITapGestureRecognizer()
     doubleTapGesture.numberOfTapsRequired = 2
-    
+
+    let timerActiveRelay = BehaviorRelay(value: true)
+
     let cardDoubleTapTrigger = self.mainView.collectionView.rx
       .gesture(doubleTapGesture)
       .when(.recognized)
       .map { _ in }
-    
-    let timerActiveRelay = BehaviorRelay(value: true)
-    
+      .withLatestFrom(timerActiveRelay) { !$1 }
+      .asDriverOnErrorJustEmpty()
+
     cardDoubleTapTrigger
-      .withLatestFrom(timerActiveRelay)
-      .do { value in
-        timerActiveRelay.accept(!value)
-      }
-      .asDriver(onErrorJustReturn: false)
-      .drive()
+      .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
     Observable.merge(viewWillAppearTrigger, viewWillDisAppearTrigger)
-      .do { value in
-        timerActiveRelay.accept(value)
-      }
-      .asDriver(onErrorJustReturn: false)
-      .drive()
+      .asDriverOnErrorJustEmpty()
+      .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
     let input = MainViewModel.Input(initialTrigger: initialTrigger,
@@ -105,22 +98,22 @@ final class MainViewController: TFBaseViewController {
     })
     
     output.userList
-      .drive(onNext: { [weak self] list in
+      .drive(with: self, onNext: { this, list in
         usersCount = list.count
         var snapshot = NSDiffableDataSourceSnapshot<MainProfileSection, UserDomain>()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
-        self?.dataSource.apply(snapshot, animatingDifferences: true)
+        this.dataSource.apply(snapshot)
       }).disposed(by: disposeBag)
-    
+
     output.userCardScrollIndex
-      .do(onNext: { index in
+      .drive(with: self, onNext: { this, index in
         let index = index >= usersCount ? usersCount - 1 : index
         let indexPath = IndexPath(row: index, section: 0)
-        self.mainView.collectionView.scrollToItem(at: indexPath,
+        this.mainView.collectionView.scrollToItem(at: indexPath,
                                                   at: .top,
                                                   animated: true)
-      }).drive()
+      })
       .disposed(by: self.disposeBag)
   }
   
