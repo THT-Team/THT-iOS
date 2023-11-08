@@ -9,7 +9,7 @@ import UIKit
 
 import RxSwift
 import RxCocoa
-import RxGesture
+
 
 final class MainViewController: TFBaseViewController {
   
@@ -46,22 +46,16 @@ final class MainViewController: TFBaseViewController {
   
   override func bindViewModel() {
     let initialTrigger = Driver<Void>.just(())
-    let timerOverTrigger = self.rx.timeOverTrigger.map { _ in
-    }.asDriverOnErrorJustEmpty()
+    let timerOverTrigger = self.rx.timeOverTrigger.asDriver()
     
-    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }
-    
-    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }
-    
-    let doubleTapGesture = UITapGestureRecognizer()
-    doubleTapGesture.numberOfTapsRequired = 2
-
+    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
+    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
     let timerActiveRelay = BehaviorRelay(value: true)
-
     let cardDoubleTapTrigger = self.mainView.collectionView.rx
-      .gesture(doubleTapGesture)
+      .tapGesture(configuration: { gestureRecognizer, delegate in
+        gestureRecognizer.numberOfTapsRequired = 2
+      })
       .when(.recognized)
-      .map { _ in }
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
 
@@ -69,8 +63,7 @@ final class MainViewController: TFBaseViewController {
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
-    Observable.merge(viewWillAppearTrigger, viewWillDisAppearTrigger)
-      .asDriverOnErrorJustEmpty()
+    Driver.merge(viewWillAppearTrigger, viewWillDisAppearTrigger)
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
