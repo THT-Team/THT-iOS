@@ -8,18 +8,19 @@
 import Security
 import Foundation
 
-enum TokenType: String {
-  case accessToken
-  case refreshToken
-}
-
 final class Keychain {
-  private let lock: NSLock = NSLock() // 멀티 스레드 환경에서 객체의 멤버에 동시 접근 방지
-  private var lastResultCode: OSStatus = noErr
   
   static let shared = Keychain()
   
+  private let lock: NSLock = NSLock() // 멀티 스레드 환경에서 객체의 멤버에 동시 접근 방지
+  private var lastResultCode: OSStatus = noErr
+  
   private init() { }
+  
+  enum TokenType: String {
+    case accessToken
+    case refreshToken
+  }
   
   @discardableResult
   func set(_ value: String, forKey key: TokenType) -> Bool {

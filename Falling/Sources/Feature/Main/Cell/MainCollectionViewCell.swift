@@ -11,6 +11,11 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
+struct MainCollectionViewCellObserver {
+  var userCardScrollIndex: Observable<Int>
+  var timerActiveTrigger: Observable<Bool>
+}
+
 @objc protocol TimeOverDelegate: AnyObject {
   @objc func scrollToNext()
 }
@@ -18,57 +23,27 @@ import SnapKit
 final class MainCollectionViewCell: TFBaseCollectionViewCell {
   
   var viewModel: MainCollectionViewItemViewModel!
-  weak var delegate: TimeOverDelegate?
+  weak var delegate: TimeOverDelegate? = nil
   
   lazy var profileCarouselView = ProfileCarouselView()
   
-  lazy var progressContainerView: UIView = {
-    let view = UIView()
-    view.layer.cornerRadius = 15
-    view.backgroundColor = FallingAsset.Color.dimColor.color.withAlphaComponent(0.5)
-    return view
-  }()
-  
-  lazy var timerView = CardTimerView()
-  
-  lazy var progressView = CardProgressView()
+  lazy var cardTimeView = CardTimeView()
   
   override func layoutSubviews() {
     self.backgroundColor = .systemGray
   }
   
   override func makeUI() {
-    self.contentView.addSubviews([
-      profileCarouselView,
-      progressContainerView])
-    
-    self.progressContainerView.addSubviews([
-      timerView,
-      progressView
-    ])
-    
-    self.progressContainerView.snp.makeConstraints {
-      $0.top.equalTo(self.safeAreaLayoutGuide).inset(12)
-      $0.leading.trailing.equalToSuperview().inset(12)
-      $0.height.equalTo(32)
-    }
-    
-    self.timerView.snp.makeConstraints {
-      $0.leading.equalToSuperview().inset(9)
-      $0.centerY.equalToSuperview()
-      $0.width.equalTo(22)
-      $0.height.equalTo(22)
-    }
-    
-    self.progressView.snp.makeConstraints {
-      $0.leading.equalTo(timerView.snp.trailing).offset(9)
-      $0.trailing.equalToSuperview().inset(12)
-      $0.centerY.equalToSuperview()
-      $0.height.equalTo(6)
-    }
+    self.contentView.addSubviews([profileCarouselView, cardTimeView])
     
     self.profileCarouselView.snp.makeConstraints {
       $0.edges.equalToSuperview()
+    }
+    
+    self.cardTimeView.snp.makeConstraints {
+      $0.top.equalTo(self.safeAreaLayoutGuide).inset(12)
+      $0.leading.trailing.equalToSuperview().inset(12)
+      $0.height.equalTo(32)
     }
   }
   
@@ -78,35 +53,48 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     profileCarouselView.tagCollectionView.isHidden = true
   }
   
-  func setup(item: UserDomain) {
-    viewModel = MainCollectionViewItemViewModel(userDomain: item)
+  func bind(model: UserDomain) {
+    viewModel = MainCollectionViewItemViewModel(userDomain: model)
+    profileCarouselView.bind(viewModel.userDomain)
   }
   
-  func bindViewModel() {
-    profileCarouselView.infoButton.rx.tap.asDriver()
-      .scan(true) { lastValue, _ in
-        return !lastValue
-      }
-      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
-      .disposed(by: disposeBag)
+  func bind(_ observer: MainCollectionViewCellObserver,
+            index: IndexPath,
+            usersCount: Int) {
+    
+    let timerActiveTrigger =
+    observer.userCardScrollIndex
+      .observe(on: MainScheduler.asyncInstance)
+      .withLatestFrom(observer.timerActiveTrigger) { userCardScrollIndex, timerActiveTrigger in
+        if index.row == userCardScrollIndex {
+          self.profileCarouselView.hiddenDimView()
+          return observer.timerActiveTrigger
+          //        return timerActiveTrigger
+        }
+        //        else { return false }
+        else { return Observable.just(false) }
+      }.map { $0 }
+      .flatMapLatest { return $0 }
+    
+    let input = MainCollectionViewItemViewModel.Input(timerActiveTrigger: timerActiveTrigger.asDriver(onErrorJustReturn: false))
     
     let output = viewModel
-      .transform(input: MainCollectionViewItemViewModel.Input())
+      .transform(input: input)
     
     output.timeState
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
     
-    output.isTimeOver
-      .do { value in
-        if value { self.delegate?.scrollToNext() }
-      }.drive()
+    output.timeZero
+      .do { [weak self] _ in self?.delegate?.scrollToNext() }
+      .drive()
       .disposed(by: self.disposeBag)
     
-    output.user
-      .drive(onNext: { [weak self] user in
-        self?.profileCarouselView.bind(user)
-      })
+    profileCarouselView.infoButton.rx.tap.asDriver()
+      .scan(true) { lastValue, _ in
+        return !lastValue
+      }
+      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
       .disposed(by: disposeBag)
   }
   
@@ -115,7 +103,7 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
     // progress가 -0.05미만 혹은 1이상은 점(dot)을 0초에 위치시키기 위함
     let strokeRange: Range<Double> = -0.05..<0.95
     if !(strokeRange ~= progress) { progress = 0.95 }
-    let radius = CGFloat(rect.height / 2 - timerView.strokeLayer.lineWidth / 2)
+    let radius = CGFloat(rect.height / 2 - cardTimeView.timerView.strokeLayer.lineWidth / 2)
     let angle = 2 * CGFloat.pi * CGFloat(progress) - CGFloat.pi / 2
     let dotX = radius * cos(angle + 0.35)
     let dotY = radius * sin(angle + 0.35)
@@ -132,24 +120,24 @@ final class MainCollectionViewCell: TFBaseCollectionViewCell {
 extension Reactive where Base: MainCollectionViewCell {
   var timeState: Binder<MainCollectionViewItemViewModel.TimeState> {
     return Binder(self.base) { (base, timeState) in
-      base.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
-      base.timerView.strokeLayer.strokeColor = timeState.color.color.cgColor
-      base.timerView.dotLayer.strokeColor = timeState.color.color.cgColor
-      base.timerView.dotLayer.fillColor = timeState.color.color.cgColor
-      base.timerView.timerLabel.textColor = timeState.color.color
-      base.progressView.progressBarColor = timeState.color.color
+      base.cardTimeView.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
+      base.cardTimeView.timerView.strokeLayer.strokeColor = timeState.color.color.cgColor
+      base.cardTimeView.timerView.dotLayer.strokeColor = timeState.color.color.cgColor
+      base.cardTimeView.timerView.dotLayer.fillColor = timeState.color.color.cgColor
+      base.cardTimeView.timerView.timerLabel.textColor = timeState.color.color
+      base.cardTimeView.progressView.progressBarColor = timeState.color.color
       
-      base.timerView.dotLayer.isHidden = timeState.isDotHidden
+      base.cardTimeView.timerView.dotLayer.isHidden = timeState.isDotHidden
       
-      base.timerView.timerLabel.text = timeState.getText
+      base.cardTimeView.timerView.timerLabel.text = timeState.getText
       
-      base.progressView.progress = CGFloat(timeState.getProgress)
+      base.cardTimeView.progressView.progress = CGFloat(timeState.getProgress)
       
       // TimerView Animation은 소수점 둘째 자리까지 표시해야 오차가 발생하지 않음
       let strokeEnd = round(CGFloat(timeState.getProgress) * 100) / 100
-      base.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.timerView.bounds)
+      base.cardTimeView.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.cardTimeView.timerView.bounds)
       
-      base.timerView.strokeLayer.strokeEnd = strokeEnd
+      base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
     }
   }
 }

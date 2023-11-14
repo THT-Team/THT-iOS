@@ -34,13 +34,13 @@ final class MainViewModel: ViewModelType {
     let currentIndexRelay = BehaviorRelay<Int>(value: 0)
     let timeOverTrigger = input.timeOverTrigger
     
-    let userSequence = input.initialTrigger
+    let usersResponse = input.initialTrigger
       .flatMapLatest { [unowned self] _ in
         self.service.user(DailyFallingUserRequest(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100))
           .asDriver(onErrorJustReturn: .init(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, userInfos: []))
       }
     
-    let userList = userSequence.map { $0.userInfos.map { $0.toDomain() } }
+    let userList = usersResponse.map { $0.userInfos.map { $0.toDomain() } }
       .flatMap { list in
         return Driver.just(list)
       }
@@ -49,15 +49,14 @@ final class MainViewModel: ViewModelType {
       currentIndexRelay.accept(currentIndexRelay.value)
     }
     
-    let nextScrollIndex = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, page in
-      currentIndexRelay.accept(currentIndexRelay.value + 1)
+    let nextScrollIndex = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, index in
+      currentIndexRelay.accept(index + 1)
     }
     
     let userCardScrollIndex = Driver.merge(userListObservable, nextScrollIndex).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0))
     
     return Output(
       userList: userList,
-      userCardScrollIndex: userCardScrollIndex
-    )
+      userCardScrollIndex: userCardScrollIndex)
   }
 }

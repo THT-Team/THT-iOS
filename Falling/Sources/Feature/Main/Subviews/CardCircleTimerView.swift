@@ -1,5 +1,5 @@
 //
-//  CardTimerView.swift
+//  CardCircleTimerView.swift
 //  Falling
 //
 //  Created by SeungMin on 2023/09/19.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class CardTimerView: TFBaseView {
+final class CardCircleTimerView: TFBaseView {
   
   lazy var timerLabel: UILabel = {
     let label = UILabel()
@@ -48,10 +48,8 @@ final class CardTimerView: TFBaseView {
     
     self.addSubview(timerLabel)
     timerLabel.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.centerY.equalToSuperview()
-      $0.width.equalTo(16)
-      $0.height.equalTo(16)
+      $0.centerX.centerY.equalToSuperview()
+      $0.width.height.equalTo(16)
     }
   }
   

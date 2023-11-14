@@ -7,8 +7,6 @@
 
 import UIKit
 
-import RxSwift
-
 protocol TabBarDependnecy: AnyObject {
   var tabBarHeight: CGFloat { get }
 }
@@ -25,7 +23,7 @@ final class TFTabBarController: UITabBarController {
   }
 
   required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+    fatalError("init(coder:) hazs not been implemented")
   }
 
   override func viewDidLoad() {
