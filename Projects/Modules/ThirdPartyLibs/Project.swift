@@ -9,7 +9,7 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 import MyPlugin
 
-let project = Project.library(
+let project = Project.dynamicFramework(
 	name: Feature.ThirdPartyLibs.rawValue,
 	dependencies: [
 		.external(.SnapKit),
