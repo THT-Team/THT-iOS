@@ -25,6 +25,7 @@ public enum Feature: String {
 	case Data = "Data"
 	case Core = "Core"
   case ThirdPartyLibs
+  case DesignSystem = "DSKit"
 }
 
 public enum ModulePath {
