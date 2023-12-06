@@ -15,21 +15,23 @@ private let basicDeployment: DeploymentTarget = .iOS(targetVersion: "16.0", devi
 //)
 
 public extension Project {
+
 	static func dynamicFramework(
 		name: String,
-		dependencies: [TargetDependency]
+		dependencies: [TargetDependency],
+    resources: ResourceFileElements = [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
+    infoPlist: InfoPlist = .default
 	) -> Project {
-		
-		
+
 		let target = Target(
 			name: name,
 			platform: .iOS,
 			product: .framework,
 			bundleId: rootPackagesName + name,
 			deploymentTarget: basicDeployment,
-			infoPlist: .default,
-			sources: ["Src/**/*.swift"],
-			resources:  [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
+			infoPlist: infoPlist,
+			sources: ["Src/"],
+			resources:  resources,
 			dependencies: dependencies
 			//				settings: projectSettings
 		)
@@ -44,7 +46,7 @@ public extension Project {
 	static func library(
 		name: String,
 		dependencies: [TargetDependency],
-		product: Product = .staticLibrary
+		product: Product = .dynamicLibrary
 	) -> Project {
 		let target = Target(
 			name: name,
@@ -53,7 +55,7 @@ public extension Project {
 			bundleId: rootPackagesName + name,
 			deploymentTarget: basicDeployment,
 			infoPlist: .default,
-			sources: ["Src/**/*.swift"],
+			sources: ["Src/"],
 			resources:  [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
 			dependencies: dependencies
 			//			 settings: projectSettings
@@ -66,4 +68,39 @@ public extension Project {
 		)
 	}
 	
+  static func designSystem(
+    name: String,
+    dependencies: [TargetDependency],
+//    resources: ResourceFileElements = [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
+    infoPlist: InfoPlist
+  ) -> Project {
+
+    let target = Target(
+      name: name,
+      platform: .iOS,
+      product: .framework,
+      bundleId: rootPackagesName + name,
+      deploymentTarget: basicDeployment,
+      infoPlist: infoPlist,
+      sources: ["Src/"],
+      resources: "Resources/**",
+      dependencies: dependencies
+      //        settings: projectSettings
+    )
+
+    return Project(
+      name: name,
+      //      settings: projectSettings,
+      targets: [target],
+      resourceSynthesizers: [
+        .custom(
+          name: "Lottie",
+          parser: .json,
+          extensions: ["lottie"]
+        ),
+        .assets(),
+        .fonts(),
+      ]
+    )
+  }
 }

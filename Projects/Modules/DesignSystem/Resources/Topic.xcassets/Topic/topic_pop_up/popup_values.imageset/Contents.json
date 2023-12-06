@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "popup_values.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
