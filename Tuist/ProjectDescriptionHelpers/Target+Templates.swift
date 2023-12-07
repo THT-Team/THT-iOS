@@ -46,6 +46,26 @@ public extension Target {
 		)
 	}
 
+  private static func makeDemoApp(
+    name: String,
+    sources: SourceFilesList,
+    resources: ResourceFileElements? = [],
+    dependencies: [TargetDependency]
+  ) -> Target {
+    Target(
+      name: name,
+      platform: .iOS,
+      product: .app,
+      bundleId: makeBundleID(with: "demo." + name + "app"),
+      deploymentTarget: basicDeployment,
+      infoPlist: .extendingDefault(with: infoPlistExtension(name: "Demo\(name)")),
+      sources: sources,
+      resources:  resources,
+      dependencies: dependencies
+//      settings: projectSettings
+    )
+  }
+
 	static func makeFramework(
 		name: String,
 		sources: ProjectDescription.SourceFilesList,
@@ -91,6 +111,19 @@ public extension Target {
 		)
 	}
 
+  private static func feature(
+    demo featureName: String,
+    dependencies: [TargetDependency] = [],
+    resources: ResourceFileElements? = []
+  ) -> Target {
+    .makeDemoApp(
+      name: featureName + "Demo",
+      sources: [ "Demo/Src/**" ],
+      resources: resources,
+      dependencies: dependencies
+    )
+  }
+
 	static func feature(
 		implementation featureName: Feature,
 		dependencies: [ProjectDescription.TargetDependency] = [],
@@ -114,6 +147,19 @@ public extension Target {
 			resources: resources
 		)
 	}
+
+  static func feature(
+    demo featureName: Feature,
+    dependencies: [TargetDependency] = [],
+    resources: ResourceFileElements? = [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))]
+  ) -> Target {
+    .feature(
+      demo: featureName.rawValue,
+      dependencies: dependencies,
+      resources: resources
+    )
+  }
+
 	static func feature(
 		dependencies: [ProjectDescription.TargetDependency] = []
 	) -> Target {
@@ -123,7 +169,6 @@ public extension Target {
 			dependencies: dependencies
 		)
 	}
-
 }
 
 
