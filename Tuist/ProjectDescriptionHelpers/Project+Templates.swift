@@ -82,7 +82,7 @@ public extension Project {
       bundleId: rootPackagesName + name,
       deploymentTarget: basicDeployment,
       infoPlist: infoPlist,
-      sources: ["Src/"],
+      sources: "Src/**",
       resources: "Resources/**",
       dependencies: dependencies
       //        settings: projectSettings
