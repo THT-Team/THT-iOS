@@ -22,8 +22,14 @@ let project = Project(
 			implementation: .Like,
 			dependencies: [
 				.feature(interface: .Like),
-//				.feature(interface: .Auth)
+				.feature(interface: .Auth),
 			]
-		)
+		),
+    .feature(
+      demo: .Like,
+      dependencies: [
+        .feature(implementation: .Like)
+      ]
+    )
 	]
 )
