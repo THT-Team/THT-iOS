@@ -7,20 +7,23 @@
 
 import UIKit
 
+import Feature
+import Core
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	
 	var window: UIWindow?
-	
+  var launcher: LaunchCoordinating?
+
 	func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 		guard let windowScene = (scene as? UIWindowScene) else { return }
 		
 		let window = UIWindow(windowScene: windowScene)
-		//				window.rootViewController = SplashViewController()
-		let vc = UIViewController()
-		vc.view.backgroundColor = .red
-		window.rootViewController = vc
+    let appCoordinator = AppRootBuilder().build()
+    self.launcher = appCoordinator
+    self.launcher?.launch(window: window)
+
 		self.window = window
-		window.makeKeyAndVisible()
 	}
 	
 	func sceneDidDisconnect(_ scene: UIScene) { }
