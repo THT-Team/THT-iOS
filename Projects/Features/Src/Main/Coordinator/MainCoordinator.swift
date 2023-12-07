@@ -41,7 +41,8 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
   }
 
   func attachTab() {
-    let likeCoordinator = likeBuildable.build(rootViewControllable: self.mainViewControllable)
+
+    let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(likeCoordinator)
     likeCoordinator.start()
     likeCoordinator.delegate = self
