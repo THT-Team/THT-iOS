@@ -40,7 +40,7 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
     "CFBundleShortVersionString": "1.0",
     "CFBundleVersion": "1",
     "UILaunchStoryboardName": "LaunchScreen",
-    "CFBundleName": "THT + \(name)",
+    "CFBundleName": "\(name)",
       "UIApplicationSceneManifest": [
         "UIApplicationSupportsMultipleScenes": false,
         "UISceneConfigurations": [
