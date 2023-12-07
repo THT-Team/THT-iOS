@@ -7,10 +7,22 @@
 
 import UIKit
 
-public final class TFLaunchViewController: TFBaseViewController {
-  public override func viewDidLoad() {
-    super.viewDidLoad()
+import SnapKit
+import Then
+import Lottie
+import DSKit
 
-    self.view.backgroundColor = .systemGreen
+public final class TFLaunchViewController: TFBaseViewController {
+  private lazy var splashLottieView = LottieAnimationView(animation: AnimationAsset.logoSplash.animation)
+
+  public override func loadView() {
+    super.loadView()
+    self.view.addSubview(splashLottieView)
+    splashLottieView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+      $0.height.width.equalTo(view.bounds.height * 0.7)
+    }
+
+    splashLottieView.play()
   }
 }
