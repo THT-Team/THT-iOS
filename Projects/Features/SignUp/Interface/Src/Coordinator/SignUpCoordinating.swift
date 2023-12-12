@@ -16,8 +16,10 @@ public protocol SignUpCoordinatorDelegate: AnyObject {
 public protocol SignUpCoordinating: Coordinator {
   var delegate: SignUpCoordinatorDelegate? { get set }
 
-  func authFlow()
+  func rootFlow()
   func nicknameFlow()
   func emailFlow()
   func finishFlow()
+  func phoneNumberFlow()
+  func policyFlow()
 }
