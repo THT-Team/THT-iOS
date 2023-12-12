@@ -10,14 +10,12 @@ import Core
 
 import SignUpInterface
 
-public final class MockSignUpBuilder: SignUpBuildable {
+public final class SignUpBuilder: SignUpBuildable {
   public init() { }
   
   public func build(rootViewController: ViewControllable) -> SignUpCoordinating {
 
-
-    rootViewController.setViewControllers([])
-    let coordinator = MockSignUpCoordinator(viewControllable: rootViewController)
+    let coordinator = SignUpCoordinator(viewControllable: rootViewController)
     return coordinator
   }
 }
