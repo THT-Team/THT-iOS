@@ -6,6 +6,7 @@
 //
 
 import UIKit
+
 public protocol LaunchCoordinating {
   func launch(window: UIWindow)
 }
@@ -19,7 +20,11 @@ open class LaunchCoordinator: BaseCoordinator, LaunchCoordinating {
   public func launch(window: UIWindow) {
     window.rootViewController = self.viewControllable.uiController
     window.makeKeyAndVisible()
-    start()
+
+    TFLogger.domain.debug("AppCoordinator 1초 async")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      self.start()
+    }
   }
 }
 
