@@ -11,7 +11,7 @@ import DSKit
 import RxSwift
 
 open class TFBaseViewController: UIViewController, ViewControllable {
-  var disposeBag = DisposeBag()
+  public var disposeBag = DisposeBag()
 
   public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
     super.init(nibName: nil, bundle: nil)
@@ -21,7 +21,8 @@ open class TFBaseViewController: UIViewController, ViewControllable {
   open override func viewDidLoad() {
     super.viewDidLoad()
     
-    TFLogger.ui.debug("\(#function) \(type(of: self))")
+    TFLogger.cycle(name: self)
+
     self.view.backgroundColor = DSKitAsset.Color.neutral700.color
     makeUI()
     bindViewModel()

@@ -12,4 +12,9 @@ public final class LikeHomeViewController: TFBaseViewController {
 
   var viewModel: LikeHomeViewModel!
   
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+
+    viewModel.test()
+  }
 }
