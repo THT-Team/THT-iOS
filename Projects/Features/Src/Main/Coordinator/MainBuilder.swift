@@ -15,6 +15,7 @@ final class MainBuilder: MainBuildable {
   func build(rootViewControllable: ViewControllable) -> MainCoordinating {
     let tabBar = TFTabBarController()
     let likeBuilder = LikeBuilder()
+
     rootViewControllable.setViewControllers([tabBar])
 
     let coordinator = MainCoordinator(
