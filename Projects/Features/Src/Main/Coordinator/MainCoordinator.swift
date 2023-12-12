@@ -50,6 +50,7 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     let viewControllables = [
       likeCoordinator.viewControllable
     ]
+
     self.mainViewControllable.setViewController(viewControllables)
   }
   

@@ -33,7 +33,6 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public override func start() {
-    TFLogger.domain.debug("AppCoordinator 3초 async")
     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
       self.selectFlow()
     }
