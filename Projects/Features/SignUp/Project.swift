@@ -24,7 +24,13 @@ let project = Project(
 							.feature(interface: .SignUp),
 							.feature(interface: .Auth)
 						]
-				)
+				),
+        .feature(
+          demo: .SignUp,
+          dependencies: [
+            .feature(implementation: .SignUp)
+          ]
+        )
 		]
 )
 
