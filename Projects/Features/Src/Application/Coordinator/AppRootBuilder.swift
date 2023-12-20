@@ -24,7 +24,7 @@ public final class AppRootBuilder: AppRootBuildable {
   }()
 
   lazy var signUpBuildable: SignUpBuildable = {
-    MockSignUpBuilder()
+    SignUpBuilder()
   }()
 
   public func build() -> LaunchCoordinating {
