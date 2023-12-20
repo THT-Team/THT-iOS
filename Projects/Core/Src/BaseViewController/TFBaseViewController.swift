@@ -15,7 +15,7 @@ open class TFBaseViewController: UIViewController, ViewControllable {
 
   public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
     super.init(nibName: nil, bundle: nil)
-    TFLogger.ui.debug("\(#function) \(type(of: self))")
+    TFLogger.cycle(name: self)
   }
 
   open override func viewDidLoad() {
@@ -23,7 +23,7 @@ open class TFBaseViewController: UIViewController, ViewControllable {
     
     TFLogger.cycle(name: self)
 
-    self.view.backgroundColor = DSKitAsset.Color.neutral700.color
+//    self.view.backgroundColor = DSKitAsset.Color.neutral700.color
     makeUI()
     bindViewModel()
     navigationSetting()
@@ -34,7 +34,7 @@ open class TFBaseViewController: UIViewController, ViewControllable {
   }
 
   deinit {
-    TFLogger.ui.debug("\(#function) \(type(of: self))")
+    TFLogger.cycle(name: self)
   }
 
   // MARK: - Open
