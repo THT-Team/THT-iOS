@@ -6,6 +6,12 @@
 //
 
 import UIKit
+
+import Core
+
+import LikeInterface
+import Like
+import Data
 //import FirebaseCore
 
 @main
@@ -13,6 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
+    registerDependencies()
+    
     return true
   }
 
@@ -23,3 +31,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
   }
 }
+
+extension AppDelegate {
+  var container: DIContainer {
+    DIContainer.shared
+  }
+
+  func registerDependencies() {
+
+    container.register(
+      interface: LikeUseCaseInterface.self,
+      implement: {
+        LikeUseCase(
+          repository: LikeRepository(
+            networkService: NetworkLikeService(
+              isStub: true,
+              sampleStatusCode: 200,
+              customEndpointClosure: nil)
+          )
+        )
+      }
+    )
+  }
+}
+
