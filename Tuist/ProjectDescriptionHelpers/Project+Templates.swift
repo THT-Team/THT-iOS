@@ -30,7 +30,7 @@ public extension Project {
 			bundleId: rootPackagesName + name,
 			deploymentTarget: basicDeployment,
 			infoPlist: infoPlist,
-			sources: ["Src/"],
+			sources: "Src/**",
 			resources:  resources,
 			dependencies: dependencies
 			//				settings: projectSettings
