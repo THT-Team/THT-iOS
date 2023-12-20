@@ -18,5 +18,5 @@ public protocol LikeCoordinating: Coordinator {
 
   func homeFlow()
   func chatRoomFlow()
-  func detailFlow()
+  func profileFlow(_ item: Like)
 }
