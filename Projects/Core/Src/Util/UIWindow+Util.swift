@@ -13,4 +13,8 @@ public extension UIWindow {
       .compactMap { ($0 as? UIWindowScene)?.keyWindow }
       .last
   }
+  
+  static var safeAreaInsetBottom: CGFloat {
+    return (UIWindow.keyWindow?.safeAreaInsets.bottom ?? 0)
+  }
 }

@@ -13,6 +13,7 @@ import DSKit
 
 final class TFTabBarController: UITabBarController, MainViewControllable {
   var uiController: UIViewController { self }
+  let tabBarHeight: CGFloat = 56
   
   override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
     super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
@@ -27,28 +28,36 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     TFLogger.ui.debug("\(#function) \(type(of: self))")
   }
   
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    tabBar.frame.size.height = tabBarHeight + UIWindow.safeAreaInsetBottom
+    tabBar.frame.origin.y = self.view.frame.height - tabBar.frame.size.height
+  }
+  
   func setViewController(_ viewControllables: [ViewControllable]) {
     super.setViewControllers(viewControllables.map { $0.uiController }, animated: false)
+    setAppearance()
+  }
+  
+  private func setAppearance() {
+    let tabBarAppearance = UITabBarAppearance()
+    tabBarAppearance.backgroundColor = DSKitAsset.Color.neutral700.color
+    tabBarAppearance.shadowColor = DSKitAsset.Color.neutral600.color
+    self.tabBar.isTranslucent = false
+
+    setTabItemAppearence(tabBarAppearance.stackedLayoutAppearance)
+    self.tabBar.standardAppearance = tabBarAppearance
+    self.tabBar.scrollEdgeAppearance = tabBarAppearance
   }
 
-  enum Feature: String {
-    case falling
-    case like
-    case chat
-    case myPage
-
-    var image: DSKitImages {
-      switch self {
-      case .falling:
-        return DSKitAsset.Image.falling
-      case .like:
-        return DSKitAsset.Image.heart
-      case .chat:
-        return DSKitAsset.Image.chat
-      case .myPage:
-        return DSKitAsset.Image.more
-
-      }
-    }
+  private func setTabItemAppearence(_ itemAppearance: UITabBarItemAppearance) {
+    itemAppearance.normal.titleTextAttributes = [
+      .foregroundColor: DSKitAsset.Color.unSelected.color,
+      .font: UIFont.thtCaption1M
+    ]
+    itemAppearance.selected.titleTextAttributes = [
+      .foregroundColor: DSKitAsset.Color.neutral50.color,
+      .font: UIFont.thtCaption1M
+    ]
   }
 }

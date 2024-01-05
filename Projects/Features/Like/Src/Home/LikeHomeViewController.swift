@@ -40,14 +40,22 @@ public final class LikeHomeViewController: TFBaseViewController {
   public override func loadView() {
     self.view = mainView
   }
+  
+  public override func makeUI() {
+    tabBarItem = UITabBarItem(
+      title: "하트",
+      image: DSKitAsset.Image.Tab.heart.image.withRenderingMode(.alwaysOriginal),
+      selectedImage: DSKitAsset.Image.Tab.heartSelected.image.withRenderingMode(.alwaysOriginal))
+  }
 
   public override func navigationSetting() {
     super.navigationSetting()
 
     navigationItem.title = "나를 좋아요한 무디"
-    let noti = UIBarButtonItem(image: DSKitAsset.Image.bell.image, style: .plain, target: nil, action: nil)
+    let noti = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
   }
+  
   public override func bindViewModel() {
       self.mainView.collectionView.delegate = self
 
