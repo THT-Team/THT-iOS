@@ -55,7 +55,7 @@ final class ServiceAgreementRowView: TFBaseView {
   private let serviceType: AgreementType
 
   lazy var agreeBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.check.image, for: .normal)
+    $0.setImage(DSKitAsset.Image.Component.check.image, for: .normal)
     $0.setTitle(serviceType.labelTitle, for: .normal)
     $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: -6, bottom: 0, right: 6)
     $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: -6)
@@ -64,7 +64,7 @@ final class ServiceAgreementRowView: TFBaseView {
   }
 
   lazy var goWebviewBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.chevronRight.image.withRenderingMode(.alwaysTemplate), for: .normal)
+    $0.setImage(DSKitAsset.Image.Component.chevronRight.image.withRenderingMode(.alwaysTemplate), for: .normal)
     $0.imageView?.contentMode = .scaleAspectFit
     $0.tintColor = DSKitAsset.Color.neutral400.color
   }

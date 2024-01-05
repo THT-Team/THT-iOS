@@ -31,7 +31,7 @@ class EmailInputViewController: TFBaseViewController {
   }
 
   private lazy var clearBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.closeCircle.image, for: .normal)
+    $0.setImage(DSKitAsset.Image.Icons.closeCircle.image, for: .normal)
     $0.setTitle(nil, for: .normal)
     $0.backgroundColor = .clear
   }
@@ -45,7 +45,7 @@ class EmailInputViewController: TFBaseViewController {
   }
 
   private lazy var descImageView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.explain.image.withRenderingMode(.alwaysTemplate)
+    $0.image = DSKitAsset.Image.Icons.explain.image.withRenderingMode(.alwaysTemplate)
     $0.tintColor = DSKitAsset.Color.neutral400.color
   }
 

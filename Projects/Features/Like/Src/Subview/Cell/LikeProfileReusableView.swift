@@ -35,7 +35,7 @@ final class LikeProfileInfoReusableView: UICollectionReusableView {
 
   private lazy var pinImageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.image = DSKitAsset.Image.pinSmall.image
+    imageView.image = DSKitAsset.Image.Icons.pinSmall.image
     return imageView
   }()
   private lazy var addressLabel: UILabel = {

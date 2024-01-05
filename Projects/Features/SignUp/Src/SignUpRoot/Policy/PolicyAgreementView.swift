@@ -14,11 +14,11 @@ import Then
 
 final class PolicyAgreementView: TFBaseView {
   private lazy var logoView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.fallingLogo.image
+    $0.image = DSKitAsset.Image.Component.fallingLogo.image
   }
 
   lazy var selectAllBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.checkCir.image, for: .normal)
+    $0.setImage(DSKitAsset.Image.Component.checkCir.image, for: .normal)
     $0.setTitle("전체 동의", for: .normal)
     $0.setTitleColor(DSKitAsset.Color.neutral50.color, for: .normal)
     $0.titleLabel?.font = .thtH5B

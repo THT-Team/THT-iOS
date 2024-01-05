@@ -48,7 +48,7 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
   }()
   private lazy var locationIconImageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.image = DSKitAsset.Image.pinSmall.image.withTintColor(DSKitAsset.Color.neutral400.color, renderingMode: .alwaysOriginal)
+    imageView.image = DSKitAsset.Image.Icons.pinSmall.image.withTintColor(DSKitAsset.Color.neutral400.color, renderingMode: .alwaysOriginal)
     imageView.contentMode = .scaleAspectFit
     return imageView
   }()
@@ -66,7 +66,7 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     let button = UIButton()
     var config = UIButton.Configuration.filled()
 
-    config.image = DSKitAsset.Image.face.image.withTintColor(DSKitAsset.Color.neutral50.color, renderingMode: .alwaysOriginal)
+    config.image = DSKitAsset.Image.Icons.face.image.withTintColor(DSKitAsset.Color.neutral50.color, renderingMode: .alwaysOriginal)
     config.imagePadding = 10
     config.imagePlacement = .leading
     config.cornerStyle = .capsule
@@ -97,7 +97,7 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     let button = UIButton()
     var config = UIButton.Configuration.filled()
 
-    config.image = DSKitAsset.Image.messageSquare1.image.withTintColor(DSKitAsset.Color.neutral700.color, renderingMode: .alwaysOriginal)
+    config.image = DSKitAsset.Image.Icons.messageSquare1.image.withTintColor(DSKitAsset.Color.neutral700.color, renderingMode: .alwaysOriginal)
     config.imagePadding = 10
     config.imagePlacement = .leading
     config.cornerStyle = .capsule

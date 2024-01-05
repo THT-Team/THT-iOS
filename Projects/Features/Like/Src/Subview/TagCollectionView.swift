@@ -23,7 +23,7 @@ final class TagCollectionView: TFBaseView {
   lazy var reportButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
-    config.image = DSKitAsset.Image.reportFill.image.withTintColor(
+    config.image = DSKitAsset.Image.Icons.reportFill.image.withTintColor(
       DSKitAsset.Color.neutral50.color,
       renderingMode: .alwaysOriginal
     )
