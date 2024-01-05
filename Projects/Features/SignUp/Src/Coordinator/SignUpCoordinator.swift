@@ -15,6 +15,8 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   
   // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
   public override func start() {
+    replaceWindowRootViewController(rootViewController: self.viewControllable)
+
     rootFlow()
   }
   

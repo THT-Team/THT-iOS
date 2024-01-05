@@ -40,7 +40,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   // MARK: - public
   func signUpFlow() {
-    let signUpCoordinator = self.signUpBuildable.build(rootViewController: self.viewControllable)
+    let signUpCoordinator = self.signUpBuildable.build()
 
     attachChild(signUpCoordinator)
     signUpCoordinator.delegate = self
@@ -49,7 +49,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   func mainFlow() {
-    let mainCoordinator = mainBuildable.build(rootViewControllable: self.viewControllable)
+    let mainCoordinator = mainBuildable.build()
 
     attachChild(mainCoordinator)
     mainCoordinator.delegate = self

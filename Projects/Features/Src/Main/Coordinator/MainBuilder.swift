@@ -12,11 +12,9 @@ import LikeInterface
 import Like
 
 final class MainBuilder: MainBuildable {
-  func build(rootViewControllable: ViewControllable) -> MainCoordinating {
+  func build() -> MainCoordinating {
     let tabBar = TFTabBarController()
     let likeBuilder = LikeBuilder()
-
-    rootViewControllable.setViewControllers([tabBar])
 
     let coordinator = MainCoordinator(
       viewControllable: tabBar,

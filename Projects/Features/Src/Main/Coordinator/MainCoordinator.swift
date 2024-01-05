@@ -29,14 +29,10 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     self.likeBuildable = likeBuildable
 
     super.init(viewControllable: self.mainViewControllable)
-    TFLogger.ui.debug("\(#function) \(type(of: self))")
-  }
-
-  deinit {
-    TFLogger.ui.debug("\(#function) \(type(of: self))")
   }
 
   override func start() {
+    replaceWindowRootViewController(rootViewController: mainViewControllable)
     attachTab()
   }
 
@@ -55,12 +51,16 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
   }
   
   func detachTab() {
+    self.childCoordinators.forEach { child in
+      child.viewControllable.setViewControllers([])
+      detachChild(child)
+    }
     delegate?.detachTab(self)
   }
 }
 
 extension MainCoordinator: LikeCoordinatorDelegate {
   func test(_ coordinator: Core.Coordinator) {
-    self.delegate?.detachTab(self)
+    detachTab()
   }
 }

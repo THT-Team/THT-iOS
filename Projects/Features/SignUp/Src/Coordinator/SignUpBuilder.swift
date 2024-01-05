@@ -13,8 +13,8 @@ import SignUpInterface
 public final class SignUpBuilder: SignUpBuildable {
   public init() { }
   
-  public func build(rootViewController: ViewControllable) -> SignUpCoordinating {
-
+  public func build() -> SignUpCoordinating {
+    let rootViewController = NavigationViewControllable()
     let coordinator = SignUpCoordinator(viewControllable: rootViewController)
     return coordinator
   }

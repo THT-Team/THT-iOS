@@ -24,7 +24,11 @@ open class BaseCoordinator: Coordinator {
   public init(viewControllable: ViewControllable) {
     self.viewControllable = viewControllable
     self.childCoordinators = []
+
+    TFLogger.cycle(name: self)
   }
+
+  deinit { TFLogger.cycle(name: self) }
 
   open func start() {
 
@@ -36,5 +40,11 @@ open class BaseCoordinator: Coordinator {
 
   public func detachChild(_ child: Coordinator) {
     self.childCoordinators = self.childCoordinators.filter { $0 !== child }
+  }
+
+  public func replaceWindowRootViewController(rootViewController: ViewControllable) {
+    let keyWindow = UIWindow.keyWindow
+    keyWindow?.rootViewController = rootViewController.uiController
+    keyWindow?.makeKeyAndVisible()
   }
 }

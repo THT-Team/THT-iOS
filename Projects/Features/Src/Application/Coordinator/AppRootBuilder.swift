@@ -29,7 +29,7 @@ public final class AppRootBuilder: AppRootBuildable {
 
   public func build() -> LaunchCoordinating {
 
-    let viewController = NavigationViewControllable(rootViewControllable: TFLaunchViewController())
+    let viewController = TFLaunchViewController() 
 
     let coordinator = AppCoordinator(
       viewControllable: viewController,
