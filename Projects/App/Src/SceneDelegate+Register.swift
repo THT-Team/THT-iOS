@@ -26,10 +26,9 @@ extension AppDelegate {
       implement: {
         LikeUseCase(
           repository: LikeRepository(
-            networkService: NetworkLikeService(
-              isStub: true,
-              sampleStatusCode: 200,
-              customEndpointClosure: nil)
+            isStub: true,
+            sampleStatusCode: 200,
+            customEndpointClosure: nil
           )
         )
       }

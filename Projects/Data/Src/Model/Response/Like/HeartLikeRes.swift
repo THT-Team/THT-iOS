@@ -9,7 +9,7 @@ import Foundation
 
 import LikeInterface
 
-struct HeartLikeResponse: Codable {
+struct HeartLikeRes: Codable {
   let isMatching: Bool
   let chatRoomIdx: Int
 }

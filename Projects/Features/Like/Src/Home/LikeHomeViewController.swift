@@ -15,7 +15,6 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-
 enum LikeCellButtonAction {
   case reject(IndexPath)
   case chat(IndexPath)

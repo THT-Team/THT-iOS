@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct HeartLikeRequest: Codable {
+struct HeartLikeReq: Codable {
   let favoriteUserUUID: String
   let dailyTopicIndex: String
 

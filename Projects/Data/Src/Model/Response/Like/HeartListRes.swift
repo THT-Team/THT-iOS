@@ -11,12 +11,12 @@ import LikeInterface
 import Foundation
 
 // MARK: - HeartDTO
-struct HeartListResponse: Codable {
-    let likeList: [LikeDTO]
+struct HeartListRes: Codable {
+    let likeList: [LikeRes]
     let size, lastFallingTopicIdx, lastLikeIdx: Int
 }
 
-extension HeartListResponse {
+extension HeartListRes {
   func toDomain() -> LikeListinfo {
     LikeListinfo(
       likeList: self.likeList.map { $0.toDomain() },
@@ -28,7 +28,7 @@ extension HeartListResponse {
 }
 
 // MARK: - LikeList
-struct LikeDTO: Codable {
+struct LikeRes: Codable {
     let dailyFallingIdx, likeIdx: Int
     let topic, issue, userUUID, username: String
     let profileURL: String
@@ -43,12 +43,12 @@ struct LikeDTO: Codable {
         case age, address, receivedTime
     }
 
-  static var mock: LikeDTO {
-    LikeDTO(dailyFallingIdx: 1, likeIdx: 1, topic: "등산하기", issue: "취미", userUUID: "1", username: "유저1", profileURL: "url", age: 20, address: "주소", receivedTime: "2023-09-05 17:15:52")
+  static var mock: LikeRes {
+    LikeRes(dailyFallingIdx: 1, likeIdx: 1, topic: "등산하기", issue: "취미", userUUID: "1", username: "유저1", profileURL: "url", age: 20, address: "주소", receivedTime: "2023-09-05 17:15:52")
   }
 }
 
-extension LikeDTO {
+extension LikeRes {
   func toDomain() -> Like {
     Like (
       dailyFallingIdx: self.dailyFallingIdx,

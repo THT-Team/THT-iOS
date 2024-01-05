@@ -10,7 +10,7 @@ import Foundation
 import LikeInterface
 
 // MARK: - UserResponse
-struct HeartUserResponse: Codable {
+struct HeartUserRes: Codable {
     let username, userUUID: String
     let age: Int
     let introduction, address, phoneNumber, email: String
@@ -35,7 +35,7 @@ struct EmojiType {
     let name, emojiCode: String
 }
 
-extension HeartUserResponse {
+extension HeartUserRes {
   func toDomain() -> LikeUserInfo {
     LikeUserInfo(
       username: self.username,

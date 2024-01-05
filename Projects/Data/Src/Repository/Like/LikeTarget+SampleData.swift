@@ -1,8 +1,8 @@
 //
-//  HeartTarget.swift
-//  Falling
+//  LikeTarget+SampleData.swift
+//  Data
 //
-//  Created by Kanghos on 2023/09/11.
+//  Created by Kanghos on 2024/01/04.
 //
 
 import Foundation
@@ -11,36 +11,7 @@ import Networks
 
 import Moya
 
-public enum HeartTarget {
-  case like(id: String, topic: Int)
-  case list(request: HeartListRequest)
-  case reject(request: HeartRejectRequest)
-  case userInfo(id: String)
-
-}
-
-extension HeartTarget: BaseTargetType {
-
-  public var path: String {
-    switch self {
-    case .like(let id, let topic):
-      return "i-like-you/\(id)/\(topic)"
-    case .list:
-      return "like/receives"
-    case .reject:
-      return "like/reject"
-    case .userInfo(let id):
-      return "user/another/\(id)"
-    }
-  }
-
-  public var method: Moya.Method {
-    switch self {
-    case .like, .reject: return .post
-    default: return .get
-    }
-  }
-
+extension LikeTarget {
   public var sampleData: Data {
     switch self {
     case .list(let request):
@@ -290,31 +261,6 @@ extension HeartTarget: BaseTargetType {
     """
     """.utf8
       )
-      //    case .like(let id, let topic):
-      //
-      //      <#code#>
-      //    case .reject(let request):
-      //      <#code#>
-      //    case .userInfo(let id):
-      //      <#code#>
-      //    }
     }
   }
-
-
-  // Request의 파라미터를 결정한다.
-  public var task: Task {
-    switch self {
-    case .list(let request):
-      return .requestParameters(parameters: request.toDictionary(), encoding: URLEncoding.queryString)
-    case .reject(let request):
-      return .requestParameters(parameters: request.toDictionary(), encoding: URLEncoding.queryString)
-//    case .like(id: <#T##String#>, topic: <#T##Int#>)
-//    case .userInfo(let id):
-
-    default:
-      return .requestPlain
-    }
-  }
-
 }

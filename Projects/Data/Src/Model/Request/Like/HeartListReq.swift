@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct HeartListRequest: Codable {
+public struct HeartListReq: Codable {
   public let size: Int
   public let lastFallingTopicIdx: Int?
   public let lastLikeIdx: Int?

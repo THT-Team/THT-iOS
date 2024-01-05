@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct HeartRejectRequest: Codable {
+public struct HeartRejectReq: Codable {
   public let likeIdx: Int
 
   public init(likeIdx: Int) {

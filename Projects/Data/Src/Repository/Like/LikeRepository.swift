@@ -1,41 +1,37 @@
 //
-//  HeartAPI.swift
-//  Falling
+//  LikeRepository.swift
+//  Data
 //
-//  Created by Kanghos on 2023/09/11.
+//  Created by Kanghos on 2023/12/20.
 //
 
 import Foundation
 
 import LikeInterface
-import Networks
 
 import RxSwift
 import RxMoya
 import Moya
 
+import Networks
 
-public protocol LikeService {
-  func fetchList(size: Int, lastTopicIndex: Int?, lastLikeIndex: Int?) -> Observable<LikeListinfo>
-  func user(id: String) -> Observable<LikeUserInfo>
-}
-
-public final class NetworkLikeService: ProviderProtocol {
-  public typealias Target = HeartTarget
-
+public final class LikeRepository: ProviderProtocol {
+  public typealias Target = LikeTarget
   public var provider: MoyaProvider<Target>
 
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((HeartTarget) -> Moya.Endpoint)?) {
+  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
     self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
   }
 }
 
-extension NetworkLikeService: LikeService {
+extension LikeRepository: LikeRepositoryInterface {
+
   public func fetchList(size: Int, lastTopicIndex: Int?, lastLikeIndex: Int?) -> Observable<LikeListinfo> {
+    
     request(
-      type: HeartListResponse.self,
+      type: HeartListRes.self,
       target: .list(
-        request: HeartListRequest(
+        request: HeartListReq(
           size: size,
           lastFallingTopicIdx: lastTopicIndex,
           lastLikeIdx: lastLikeIndex
@@ -47,7 +43,7 @@ extension NetworkLikeService: LikeService {
   }
 
   public func user(id: String) -> Observable<LikeUserInfo> {
-    request(type: HeartUserResponse.self, target: .userInfo(id: id))
+    request(type: HeartUserRes.self, target: .userInfo(id: id))
       .map { $0.toDomain() }
       .asObservable()
   }
