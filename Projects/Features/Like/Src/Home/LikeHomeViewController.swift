@@ -40,13 +40,6 @@ public final class LikeHomeViewController: TFBaseViewController {
   public override func loadView() {
     self.view = mainView
   }
-  
-  public override func makeUI() {
-    tabBarItem = UITabBarItem(
-      title: "하트",
-      image: DSKitAsset.Image.Tab.heart.image.withRenderingMode(.alwaysOriginal),
-      selectedImage: DSKitAsset.Image.Tab.heartSelected.image.withRenderingMode(.alwaysOriginal))
-  }
 
   public override func navigationSetting() {
     super.navigationSetting()

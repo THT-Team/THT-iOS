@@ -23,7 +23,7 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-
+  
   deinit {
     TFLogger.ui.debug("\(#function) \(type(of: self))")
   }
@@ -44,12 +44,12 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     tabBarAppearance.backgroundColor = DSKitAsset.Color.neutral700.color
     tabBarAppearance.shadowColor = DSKitAsset.Color.neutral600.color
     self.tabBar.isTranslucent = false
-
+    
     setTabItemAppearence(tabBarAppearance.stackedLayoutAppearance)
     self.tabBar.standardAppearance = tabBarAppearance
     self.tabBar.scrollEdgeAppearance = tabBarAppearance
   }
-
+  
   private func setTabItemAppearence(_ itemAppearance: UITabBarItemAppearance) {
     itemAppearance.normal.titleTextAttributes = [
       .foregroundColor: DSKitAsset.Color.unSelected.color,
@@ -59,5 +59,61 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
       .foregroundColor: DSKitAsset.Color.neutral50.color,
       .font: UIFont.thtCaption1M
     ]
+  }
+}
+
+extension UITabBarItem {
+  enum TabItem {
+    case falling
+    case like
+    case chat
+    case myPage
+    
+    var title: String {
+      switch self {
+      case .falling:
+        return "폴링"
+      case .like:
+        return "하트"
+      case .chat:
+        return "채팅"
+      case .myPage:
+        return "마이"
+      }
+    }
+    
+    var image: DSKitImages {
+      switch self {
+      case .falling:
+        return DSKitAsset.Image.Tab.falling
+      case .like:
+        return DSKitAsset.Image.Tab.heart
+      case .chat:
+        return DSKitAsset.Image.Tab.chat
+      case .myPage:
+        return DSKitAsset.Image.Tab.more
+      }
+    }
+    
+    var selectedImage: DSKitImages {
+      switch self {
+      case .falling:
+        return DSKitAsset.Image.Tab.fallingSelected
+      case .like:
+        return DSKitAsset.Image.Tab.heartSelected
+      case .chat:
+        return DSKitAsset.Image.Tab.chatSelected
+      case .myPage:
+        return DSKitAsset.Image.Tab.moreSelected
+      }
+    }
+  }
+  
+  static func makeTabItem(_ item: TabItem) -> UITabBarItem {
+    return UITabBarItem(
+      title: item.title,
+      image: item.image.image,
+      selectedImage: item.selectedImage.image.withRenderingMode(.alwaysOriginal)
+    )
   }
 }
