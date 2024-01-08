@@ -27,26 +27,26 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
   ) {
     self.mainViewControllable = viewControllable
     self.likeBuildable = likeBuildable
-
+    
     super.init(viewControllable: self.mainViewControllable)
   }
-
+  
   override func start() {
     replaceWindowRootViewController(rootViewController: mainViewControllable)
     attachTab()
   }
-
+  
   func attachTab() {
-
     let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(likeCoordinator)
-    likeCoordinator.start()
+    likeCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.like)
     likeCoordinator.delegate = self
-
+    likeCoordinator.start()
+    
     let viewControllables = [
       likeCoordinator.viewControllable
     ]
-
+    
     self.mainViewControllable.setViewController(viewControllables)
   }
   

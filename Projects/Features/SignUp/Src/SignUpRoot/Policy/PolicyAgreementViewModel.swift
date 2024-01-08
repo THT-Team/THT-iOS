@@ -105,28 +105,28 @@ final class PolicyAgreementViewModel: ViewModelType {
 
     let agreeAllRowImage = agreeStatus.asDriver()
       .map { $0.total }
-      .map { $0 ? DSKitAsset.Image.checkCirSelect : DSKitAsset.Image.checkCir }
-      .asDriver(onErrorJustReturn: DSKitAsset.Image.checkCir)
+      .map { $0 ? DSKitAsset.Image.Component.checkCirSelect : DSKitAsset.Image.Component.checkCir }
+      .asDriver(onErrorJustReturn: DSKitAsset.Image.Component.checkCir)
 
     let tosAgreeRowImage = agreeStatus.asDriver()
       .map { $0.tos }
-      .map { $0 ? DSKitAsset.Image.checkSelect : DSKitAsset.Image.check }
-      .asDriver(onErrorJustReturn: DSKitAsset.Image.check)
+      .map { $0 ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check }
+      .asDriver(onErrorJustReturn: DSKitAsset.Image.Component.check)
 
     let privacyAgreeRowImage = agreeStatus.asDriver()
       .map { $0.privacy }
-      .map { $0 ? DSKitAsset.Image.checkSelect : DSKitAsset.Image.check }
-      .asDriver(onErrorJustReturn: DSKitAsset.Image.check)
+      .map { $0 ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check }
+      .asDriver(onErrorJustReturn: DSKitAsset.Image.Component.check)
 
     let locationServiceAgreeRowImage = agreeStatus.asDriver()
       .map { $0.location }
-      .map { $0 ? DSKitAsset.Image.checkSelect : DSKitAsset.Image.check }
-      .asDriver(onErrorJustReturn: DSKitAsset.Image.check)
+      .map { $0 ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check }
+      .asDriver(onErrorJustReturn: DSKitAsset.Image.Component.check)
 
     let marketingServiceRowImage = agreeStatus.asDriver()
       .map { $0.marketing }
-      .map { $0 ? DSKitAsset.Image.checkSelect : DSKitAsset.Image.check }
-      .asDriver(onErrorJustReturn: DSKitAsset.Image.check)
+      .map { $0 ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check }
+      .asDriver(onErrorJustReturn: DSKitAsset.Image.Component.check)
 
     let nextBtnStatus = agreeStatus.asDriver()
       .debug("agreeStatus")

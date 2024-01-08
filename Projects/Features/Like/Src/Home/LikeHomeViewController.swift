@@ -45,9 +45,10 @@ public final class LikeHomeViewController: TFBaseViewController {
     super.navigationSetting()
 
     navigationItem.title = "나를 좋아요한 무디"
-    let noti = UIBarButtonItem(image: DSKitAsset.Image.bell.image, style: .plain, target: nil, action: nil)
+    let noti = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
   }
+  
   public override func bindViewModel() {
       self.mainView.collectionView.delegate = self
 

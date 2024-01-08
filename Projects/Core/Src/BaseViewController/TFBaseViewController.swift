@@ -44,8 +44,8 @@ open class TFBaseViewController: UIViewController, ViewControllable {
 
   open func navigationSetting() {
     navigationController?.navigationBar.topItem?.title = ""
-    navigationController?.navigationBar.backIndicatorImage = DSKitAsset.Image.chevron.image
-    navigationController?.navigationBar.backIndicatorTransitionMaskImage = DSKitAsset.Image.chevron.image
+    navigationController?.navigationBar.backIndicatorImage = DSKitAsset.Image.Icons.chevron.image
+    navigationController?.navigationBar.backIndicatorTransitionMaskImage = DSKitAsset.Image.Icons.chevron.image
     navigationController?.navigationBar.tintColor = DSKitAsset.Color.neutral50.color
 
     let navBarAppearance = UINavigationBarAppearance()

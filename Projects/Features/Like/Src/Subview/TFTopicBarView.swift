@@ -44,7 +44,7 @@ final class TFTopicBarView: TFBaseView {
   lazy var closeButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
-    config.image = DSKitAsset.Image.close.image.withTintColor(
+    config.image = DSKitAsset.Image.Icons.close.image.withTintColor(
       DSKitAsset.Color.neutral50.color,
       renderingMode: .alwaysOriginal
     )
