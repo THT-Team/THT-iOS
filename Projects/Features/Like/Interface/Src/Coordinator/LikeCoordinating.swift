@@ -20,3 +20,17 @@ public protocol LikeCoordinating: Coordinator {
   func chatRoomFlow()
   func profileFlow(_ item: Like)
 }
+
+public enum LikeCoordinatorAction {
+  case Home
+  case Profile(item: Like)
+  case chatRoom
+  case meetMoody
+  case backBtnTap
+  case toRefuseBtnTap
+  case toChatBtnTap
+}
+
+public protocol LikeCoordinatingAction: AnyObject {
+  func action(_ action: LikeCoordinatorAction)
+}
