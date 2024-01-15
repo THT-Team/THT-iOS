@@ -9,7 +9,6 @@ import Foundation
 
 import DSKit
 import LikeInterface
-import DSKit
 
 protocol LikeProfileDelegate: AnyObject {
   func selectNextTime(userUUID: String)
