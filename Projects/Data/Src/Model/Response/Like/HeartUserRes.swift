@@ -28,13 +28,6 @@ struct HeartUserRes: Codable {
   }
 }
 
-// MARK: - List
-struct EmojiType {
-  let identifier = UUID()
-    let idx: Int
-    let name, emojiCode: String
-}
-
 extension HeartUserRes {
   func toDomain() -> LikeUserInfo {
     LikeUserInfo(
