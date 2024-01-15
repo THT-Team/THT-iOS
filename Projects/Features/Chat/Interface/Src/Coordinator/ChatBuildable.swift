@@ -8,6 +8,7 @@
 import Foundation
 
 import Core
+import DSKit
 
 public protocol ChatBuildable {
   func build(rootViewControllable: ViewControllable) -> ChatCoordinating
