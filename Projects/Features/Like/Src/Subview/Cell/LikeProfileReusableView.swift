@@ -10,6 +10,7 @@ import UIKit
 import LikeInterface
 import Core
 import DSKit
+import Domain
 
 import SnapKit
 import RxSwift

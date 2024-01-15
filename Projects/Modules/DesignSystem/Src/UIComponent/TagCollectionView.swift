@@ -7,20 +7,17 @@
 
 import UIKit
 
-import DSKit
-import Core
-
 import SnapKit
 
-final class TagCollectionView: TFBaseView {
-  lazy var sections: [ProfileInfoSection] = [] {
+public final class TagCollectionView: TFBaseView {
+  public lazy var sections: [ProfileInfoSection] = [] {
     didSet {
       DispatchQueue.main.async {
         self.collectionView.reloadData()
       }
     }
   }
-  lazy var reportButton: UIButton = {
+  public lazy var reportButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
     config.image = DSKitAsset.Image.Icons.reportFill.image.withTintColor(
@@ -35,7 +32,7 @@ final class TagCollectionView: TFBaseView {
     return button
   }()
 
-  lazy var collectionView: UICollectionView = {
+  public lazy var collectionView: UICollectionView = {
     let layout = LeftAlignCollectionViewFlowLayout()
     layout.scrollDirection = .vertical
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -51,7 +48,7 @@ final class TagCollectionView: TFBaseView {
     return collectionView
   }()
 
-  override func makeUI() {
+  public override func makeUI() {
     addSubview(collectionView)
     addSubview(reportButton)
     collectionView.snp.makeConstraints {
@@ -65,17 +62,17 @@ final class TagCollectionView: TFBaseView {
 
 extension TagCollectionView: UICollectionViewDataSource {
 
-  func numberOfSections(in collectionView: UICollectionView) -> Int {
+  public func numberOfSections(in collectionView: UICollectionView) -> Int {
     return self.sections.count
   }
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+  public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     guard section < 2 else {
       return 1
     }
     return self.sections[section].items.count
   }
 
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+  public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard indexPath.section < 2 else {
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileIntroduceCell.self)
       cell.bind(self.sections[indexPath.section].introduce)
@@ -83,10 +80,10 @@ extension TagCollectionView: UICollectionViewDataSource {
     }
     let item = self.sections[indexPath.section].items[indexPath.item]
     let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
-    cell.bind(TagItemViewModel(item))
+    cell.bind(TagItemViewModel(emojiCode: item.emojiCode, title: item.name))
     return cell
   }
-  func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+  public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
     let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
     header.title = self.sections[indexPath.section].header
     return header

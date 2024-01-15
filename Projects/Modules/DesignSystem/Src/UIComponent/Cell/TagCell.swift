@@ -7,11 +7,8 @@
 
 import UIKit
 
-import DSKit
-import Core
-
 import SnapKit
-import LikeInterface
+//import LikeInterface
 
 final class TagCollectionViewCell: UICollectionViewCell {
   private lazy var stackView: UIStackView = {
@@ -91,10 +88,6 @@ struct TagItemViewModel {
   var emoji: String {
     emojiCode.unicodeToEmoji()
   }
-  init(_ emojiType: EmojiType) {
-    self.title = emojiType.name
-    self.emojiCode = emojiType.emojiCode
-  }
 
   init(emojiCode: String, title: String) {
     self.emojiCode = emojiCode
@@ -104,21 +97,6 @@ struct TagItemViewModel {
 #if canImport(SwiftUI) && DEBUG
 import SwiftUI
 
-struct PreviewRepresentable<UIViewType: UIView>: UIViewRepresentable {
-  let view: UIViewType
-
-  init(_ builder: @escaping () -> UIViewType) {
-    view = builder()
-  }
-    func makeUIView(context: Context) -> UIViewType {
-      return view
-    }
-
-    func updateUIView(_ uiView: UIViewType, context: Context) {
-      view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-      view.setContentHuggingPriority(.defaultHigh, for: .vertical)
-    }
-}
 //struct TagCellPreview: PreviewProvider {
 ////    static var previews: some View {
 ////          PreviewRepresentable {

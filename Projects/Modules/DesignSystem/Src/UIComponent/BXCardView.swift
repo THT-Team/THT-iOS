@@ -6,11 +6,9 @@
 //
 
 import UIKit
-import Core
 import SnapKit
-import DSKit
 
-class BXCardView: TFBaseView {
+public class BXCardView: TFBaseView {
   // TODO: BXCard Type 정의 title, subtitle, image 후 주입
   enum CardSapcing: Int {
     case smallOnTop = 32
@@ -34,6 +32,7 @@ class BXCardView: TFBaseView {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFit
+    imageView.image = image
     return imageView
   }()
 
@@ -57,26 +56,26 @@ class BXCardView: TFBaseView {
     return label
   }()
 
-  init(image: UIImage, title: String, subTitle: String?) {
+  public init(image: UIImage, title: String, subTitle: String?) {
     self.image = image
     self.title = title
     self.subTitle = subTitle
     super.init(frame: .zero)
   }
 
-  required init?(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
 
-  override func makeUI() {
+  public override func makeUI() {
     self.addSubview(stackView)
     stackView.addArrangedSubviews([imageView, titleLabel, subTitleLabel])
     
     stackView.setCustomSpacing(CGFloat(CardSapcing.viewOnTop.rawValue), after: imageView)
+    
     stackView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-    self.imageView.image = self.image
   }
 }
 
