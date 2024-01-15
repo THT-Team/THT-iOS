@@ -31,7 +31,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   // MARK: - public
   func signUpFlow() {
-    let signUpCoordinator = self.signUpBuildable.build(rootViewController: self.viewControllable)
+    let signUpCoordinator = self.signUpBuildable.build()
 
     attachChild(signUpCoordinator)
     signUpCoordinator.delegate = self
