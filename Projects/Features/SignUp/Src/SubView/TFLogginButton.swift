@@ -7,7 +7,7 @@
 
 import UIKit
 
-import Core
+import DSKit
 
 enum TFLoginButtonType {
   case phone

@@ -9,10 +9,8 @@ import Foundation
 
 import SignUpInterface
 
-import Core
+import DSKit
 
-import RxSwift
-import RxCocoa
 import RxRelay
 
 protocol PhoneCertificationDelegate: AnyObject {

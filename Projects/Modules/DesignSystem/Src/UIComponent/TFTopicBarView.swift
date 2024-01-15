@@ -8,10 +8,8 @@
 import UIKit
 
 import SnapKit
-import Core
-import DSKit
 
-final class TFTopicBarView: TFBaseView {
+public final class TFTopicBarView: TFBaseView {
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
@@ -41,7 +39,7 @@ final class TFTopicBarView: TFBaseView {
     return label
   }()
   
-  lazy var closeButton: UIButton = {
+  public lazy var closeButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
     config.image = DSKitAsset.Image.Icons.close.image.withTintColor(
@@ -54,15 +52,15 @@ final class TFTopicBarView: TFBaseView {
     return button
   }()
   
-  override init(frame: CGRect) {
+  public override init(frame: CGRect) {
     super.init(frame: .zero)
   }
   
-  required init?(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
-  override func makeUI() {
+  public override func makeUI() {
     self.backgroundColor = UIColor(named: "TopicBackground")
     self.layer.borderWidth = 1
     self.layer.borderColor = UIColor(named: "TopicBorder")?.cgColor
@@ -82,7 +80,7 @@ final class TFTopicBarView: TFBaseView {
     }
   }
   
-  override func layoutSubviews() {
+  public override func layoutSubviews() {
     self.layer.cornerRadius = self.frame.height / 2
     titleLabel.layer.cornerRadius = titleLabel.frame.height / 2
     titleLabel.layer.masksToBounds = true
@@ -90,19 +88,24 @@ final class TFTopicBarView: TFBaseView {
 
   }
   
-  func bind(title: String, content: String) {
+  public func bind(title: String, content: String) {
     titleLabel.text = title
     contentLabel.text = content
   }
 
-  func bind(_ viewModel: TopicViewModel) {
+  public func bind(_ viewModel: TopicViewModel) {
     titleLabel.text = viewModel.topic
     contentLabel.text = viewModel.issue
   }
 }
 
-struct TopicViewModel {
-  let topic: String
-  let issue: String
+public struct TopicViewModel {
+  public let topic: String
+  public let issue: String
+
+  public init(topic: String, issue: String) {
+    self.topic = topic
+    self.issue = issue
+  }
 }
 

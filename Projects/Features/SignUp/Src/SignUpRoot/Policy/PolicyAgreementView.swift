@@ -7,10 +7,7 @@
 
 import UIKit
 
-import Core
-
-import SnapKit
-import Then
+import DSKit
 
 final class PolicyAgreementView: TFBaseView {
   private lazy var logoView: UIImageView = UIImageView().then {

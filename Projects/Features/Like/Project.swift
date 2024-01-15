@@ -23,11 +23,13 @@ let project = Project(
 			dependencies: [
 				.feature(interface: .Like),
 				.feature(interface: .Auth),
+        .dsKit,
 			]
 		),
     .feature(
       demo: .Like,
       dependencies: [
+        .data,
         .feature(implementation: .Like)
       ]
     )

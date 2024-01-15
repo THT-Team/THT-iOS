@@ -7,8 +7,6 @@
 
 import UIKit
 
-import DSKit
-
 public protocol Coordinator: AnyObject {
   var viewControllable: ViewControllable { get }
   var childCoordinators: [Coordinator] { get set }

@@ -6,9 +6,10 @@
 //
 
 import UIKit
-
-import LikeInterface
-
+import Domain
+//
+//import LikeInterface
+//
 enum ProfileDetailSection {
   case interest
   case idealType
@@ -25,23 +26,22 @@ extension EmojiType: Hashable {
   }
 }
 
-struct ProfileInfoSection {
-  typealias Item = EmojiType
+public struct ProfileInfoSection {
+  public typealias Item = EmojiType
 
-  var items: [Item]
-  var header: String
-  var introduce: String?
+  public var items: [Item]
+  public var header: String
+  public var introduce: String?
 
-  init(header: String, items: [Item]) {
+  public init(header: String, items: [Item]) {
     self.items = items
     self.header = header
     self.introduce = nil
   }
 
-  init(header: String, introduce: String) {
+  public init(header: String, introduce: String) {
     self.items = []
     self.header = header
     self.introduce = introduce
   }
-
 }
