@@ -8,10 +8,7 @@
 import Foundation
 
 import SignUpInterface
-
 import DSKit
-
-import RxRelay
 
 protocol PhoneCertificationDelegate: AnyObject {
   func finishAuth()

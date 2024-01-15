@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SnapKit
-
 public class TFCollectionReusableView: UICollectionReusableView {
   private lazy var titleLabel: UILabel = {
     let label = UILabel()

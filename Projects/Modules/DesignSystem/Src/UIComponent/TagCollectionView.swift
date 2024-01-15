@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SnapKit
-
 public final class TagCollectionView: TFBaseView {
   public lazy var sections: [ProfileInfoSection] = [] {
     didSet {
