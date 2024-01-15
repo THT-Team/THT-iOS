@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SnapKit
-
 public final class ProfileIntroduceCell: TFBaseCollectionViewCell {
 
   private lazy var textView: UITextView = {

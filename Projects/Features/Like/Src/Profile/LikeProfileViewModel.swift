@@ -7,12 +7,8 @@
 
 import Foundation
 
-import Core
-import LikeInterface
 import DSKit
-
-import RxSwift
-import RxCocoa
+import LikeInterface
 
 protocol LikeProfileDelegate: AnyObject {
   func selectNextTime(userUUID: String)

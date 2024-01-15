@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SnapKit
 
 public class BXCardView: TFBaseView {
   // TODO: BXCard Type 정의 title, subtitle, image 후 주입

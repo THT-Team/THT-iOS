@@ -7,11 +7,7 @@
 
 import UIKit
 
-import Core
 import DSKit
-
-import SnapKit
-import Then
 
 final class NicknameView: TFBaseView {
 

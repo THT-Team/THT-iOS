@@ -7,7 +7,6 @@
 
 import UIKit
 
-import SnapKit
 //import LikeInterface
 
 final class TagCollectionViewCell: UICollectionViewCell {
