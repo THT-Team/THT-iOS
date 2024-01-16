@@ -8,6 +8,7 @@
 import Foundation
 
 import LikeInterface
+import Domain
 
 import RxSwift
 import RxMoya
@@ -42,7 +43,7 @@ extension LikeRepository: LikeRepositoryInterface {
     .asObservable()
   }
 
-  public func user(id: String) -> Observable<LikeUserInfo> {
+  public func user(id: String) -> Observable<UserInfo> {
     request(type: HeartUserRes.self, target: .userInfo(id: id))
       .map { $0.toDomain() }
       .asObservable()

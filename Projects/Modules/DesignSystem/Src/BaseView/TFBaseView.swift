@@ -7,8 +7,6 @@
 
 import UIKit
 
-import DSKit
-
 open class TFBaseView: UIView {
   public lazy var dimView: UIView = {
     let view = UIView()

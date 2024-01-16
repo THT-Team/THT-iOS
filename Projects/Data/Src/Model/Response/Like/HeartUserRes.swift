@@ -8,6 +8,7 @@
 import Foundation
 
 import LikeInterface
+import Domain
 
 // MARK: - UserResponse
 struct HeartUserRes: Codable {
@@ -15,7 +16,7 @@ struct HeartUserRes: Codable {
     let age: Int
     let introduction, address, phoneNumber, email: String
     let idealTypeList, interestsList: [IdealTypeResponseList]
-    let userProfilePhotos: [UserProfilePhoto]
+    let userProfilePhotos: [UserProfilePhotoRes]
 
     enum CodingKeys: String, CodingKey {
         case username
@@ -29,8 +30,8 @@ struct HeartUserRes: Codable {
 }
 
 extension HeartUserRes {
-  func toDomain() -> LikeUserInfo {
-    LikeUserInfo(
+  func toDomain() -> UserInfo {
+    UserInfo(
       username: self.username,
       userUUID: self.userUUID,
       age: self.age,
@@ -38,9 +39,9 @@ extension HeartUserRes {
       address: self.address,
       phoneNumber: self.phoneNumber,
       email: self.email,
-      idealTypeList: self.idealTypeList,
-      interestsList: self.interestsList,
-      userProfilePhotos: self.userProfilePhotos
+      idealTypeList: self.idealTypeList.map { $0.toDomain() },
+      interestsList: self.interestsList.map { $0.toDomain() },
+      userProfilePhotos: self.userProfilePhotos.map { $0.toDomain() }
     )
   }
 }

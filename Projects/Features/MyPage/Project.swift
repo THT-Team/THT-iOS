@@ -22,7 +22,8 @@ let project = Project(
 			implementation: .MyPage,
 			dependencies: [
 				.feature(interface: .MyPage),
-				.feature(interface: .Auth)
+				.feature(interface: .Auth),
+        .dsKit
 			]
 		),
     .feature(

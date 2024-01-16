@@ -7,6 +7,8 @@
 
 import Foundation
 
+import Domain
+
 import FallingInterface
 
 // MARK: - FallingUserRes
@@ -21,7 +23,7 @@ struct UserRes: Decodable {
   let age: Int
   let address: String
   let isBirthDay: Bool
-  let idealTypeResponseList, interestResponses: [IdealTypeRes]
+  let idealTypeResponseList, interestResponses: [IdealTypeResponseList]
   let userProfilePhotos: [UserProfilePhotoRes]
   let introduction: String
   let userDailyFallingCourserIdx: Int
@@ -30,37 +32,6 @@ struct UserRes: Decodable {
       case username
       case userUUID = "userUuid"
       case age, address, isBirthDay, idealTypeResponseList, interestResponses, userProfilePhotos, introduction, userDailyFallingCourserIdx
-  }
-}
-
-// MARK: - IdealTypeRes
-struct IdealTypeRes: Decodable {
-  let idx: Int
-  let name, emojiCode: String
-}
-
-extension IdealTypeRes {
-  func toDomain() -> IdealType {
-    IdealType(
-      idx: self.idx,
-      name: self.name,
-      emojiCode:
-        self.emojiCode
-    )
-  }
-}
-
-struct UserProfilePhotoRes: Decodable {
-  let url: String
-  let priority: Int
-}
-
-extension UserProfilePhotoRes {
-  func toDomain() -> UserProfilePhoto {
-    UserProfilePhoto(
-      url: self.url,
-      priority: self.priority
-    )
   }
 }
 
