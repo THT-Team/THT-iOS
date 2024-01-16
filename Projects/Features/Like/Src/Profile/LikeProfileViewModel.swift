@@ -9,6 +9,7 @@ import Foundation
 
 import DSKit
 import LikeInterface
+import Domain
 
 protocol LikeProfileDelegate: AnyObject {
   func selectNextTime(userUUID: String)
@@ -40,7 +41,7 @@ final class LikeProfileViewModel: ViewModelType {
 
   struct Output {
     let topic: Driver<TopicViewModel>
-    let userInfo: Driver<LikeUserInfo>
+    let userInfo: Driver<UserInfo>
     let photos: Driver<[UserProfilePhoto]>
   }
 

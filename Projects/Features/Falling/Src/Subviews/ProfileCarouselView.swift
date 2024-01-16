@@ -7,11 +7,9 @@
 
 import UIKit
 
-import Core
 import DSKit
 import FallingInterface
-
-import SnapKit
+import Domain
 
 final class ProfileCarouselView: TFBaseView {
   var photos: [UserProfilePhoto] = [] {

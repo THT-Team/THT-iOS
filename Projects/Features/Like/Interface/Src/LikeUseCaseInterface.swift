@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import Domain
 
 import RxSwift
 
 public protocol LikeUseCaseInterface {
   func fetchList(size: Int, lastTopicIndex: Int?, lastLikeIndex: Int?) -> Observable<LikeListinfo>
-  func user(id: String) -> Observable<LikeUserInfo>
+  func user(id: String) -> Observable<UserInfo>
 }

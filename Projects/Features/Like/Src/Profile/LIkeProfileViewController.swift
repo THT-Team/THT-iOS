@@ -11,14 +11,15 @@ import UIKit
 import DSKit
 
 import LikeInterface
+import Domain
 
 final class LikeProfileViewController: TFBaseViewController {
   private lazy var mainView = ProfileView()
 
   private let viewModel: LikeProfileViewModel
-  private var dataSource: UICollectionViewDiffableDataSource<ProfilePhotoSection, ProfilePhotoDomain>!
+  private var dataSource: UICollectionViewDiffableDataSource<ProfilePhotoSection, UserProfilePhoto>!
   private let reportRelay = PublishRelay<Void>()
-  private var info: LikeUserInfo!
+  private var info: UserInfo!
 
   init(viewModel: LikeProfileViewModel) {
     self.viewModel = viewModel
@@ -72,7 +73,6 @@ final class LikeProfileViewController: TFBaseViewController {
       })
       .map {
         $0.userProfilePhotos
-          .map { $0.toDomain() }
       }.drive(onNext: {[weak self] items in
         self?.performQuery(with: items)
       })
@@ -81,7 +81,7 @@ final class LikeProfileViewController: TFBaseViewController {
   }
   func setupDataSource() {
     let cellRegistration = UICollectionView.CellRegistration
-    <ProfileCollectionViewCell, ProfilePhotoDomain> { (cell, indexPath, item) in
+    <ProfileCollectionViewCell, UserProfilePhoto> { (cell, indexPath, item) in
       // Populate the cell with our item description.
       cell.bind(imageURL: item.url)
     }
@@ -103,7 +103,7 @@ final class LikeProfileViewController: TFBaseViewController {
 
 
     dataSource = DataSource(collectionView: mainView.profileCollectionView) {
-      (collectionView: UICollectionView, indexPath: IndexPath, identifier: ProfilePhotoDomain) -> UICollectionViewCell? in
+      (collectionView: UICollectionView, indexPath: IndexPath, identifier: UserProfilePhoto) -> UICollectionViewCell? in
       // Return the cell.
       return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: identifier)
     }
@@ -114,7 +114,7 @@ final class LikeProfileViewController: TFBaseViewController {
   }
 
   /// - Tag: MountainsPerformQuery
-  func performQuery(with items: [ProfilePhotoDomain]) {
+  func performQuery(with items: [UserProfilePhoto]) {
     var snapshot = Snapshot()
     snapshot.appendSections([.main])
     snapshot.appendItems(items)
@@ -123,8 +123,8 @@ final class LikeProfileViewController: TFBaseViewController {
 }
 
 extension LikeProfileViewController {
-  typealias Snapshot = NSDiffableDataSourceSnapshot<ProfilePhotoSection, ProfilePhotoDomain>
-  typealias DataSource = UICollectionViewDiffableDataSource<ProfilePhotoSection, ProfilePhotoDomain>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<ProfilePhotoSection, UserProfilePhoto>
+  typealias DataSource = UICollectionViewDiffableDataSource<ProfilePhotoSection, UserProfilePhoto>
 }
 
 

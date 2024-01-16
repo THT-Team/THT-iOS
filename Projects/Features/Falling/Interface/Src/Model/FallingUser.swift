@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Domain
 
 public enum FallingProfileSection {
   case profile
@@ -28,12 +29,12 @@ public struct FallingUser {
   public let age: Int
   public let address: String
   public let isBirthDay: Bool
-  public let idealTypeResponseList, interestResponses: [IdealType]
+  public let idealTypeResponseList, interestResponses: [EmojiType]
   public let userProfilePhotos: [UserProfilePhoto]
   public let introduction: String
   public let userDailyFallingCourserIdx: Int
   
-  public init(username: String, userUUID: String, age: Int, address: String, isBirthDay: Bool, idealTypeResponseList: [IdealType], interestResponses: [IdealType], userProfilePhotos: [UserProfilePhoto], introduction: String, userDailyFallingCourserIdx: Int) {
+  public init(username: String, userUUID: String, age: Int, address: String, isBirthDay: Bool, idealTypeResponseList: [EmojiType], interestResponses: [EmojiType], userProfilePhotos: [UserProfilePhoto], introduction: String, userDailyFallingCourserIdx: Int) {
     self.username = username
     self.userUUID = userUUID
     self.age = age
@@ -53,79 +54,5 @@ extension FallingUser: Hashable {
   }
   public static func == (lhs: FallingUser, rhs: FallingUser) -> Bool {
     lhs.identifer == rhs.identifer
-  }
-}
-
-public struct IdealType {
-  public let identifier = UUID()
-  public let idx: Int
-  public let name, emojiCode: String
-  
-  public init(idx: Int, name: String, emojiCode: String) {
-    self.idx = idx
-    self.name = name
-    self.emojiCode = emojiCode
-  }
-}
-
-extension IdealType: Hashable {
-  public static func == (lhs: IdealType, rhs: IdealType) -> Bool {
-    lhs.identifier == rhs.identifier
-  }
-  
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(identifier)
-  }
-}
-
-public struct ProfileInfoSection {
-  public typealias Item = IdealType
-  
-  public var items: [Item]
-  public var header: String
-  public var introduce: String?
-  
-  public init(header: String, items: [Item]) {
-    self.items = items
-    self.header = header
-    self.introduce = nil
-  }
-  
-  public init(header: String, introduce: String) {
-    self.items = []
-    self.header = header
-    self.introduce = introduce
-  }
-}
-
-// MARK: - UserProfilePhoto
-public struct UserProfilePhoto {
-  public let url: String
-  public let priority: Int
-  
-  public init(url: String, priority: Int) {
-    self.url = url
-    self.priority = priority
-  }
-}
-
-public extension UserProfilePhoto {
-  func toDomain() -> ProfilePhotoDomain {
-    ProfilePhotoDomain(url: self.url, priority: self.priority)
-  }
-}
-
-public struct ProfilePhotoDomain: Hashable {
-  public let identifier = UUID()
-  public let url: String
-  public let priority: Int
-  
-  public init(url: String, priority: Int) {
-    self.url = url
-    self.priority = priority
-  }
-  
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(identifier)
   }
 }

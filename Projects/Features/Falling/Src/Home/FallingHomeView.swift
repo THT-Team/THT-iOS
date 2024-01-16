@@ -10,9 +10,6 @@ import UIKit
 import Core
 import DSKit
 
-import RxSwift
-import SnapKit
-
 final class FallingHomeView: TFBaseView {
   lazy var collectionView: UICollectionView = {
     let flowLayout = UICollectionViewFlowLayout()
