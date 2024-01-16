@@ -13,7 +13,6 @@ open class TFBaseView: UIView {
     view.backgroundColor = .clear
     return view
   }()
-  
   override public init(frame: CGRect) {
     super.init(frame: frame)
     makeUI()
