@@ -24,7 +24,13 @@ let project = Project(
 				.feature(interface: .Chat),
 				.feature(interface: .Auth)
 			]
-		)
+		),
+    .feature(
+      demo: .Chat,
+      dependencies: [
+        .feature(implementation: .Chat)
+      ]
+    )
 	]
 )
 

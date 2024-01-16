@@ -10,27 +10,27 @@ import ProjectDescriptionHelpers
 import MyPlugin
 
 let project = Project(
-		name: Feature.SignUp.rawValue,
-		targets: [
-				.feature(
-					interface: .SignUp,
-						dependencies: [
-							.core,
-						]
-				),
-				.feature(
-						implementation: .SignUp,
-						dependencies: [
-							.feature(interface: .SignUp),
-							.feature(interface: .Auth)
-						]
-				),
-        .feature(
-          demo: .SignUp,
-          dependencies: [
-            .feature(implementation: .SignUp)
-          ]
-        )
-		]
+  name: Feature.SignUp.rawValue,
+  targets: [
+    .feature(
+      interface: .SignUp,
+      dependencies: [
+        .core,
+      ]
+    ),
+    .feature(
+      implementation: .SignUp,
+      dependencies: [
+        .feature(interface: .SignUp),
+        .feature(interface: .Auth)
+      ]
+    ),
+    .feature(
+      demo: .SignUp,
+      dependencies: [
+        .feature(implementation: .SignUp)
+      ]
+    )
+  ]
 )
 

@@ -24,6 +24,12 @@ let project = Project(
 				.feature(interface: .MyPage),
 				.feature(interface: .Auth)
 			]
-		)
+		),
+    .feature(
+      demo: .MyPage,
+      dependencies: [
+        .feature(implementation: .MyPage)
+      ]
+    )
 	]
 )
