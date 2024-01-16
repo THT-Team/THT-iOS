@@ -7,12 +7,7 @@
 
 import UIKit
 
-import Core
-
-import SnapKit
-import RxSwift
-import RxCocoa
-import RxGesture
+import DSKit
 
 final class PolicyAgreementViewController: TFBaseViewController {
   private let viewModel: PolicyAgreementViewModel

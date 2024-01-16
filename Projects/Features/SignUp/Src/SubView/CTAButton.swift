@@ -7,9 +7,7 @@
 
 import UIKit
 
-import Core
-import RxSwift
-import RxCocoa
+import DSKit
 
 final class CTAButton: UIButton {
   init(btnTitle: String, initialStatus: Bool) {

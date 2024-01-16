@@ -7,10 +7,7 @@
 
 import Foundation
 
-import Core
-
-import RxSwift
-import RxCocoa
+import DSKit
 
 protocol PolicyAgreementDelegate: AnyObject {
   func policyNextButtonTap()

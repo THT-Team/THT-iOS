@@ -1,5 +1,5 @@
 //
-//  SuccessCertificationViewController.swift
+//  SuccessCertificationView.swift
 //  DSKit
 //
 //  Created by Hoo's MacBookPro on 2023/08/15.
@@ -7,10 +7,7 @@
 
 import UIKit
 
-import Core
-
-import Then
-import SnapKit
+import DSKit
 import Lottie
 
 final class SuccessCertificationView: UIView {

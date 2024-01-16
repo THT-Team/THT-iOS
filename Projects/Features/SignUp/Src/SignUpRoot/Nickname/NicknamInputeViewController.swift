@@ -7,14 +7,7 @@
 
 import UIKit
 
-import Core
-
-import SnapKit
-import Then
-import RxCocoa
-import RxSwift
-import RxKeyboard
-import RxGesture
+import DSKit
 
 final class NicknameInputViewController: TFBaseViewController {
 

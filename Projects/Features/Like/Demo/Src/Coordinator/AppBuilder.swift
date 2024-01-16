@@ -7,7 +7,7 @@
 
 import UIKit
 
-import Core
+import DSKit
 
 import Like
 import LikeInterface

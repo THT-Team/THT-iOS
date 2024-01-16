@@ -22,7 +22,8 @@ let project = Project(
 						implementation: .SignUp,
 						dependencies: [
 							.feature(interface: .SignUp),
-							.feature(interface: .Auth)
+							.feature(interface: .Auth),
+              .dsKit
 						]
 				),
         .feature(

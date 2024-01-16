@@ -7,7 +7,7 @@
 
 import UIKit
 
-import Core
+import DSKit
 
 final class TFTextButton: UIButton {
   let title: String

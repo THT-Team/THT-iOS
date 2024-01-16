@@ -7,10 +7,7 @@
 
 import UIKit
 
-import Core
-
-import Then
-import SnapKit
+import DSKit
 
 enum AgreementType {
   case termsOfServie

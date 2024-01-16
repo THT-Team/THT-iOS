@@ -8,11 +8,7 @@
 
 import UIKit
 
-import Core
-
-import SnapKit
-import RxSwift
-import RxCocoa
+import DSKit
 
 import LikeInterface
 
