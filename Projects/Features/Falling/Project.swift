@@ -24,7 +24,13 @@ let project = Project(
 				.feature(interface: .Falling),
 				.feature(interface: .Auth)
 			]
-		)
+		),
+    .feature(
+      demo: .Falling,
+      dependencies: [
+        .feature(implementation: .Falling)
+      ]
+    )
 	]
 )
 
