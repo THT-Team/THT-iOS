@@ -18,7 +18,9 @@ let project = Project.designSystem(
     .external(.SnapKit),
     .external(.Then),
     .external(.RxGesture),
-    .external(.RxKeyboard)
+    .external(.RxKeyboard),
+    .external(.Kingfisher),
+    .external(.Lottie),
   ],
   infoPlist: .extendingDefault(with: infoPlistExtension(name: Feature.DesignSystem.rawValue))
 )

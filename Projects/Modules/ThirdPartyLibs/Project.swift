@@ -20,8 +20,8 @@ let project = Project.dynamicFramework(
 		.external(.RxSwift),
 		.external(.RxCocoa),
 //		.external(.RxKeyboard),
-		.external(.Kingfisher),
-		.external(.Lottie),
+//		.external(.Kingfisher),
+//		.external(.Lottie),
 		//		.external(.Fierbase),
 //		.external(.RxGesture),
 		.external(.RxDataSources)
