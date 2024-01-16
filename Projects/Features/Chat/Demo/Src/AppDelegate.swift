@@ -1,18 +1,13 @@
 //
 //  AppDelegate.swift
-//  App
+//  ChatInterface
 //
-//  Created by Hoo's MacBookPro on 12/3/23.
+//  Created by Kanghos on 2024/01/14.
 //
 
 import UIKit
 
 import Core
-import Data
-
-import ChatInterface
-import Chat
-//import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -20,7 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
     registerDependencies()
-    
+
     return true
   }
 
@@ -31,24 +26,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
   }
 }
-
-extension AppDelegate {
-  var container: DIContainer {
-    DIContainer.shared
-  }
-
-  func registerDependencies() {
-    container.register(
-      interface: ChatUseCaseInterface.self,
-      implement: {
-        ChatUseCase(
-          repository: ChatRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil)
-        )
-      }
-    )
-  }
-}
-

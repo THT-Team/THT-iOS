@@ -1,13 +1,14 @@
 //
-//  AppRootBuilder.swift
-//  Feature
+//  AppBuilder.swift
+//  ChatInterface
 //
-//  Created by Kanghos on 2023/12/06.
+//  Created by Kanghos on 2024/01/14.
 //
 
 import UIKit
 
 import Core
+import DSKit
 
 import Chat
 import ChatInterface
@@ -25,7 +26,7 @@ public final class AppRootBuilder: AppRootBuildable {
 
   public func build() -> LaunchCoordinating {
 
-    let viewController = NavigationViewControllable(rootViewControllable: TFLaunchViewController())
+    let viewController = TFLaunchViewController()
 
     let coordinator = AppCoordinator(
       viewControllable: viewController,

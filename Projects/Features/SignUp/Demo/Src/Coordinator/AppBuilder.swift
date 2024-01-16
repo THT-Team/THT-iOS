@@ -7,7 +7,7 @@
 
 import UIKit
 
-import Core
+import DSKit
 
 import SignUp
 import SignUpInterface

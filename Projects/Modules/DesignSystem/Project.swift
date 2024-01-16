@@ -11,6 +11,16 @@ import MyPlugin
 
 let project = Project.designSystem(
   name: Feature.DesignSystem.rawValue,
-  dependencies: [],
+  dependencies: [
+    .core,
+    .external(.RxSwift),
+    .external(.RxCocoa),
+    .external(.SnapKit),
+    .external(.Then),
+    .external(.RxGesture),
+    .external(.RxKeyboard),
+    .external(.Kingfisher),
+    .external(.Lottie),
+  ],
   infoPlist: .extendingDefault(with: infoPlistExtension(name: Feature.DesignSystem.rawValue))
 )

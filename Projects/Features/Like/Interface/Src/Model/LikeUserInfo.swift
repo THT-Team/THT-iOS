@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Domain
 
 // MARK: - UserResponse
 public struct LikeUserInfo: Codable {
@@ -46,19 +47,6 @@ public struct IdealTypeResponseList: Codable {
 public extension IdealTypeResponseList {
   func toEmoji() -> EmojiType {
     EmojiType(idx: self.idx, name: self.name, emojiCode: self.emojiCode)
-  }
-}
-
-// MARK: - List
-public struct EmojiType {
-  public let identifier = UUID()
-  public let idx: Int
-  public let name, emojiCode: String
-
-  public init(idx: Int, name: String, emojiCode: String) {
-    self.idx = idx
-    self.name = name
-    self.emojiCode = emojiCode
   }
 }
 

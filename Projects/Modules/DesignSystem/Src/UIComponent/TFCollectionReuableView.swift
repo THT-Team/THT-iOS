@@ -7,10 +7,7 @@
 
 import UIKit
 
-import SnapKit
-import DSKit
-
-class TFCollectionReusableView: UICollectionReusableView {
+public class TFCollectionReusableView: UICollectionReusableView {
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
     label.textColor = DSKitAsset.Color.neutral50.color
@@ -18,19 +15,19 @@ class TFCollectionReusableView: UICollectionReusableView {
     return label
   }()
 
-  var title: String? {
+  public var title: String? {
     didSet {
       self.titleLabel.text = title
     }
   }
 
-  override init(frame: CGRect) {
+  public override init(frame: CGRect) {
     super.init(frame: .zero)
 
     setUpViews()
   }
 
-  required init?(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
 

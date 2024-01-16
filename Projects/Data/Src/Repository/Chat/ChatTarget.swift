@@ -2,37 +2,40 @@
 //  ChatTarget.swift
 //  Data
 //
-//  Created by SeungMin on 1/16/24.
+//  Created by Kanghos on 2024/01/11.
 //
+
+import Foundation
 
 import Networks
 
 import Moya
 
 public enum ChatTarget {
-  case test
+  case rooms
 }
 
 extension ChatTarget: BaseTargetType {
+
   public var path: String {
     switch self {
-    case .test:
-      return ""
+    case .rooms:
+      return "chat/rooms"
     }
   }
-  
+
   public var method: Moya.Method {
     switch self {
-    case .test:
-      return .get
+    default: return .get
     }
   }
-  
-  public var task: Moya.Task {
+
+  // Request의 파라미터를 결정한다.
+  public var task: Task {
     switch self {
-    case .test:
+
+    default:
       return .requestPlain
     }
   }
 }
-  

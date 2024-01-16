@@ -7,10 +7,7 @@
 
 import UIKit
 
-import SnapKit
-import Then
 import Lottie
-import DSKit
 
 public final class TFLaunchViewController: TFBaseViewController {
   private lazy var splashLottieView = LottieAnimationView(animation: AnimationAsset.logoSplash.animation)

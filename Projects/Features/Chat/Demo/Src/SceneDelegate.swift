@@ -1,14 +1,12 @@
 //
 //  SceneDelegate.swift
-//  App
+//  ChatInterface
 //
-//  Created by Hoo's MacBookPro on 12/3/23.
+//  Created by Kanghos on 2024/01/14.
 //
 
 import UIKit
 
-import Chat
-import ChatInterface
 import Core
 import DSKit
 

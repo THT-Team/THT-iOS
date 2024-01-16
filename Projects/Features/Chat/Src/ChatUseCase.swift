@@ -2,24 +2,24 @@
 //  ChatUseCase.swift
 //  ChatInterface
 //
-//  Created by SeungMin on 1/16/24.
+//  Created by Kanghos on 2024/01/11.
 //
 
 import Foundation
 
 import ChatInterface
-
 import RxSwift
 
-public final class ChatUseCase: ChatUseCaseInterface {
+public final class ChatUseCase {
   private let repository: ChatRepositoryInterface
-  
+
   public init(repository: ChatRepositoryInterface) {
     self.repository = repository
   }
-  
-  public func test() {
-    
-  }
 }
 
+extension ChatUseCase: ChatUseCaseInterface {
+  public func fetchRooms() -> RxSwift.Single<[ChatRoom]> {
+    repository.fetchRooms()
+  }
+}

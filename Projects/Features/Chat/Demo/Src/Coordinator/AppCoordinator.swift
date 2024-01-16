@@ -1,50 +1,49 @@
 //
 //  AppCoordinator.swift
-//  ChatDemo
+//  ChatInterface
 //
-//  Created by Kanghos on 2023/12/07.
+//  Created by Kanghos on 2024/01/14.
 //
 
 import UIKit
-
-import Core
 import ChatInterface
+import Core
 
 protocol AppCoordinating {
-  func chatFlow()
+  func mainFlow()
 }
 
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
-  private let chatBuildable: ChatBuildable
+  private let mainBuildable: ChatBuildable
 
   init(
     viewControllable: ViewControllable,
     chatBuildable: ChatBuildable
   ) {
-    self.chatBuildable = chatBuildable
+    self.mainBuildable = chatBuildable
     super.init(viewControllable: viewControllable)
   }
 
   public override func start() {
-    chatFlow()
+    mainFlow()
   }
 
   // MARK: - public
-  func chatFlow() {
-    let chatCoordinator = self.chatBuildable.build(rootViewControllable: self.viewControllable)
+  func mainFlow() {
+    let rootViewControllable = NavigationViewControllable()
+    replaceWindowRootViewController(rootViewController: rootViewControllable)
+
+    let chatCoordinator = self.mainBuildable.build(rootViewControllable: rootViewControllable)
 
     attachChild(chatCoordinator)
     chatCoordinator.delegate = self
 
     chatCoordinator.start()
+    chatCoordinator.homeFlow()
   }
 }
 
 extension AppCoordinator: ChatCoordinatorDelegate {
-  func test(_ coordinator: Core.Coordinator) {
-    detachChild(coordinator)
-
-    TFLogger.dataLogger.debug("test")
-  }
+  
 }

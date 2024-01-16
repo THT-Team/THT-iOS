@@ -2,7 +2,7 @@
 //  ChatCoordinating.swift
 //  ChatInterface
 //
-//  Created by SeungMin on 1/16/24.
+//  Created by Kanghos on 2024/01/11.
 //
 
 import Foundation
@@ -10,12 +10,12 @@ import Foundation
 import Core
 
 public protocol ChatCoordinatorDelegate: AnyObject {
-  func test(_ coordinator: Coordinator)
 
 }
+
 public protocol ChatCoordinating: Coordinator {
   var delegate: ChatCoordinatorDelegate? { get set }
 
   func homeFlow()
+  func chatRoomFlow(_ room: ChatRoom)
 }
-

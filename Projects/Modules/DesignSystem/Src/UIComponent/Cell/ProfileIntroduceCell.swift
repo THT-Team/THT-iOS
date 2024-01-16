@@ -7,12 +7,7 @@
 
 import UIKit
 
-import Core
-import DSKit
-
-import SnapKit
-
-final class ProfileIntroduceCell: TFBaseCollectionViewCell {
+public final class ProfileIntroduceCell: TFBaseCollectionViewCell {
 
   private lazy var textView: UITextView = {
     let textView = UITextView()
@@ -25,7 +20,7 @@ final class ProfileIntroduceCell: TFBaseCollectionViewCell {
     return textView
   }()
 
-  override func makeUI() {
+  public override func makeUI() {
     contentView.layer.cornerRadius = 12
     contentView.backgroundColor = DSKitAsset.Color.neutral700.color
     contentView.clipsToBounds = true
@@ -38,13 +33,13 @@ final class ProfileIntroduceCell: TFBaseCollectionViewCell {
     }
   }
 
-  override func prepareForReuse() {
+  public override func prepareForReuse() {
     super.prepareForReuse()
 
     self.textView.text = nil
   }
 
-  func bind(_ text: String?) {
+  public func bind(_ text: String?) {
     self.textView.text = text
     self.textView.invalidateIntrinsicContentSize()
     self.textView.sizeToFit()

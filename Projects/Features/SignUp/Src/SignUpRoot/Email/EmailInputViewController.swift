@@ -7,14 +7,7 @@
 
 import UIKit
 
-import Core
-
-import RxSwift
-import RxCocoa
-import RxKeyboard
-import RxGesture
-import Then
-import SnapKit
+import DSKit
 
 class EmailInputViewController: TFBaseViewController {
 

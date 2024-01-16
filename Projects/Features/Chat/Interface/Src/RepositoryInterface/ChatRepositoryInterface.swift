@@ -2,11 +2,13 @@
 //  ChatRepositoryInterface.swift
 //  ChatInterface
 //
-//  Created by SeungMin on 1/16/24.
+//  Created by Kanghos on 2024/01/11.
 //
 
 import Foundation
 
+import RxSwift
+
 public protocol ChatRepositoryInterface {
-  func test()
+  func fetchRooms() -> Single<[ChatRoom]>
 }

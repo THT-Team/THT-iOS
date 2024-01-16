@@ -7,12 +7,8 @@
 
 import UIKit
 
-import LikeInterface
-import Core
 import DSKit
-
-import SnapKit
-import RxSwift
+import LikeInterface
 
 final class LikeProfileInfoReusableView: UICollectionReusableView {
 

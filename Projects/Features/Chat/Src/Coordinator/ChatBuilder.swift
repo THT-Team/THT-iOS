@@ -2,19 +2,21 @@
 //  ChatBuilder.swift
 //  ChatInterface
 //
-//  Created by SeungMin on 1/16/24.
+//  Created by Kanghos on 2024/01/11.
 //
 
 import Foundation
 
+import DSKit
+
 import ChatInterface
-import Core
 
-public final class ChatBuilder: ChatBuildable {
-
+public final class ChatBuilder {
   public init() { }
-  public func build(rootViewControllable: ViewControllable) -> ChatCoordinating {
+}
 
+extension ChatBuilder: ChatBuildable {
+  public func build(rootViewControllable: ViewControllable) -> ChatCoordinating {
     let coordinator = ChatCoordinator(viewControllable: rootViewControllable)
 
     return coordinator
