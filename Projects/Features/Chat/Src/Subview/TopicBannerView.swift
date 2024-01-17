@@ -11,6 +11,8 @@ import DSKit
 import SnapKit
 
 final class TFTopicBannerView: TFBaseView {
+  private var isDrawed = false
+  
   private lazy var containerView: UIView = {
     let view = UIView()
     view.backgroundColor = DSKitAsset.Color.chatTopicBackground.color
@@ -18,6 +20,7 @@ final class TFTopicBannerView: TFBaseView {
     view.layer.borderColor = DSKitAsset.Color.chatTopicBorder.color.cgColor
     view.clipsToBounds = true
     view.layer.masksToBounds = true
+    view.layer.cornerRadius = 23
     return view
   }()
   private lazy var stackView: UIStackView = {
@@ -36,6 +39,7 @@ final class TFTopicBannerView: TFBaseView {
     label.font = UIFont.thtSubTitle2Sb
     label.textAlignment = .center
     label.clipsToBounds = true
+    label.layer.cornerRadius = 15
     return label
   }()
 
@@ -76,10 +80,10 @@ final class TFTopicBannerView: TFBaseView {
   }
 
   override func layoutSubviews() {
-    titleLabel.layer.cornerRadius = titleLabel.frame.height / 2
-    containerView.layer.cornerRadius = containerView.frame.height / 2
+    guard !isDrawed else { return }
     containerView.layoutIfNeeded()
     addDownTriangle(targetView: containerView, length: 30)
+    isDrawed = true
   }
 
   func bind(title: String, content: String) {
