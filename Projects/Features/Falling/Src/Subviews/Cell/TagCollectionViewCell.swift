@@ -9,8 +9,7 @@ import UIKit
 
 import DSKit
 import Core
-
-import SnapKit
+import Domain
 import FallingInterface
 
 final class TagCollectionViewCell: UICollectionViewCell {
@@ -91,7 +90,7 @@ struct TagItemViewModel {
   var emoji: String {
     emojiCode.unicodeToEmoji()
   }
-  init(_ idealType: IdealType) {
+  init(_ idealType: EmojiType) {
     self.title = idealType.name
     self.emojiCode = idealType.emojiCode
   }
