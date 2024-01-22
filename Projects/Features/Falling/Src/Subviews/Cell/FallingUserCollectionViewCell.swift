@@ -11,10 +11,6 @@ import Core
 import DSKit
 import FallingInterface
 
-import RxSwift
-import RxCocoa
-import SnapKit
-
 struct FallingUserCollectionViewCellObserver {
   var userCardScrollIndex: Observable<Int>
   var timerActiveTrigger: Observable<Bool>

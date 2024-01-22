@@ -11,11 +11,6 @@ import Core
 import DSKit
 import ChatInterface
 
-import SnapKit
-import RxSwift
-import RxCocoa
-import RxGesture
-
 final class ChatRoomViewController: TFBaseViewController {
   private lazy var mainView = ChatRoomView()
   private let viewModel: ChatRoomViewModel

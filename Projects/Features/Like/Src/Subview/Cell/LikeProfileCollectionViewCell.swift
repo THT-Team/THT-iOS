@@ -10,8 +10,6 @@ import UIKit
 import Core
 import DSKit
 
-import SnapKit
-
 final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()

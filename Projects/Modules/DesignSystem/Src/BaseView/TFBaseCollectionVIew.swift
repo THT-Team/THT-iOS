@@ -1,13 +1,11 @@
 //
-//  TFBaseCollectionVIew.swift
-//  Core
+//  TFBaseCollectionViewCell.swift
+//  DSKit
 //
 //  Created by Kanghos on 2023/12/20.
 //
 
 import UIKit
-
-import RxSwift
 
 open class TFBaseCollectionViewCell: UICollectionViewCell {
 

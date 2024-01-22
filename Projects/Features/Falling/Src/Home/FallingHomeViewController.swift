@@ -11,10 +11,6 @@ import Core
 import DSKit
 import FallingInterface
 
-import RxSwift
-import RxCocoa
-import RxGesture
-
 final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
   private var dataSource: UICollectionViewDiffableDataSource<FallingProfileSection, FallingUser>!

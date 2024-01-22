@@ -18,8 +18,6 @@ import Core
 import DSKit
 import FallingInterface
 
-import SnapKit
-
 final class TagCollectionView: TFBaseView {
   lazy var sections: [ProfileInfoSection] = [] {
     didSet {

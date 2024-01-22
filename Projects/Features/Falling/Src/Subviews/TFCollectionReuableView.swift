@@ -9,8 +9,6 @@ import UIKit
 
 import DSKit
 
-import SnapKit
-
 class TFCollectionReusableView: UICollectionReusableView {
   private lazy var titleLabel: UILabel = {
     let label = UILabel()

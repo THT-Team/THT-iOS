@@ -10,8 +10,6 @@ import UIKit
 import Core
 import DSKit
 
-import SnapKit
-
 final class ProfileIntroduceCell: TFBaseCollectionViewCell {
   private lazy var textView: UITextView = {
     let textView = UITextView()

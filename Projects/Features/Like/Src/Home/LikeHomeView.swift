@@ -8,8 +8,6 @@
 import UIKit
 
 import Core
-import SnapKit
-
 import DSKit
 
 final class HeartListView: TFBaseView {

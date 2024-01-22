@@ -9,8 +9,6 @@ import UIKit
 import Core
 import DSKit
 
-import SnapKit
-
 final class ProfileView: TFBaseView {
 
   lazy var topicBarView = TFTopicBarView()
