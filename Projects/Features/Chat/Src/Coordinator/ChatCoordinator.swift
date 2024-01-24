@@ -28,7 +28,7 @@ public final class ChatCoordinator: BaseCoordinator {
   public weak var delegate: ChatCoordinatorDelegate?
 
   public override func start() {
-
+    homeFlow()
   }
 }
 
@@ -38,7 +38,7 @@ extension ChatCoordinator: ChatCoordinating {
     viewModel.delegate = self
     let viewController = ChatHomeViewController(viewModel: viewModel)
 
-    self.viewControllable.pushViewController(viewController, animated: true)
+    self.viewControllable.setViewControllers([viewController])
   }
 
   public func chatRoomFlow(_ item: ChatRoom) {
