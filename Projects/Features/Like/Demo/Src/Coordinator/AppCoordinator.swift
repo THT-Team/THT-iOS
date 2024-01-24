@@ -14,9 +14,8 @@ protocol AppCoordinating {
 }
 
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
-
   private let likeBuildable: LikeBuildable
-
+  
   init(
     viewControllable: ViewControllable,
     likeBuildable: LikeBuildable
@@ -24,18 +23,21 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     self.likeBuildable = likeBuildable
     super.init(viewControllable: viewControllable)
   }
-
+  
   public override func start() {
     likeFlow()
   }
-
+  
   // MARK: - public
   func likeFlow() {
-    let likeCoordinator = self.likeBuildable.build(rootViewControllable: self.viewControllable)
-
+    let rootViewControllable = NavigationViewControllable()
+    replaceWindowRootViewController(rootViewController: rootViewControllable)
+    
+    let likeCoordinator = self.likeBuildable.build(rootViewControllable: rootViewControllable)
+    
     attachChild(likeCoordinator)
     likeCoordinator.delegate = self
-
+    
     likeCoordinator.start()
   }
 }
@@ -43,7 +45,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 extension AppCoordinator: LikeCoordinatorDelegate {
   func test(_ coordinator: Core.Coordinator) {
     detachChild(coordinator)
-
+    
     TFLogger.dataLogger.debug("test")
   }
 }

@@ -17,5 +17,5 @@ public protocol FallingCoordinating: Coordinator {
   var delegate: FallingCoordinatorDelegate? { get set }
 
   func homeFlow()
-//  func chatRoomFlow()
+  func chatRoomFlow()
 }

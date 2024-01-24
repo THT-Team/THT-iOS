@@ -15,9 +15,9 @@ protocol AppCoordinating {
 }
 
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
-
+  
   private let fallingBuildable: FallingBuildable
-
+  
   init(
     viewControllable: ViewControllable,
     fallingBuildable: FallingBuildable
@@ -25,18 +25,21 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     self.fallingBuildable = fallingBuildable
     super.init(viewControllable: viewControllable)
   }
-
+  
   public override func start() {
     fallingFlow()
   }
-
+  
   // MARK: - public
   func fallingFlow() {
-    let fallingCoordinator = self.fallingBuildable.build(rootViewControllable: self.viewControllable)
-
+    let rootViewControllable = NavigationViewControllable()
+    replaceWindowRootViewController(rootViewController: rootViewControllable)
+    
+    let fallingCoordinator = self.fallingBuildable.build(rootViewControllable: rootViewControllable)
+    
     attachChild(fallingCoordinator)
     fallingCoordinator.delegate = self
-
+    
     fallingCoordinator.start()
   }
 }
@@ -44,7 +47,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 extension AppCoordinator: FallingCoordinatorDelegate {
   func test(_ coordinator: Core.Coordinator) {
     detachChild(coordinator)
-
+    
     TFLogger.dataLogger.debug("test")
   }
 }
