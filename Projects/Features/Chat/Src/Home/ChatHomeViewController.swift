@@ -11,10 +11,6 @@ import Core
 import DSKit
 import ChatInterface
 
-import SnapKit
-import RxSwift
-import RxCocoa
-
 final class ChatHomeViewController: TFBaseViewController {
   private lazy var mainView = ChatHomeView()
   private let viewModel: ChatHomeViewModel

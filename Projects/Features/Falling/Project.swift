@@ -16,15 +16,24 @@ let project = Project(
 			interface: .Falling,
 			dependencies: [
 				.core,
+        .domain
 			]
 		),
 		.feature(
 			implementation: .Falling,
 			dependencies: [
 				.feature(interface: .Falling),
-				.feature(interface: .Auth)
+				.feature(interface: .Auth),
+        .dsKit,
 			]
-		)
+		),
+    .feature(
+      demo: .Falling,
+      dependencies: [
+        .feature(implementation: .Falling),
+        .data,
+      ]
+    )
 	]
 )
 

@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SnapKit
-
 public final class TFTopicBarView: TFBaseView {
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()

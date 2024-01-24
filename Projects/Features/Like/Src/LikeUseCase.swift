@@ -8,6 +8,7 @@
 import Foundation
 
 import LikeInterface
+import Domain
 
 import RxSwift
 
@@ -22,7 +23,7 @@ public final class LikeUseCase: LikeUseCaseInterface {
     repository.fetchList(size: size, lastTopicIndex: lastTopicIndex, lastLikeIndex: lastLikeIndex)
   }
 
-  public func user(id: String) -> Observable<LikeUserInfo> {
+  public func user(id: String) -> Observable<UserInfo> {
     repository.user(id: id)
   }
 }

@@ -1,13 +1,11 @@
 //
 //  LogViewController.swift
-//  Core
+//  DSKit
 //
 //  Created by Kanghos on 2023/12/06.
 //
 
 import UIKit
-
-import RxSwift
 
 open class TFBaseViewController: UIViewController, ViewControllable {
   public var disposeBag = DisposeBag()

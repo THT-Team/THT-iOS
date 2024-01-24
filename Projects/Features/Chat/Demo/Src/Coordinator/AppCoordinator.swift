@@ -10,11 +10,10 @@ import ChatInterface
 import Core
 
 protocol AppCoordinating {
-  func mainFlow()
+  func chatFlow()
 }
 
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
-
   private let mainBuildable: ChatBuildable
 
   init(
@@ -26,11 +25,11 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public override func start() {
-    mainFlow()
+    chatFlow()
   }
-
+  
   // MARK: - public
-  func mainFlow() {
+  func chatFlow() {
     let rootViewControllable = NavigationViewControllable()
     replaceWindowRootViewController(rootViewController: rootViewControllable)
 
@@ -40,7 +39,6 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     chatCoordinator.delegate = self
 
     chatCoordinator.start()
-    chatCoordinator.homeFlow()
   }
 }
 

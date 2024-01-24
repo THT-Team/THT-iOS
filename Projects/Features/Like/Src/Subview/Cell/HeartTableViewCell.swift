@@ -11,11 +11,6 @@ import Core
 import DSKit
 import LikeInterface
 
-import SnapKit
-import RxSwift
-import RxCocoa
-import RxGesture
-
 final class HeartCollectionViewCell: UICollectionViewListCell {
   var disposeBag = DisposeBag()
 

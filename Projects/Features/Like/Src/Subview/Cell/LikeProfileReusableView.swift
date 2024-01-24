@@ -9,6 +9,7 @@ import UIKit
 
 import DSKit
 import LikeInterface
+import Domain
 
 final class LikeProfileInfoReusableView: UICollectionReusableView {
 
@@ -84,17 +85,17 @@ final class LikeProfileInfoReusableView: UICollectionReusableView {
     disposeBag = DisposeBag()
   }
 
-  func bind(viewModel: LikeUserInfo) {
+  func bind(viewModel: UserInfo) {
     self.titleLabel.text = viewModel.description
     self.addressLabel.text = viewModel.address
     self.sections = [
       ProfileInfoSection(
         header: "이상형",
-        items: viewModel.idealTypeList.map { $0.toEmoji() }
+        items: viewModel.idealTypeList
       ),
       ProfileInfoSection(
         header: "흥미",
-        items: viewModel.idealTypeList.map { $0.toEmoji() }
+        items: viewModel.idealTypeList
       ),
       ProfileInfoSection(
         header: "자기소개",

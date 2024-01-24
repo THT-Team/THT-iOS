@@ -5,11 +5,8 @@
 //  Created by Kanghos on 2023/12/20.
 //
 
-import UIKit
 import Domain
-//
-//import LikeInterface
-//
+
 enum ProfileDetailSection {
   case interest
   case idealType

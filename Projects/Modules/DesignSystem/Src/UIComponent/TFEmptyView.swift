@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SnapKit
-
 public class TFEmptyView: TFBaseView {
   private let image: UIImage
   private let title: String
