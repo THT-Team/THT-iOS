@@ -29,20 +29,18 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   
   lazy var cardTimeView = CardTimeView()
   
-  override func layoutSubviews() {
-    self.backgroundColor = .systemGray
-  }
-  
   override func makeUI() {
-    self.contentView.addSubviews([profileCarouselView, cardTimeView])
+    self.layer.cornerRadius = 20
+    
+    self.contentView.addSubview(profileCarouselView)
+    self.profileCarouselView.addSubview(cardTimeView)
     
     self.profileCarouselView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
     
     self.cardTimeView.snp.makeConstraints {
-      $0.top.equalTo(self.safeAreaLayoutGuide).inset(12)
-      $0.leading.trailing.equalToSuperview().inset(12)
+      $0.top.leading.trailing.equalToSuperview().inset(12)
       $0.height.equalTo(32)
     }
   }
@@ -50,7 +48,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   override func prepareForReuse() {
     super.prepareForReuse()
     disposeBag = DisposeBag()
-//    profileCarouselView.tagCollectionView.isHidden = true
+    //    profileCarouselView.tagCollectionView.isHidden = true
   }
   
   func bind(model: FallingUser) {
@@ -69,9 +67,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
         if index.row == userCardScrollIndex {
           self.profileCarouselView.hiddenDimView()
           return observer.timerActiveTrigger
-//                  return timerActiveTrigger
         }
-//                else { return false }
         else { return Observable.just(false) }
       }.map { $0 }
       .flatMapLatest { return $0 }
@@ -90,12 +86,12 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .drive()
       .disposed(by: self.disposeBag)
     
-//    profileCarouselView.infoButton.rx.tap.asDriver()
-//      .scan(true) { lastValue, _ in
-//        return !lastValue
-//      }
-//      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
-//      .disposed(by: disposeBag)
+    profileCarouselView.infoButton.rx.tap.asDriver()
+      .scan(true) { lastValue, _ in
+        return !lastValue
+      }
+      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
+      .disposed(by: disposeBag)
   }
   
   func dotPosition(progress: Double, rect: CGRect) -> CGPoint {
@@ -121,11 +117,11 @@ extension Reactive where Base: FallingUserCollectionViewCell {
   var timeState: Binder<TimeState> {
     return Binder(self.base) { (base, timeState) in
       base.cardTimeView.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
-      base.cardTimeView.timerView.strokeLayer.strokeColor = timeState.color.color.cgColor
-      base.cardTimeView.timerView.dotLayer.strokeColor = timeState.color.color.cgColor
-      base.cardTimeView.timerView.dotLayer.fillColor = timeState.color.color.cgColor
-      base.cardTimeView.timerView.timerLabel.textColor = timeState.color.color
-      base.cardTimeView.progressView.progressBarColor = timeState.color.color
+      base.cardTimeView.timerView.strokeLayer.strokeColor = timeState.timerTintColor.color.cgColor
+      base.cardTimeView.timerView.dotLayer.strokeColor = timeState.timerTintColor.color.cgColor
+      base.cardTimeView.timerView.dotLayer.fillColor = timeState.timerTintColor.color.cgColor
+      base.cardTimeView.timerView.timerLabel.textColor = timeState.timerTintColor.color
+      base.cardTimeView.progressView.progressBarColor = timeState.progressBarColor.color
       
       base.cardTimeView.timerView.dotLayer.isHidden = timeState.isDotHidden
       
