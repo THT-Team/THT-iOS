@@ -42,7 +42,7 @@ enum TimeState {
     }
   }
   
-  var color: DSKitColors {
+  var timerTintColor: DSKitColors {
     switch self {
     case .zero, .five:
       return DSKitAsset.Color.primary500
@@ -56,6 +56,23 @@ enum TimeState {
       return DSKitAsset.Color.thtRed
     default:
       return DSKitAsset.Color.neutral300
+    }
+  }
+  
+  var progressBarColor: DSKitColors {
+    switch self {
+    case .five:
+      return DSKitAsset.Color.primary500
+    case .four:
+      return DSKitAsset.Color.thtOrange100
+    case .three:
+      return DSKitAsset.Color.thtOrange200
+    case .two:
+      return DSKitAsset.Color.thtOrange300
+    case .one:
+      return DSKitAsset.Color.thtRed
+    default:
+      return DSKitAsset.Color.neutral600
     }
   }
   
