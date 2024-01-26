@@ -19,7 +19,6 @@ final class FallingHomeViewController: TFBaseViewController {
   init(viewModel: FallingHomeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
-    setupDelegate()
   }
   
   required init?(coder: NSCoder) {
@@ -57,7 +56,7 @@ final class FallingHomeViewController: TFBaseViewController {
       .when(.recognized)
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
-
+    
     cardDoubleTapTrigger
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
@@ -67,16 +66,17 @@ final class FallingHomeViewController: TFBaseViewController {
       .disposed(by: disposeBag)
     
     let input = FallingHomeViewModel.Input(initialTrigger: initialTrigger,
-                                    timeOverTrigger: timerOverTrigger)
+                                           timeOverTrigger: timerOverTrigger)
     
     let output = viewModel.transform(input: input)
     
     var usersCount = 0
     
     let profileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser> { [weak self] cell, indexPath, item in
-      
-      let observer = FallingUserCollectionViewCellObserver(userCardScrollIndex: output.userCardScrollIndex.asObservable(),
-                                                    timerActiveTrigger: timerActiveRelay.asObservable())
+      let observer = FallingUserCollectionViewCellObserver(
+        userCardScrollIndex: output.userCardScrollIndex.asObservable(),
+        timerActiveTrigger: timerActiveRelay.asObservable()
+      )
       
       cell.bind(model: item)
       cell.bind(observer,
@@ -97,7 +97,7 @@ final class FallingHomeViewController: TFBaseViewController {
         snapshot.appendItems(list)
         this.dataSource.apply(snapshot)
       }).disposed(by: disposeBag)
-
+    
     output.userCardScrollIndex
       .drive(with: self, onNext: { this, index in
         if usersCount == 0 { return }
@@ -108,17 +108,6 @@ final class FallingHomeViewController: TFBaseViewController {
                                                   animated: true)
       })
       .disposed(by: self.disposeBag)
-  }
-  
-  private func setupDelegate() {
-    homeView.collectionView.delegate = self
-  }
-}
-
-extension FallingHomeViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: view.frame.width - 32,
-                  height: (view.frame.width - 32) * 1.64)
   }
 }
 
@@ -141,9 +130,9 @@ extension Reactive where Base: FallingHomeViewController {
 //  static var previews: some View {
 //    let service = FallingAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
 //    let navigator = MainNavigator(controller: UINavigationController(), fallingService: service)
-//    
+//
 //    let viewModel = MainViewModel(navigator: navigator, service: service)
-//    
+//
 //    return FallingHomeViewController(viewModel: viewModel)
 //      .toPreView()
 //  }
