@@ -16,14 +16,7 @@ struct FallingUserCollectionViewCellObserver {
   var timerActiveTrigger: Observable<Bool>
 }
 
-@objc protocol TimeOverDelegate: AnyObject {
-  @objc func scrollToNext()
-}
-
 final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
-  
-  var viewModel: FallinguserCollectionViewCellModel!
-  weak var delegate: TimeOverDelegate? = nil
   
   lazy var profileCarouselView = ProfileCarouselView()
   
@@ -48,44 +41,42 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   override func prepareForReuse() {
     super.prepareForReuse()
     disposeBag = DisposeBag()
-    //    profileCarouselView.tagCollectionView.isHidden = true
   }
-  
-  func bind(model: FallingUser) {
-    viewModel = FallinguserCollectionViewCellModel(userDomain: model)
-    profileCarouselView.bind(viewModel.userDomain)
-  }
-  
-  func bind(_ observer: FallingUserCollectionViewCellObserver,
-            index: IndexPath,
-            usersCount: Int) {
-    
-    let timerActiveTrigger =
-    observer.userCardScrollIndex
-      .observe(on: MainScheduler.asyncInstance)
-      .withLatestFrom(observer.timerActiveTrigger) { userCardScrollIndex, timerActiveTrigger in
-        if index.row == userCardScrollIndex {
-          self.profileCarouselView.hiddenDimView()
-          return observer.timerActiveTrigger
-        }
-        else { return Observable.just(false) }
-      }.map { $0 }
-      .flatMapLatest { return $0 }
-    
-    let input = FallinguserCollectionViewCellModel.Input(timerActiveTrigger: timerActiveTrigger.asDriver(onErrorJustReturn: false))
-    
+
+  func bind<O>(
+    _ viewModel: FallinguserCollectionViewCellModel,
+    _ timerTrigger: Driver<Bool>,
+    scrollToNextObserver: O) where O: ObserverType, O.Element == Void
+   {
+    let input = FallinguserCollectionViewCellModel.Input(timerActiveTrigger: timerTrigger)
+
     let output = viewModel
       .transform(input: input)
-    
+
     output.timeState
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
-    
+
+    output.isDimViewHidden
+      .drive(with: self, onNext: { owner, isHidden in
+        if isHidden {
+          owner.profileCarouselView.hiddenDimView()
+        } else {
+          owner.profileCarouselView.showDimView()
+        }
+      })
+      .disposed(by: disposeBag)
+
     output.timeZero
-      .do { [weak self] _ in self?.delegate?.scrollToNext() }
-      .drive()
-      .disposed(by: self.disposeBag)
-    
+      .drive(scrollToNextObserver)
+      .disposed(by: disposeBag)
+
+    output.user
+      .drive(with: self, onNext: { owner, user in
+        owner.profileCarouselView.bind(user)
+      })
+      .disposed(by: disposeBag)
+
     profileCarouselView.infoButton.rx.tap.asDriver()
       .scan(true) { lastValue, _ in
         return !lastValue

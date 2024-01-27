@@ -13,7 +13,7 @@ import DSKit
 final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.contentMode = .scaleToFill
+    imageView.contentMode = .scaleAspectFill
     imageView.layer.masksToBounds = true
     return imageView
   }()

@@ -129,8 +129,9 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
   
   struct Output {
     let timeState: Driver<TimeState>
-    let timeZero: Driver<Double>
+    let timeZero: Driver<Void>
     let user: Driver<FallingUser>
+    let isDimViewHidden: Driver<Bool>
   }
   
   func transform(input: Input) -> Output {
@@ -161,12 +162,18 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
       }.asDriver(onErrorJustReturn: 8.0)
     
     let timeState = timer.map { TimeState(rawValue: $0) }
-    let timeZero = timer.filter { $0 == 0 }
-    
+    let timeZero = timer.filter { $0 == 0 }.map { _ in }
+
+    let isDimViewHidden = Driver.merge(
+      timerActiveTrigger.take(1).asDriverOnErrorJustEmpty(), // take(1)을 해주지 않으면 일시정지 때마다 dimmed 됨
+      timeZero.map { _ in false }
+    )
+
     return Output(
       timeState: timeState,
       timeZero: timeZero,
-      user: user
+      user: user,
+      isDimViewHidden: isDimViewHidden
     )
   }
 }

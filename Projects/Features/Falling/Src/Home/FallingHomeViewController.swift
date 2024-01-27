@@ -13,7 +13,7 @@ import FallingInterface
 
 final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
-  private var dataSource: UICollectionViewDiffableDataSource<FallingProfileSection, FallingUser>!
+  private var dataSource: DataSource!
   private lazy var homeView = FallingHomeView()
   
   init(viewModel: FallingHomeViewModel) {
@@ -36,16 +36,18 @@ final class FallingHomeViewController: TFBaseViewController {
     let mindImageView = UIImageView(image: DSKitAsset.Image.Icons.mind.image)
     let mindImageItem = UIBarButtonItem(customView: mindImageView)
     
-    let notificationButtonItem = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
-    
+    let notificationButtonItem = UIBarButtonItem.noti
+
     navigationItem.leftBarButtonItem = mindImageItem
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
   
   override func bindViewModel() {
+    let timeOverSubject = PublishSubject<Void>()
+
     let initialTrigger = Driver<Void>.just(())
-    let timerOverTrigger = self.rx.timeOverTrigger.asDriver()
-    
+    let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
+
     let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
     let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
     let timerActiveRelay = BehaviorRelay(value: true)
@@ -56,7 +58,7 @@ final class FallingHomeViewController: TFBaseViewController {
       .when(.recognized)
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
-    
+
     cardDoubleTapTrigger
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
@@ -65,61 +67,57 @@ final class FallingHomeViewController: TFBaseViewController {
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
-    let input = FallingHomeViewModel.Input(initialTrigger: initialTrigger,
-                                           timeOverTrigger: timerOverTrigger)
+    let input = FallingHomeViewModel.Input(
+      initialTrigger: initialTrigger,
+      timeOverTrigger: timerOverTrigger)
     
     let output = viewModel.transform(input: input)
     
-    var usersCount = 0
-    
-    let profileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser> { [weak self] cell, indexPath, item in
-      let observer = FallingUserCollectionViewCellObserver(
-        userCardScrollIndex: output.userCardScrollIndex.asObservable(),
-        timerActiveTrigger: timerActiveRelay.asObservable()
+    let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { cell, indexPath, item in
+      let timerActiveTrigger = Driver.combineLatest(
+        output.userCardScrollIndex,
+        timerActiveRelay.asDriver()
       )
-      
-      cell.bind(model: item)
-      cell.bind(observer,
-                index: indexPath,
-                usersCount: usersCount)
-      cell.delegate = self
+        .filter { indexPath.row == $0.0 }
+        .map { $0.1 }
+        .debug("cell timer active")
+
+      cell.bind(
+        FallinguserCollectionViewCellModel(userDomain: item),
+        timerActiveTrigger,
+        scrollToNextObserver: timeOverSubject
+      )
     }
-    
-    dataSource = UICollectionViewDiffableDataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
+    dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
     
     output.userList
       .drive(with: self, onNext: { this, list in
-        usersCount = list.count
-        var snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, FallingUser>()
+        var snapshot = Snapshot()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
         this.dataSource.apply(snapshot)
       }).disposed(by: disposeBag)
     
-    output.userCardScrollIndex
+    output.nextCardIndex
       .drive(with: self, onNext: { this, index in
-        if usersCount == 0 { return }
-        let index = index >= usersCount ? usersCount - 1 : index
-        let indexPath = IndexPath(row: index, section: 0)
-        this.homeView.collectionView.scrollToItem(at: indexPath,
-                                                  at: .top,
-                                                  animated: true)
-      })
+        this.homeView.collectionView.scrollToItem(
+          at: index,
+          at: .top,
+          animated: true)})
       .disposed(by: self.disposeBag)
   }
 }
 
-extension FallingHomeViewController: TimeOverDelegate {
-  @objc func scrollToNext() { }
-}
+// MARK: DiffableDataSource
 
-extension Reactive where Base: FallingHomeViewController {
-  var timeOverTrigger: ControlEvent<Void> {
-    let source = methodInvoked(#selector(Base.scrollToNext)).map { _ in }
-    return ControlEvent(events: source)
-  }
+extension FallingHomeViewController {
+  typealias CellType = FallingUserCollectionViewCell
+  typealias ModelType = FallingUser
+  typealias SectionType = FallingProfileSection
+  typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
 }
 
 //#if DEBUG
