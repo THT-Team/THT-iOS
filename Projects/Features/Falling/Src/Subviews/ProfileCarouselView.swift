@@ -26,7 +26,7 @@ final class ProfileCarouselView: TFBaseView {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
     tagCollection.clipsToBounds = true
-    tagCollection.collectionView.backgroundColor = DSKitAsset.Color.dimColor2.color
+    tagCollection.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
     tagCollection.isHidden = true
     return tagCollection
   }()
@@ -141,13 +141,6 @@ final class ProfileCarouselView: TFBaseView {
       $0.leading.trailing.equalToSuperview().inset(12)
       $0.bottom.equalToSuperview().offset(-30)
     }
-    
-    self.dimView.layer.cornerRadius = 12
-    
-    self.showDimView(frame: CGRect(x: 0,
-                                   y: 0,
-                                   width: (UIWindow.keyWindow?.frame.width ?? 0) - 32,
-                                   height: UIWindow.keyWindow?.frame.height ?? 0))
     
     configureDataSource()
   }

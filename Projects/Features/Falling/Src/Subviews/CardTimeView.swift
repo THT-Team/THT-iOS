@@ -14,7 +14,7 @@ final class CardTimeView: TFBaseView {
   lazy var containerView: UIView = {
     let view = UIView()
     view.layer.cornerRadius = 15
-    view.backgroundColor = DSKitAsset.Color.dimColor.color.withAlphaComponent(0.5)
+    view.backgroundColor = DSKitAsset.Color.DimColor.timerDim.color.withAlphaComponent(0.5)
     return view
   }()
   
