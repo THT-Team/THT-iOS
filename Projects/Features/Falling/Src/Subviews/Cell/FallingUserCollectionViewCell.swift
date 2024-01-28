@@ -46,8 +46,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   func bind<O>(
     _ viewModel: FallinguserCollectionViewCellModel,
     _ timerTrigger: Driver<Bool>,
-    scrollToNextObserver: O) where O: ObserverType, O.Element == Void
-   {
+    scrollToNextObserver: O
+  ) where O: ObserverType, O.Element == Void {
     let input = FallinguserCollectionViewCellModel.Input(timerActiveTrigger: timerTrigger)
 
     let output = viewModel
