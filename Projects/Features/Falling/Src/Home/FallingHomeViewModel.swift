@@ -27,8 +27,7 @@ final class FallingHomeViewModel: ViewModelType {
 
   struct Output {
     let userList: Driver<[FallingUser]>
-    let userCardScrollIndex: Driver<Int>
-    let nextCardIndex: Driver<IndexPath>
+    let nextCardIndexPath: Driver<IndexPath>
   }
 
   init(fallingUseCase: FallingUseCaseInterface) {
@@ -47,29 +46,23 @@ final class FallingHomeViewModel: ViewModelType {
 
     let userList = usersResponse.map { $0.userInfos }.asDriver()
 
-    let userCount = userList.map { $0.count }
-
-    let userListObservable = userList.map { _ in
+    let updateUserListTrigger = userList.map { _ in
       currentIndexRelay.accept(currentIndexRelay.value)
     }
 
-    let nextScrollIndex = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, index in
+    let updateScrollIndexTrigger = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, index in
       currentIndexRelay.accept(index + 1)
     }
-
-    let userCardScrollIndex = Driver.merge(userListObservable, nextScrollIndex).withLatestFrom(userCount) { _, count in
-      let currentIndex = currentIndexRelay.value
-      return currentIndex >= count ? count - 1 : currentIndex
-    }
-
-    let nextCardIndex = userCardScrollIndex
-      .filter { $0 != 0 }
-      .map { IndexPath(row: $0, section: 0) }
+    
+    let nextCardIndexPath = Driver.merge(
+      updateUserListTrigger,
+      updateScrollIndexTrigger
+    ).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)
+      .map { IndexPath(row: $0, section: 0) })
 
     return Output(
       userList: userList,
-      userCardScrollIndex: userCardScrollIndex,
-      nextCardIndex: nextCardIndex
+      nextCardIndexPath: nextCardIndexPath
     )
   }
 }

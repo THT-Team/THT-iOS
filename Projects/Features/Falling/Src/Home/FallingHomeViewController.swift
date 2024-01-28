@@ -37,17 +37,17 @@ final class FallingHomeViewController: TFBaseViewController {
     let mindImageItem = UIBarButtonItem(customView: mindImageView)
     
     let notificationButtonItem = UIBarButtonItem.noti
-
+    
     navigationItem.leftBarButtonItem = mindImageItem
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
   
   override func bindViewModel() {
     let timeOverSubject = PublishSubject<Void>()
-
+    
     let initialTrigger = Driver<Void>.just(())
     let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
-
+    
     let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
     let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
     let timerActiveRelay = BehaviorRelay(value: true)
@@ -58,7 +58,7 @@ final class FallingHomeViewController: TFBaseViewController {
       .when(.recognized)
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
-
+    
     cardDoubleTapTrigger
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
@@ -75,13 +75,12 @@ final class FallingHomeViewController: TFBaseViewController {
     
     let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { cell, indexPath, item in
       let timerActiveTrigger = Driver.combineLatest(
-        output.userCardScrollIndex,
+        output.nextCardIndexPath,
         timerActiveRelay.asDriver()
       )
-        .filter { indexPath.row == $0.0 }
-        .map { $0.1 }
-        .debug("cell timer active")
-
+        .filter { itemIndexPath, _ in indexPath == itemIndexPath }
+        .map { _, timerActiveFlag in timerActiveFlag }
+      
       cell.bind(
         FallinguserCollectionViewCellModel(userDomain: item),
         timerActiveTrigger,
@@ -92,20 +91,25 @@ final class FallingHomeViewController: TFBaseViewController {
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
     
+    var listCount = 0
+    
     output.userList
-      .drive(with: self, onNext: { this, list in
+      .drive(with: self, onNext: { owner, list in
+        listCount = list.count
         var snapshot = Snapshot()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
-        this.dataSource.apply(snapshot)
+        owner.dataSource.apply(snapshot)
       }).disposed(by: disposeBag)
     
-    output.nextCardIndex
-      .drive(with: self, onNext: { this, index in
-        this.homeView.collectionView.scrollToItem(
-          at: index,
+    output.nextCardIndexPath
+      .drive(with: self, onNext: { owner, indexPath in
+        guard indexPath.row < listCount else { return }
+        owner.homeView.collectionView.scrollToItem(
+          at: indexPath,
           at: .top,
-          animated: true)})
+          animated: true
+        )})
       .disposed(by: self.disposeBag)
   }
 }
