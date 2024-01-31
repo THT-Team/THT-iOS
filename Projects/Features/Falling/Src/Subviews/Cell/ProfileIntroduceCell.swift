@@ -13,8 +13,8 @@ import DSKit
 final class ProfileIntroduceCell: TFBaseCollectionViewCell {
   private lazy var textView: UITextView = {
     let textView = UITextView()
-    textView.textColor = DSKitAsset.Color.dimColor2.color
-    textView.font = UIFont.thtP2M
+//    textView.textColor = DSKitAsset.Color.DimColor.default.color
+    textView.font = UIFont.thtP2R
     textView.isScrollEnabled = false
     textView.isEditable = false
     textView.textContainerInset = .init(top: 5, left: 5, bottom: 5, right: 5)

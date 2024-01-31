@@ -42,7 +42,7 @@ enum TimeState {
     }
   }
   
-  var color: DSKitColors {
+  var timerTintColor: DSKitColors {
     switch self {
     case .zero, .five:
       return DSKitAsset.Color.primary500
@@ -56,6 +56,23 @@ enum TimeState {
       return DSKitAsset.Color.thtRed
     default:
       return DSKitAsset.Color.neutral300
+    }
+  }
+  
+  var progressBarColor: DSKitColors {
+    switch self {
+    case .five:
+      return DSKitAsset.Color.primary500
+    case .four:
+      return DSKitAsset.Color.thtOrange100
+    case .three:
+      return DSKitAsset.Color.thtOrange200
+    case .two:
+      return DSKitAsset.Color.thtOrange300
+    case .one:
+      return DSKitAsset.Color.thtRed
+    default:
+      return DSKitAsset.Color.neutral600
     }
   }
   
@@ -111,9 +128,10 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
   }
   
   struct Output {
-    let timeState: Driver<TimeState>
-    let timeZero: Driver<Double>
     let user: Driver<FallingUser>
+    let timeState: Driver<TimeState>
+    let timeStart: Driver<Void>
+    let timeZero: Driver<Void>
   }
   
   func transform(input: Input) -> Output {
@@ -135,7 +153,7 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
                                           scheduler: MainScheduler.instance)
           .take(Int(startTime * 100) + 1) // 시간의 총 개수
           .map { value in
-            let time = round((startTime * 100) - Double(value)) / 100
+            let time = (startTime * 100 - Double(value)) / 100
             currentTime = time
             return time
           }
@@ -144,12 +162,14 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
       }.asDriver(onErrorJustReturn: 8.0)
     
     let timeState = timer.map { TimeState(rawValue: $0) }
-    let timeZero = timer.filter { $0 == 0 }
-    
+    let timeStart = timer.filter { $0 == 8.0 }.map { _ in }
+    let timeZero = timer.filter { $0 == 0 }.map { _ in }
+
     return Output(
+      user: user,
       timeState: timeState,
-      timeZero: timeZero,
-      user: user
+      timeStart: timeStart,
+      timeZero: timeZero
     )
   }
 }

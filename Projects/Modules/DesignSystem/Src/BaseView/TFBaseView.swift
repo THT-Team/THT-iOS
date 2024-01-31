@@ -10,7 +10,7 @@ import UIKit
 open class TFBaseView: UIView {
   public lazy var dimView: UIView = {
     let view = UIView()
-    view.backgroundColor = .clear
+    view.backgroundColor = DSKitAsset.Color.DimColor.default.color
     return view
   }()
   override public init(frame: CGRect) {
@@ -27,10 +27,11 @@ open class TFBaseView: UIView {
   
   public func showDimView(frame: CGRect = UIWindow.keyWindow?.frame ?? .zero) {
     dimView.frame = frame
-    DispatchQueue.main.async {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
       self.addSubview(self.dimView)
       UIView.animate(withDuration: 0.0) {
-        self.dimView.backgroundColor =      DSKitAsset.Color.cardShadow.color.withAlphaComponent(0.7)
+        self.dimView.backgroundColor = DSKitAsset.Color.cardShadow.color.withAlphaComponent(0.7)
       }
     }
   }
@@ -38,9 +39,11 @@ open class TFBaseView: UIView {
   public func hiddenDimView() {
     DispatchQueue.main.async {
       UIView.animate(withDuration: 0.0) { [weak self] in
-        self?.dimView.backgroundColor = .clear
+        guard let self = self else { return }
+        self.dimView.backgroundColor = DSKitAsset.Color.DimColor.default.color
       } completion: { [weak self] _ in
-        self?.dimView.removeFromSuperview()
+        guard let self = self else { return }
+        self.dimView.removeFromSuperview()
       }
     }
   }

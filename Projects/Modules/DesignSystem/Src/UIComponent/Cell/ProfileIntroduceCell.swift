@@ -11,7 +11,7 @@ public final class ProfileIntroduceCell: TFBaseCollectionViewCell {
 
   private lazy var textView: UITextView = {
     let textView = UITextView()
-    textView.textColor = DSKitAsset.Color.dimColor2.color
+    textView.textColor = DSKitAsset.Color.neutral50.color
     textView.font = UIFont.thtP2M
     textView.isScrollEnabled = false
     textView.isEditable = false

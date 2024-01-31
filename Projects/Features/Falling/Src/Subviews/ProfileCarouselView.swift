@@ -12,6 +12,8 @@ import FallingInterface
 import Domain
 
 final class ProfileCarouselView: TFBaseView {
+  private var dataSource: UICollectionViewDiffableDataSource<FallingProfileSection, UserProfilePhoto>!
+  
   var photos: [UserProfilePhoto] = [] {
     didSet {
       pageControl.currentPage = 0
@@ -24,24 +26,21 @@ final class ProfileCarouselView: TFBaseView {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
     tagCollection.clipsToBounds = true
-    tagCollection.collectionView.backgroundColor = DSKitAsset.Color.dimColor2.color
+    tagCollection.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
     tagCollection.isHidden = true
     return tagCollection
   }()
   
   lazy var collectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.scrollDirection = .horizontal
-    layout.minimumLineSpacing = 0
+    let layout = UICollectionViewCompositionalLayout.horizontalListLayout()
     
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.showsVerticalScrollIndicator = false
-    collectionView.showsHorizontalScrollIndicator = false
-    collectionView.dataSource = self
-    collectionView.delegate = self
-    collectionView.register(cellType: ProfileCollectionViewCell.self)
-    collectionView.isPagingEnabled = true
-    collectionView.backgroundColor = DSKitAsset.Color.neutral50.color
+    let collectionView = UICollectionView(
+      frame: .zero,
+      collectionViewLayout: layout
+    )
+    collectionView.isScrollEnabled = false
+    collectionView.backgroundColor = DSKitAsset.Color.neutral700.color
+    collectionView.layer.cornerRadius = 20
     return collectionView
   }()
   
@@ -143,12 +142,7 @@ final class ProfileCarouselView: TFBaseView {
       $0.bottom.equalToSuperview().offset(-30)
     }
     
-    self.dimView.layer.cornerRadius = 12
-    
-    self.showDimView(frame: CGRect(x: 0,
-                                   y: 0,
-                                   width: (UIWindow.keyWindow?.frame.width ?? 0) - 32,
-                                   height: UIWindow.keyWindow?.frame.height ?? 0))
+    configureDataSource()
   }
   
   func bind(_ viewModel: FallingUser) {
@@ -160,22 +154,23 @@ final class ProfileCarouselView: TFBaseView {
       ProfileInfoSection(header: "흥미", items: viewModel.interestResponses),
       ProfileInfoSection(header: "자기소개", introduce: viewModel.introduction)
     ]
+    
+    var snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, UserProfilePhoto>()
+    snapshot.appendSections([.profile])
+    snapshot.appendItems(viewModel.userProfilePhotos)
+    self.dataSource.apply(snapshot)
   }
 }
 
-extension ProfileCarouselView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return self.bounds.size
-  }
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return photos.count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileCollectionViewCell.self)
-    let item = photos[indexPath.item]
-    cell.bind(imageURL: item.url)
-    return cell
+extension ProfileCarouselView {
+  func configureDataSource() {
+    let profileCellRegistration = UICollectionView.CellRegistration<ProfileCollectionViewCell, UserProfilePhoto> { cell, indexPath, item in
+      cell.bind(imageURL: item.url)
+    }
+    
+    dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
+      return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
+    })
   }
 }
 

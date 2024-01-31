@@ -31,7 +31,7 @@ final class SuccessCertificationView: UIView {
   }
 
   func makeUI() {
-    self.backgroundColor = DSKitAsset.Color.dimColor.color
+    self.backgroundColor = DSKitAsset.Color.DimColor.signUpDim.color
 
     self.addSubview(backCardView)
 
