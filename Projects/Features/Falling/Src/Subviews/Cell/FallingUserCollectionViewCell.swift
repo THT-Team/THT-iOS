@@ -16,8 +16,7 @@ struct FallingUserCollectionViewCellObserver {
   var timerActiveTrigger: Observable<Bool>
 }
 
-final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
-  
+final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
   lazy var profileCarouselView = ProfileCarouselView()
   
   lazy var cardTimeView = CardTimeView()
@@ -36,6 +35,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.top.leading.trailing.equalToSuperview().inset(12)
       $0.height.equalTo(32)
     }
+    
+    self.showUserCardDimView()
   }
   
   override func prepareForReuse() {
@@ -52,29 +53,25 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
 
     let output = viewModel
       .transform(input: input)
+    
+    output.user
+      .drive(with: self, onNext: { owner, user in
+        owner.profileCarouselView.bind(user)
+      })
+      .disposed(by: disposeBag)
 
     output.timeState
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
 
-    output.isDimViewHidden
-      .drive(with: self, onNext: { owner, isHidden in
-        if isHidden {
-          owner.profileCarouselView.hiddenDimView()
-        } else {
-          owner.profileCarouselView.showDimView()
-        }
+    output.timeStart
+      .drive(with: self, onNext: { owner, _ in
+        owner.hiddenUserCardDimView()
       })
       .disposed(by: disposeBag)
 
     output.timeZero
       .drive(scrollToNextObserver)
-      .disposed(by: disposeBag)
-
-    output.user
-      .drive(with: self, onNext: { owner, user in
-        owner.profileCarouselView.bind(user)
-      })
       .disposed(by: disposeBag)
 
     profileCarouselView.infoButton.rx.tap.asDriver()
