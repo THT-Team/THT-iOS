@@ -1,5 +1,5 @@
 //
-//  TagCell.swift
+//  TagCollectionViewCell.swift
 //  Falling
 //
 //  Created by Kanghos on 2023/10/02.
