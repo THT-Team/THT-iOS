@@ -48,7 +48,6 @@ final class FallingHomeViewController: TFBaseViewController {
     let initialTrigger = Driver<Void>.just(())
     let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
     
-    let viewWillAppearTrigger = self.rx.viewWillAppear.map { _ in true }.asDriverOnErrorJustEmpty()
     let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
     let timerActiveRelay = BehaviorRelay(value: true)
     let cardDoubleTapTrigger = self.homeView.collectionView.rx
@@ -59,11 +58,7 @@ final class FallingHomeViewController: TFBaseViewController {
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
     
-    cardDoubleTapTrigger
-      .drive(timerActiveRelay)
-      .disposed(by: disposeBag)
-    
-    Driver.merge(viewWillAppearTrigger, viewWillDisAppearTrigger)
+    Driver.merge(cardDoubleTapTrigger, viewWillDisAppearTrigger)
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
