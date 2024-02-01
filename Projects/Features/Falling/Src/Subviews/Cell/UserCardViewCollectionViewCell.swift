@@ -10,7 +10,7 @@ import UIKit
 import DSKit
 
 open class UserCardViewCollectionViewCell: TFBaseCollectionViewCell {
-  private let cellFrame = CGRect(
+  let cellFrame = CGRect(
     x: 0,
     y: 0,
     width: (UIWindow.keyWindow?.bounds.width ?? .zero) - 32,
@@ -18,8 +18,6 @@ open class UserCardViewCollectionViewCell: TFBaseCollectionViewCell {
   )
   
   private lazy var dimView = UIView(frame: cellFrame)
-  
-  private lazy var pauseView = PauseView(frame: cellFrame)
   
   public func showDimView() {
     DispatchQueue.main.async { [weak self] in
@@ -39,28 +37,6 @@ open class UserCardViewCollectionViewCell: TFBaseCollectionViewCell {
       } completion: { [weak self] _ in
         guard let self = self else { return }
         self.dimView.removeFromSuperview()
-      }
-    }
-  }
-  
-  public func showPauseView() {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      self.addSubview(pauseView)
-      UIView.animate(withDuration: 0.0) {
-        self.pauseView.backgroundColor = DSKitAsset.Color.blur.color
-      }
-    }
-  }
-  
-  public func hiddenPauseView() {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      UIView.animate(withDuration: 0.0) {
-        self.pauseView.backgroundColor = DSKitAsset.Color.clear.color
-      } completion: { [weak self] _ in
-        guard let self = self else { return }
-        self.pauseView.removeFromSuperview()
       }
     }
   }
