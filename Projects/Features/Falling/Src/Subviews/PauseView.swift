@@ -73,6 +73,8 @@ open class PauseView: TFBaseView {
   }()
     
   open override func makeUI() {
+    self.isHidden = true
+    
     self.addSubview(blurView)
     self.blurView.contentView.addSubview(stackView)
     self.blurView.contentView.addSubview(resumeLabel)
@@ -99,4 +101,18 @@ open class PauseView: TFBaseView {
       $0.centerX.centerY.equalToSuperview()
     }
   }
+  
+//  public func show() {
+//    UIView.animate(withDuration: 0.2) { [weak self] in
+//      guard let self = self else { return }
+//      self.isHidden = false
+//    }
+//  }
+//  
+//  public func hidden() {
+//    UIView.animate(withDuration: 0.2) { [weak self] in
+//      guard let self = self else { return }
+//      self.isHidden = true
+//    }
+//  }
 }
