@@ -132,6 +132,7 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
     let timeState: Driver<TimeState>
     let timeStart: Driver<Void>
     let timeZero: Driver<Void>
+    let isTimerActive: Driver<Bool>
   }
   
   func transform(input: Input) -> Output {
@@ -164,12 +165,14 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
     let timeState = timer.map { TimeState(rawValue: $0) }
     let timeStart = timer.filter { $0 == 8.0 }.map { _ in }
     let timeZero = timer.filter { $0 == 0 }.map { _ in }
+    let isTimerActive = timerActiveTrigger.asDriver(onErrorJustReturn: true)
 
     return Output(
       user: user,
       timeState: timeState,
       timeStart: timeStart,
-      timeZero: timeZero
+      timeZero: timeZero,
+      isTimerActive: isTimerActive
     )
   }
 }

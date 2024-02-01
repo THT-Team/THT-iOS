@@ -36,7 +36,7 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
       $0.height.equalTo(32)
     }
     
-    self.showUserCardDimView()
+    self.showDimView()
   }
   
   override func prepareForReuse() {
@@ -66,12 +66,22 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
 
     output.timeStart
       .drive(with: self, onNext: { owner, _ in
-        owner.hiddenUserCardDimView()
+        owner.hiddenDimView()
       })
       .disposed(by: disposeBag)
 
     output.timeZero
       .drive(scrollToNextObserver)
+      .disposed(by: disposeBag)
+    
+    output.isTimerActive
+      .drive(with: self) { owner, value in
+        if value {
+          owner.hiddenPauseView()
+        } else {
+          owner.showPauseView()
+        }
+      }
       .disposed(by: disposeBag)
 
     profileCarouselView.infoButton.rx.tap.asDriver()
