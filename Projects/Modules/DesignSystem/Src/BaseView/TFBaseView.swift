@@ -8,7 +8,7 @@
 import UIKit
 
 open class TFBaseView: UIView {
-  public lazy var dimView: UIView = {
+  private let dimView: UIView = {
     let view = UIView()
     view.backgroundColor = DSKitAsset.Color.DimColor.default.color
     return view
@@ -31,7 +31,7 @@ open class TFBaseView: UIView {
       guard let self = self else { return }
       self.addSubview(self.dimView)
       UIView.animate(withDuration: 0.0) {
-        self.dimView.backgroundColor = DSKitAsset.Color.cardShadow.color.withAlphaComponent(0.7)
+        self.dimView.backgroundColor = DSKitAsset.Color.DimColor.default.color
       }
     }
   }
@@ -40,7 +40,7 @@ open class TFBaseView: UIView {
     DispatchQueue.main.async {
       UIView.animate(withDuration: 0.0) { [weak self] in
         guard let self = self else { return }
-        self.dimView.backgroundColor = DSKitAsset.Color.DimColor.default.color
+        self.dimView.backgroundColor = DSKitAsset.Color.clear.color
       } completion: { [weak self] _ in
         guard let self = self else { return }
         self.dimView.removeFromSuperview()

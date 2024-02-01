@@ -21,11 +21,14 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
   
   lazy var cardTimeView = CardTimeView()
   
+  private lazy var pauseView = PauseView(frame: cellFrame)
+  
   override func makeUI() {
     self.layer.cornerRadius = 20
     
     self.contentView.addSubview(profileCarouselView)
     self.profileCarouselView.addSubview(cardTimeView)
+    self.profileCarouselView.addSubview(pauseView)
     
     self.profileCarouselView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -36,7 +39,11 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
       $0.height.equalTo(32)
     }
     
-    self.showUserCardDimView()
+    self.pauseView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+    
+    self.showDimView()
   }
   
   override func prepareForReuse() {
@@ -66,12 +73,16 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
 
     output.timeStart
       .drive(with: self, onNext: { owner, _ in
-        owner.hiddenUserCardDimView()
+        owner.hiddenDimView()
       })
       .disposed(by: disposeBag)
 
     output.timeZero
       .drive(scrollToNextObserver)
+      .disposed(by: disposeBag)
+    
+    output.isTimerActive
+      .drive(pauseView.rx.isHidden)
       .disposed(by: disposeBag)
 
     profileCarouselView.infoButton.rx.tap.asDriver()
