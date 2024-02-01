@@ -153,7 +153,7 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
                                           scheduler: MainScheduler.instance)
           .take(Int(startTime * 100) + 1) // 시간의 총 개수
           .map { value in
-            let time = (startTime * 100 - Double(value)) / 100
+            let time = round((startTime * 100 - Double(value))) / 100
             currentTime = time
             return time
           }
