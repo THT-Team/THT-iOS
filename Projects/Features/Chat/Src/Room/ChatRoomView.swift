@@ -7,7 +7,6 @@
 
 import UIKit
 
-import Core
 import DSKit
 
 final class ChatRoomView: TFBaseView {
@@ -17,8 +16,6 @@ final class ChatRoomView: TFBaseView {
   lazy var reportButton: UIBarButtonItem = .report
   lazy var topicBar = TFTopicBannerView()
   private(set) lazy var chatInputView = ChatInputView()
-
-  var bottomConstraint: NSLayoutConstraint?
 
   lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewCompositionalLayout.listLayoutAutomaticHeight(withEstimatedHeight: 50)
@@ -40,14 +37,14 @@ final class ChatRoomView: TFBaseView {
 
     collectionView.snp.makeConstraints {
       $0.top.equalTo(topicBar.snp.bottom)
-      $0.leading.trailing.bottom.equalToSuperview()
+      $0.leading.trailing.equalToSuperview()
     }
     chatInputView.snp.makeConstraints {
+      $0.top.equalTo(collectionView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
       $0.height.equalTo(50).priority(.low)
     }
-    bottomConstraint = chatInputView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor)
-    bottomConstraint?.isActive = true
+    chatInputView.bottomAnchor.constraint(equalTo: self.keyboardLayoutGuide.topAnchor).isActive = true
   }
 
   func topicBind(_ title: String, _ content: String) {

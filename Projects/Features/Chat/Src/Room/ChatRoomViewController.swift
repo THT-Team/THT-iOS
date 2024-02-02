@@ -16,11 +16,6 @@ final class ChatRoomViewController: TFBaseViewController {
   private let viewModel: ChatRoomViewModel
   private var dataSource: DataSource!
 
-  private lazy var keyboardHandler: KeyboardHandler = DefaultKeyboardHandler(
-    parentVC: self,
-    bottomConstraint: self.mainView.bottomConstraint
-  )
-
   init(viewModel: ChatRoomViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -40,19 +35,6 @@ final class ChatRoomViewController: TFBaseViewController {
     navigationItem.leftBarButtonItem = self.mainView.backButton
     navigationItem.rightBarButtonItems = [self.mainView.reportButton, self.mainView.exitButton]
   }
-
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-
-    keyboardHandler.start()
-  }
-
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-
-    keyboardHandler.stop()
-  }
-
 
   override func bindViewModel() {
     self.setupDataSource()
