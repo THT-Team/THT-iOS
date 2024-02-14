@@ -17,7 +17,11 @@ open class UserCardViewCollectionViewCell: TFBaseCollectionViewCell {
     height: ((UIWindow.keyWindow?.bounds.width ?? .zero) - 32) * 1.64
   )
   
-  private lazy var dimView = UIView(frame: cellFrame)
+  private lazy var dimView: UIView = {
+    let view = UIView(frame: cellFrame)
+    view.layer.cornerRadius = 20
+    return view
+  }()
   
   public func showDimView() {
     DispatchQueue.main.async { [weak self] in
