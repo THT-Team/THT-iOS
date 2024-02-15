@@ -10,6 +10,10 @@ import UIKit
 import Core
 import DSKit
 
+enum ElementKind: String {
+  case badge, header, footer
+}
+
 final class FallingHomeView: TFBaseView {
   lazy var collectionView: UICollectionView = {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
@@ -60,6 +64,15 @@ extension NSCollectionLayoutSection {
       subitems: [layoutItem]
     )
     
+    let footerSize = NSCollectionLayoutSize(
+      widthDimension: .fractionalWidth(1.0),
+      heightDimension: .estimated(((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64))
+    let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(
+        layoutSize: footerSize,
+        elementKind: ElementKind.footer.rawValue, 
+        alignment: .bottom
+    )
+    
     let section = NSCollectionLayoutSection(group: layoutGroup)
     section.contentInsets = NSDirectionalEdgeInsets(
       top: 0,
@@ -68,6 +81,7 @@ extension NSCollectionLayoutSection {
       trailing: 16
     )
     section.interGroupSpacing = 14
+    section.boundarySupplementaryItems = [sectionFooter]
     return section
   }
   

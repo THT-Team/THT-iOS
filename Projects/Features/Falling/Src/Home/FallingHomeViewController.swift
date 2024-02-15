@@ -82,9 +82,20 @@ final class FallingHomeViewController: TFBaseViewController {
         scrollToNextObserver: timeOverSubject
       )
     }
+    
+    let footerRegistration = UICollectionView.SupplementaryRegistration
+    <UICollectionReusableView>(elementKind: ElementKind.footer.rawValue) { _,_,_ in }
+    
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
+    
+    dataSource.supplementaryViewProvider = { (view, kind, index) in
+      return self.homeView.collectionView.dequeueConfiguredReusableSupplementary(
+        using: footerRegistration,
+        for: index
+      )
+    }
     
     var listCount = 0
     
