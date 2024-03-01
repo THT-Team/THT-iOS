@@ -1,5 +1,5 @@
 //
-//  ProfileCarouselView.swift
+//  UserInfoBoxView.swift
 //  FallingInterface
 //
 //  Created by SeungMin on 1/11/24.
@@ -9,19 +9,8 @@ import UIKit
 
 import DSKit
 import FallingInterface
-import Domain
 
-final class ProfileCarouselView: TFBaseView {
-  private var dataSource: UICollectionViewDiffableDataSource<FallingProfileSection, UserProfilePhoto>!
-  
-  var photos: [UserProfilePhoto] = [] {
-    didSet {
-      pageControl.currentPage = 0
-      pageControl.numberOfPages = oldValue.count
-      collectionView.reloadData()
-    }
-  }
-  
+final class UserInfoBoxView: TFBaseView {
   lazy var tagCollectionView: TagCollectionView = {
     let tagCollection = TagCollectionView()
     tagCollection.layer.cornerRadius = 20
@@ -31,22 +20,11 @@ final class ProfileCarouselView: TFBaseView {
     return tagCollection
   }()
   
-  lazy var collectionView: UICollectionView = {
-    let layout = UICollectionViewCompositionalLayout.horizontalListLayout()
-    
-    let collectionView = UICollectionView(
-      frame: .zero,
-      collectionViewLayout: layout
-    )
-    collectionView.isScrollEnabled = false
-    collectionView.backgroundColor = DSKitAsset.Color.neutral700.color
-    collectionView.layer.cornerRadius = 20
-    return collectionView
-  }()
-  
   lazy var pageControl: UIPageControl = {
     let pageControl = UIPageControl()
-    pageControl.currentPageIndicatorTintColor = .black
+    pageControl.numberOfPages = 3
+    pageControl.currentPageIndicatorTintColor = DSKitAsset.Color.neutral50.color
+    pageControl.tintColor = DSKitAsset.Color.neutral300.color
     return pageControl
   }()
   
@@ -101,8 +79,7 @@ final class ProfileCarouselView: TFBaseView {
   }()
   
   override func makeUI() {
-    addSubviews([collectionView,
-                 tagCollectionView,
+    addSubviews([tagCollectionView,
                  vStackView, buttonStackView, pageControl])
     
     [infoButton, spacerView, refuseButton, likeButton].forEach { subView in
@@ -115,15 +92,6 @@ final class ProfileCarouselView: TFBaseView {
     spacerView.snp.remakeConstraints {
       $0.height.equalTo(80)
       $0.width.equalTo(90).priority(.low)
-    }
-    
-    collectionView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
-    
-    pageControl.snp.makeConstraints {
-      $0.size.equalTo(100)
-      $0.center.equalToSuperview()
     }
     
     tagCollectionView.snp.makeConstraints {
@@ -139,14 +107,18 @@ final class ProfileCarouselView: TFBaseView {
     
     buttonStackView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(12)
-      $0.bottom.equalToSuperview().offset(-30)
+      $0.bottom.equalTo(pageControl).inset(14)
     }
     
-    configureDataSource()
+    pageControl.snp.makeConstraints {
+      $0.width.equalTo(38)
+      $0.height.equalTo(6)
+      $0.center.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(12)
+    }
   }
   
   func bind(_ viewModel: FallingUser) {
-    self.photos = viewModel.userProfilePhotos
     self.titleLabel.text = viewModel.username + ", \(viewModel.age)"
     self.addressLabel.text = viewModel.address
     self.tagCollectionView.sections = [
@@ -154,23 +126,6 @@ final class ProfileCarouselView: TFBaseView {
       ProfileInfoSection(header: "흥미", items: viewModel.interestResponses),
       ProfileInfoSection(header: "자기소개", introduce: viewModel.introduction)
     ]
-    
-    var snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, UserProfilePhoto>()
-    snapshot.appendSections([.profile])
-    snapshot.appendItems(viewModel.userProfilePhotos)
-    self.dataSource.apply(snapshot)
-  }
-}
-
-extension ProfileCarouselView {
-  func configureDataSource() {
-    let profileCellRegistration = UICollectionView.CellRegistration<ProfileCollectionViewCell, UserProfilePhoto> { cell, indexPath, item in
-      cell.bind(imageURL: item.url)
-    }
-    
-    dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
-      return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
-    })
   }
 }
 
@@ -178,7 +133,7 @@ extension ProfileCarouselView {
 import SwiftUI
 
 struct CarouselViewRepresentable: UIViewRepresentable {
-  typealias UIViewType = ProfileCarouselView
+  typealias UIViewType = UserInfoBoxView
   
   func makeUIView(context: Context) -> UIViewType {
     return UIViewType()
