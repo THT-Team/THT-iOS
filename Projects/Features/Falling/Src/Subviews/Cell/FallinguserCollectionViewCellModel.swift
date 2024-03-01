@@ -162,13 +162,14 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
             currentTime = round((startTime * 100 - Double(value))) / 100 // 현재 시간 갱신
             return currentTime
           }
+          .debug()
           .asDriver(onErrorJustReturn: currentTime)
         }
       }.asDriver(onErrorJustReturn: currentTime)
     
     let timeState = timer.map { TimeState(rawValue: $0) }
     let timeStart = timer.filter { $0 == 13.0 }.map { _ in }
-    let timeZero = timer.filter { $0 == 0 }.map { _ in }
+    let timeZero = timer.filter { $0 == 0.0 }.map { _ in }
     let isTimerActive = timerActiveTrigger.asDriver(onErrorJustReturn: true)
 
     return Output(
