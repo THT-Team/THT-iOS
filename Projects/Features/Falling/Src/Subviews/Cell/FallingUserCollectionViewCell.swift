@@ -7,76 +7,115 @@
 
 import UIKit
 
-import Core
-import DSKit
 import FallingInterface
+import DSKit
+import Domain
 
 struct FallingUserCollectionViewCellObserver {
   var userCardScrollIndex: Observable<Int>
   var timerActiveTrigger: Observable<Bool>
 }
 
-final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
-  lazy var profileCarouselView = ProfileCarouselView()
+final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
+  private var dataSource: DataSource!
+  
+  lazy var profileCollectionView: TFBaseCollectionView = {
+    let layout = UICollectionViewCompositionalLayout.horizontalListLayout()
+    
+    let collectionView = TFBaseCollectionView(
+      frame: .zero,
+      collectionViewLayout: layout
+    )
+    collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
+    collectionView.layer.cornerRadius = 20
+    collectionView.isScrollEnabled = false
+    return collectionView
+  }()
+  
+  var photos: [UserProfilePhoto] = [] {
+    didSet {
+      userInfoBoxView.pageControl.currentPage = 0
+      userInfoBoxView.pageControl.numberOfPages = oldValue.count
+//      collectionView.reloadData()
+    }
+  }
+  
+  lazy var userInfoBoxView = UserInfoBoxView()
   
   lazy var cardTimeView = CardTimeView()
   
-  private lazy var pauseView = PauseView(frame: cellFrame)
+  private lazy var pauseView: PauseView = {
+    let pauseView = PauseView(
+      frame: CGRect(
+        x: 0,
+        y: 0,
+        width: (UIWindow.keyWindow?.bounds.width ?? .zero) - 32,
+        height: ((UIWindow.keyWindow?.bounds.width ?? .zero) - 32) * 1.64
+      )
+    )
+    return pauseView
+  }()
   
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubview(profileCarouselView)
-    self.profileCarouselView.addSubview(cardTimeView)
-    self.profileCarouselView.addSubview(pauseView)
+    self.contentView.addSubview(profileCollectionView)
+    self.contentView.addSubview(cardTimeView)
+    self.contentView.addSubview(userInfoBoxView)
+    self.contentView.addSubview(pauseView)
     
-    self.profileCarouselView.snp.makeConstraints {
+    profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
     
     self.cardTimeView.snp.makeConstraints {
-      $0.top.leading.trailing.equalToSuperview().inset(12)
+      $0.top.leading.trailing.equalTo(profileCollectionView).inset(12)
       $0.height.equalTo(32)
+    }
+    
+    self.userInfoBoxView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(16)
+      $0.bottom.equalToSuperview().inset(12)
     }
     
     self.pauseView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
     
-    self.showDimView()
+    self.configureDataSource()
+    
+    self.profileCollectionView.showDimView()
   }
   
   override func prepareForReuse() {
     super.prepareForReuse()
     disposeBag = DisposeBag()
   }
-
+  
   func bind<O>(
     _ viewModel: FallinguserCollectionViewCellModel,
     _ timerTrigger: Driver<Bool>,
     scrollToNextObserver: O
   ) where O: ObserverType, O.Element == Void {
     let input = FallinguserCollectionViewCellModel.Input(timerActiveTrigger: timerTrigger)
-
+    
     let output = viewModel
       .transform(input: input)
     
     output.user
-      .drive(with: self, onNext: { owner, user in
-        owner.profileCarouselView.bind(user)
-      })
+      .drive(self.rx.user)
       .disposed(by: disposeBag)
-
+    
     output.timeState
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
-
+    
     output.timeStart
       .drive(with: self, onNext: { owner, _ in
-        owner.hiddenDimView()
+        owner.profileCollectionView.hiddenDimView()
       })
       .disposed(by: disposeBag)
-
+    
     output.timeZero
       .drive(scrollToNextObserver)
       .disposed(by: disposeBag)
@@ -84,12 +123,12 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
     output.isTimerActive
       .drive(pauseView.rx.isHidden)
       .disposed(by: disposeBag)
-
-    profileCarouselView.infoButton.rx.tap.asDriver()
+    
+    userInfoBoxView.infoButton.rx.tap.asDriver()
       .scan(true) { lastValue, _ in
         return !lastValue
       }
-      .drive(profileCarouselView.tagCollectionView.rx.isHidden)
+      .drive(userInfoBoxView.tagCollectionView.rx.isHidden)
       .disposed(by: disposeBag)
   }
   
@@ -109,6 +148,29 @@ final class FallingUserCollectionViewCell: UserCardViewCollectionViewCell {
       x: rect.midX + point.x,
       y: rect.midY + point.y
     )
+  }
+}
+
+extension FallingUserCollectionViewCell {
+  typealias Model = UserProfilePhoto
+  typealias DataSource = UICollectionViewDiffableDataSource<FallingProfileSection, Model>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, Model>
+  
+  func configureDataSource() {
+    let profileCellRegistration = UICollectionView.CellRegistration<ProfileCollectionViewCell, Model> { cell, indexPath, item in
+      cell.bind(imageURL: item.url)
+    }
+    
+    self.dataSource = UICollectionViewDiffableDataSource(collectionView: profileCollectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
+      return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
+    })
+  }
+  
+  func setupDataSource(userProfilePhotos: [UserProfilePhoto]) {
+    var snapshot = Snapshot()
+    snapshot.appendSections([.profile])
+    snapshot.appendItems(userProfilePhotos)
+    self.dataSource.apply(snapshot)
   }
 }
 
@@ -133,6 +195,16 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       base.cardTimeView.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.cardTimeView.timerView.bounds)
       
       base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
+      
+      base.profileCollectionView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
+    }
+  }
+  
+  var user: Binder<FallingUser> {
+    return Binder(self.base) { (base, user) in
+      base.photos = user.userProfilePhotos
+      base.setupDataSource(userProfilePhotos: user.userProfilePhotos)
+      base.userInfoBoxView.bind(user)
     }
   }
 }
