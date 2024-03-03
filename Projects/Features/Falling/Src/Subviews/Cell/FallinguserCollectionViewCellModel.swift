@@ -90,30 +90,38 @@ enum TimeState {
     }
   }
   
-  // .pi / 360 == 1도
+  // .pi / 360 => 1도
   var rotateAngle: CGFloat {
     switch self {
     case .four:
-      // 8 10 => 초당 0.5도
+      // 8 10 => 초당 0.5도 (편도 / 2 1회)
       return .pi / 360 / 200
-    case .three:
-      // 6 8 => 초당 1도
-      return -.pi / 360 / 100
+    case .three(let value):
+      // 6 8 => 초당 2도 (왕복 1회)
+      let time = round((4-value/2) * 100) / 100
+      if time <= 0.5 { return -.pi / 360 / 50 }
+      else { return .pi / 360 / 50 }
     case .two(let value):
-      // 4 6 => 초당 2도
+      // 4 6 => 초당 4도 (왕복 2회)
       let time = round((3-value/2) * 100) / 100
-      if time <= 0.5 { return .pi / 360 / 50 }
-      else { return -.pi / 360 / 50 }
+      if time <= 0.25 { return -.pi / 360 / 25 }
+      else if 0.25 < time && time <= 0.5 { return .pi / 360 / 25 }
+      else if 0.5 < time && time <= 0.75 { return -.pi / 360 / 25 }
+      else { return .pi / 360 / 25 }
     case .one(let value):
-      // 2 4 => 초당 4도
-      let time = round((2-value/2) * 100) / 100
-      if time <= 0.25 { return .pi / 360 / 50 }
-      else if 0.25 < time && time <= 0.5 { return -.pi / 360 / 50 }
-      else if 0.5 < time && time <= 0.75 { return .pi / 360 / 50 }
-      else { return -.pi / 360 / 50 }
+      // 2 4 => 초당 8도 (왕복 4회)
+      let time = round((2-value/2) * 1000) / 1000
+      if time <= 0.125 { return -.pi / 360 / 12.5 }
+      else if 0.125 < time && time <= 0.25 { return .pi / 360 / 12.5 }
+      else if 0.25 < time && time <= 0.375 { return -.pi / 360 / 12.5 }
+      else if 0.375 < time && time <= 0.5 { return .pi / 360 / 12.5 }
+      else if 0.5 < time && time <= 0.625 { return -.pi / 360 / 12.5 }
+      else if 0.625 < time && time <= 0.75 { return .pi / 360 / 12.5 }
+      else if 0.75 < time && time <= 0.875 { return -.pi / 360 / 12.5 }
+      else { return .pi / 360 / 12.5 }
     case .zero:
       // 1 2 => 초당 1도
-      return .pi / 360 / 100
+      return -.pi / 360 / 100
     default:
       return 0
     }
