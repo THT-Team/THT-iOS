@@ -264,7 +264,6 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
       
       base.profileCollectionView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
-      base.pauseView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
     }
   }
   
