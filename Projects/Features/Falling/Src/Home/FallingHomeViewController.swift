@@ -93,7 +93,7 @@ final class FallingHomeViewController: TFBaseViewController {
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
-    <UICollectionReusableView>(elementKind: ElementKind.footer.rawValue) { _,_,_ in }
+    <UICollectionReusableView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
     
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
