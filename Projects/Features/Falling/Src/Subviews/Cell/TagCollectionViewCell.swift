@@ -77,29 +77,12 @@ final class TagCollectionViewCell: UICollectionViewCell {
     contentView.layer.masksToBounds = true
   }
 
-  func bind(_ viewModel: TagItemViewModel) {
-    self.titleLabel.text = viewModel.title
-    self.emojiView.text = viewModel.emoji
+  func bind(_ item: EmojiType) {
+    self.titleLabel.text = item.name
+    self.emojiView.text = item.emojiCode.unicodeToEmoji()
   }
 }
 
-struct TagItemViewModel {
-  let emojiCode: String
-  let title: String
-
-  var emoji: String {
-    emojiCode.unicodeToEmoji()
-  }
-  init(_ idealType: EmojiType) {
-    self.title = idealType.name
-    self.emojiCode = idealType.emojiCode
-  }
-
-  init(emojiCode: String, title: String) {
-    self.emojiCode = emojiCode
-    self.title = title
-  }
-}
 #if canImport(SwiftUI) && DEBUG
 import SwiftUI
 

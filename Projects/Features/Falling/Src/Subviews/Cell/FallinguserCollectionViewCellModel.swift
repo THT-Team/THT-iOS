@@ -86,7 +86,7 @@ enum TimeState {
     switch self {
     case .initial: return 1
     case .five(let value), .four(let value), .three(let value), .two(let value), .one(let value), .zero(let value), .over(let value):
-      return (value / 2 - 1) / 5
+      return round((value / 2 - 1) / 5 * 1000) / 1000
     }
   }
   

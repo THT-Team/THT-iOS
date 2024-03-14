@@ -23,11 +23,13 @@ final class FallingHomeViewModel: ViewModelType {
   struct Input {
     let initialTrigger: Driver<Void>
     let timeOverTrigger: Driver<Void>
+    let cellButtonAction: Driver<FallingCellButtonAction>
   }
 
   struct Output {
     let userList: Driver<[FallingUser]>
     let nextCardIndexPath: Driver<IndexPath>
+    let info: Driver<IndexPath>
   }
 
   init(fallingUseCase: FallingUseCaseInterface) {
@@ -59,10 +61,18 @@ final class FallingHomeViewModel: ViewModelType {
       updateScrollIndexTrigger
     ).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)
       .map { IndexPath(row: $0, section: 0) })
+    
+    let info = input.cellButtonAction
+      .compactMap { action -> IndexPath? in
+        if case let .info(indexPath) = action {
+          return indexPath
+        } else { return nil }
+      }
 
     return Output(
       userList: userList,
-      nextCardIndexPath: nextCardIndexPath
+      nextCardIndexPath: nextCardIndexPath,
+      info: info
     )
   }
 }

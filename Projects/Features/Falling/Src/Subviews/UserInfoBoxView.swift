@@ -11,27 +11,18 @@ import DSKit
 import FallingInterface
 
 final class UserInfoBoxView: TFBaseView {
-  lazy var tagCollectionView: TagCollectionView = {
-    let tagCollection = TagCollectionView()
-    tagCollection.layer.cornerRadius = 20
-    tagCollection.clipsToBounds = true
-    tagCollection.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
-    tagCollection.isHidden = true
-    return tagCollection
-  }()
-  
   lazy var pageControl: UIPageControl = {
     let pageControl = UIPageControl()
-    pageControl.numberOfPages = 3
-    pageControl.currentPageIndicatorTintColor = DSKitAsset.Color.neutral50.color
-    pageControl.tintColor = DSKitAsset.Color.neutral300.color
+    pageControl.pageIndicatorTintColor = DSKitAsset.Color.neutral50.color
+    pageControl.currentPageIndicatorTintColor = DSKitAsset.Color.neutral300.color
     return pageControl
   }()
   
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
-    label.text = "최지인"
+    label.textColor = DSKitAsset.Color.neutral50.color
     label.font = UIFont.thtEx4Sb
+    label.setTextWithLineHeight(text: "닉네임", lineHeight: 29)
     return label
   }()
   
@@ -45,20 +36,21 @@ final class UserInfoBoxView: TFBaseView {
     let label = UILabel()
     label.textColor = DSKitAsset.Color.neutral50.color
     label.font = UIFont.thtP2M
+    label.setTextWithLineHeight(text: "주소", lineHeight: 17)
     return label
   }()
   
-  private lazy var hStackView: UIStackView = {
+  private lazy var adressStackView: UIStackView = {
     let stackView = UIStackView()
-    stackView.addArrangedSubviews([pinImageView, addressLabel])
     stackView.axis = .horizontal
+    stackView.spacing = 4
     return stackView
   }()
   
-  private lazy var vStackView: UIStackView = {
+  private lazy var labelStackView: UIStackView = {
     let stackView = UIStackView()
-    stackView.addArrangedSubviews([titleLabel, hStackView])
     stackView.axis = .vertical
+    stackView.spacing = 6
     stackView.alignment = .leading
     return stackView
   }()
@@ -74,65 +66,61 @@ final class UserInfoBoxView: TFBaseView {
   private lazy var buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
-    stackView.spacing = 10
+    stackView.spacing = 20
+    stackView.alignment = .leading
     return stackView
   }()
   
   override func makeUI() {
-    addSubviews([tagCollectionView,
-                 vStackView, buttonStackView, pageControl])
+    adressStackView.addArrangedSubviews([pinImageView, addressLabel])
+    pinImageView.snp.makeConstraints {
+      $0.height.equalTo(18)
+      $0.width.equalTo(16)
+    }
+    
+    labelStackView.addArrangedSubviews([titleLabel, adressStackView])
+    
+    addSubviews([labelStackView, buttonStackView, pageControl])
+    
+    labelStackView.snp.makeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+    }
+    
+    buttonStackView.snp.makeConstraints {
+      $0.top.equalTo(labelStackView.snp.bottom).offset(14)
+      $0.leading.trailing.equalToSuperview()
+    }
     
     [infoButton, spacerView, refuseButton, likeButton].forEach { subView in
       buttonStackView.addArrangedSubview(subView)
       subView.snp.makeConstraints {
-        $0.size.equalTo(80)
+        $0.size.equalTo(58)
       }
     }
     
     spacerView.snp.remakeConstraints {
-      $0.height.equalTo(80)
-      $0.width.equalTo(90).priority(.low)
-    }
-    
-    tagCollectionView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(12)
-      $0.height.equalTo(300).priority(.low)
-      $0.bottom.equalTo(vStackView.snp.top).offset(-10)
-    }
-    
-    vStackView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(12)
-      $0.bottom.equalTo(buttonStackView.snp.top).offset(-10)
-    }
-    
-    buttonStackView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(12)
-      $0.bottom.equalTo(pageControl).inset(14)
+      $0.height.equalTo(58)
+      $0.width.equalTo(92).priority(.low)
     }
     
     pageControl.snp.makeConstraints {
-      $0.width.equalTo(38)
+      $0.top.equalTo(buttonStackView.snp.bottom).offset(14)
+      $0.centerX.equalToSuperview()
       $0.height.equalTo(6)
-      $0.center.equalToSuperview()
-      $0.bottom.equalToSuperview().inset(12)
+      $0.width.greaterThanOrEqualTo(38)
     }
   }
   
   func bind(_ viewModel: FallingUser) {
     self.titleLabel.text = viewModel.username + ", \(viewModel.age)"
     self.addressLabel.text = viewModel.address
-    self.tagCollectionView.sections = [
-      ProfileInfoSection(header: "이상형", items: viewModel.idealTypeResponseList),
-      ProfileInfoSection(header: "흥미", items: viewModel.interestResponses),
-      ProfileInfoSection(header: "자기소개", introduce: viewModel.introduction)
-    ]
   }
 }
 
 #if DEBUG
 import SwiftUI
 
-struct CarouselViewRepresentable: UIViewRepresentable {
+struct UserInfoBoxViewRepresentable: UIViewRepresentable {
   typealias UIViewType = UserInfoBoxView
   
   func makeUIView(context: Context) -> UIViewType {
@@ -143,10 +131,10 @@ struct CarouselViewRepresentable: UIViewRepresentable {
     
   }
 }
-struct CarouselViewPreview: PreviewProvider {
+struct UserInfoBoxViewPreview: PreviewProvider {
   static var previews: some View {
     Group {
-      CarouselViewRepresentable()
+      UserInfoBoxViewRepresentable()
         .frame(width: UIScreen.main.bounds.width, height: 600)
     }
     .previewLayout(.sizeThatFits)
