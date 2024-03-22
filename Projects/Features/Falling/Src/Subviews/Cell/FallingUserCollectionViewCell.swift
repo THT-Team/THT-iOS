@@ -57,6 +57,14 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return pauseView
   }()
   
+  lazy var rejectLottieView: LottieAnimationView = {
+    let lottieAnimationView = LottieAnimationView()
+    lottieAnimationView.animation = AnimationAsset.unlike.animation
+    lottieAnimationView.isHidden = true
+    lottieAnimationView.contentMode = .scaleAspectFit
+    return lottieAnimationView
+  }()
+  
   lazy var userInfoCollectionView: UserInfoCollectionView = {
     let collectionView = UserInfoCollectionView()
     collectionView.layer.cornerRadius = 20
@@ -69,11 +77,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubview(profileCollectionView)
-    self.contentView.addSubview(cardTimeView)
-    self.contentView.addSubview(userInfoBoxView)
-    self.contentView.addSubview(userInfoCollectionView)
-    self.contentView.addSubview(pauseView)
+    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoCollectionView, rejectLottieView, pauseView])
     
     profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -100,6 +104,11 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.edges.equalToSuperview()
     }
     
+    self.rejectLottieView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+      $0.width.height.equalTo(188) // TODO: 사이즈 수정 예정
+    }
+    
     self.profileCollectionView.showDimView()
     
     self.setDataSource()
@@ -111,14 +120,20 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   }
   
   func bind<O>(
-    _ viewModel: FallinguserCollectionViewCellModel,
+    _ viewModel: FallingUserCollectionViewCellModel,
     timerActiveTrigger: Driver<Bool>,
     timeOverSubject: PublishSubject<Void>,
     profileDoubleTapTriggerObserver: PublishSubject<Void>,
     fallingCellButtonAction: O
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
-    let input = FallinguserCollectionViewCellModel.Input(
-      timerActiveTrigger: timerActiveTrigger
+    let rejectButtonTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    
+    let likeButtonTrigger = userInfoBoxView.likeButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    
+    let input = FallingUserCollectionViewCellModel.Input(
+      timerActiveTrigger: timerActiveTrigger,
+      rejectButtonTrigger: rejectButtonTrigger,
+      likeButtonTrigger: likeButtonTrigger
     )
     
     let output = viewModel
@@ -132,17 +147,14 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
     
-    output.timeStart
-      .drive(with: self) { owner, _ in
-        owner.profileCollectionView.hiddenDimView()
-      }
-      .disposed(by: disposeBag)
-    
     output.timeZero
       .drive(timeOverSubject)
       .disposed(by: disposeBag)
     
     output.isTimerActive
+      .do(onNext: { _ in
+        self.profileCollectionView.hiddenDimView()
+      })
       .drive(pauseView.rx.isHidden)
       .disposed(by: disposeBag)
     
@@ -175,24 +187,20 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
     
     userInfoBoxView.infoButton.rx.tap.asDriver()
-      .scan(true, accumulator: { value, _ in
-        return !value
-      })
+      .scan(true) { value, _ in return !value }
       .drive(userInfoCollectionView.rx.isHidden)
       .disposed(by: disposeBag)
     
-    userInfoBoxView.refuseButton.rx.tapGesture()
-      .when(.recognized)
+    output.rejectButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
-      .map { FallingCellButtonAction.refuse($0) }
-      .bind(to: fallingCellButtonAction)
+      .map { FallingCellButtonAction.reject($0) }
+      .drive(fallingCellButtonAction)
       .disposed(by: disposeBag)
     
-    userInfoBoxView.likeButton.rx.tapGesture()
-      .when(.recognized)
+    output.likeButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
-      .bind(to: fallingCellButtonAction)
+      .drive(fallingCellButtonAction)
       .disposed(by: disposeBag)
   }
   
@@ -262,8 +270,6 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       base.cardTimeView.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.cardTimeView.timerView.bounds)
       
       base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
-      
-      base.profileCollectionView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
     }
   }
   
