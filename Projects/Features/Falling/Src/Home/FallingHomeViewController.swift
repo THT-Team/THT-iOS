@@ -13,7 +13,7 @@ import FallingInterface
 
 enum FallingCellButtonAction {
   case info(IndexPath)
-  case refuse(IndexPath)
+  case reject(IndexPath)
   case like(IndexPath)
 }
 
@@ -84,7 +84,7 @@ final class FallingHomeViewController: TFBaseViewController {
         .map { _, timerActiveFlag in timerActiveFlag }
       
       cell.bind(
-        FallinguserCollectionViewCellModel(userDomain: item),
+        FallingUserCollectionViewCellModel(userDomain: item),
         timerActiveTrigger: timerActiveTrigger,
         timeOverSubject: timeOverSubject,
         profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
@@ -114,7 +114,7 @@ final class FallingHomeViewController: TFBaseViewController {
         var snapshot = Snapshot()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
-        owner.dataSource.apply(snapshot)
+        owner.dataSource.apply(snapshot, animatingDifferences: true)
       }).disposed(by: disposeBag)
     
     output.nextCardIndexPath
@@ -127,11 +127,24 @@ final class FallingHomeViewController: TFBaseViewController {
         )})
       .disposed(by: self.disposeBag)
     
-    output.info
+    output.infoButtonAction
       .drive(with: self) { owner, indexPath in
         guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell
         else { return }
         cell.userInfoCollectionView.isHidden.toggle()
+      }
+      .disposed(by: disposeBag)
+    
+    output.rejectButtonAction
+      .drive(with: self) { owner, indexPath in
+        guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
+        
+        cell.rejectLottieView.isHidden = false
+        cell.rejectLottieView.play()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          timeOverSubject.onNext(())
+        }
       }
       .disposed(by: disposeBag)
   }

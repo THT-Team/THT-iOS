@@ -13,45 +13,50 @@ import RxCocoa
 import Foundation
 
 final class FallingHomeViewModel: ViewModelType {
-
+  
   private let fallingUseCase: FallingUseCaseInterface
-
+  
   //  weak var delegate: FallingHomeDelegate?
-
+  
   var disposeBag: DisposeBag = DisposeBag()
-
+  
   struct Input {
     let initialTrigger: Driver<Void>
     let timeOverTrigger: Driver<Void>
     let cellButtonAction: Driver<FallingCellButtonAction>
   }
-
+  
   struct Output {
     let userList: Driver<[FallingUser]>
     let nextCardIndexPath: Driver<IndexPath>
-    let info: Driver<IndexPath>
+    let infoButtonAction: Driver<IndexPath>
+    let rejectButtonAction: Driver<IndexPath>
   }
-
+  
   init(fallingUseCase: FallingUseCaseInterface) {
     self.fallingUseCase = fallingUseCase
   }
-
+  
   func transform(input: Input) -> Output {
     let currentIndexRelay = BehaviorRelay<Int>(value: 0)
     let timeOverTrigger = input.timeOverTrigger
-
+    let snapshot = BehaviorRelay<[FallingUser]>(value: [])
+    
     let usersResponse = input.initialTrigger
       .flatMapLatest { [unowned self] _ in
         self.fallingUseCase.user(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100)
           .asDriver(onErrorJustReturn: .init(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, userInfos: []))
       }
-
-    let userList = usersResponse.map { $0.userInfos }.asDriver()
-
+    
+    let userList = usersResponse.map {
+      snapshot.accept($0.userInfos)
+      return $0.userInfos
+    }.asDriver()
+    
     let updateUserListTrigger = userList.map { _ in
       currentIndexRelay.accept(currentIndexRelay.value)
     }
-
+    
     let updateScrollIndexTrigger = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, index in
       currentIndexRelay.accept(index + 1)
     }
@@ -62,17 +67,26 @@ final class FallingHomeViewModel: ViewModelType {
     ).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)
       .map { IndexPath(row: $0, section: 0) })
     
-    let info = input.cellButtonAction
+    let infoButtonAction = input.cellButtonAction
       .compactMap { action -> IndexPath? in
         if case let .info(indexPath) = action {
           return indexPath
         } else { return nil }
       }
-
+    
+    let rejectButtonAction = input.cellButtonAction
+      .compactMap { action -> IndexPath? in
+        if case let .reject(indexPath) = action {
+          return indexPath
+        }
+        return nil
+      }
+    
     return Output(
       userList: userList,
       nextCardIndexPath: nextCardIndexPath,
-      info: info
+      infoButtonAction: infoButtonAction,
+      rejectButtonAction: rejectButtonAction
     )
   }
 }
