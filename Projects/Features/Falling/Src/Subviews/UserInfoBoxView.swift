@@ -56,9 +56,7 @@ final class UserInfoBoxView: TFBaseView {
   }()
   
   lazy var infoButton = CardButton(type: .info)
-  
-  lazy var refuseButton = CardButton(type: .refuse)
-  
+  lazy var rejectButton = CardButton(type: .reject)
   lazy var likeButton = CardButton(type: .like)
   
   private lazy var spacerView = UIView()
@@ -91,7 +89,7 @@ final class UserInfoBoxView: TFBaseView {
       $0.leading.trailing.equalToSuperview()
     }
     
-    [infoButton, spacerView, refuseButton, likeButton].forEach { subView in
+    [infoButton, spacerView, rejectButton, likeButton].forEach { subView in
       buttonStackView.addArrangedSubview(subView)
       subView.snp.makeConstraints {
         $0.size.equalTo(58)
