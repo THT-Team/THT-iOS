@@ -65,19 +65,19 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return lottieAnimationView
   }()
   
-  lazy var userInfoCollectionView: UserInfoCollectionView = {
-    let collectionView = UserInfoCollectionView()
-    collectionView.layer.cornerRadius = 20
-    collectionView.clipsToBounds = true
-    collectionView.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
-    collectionView.isHidden = true
-    return collectionView
+  lazy var userInfoView: UserInfoView = {
+    let view = UserInfoView()
+    view.layer.cornerRadius = 20
+    view.clipsToBounds = true
+    view.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
+    view.isHidden = true
+    return view
   }()
   
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoCollectionView, rejectLottieView, pauseView])
+    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, rejectLottieView, pauseView])
     
     profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -94,7 +94,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.bottom.equalToSuperview().inset(12)
     }
     
-    userInfoCollectionView.snp.makeConstraints {
+    userInfoView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(10)
       $0.height.equalTo(300)
       $0.bottom.equalTo(userInfoBoxView.snp.top).offset(-8)
@@ -188,7 +188,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     
     userInfoBoxView.infoButton.rx.tap.asDriver()
       .scan(true) { value, _ in return !value }
-      .drive(userInfoCollectionView.rx.isHidden)
+      .drive(userInfoView.rx.isHidden)
       .disposed(by: disposeBag)
     
     output.rejectButtonAction
@@ -277,7 +277,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     return Binder(self.base) { (base, user) in
       base.bind(userProfilePhotos: user.userProfilePhotos)
       base.userInfoBoxView.bind(user)
-      base.userInfoCollectionView.bind(user)
+      base.userInfoView.bind(user)
     }
   }
 }

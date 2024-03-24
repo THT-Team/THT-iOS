@@ -1,5 +1,5 @@
 //
-//  UserInfoCollectionView.swift
+//  UserInfoView.swift
 //  Falling
 //
 //  Created by Kanghos on 2023/10/09.
@@ -12,7 +12,7 @@ import DSKit
 import FallingInterface
 import Domain
 
-final class UserInfoCollectionView: TFBaseView {
+final class UserInfoView: TFBaseView {
   private var dataSource: DataSource!
   
   lazy var reportButton: UIButton = {
@@ -62,7 +62,7 @@ final class UserInfoCollectionView: TFBaseView {
 
 // MARK: DiffableDataSource
 
-extension UserInfoCollectionView {
+extension UserInfoView {
   typealias ModelType = FallingUserInfoItem
   typealias SectionType = FallingUserInfoSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>

@@ -131,7 +131,7 @@ final class FallingHomeViewController: TFBaseViewController {
       .drive(with: self) { owner, indexPath in
         guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell
         else { return }
-        cell.userInfoCollectionView.isHidden.toggle()
+        cell.userInfoView.isHidden.toggle()
       }
       .disposed(by: disposeBag)
     
