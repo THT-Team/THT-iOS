@@ -11,6 +11,12 @@ import Core
 import DSKit
 import FallingInterface
 
+enum FallingCellButtonAction {
+  case info(IndexPath)
+  case reject(IndexPath)
+  case like(IndexPath)
+}
+
 final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
   private var dataSource: DataSource!
@@ -47,24 +53,25 @@ final class FallingHomeViewController: TFBaseViewController {
     
     let initialTrigger = Driver<Void>.just(())
     let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
+    let fallingCellButtonAction = PublishSubject<FallingCellButtonAction>()
     
     let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
     let timerActiveRelay = BehaviorRelay(value: true)
-    let cardDoubleTapTrigger = self.homeView.collectionView.rx
-      .tapGesture(configuration: { gestureRecognizer, delegate in
-        gestureRecognizer.numberOfTapsRequired = 2
-      })
-      .when(.recognized)
+    let profileDoubleTapTriggerObserver = PublishSubject<Void>()
+    
+    let profileDoubleTapTrigger = profileDoubleTapTriggerObserver
       .withLatestFrom(timerActiveRelay) { !$1 }
       .asDriverOnErrorJustEmpty()
     
-    Driver.merge(cardDoubleTapTrigger, viewWillDisAppearTrigger)
+    Driver.merge(profileDoubleTapTrigger, viewWillDisAppearTrigger)
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
     let input = FallingHomeViewModel.Input(
       initialTrigger: initialTrigger,
-      timeOverTrigger: timerOverTrigger)
+      timeOverTrigger: timerOverTrigger,
+      cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty()
+    )
     
     let output = viewModel.transform(input: input)
     
@@ -77,14 +84,16 @@ final class FallingHomeViewController: TFBaseViewController {
         .map { _, timerActiveFlag in timerActiveFlag }
       
       cell.bind(
-        FallinguserCollectionViewCellModel(userDomain: item),
-        timerActiveTrigger,
-        scrollToNextObserver: timeOverSubject
+        FallingUserCollectionViewCellModel(userDomain: item),
+        timerActiveTrigger: timerActiveTrigger,
+        timeOverSubject: timeOverSubject,
+        profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
+        fallingCellButtonAction: fallingCellButtonAction
       )
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
-    <UICollectionReusableView>(elementKind: ElementKind.footer.rawValue) { _,_,_ in }
+    <UICollectionReusableView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
     
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
@@ -105,7 +114,7 @@ final class FallingHomeViewController: TFBaseViewController {
         var snapshot = Snapshot()
         snapshot.appendSections([.profile])
         snapshot.appendItems(list)
-        owner.dataSource.apply(snapshot)
+        owner.dataSource.apply(snapshot, animatingDifferences: true)
       }).disposed(by: disposeBag)
     
     output.nextCardIndexPath
@@ -117,6 +126,27 @@ final class FallingHomeViewController: TFBaseViewController {
           animated: true
         )})
       .disposed(by: self.disposeBag)
+    
+    output.infoButtonAction
+      .drive(with: self) { owner, indexPath in
+        guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell
+        else { return }
+        cell.userInfoView.isHidden.toggle()
+      }
+      .disposed(by: disposeBag)
+    
+    output.rejectButtonAction
+      .drive(with: self) { owner, indexPath in
+        guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
+        
+        cell.rejectLottieView.isHidden = false
+        cell.rejectLottieView.play()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          timeOverSubject.onNext(())
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 

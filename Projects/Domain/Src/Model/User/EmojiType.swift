@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - List
-public struct EmojiType {
+public struct EmojiType: Hashable {
   public let identifier = UUID()
   public let idx: Int
   public let name, emojiCode: String
@@ -17,5 +17,14 @@ public struct EmojiType {
     self.idx = idx
     self.name = name
     self.emojiCode = emojiCode
+  }
+}
+
+extension EmojiType {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(identifier)
+  }
+  public static func == (lhs: EmojiType, rhs: EmojiType) -> Bool {
+    lhs.identifier == rhs.identifier
   }
 }
