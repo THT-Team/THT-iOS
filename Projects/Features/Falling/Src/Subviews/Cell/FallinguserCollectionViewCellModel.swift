@@ -1,5 +1,5 @@
 //
-//  FallinguserCollectionViewCellModel.swift
+//  FallingUserCollectionViewCellModel.swift
 //  FallingInterface
 //
 //  Created by SeungMin on 1/11/24.
@@ -89,46 +89,40 @@ enum TimeState {
       return round((value / 2 - 1) / 5 * 1000) / 1000
     }
   }
+}
+
+final private class Timer {
+  private var disposable: Disposable? = nil
   
-  // .pi / 360 => 1도
-  var rotateAngle: CGFloat {
-    switch self {
-    case .four:
-      // 8 10 => 초당 0.5도 (편도 / 2 1회)
-      return .pi / 360 / 200
-    case .three(let value):
-      // 6 8 => 초당 2도 (왕복 1회)
-      let time = round((4-value/2) * 100) / 100
-      if time <= 0.5 { return -.pi / 360 / 50 }
-      else { return .pi / 360 / 50 }
-    case .two(let value):
-      // 4 6 => 초당 4도 (왕복 2회)
-      let time = round((3-value/2) * 100) / 100
-      if time <= 0.25 { return -.pi / 360 / 25 }
-      else if 0.25 < time && time <= 0.5 { return .pi / 360 / 25 }
-      else if 0.5 < time && time <= 0.75 { return -.pi / 360 / 25 }
-      else { return .pi / 360 / 25 }
-    case .one(let value):
-      // 2 4 => 초당 8도 (왕복 4회)
-      let time = round((2-value/2) * 1000) / 1000
-      if time <= 0.125 { return -.pi / 360 / 12.5 }
-      else if 0.125 < time && time <= 0.25 { return .pi / 360 / 12.5 }
-      else if 0.25 < time && time <= 0.375 { return -.pi / 360 / 12.5 }
-      else if 0.375 < time && time <= 0.5 { return .pi / 360 / 12.5 }
-      else if 0.5 < time && time <= 0.625 { return -.pi / 360 / 12.5 }
-      else if 0.625 < time && time <= 0.75 { return .pi / 360 / 12.5 }
-      else if 0.75 < time && time <= 0.875 { return -.pi / 360 / 12.5 }
-      else { return .pi / 360 / 12.5 }
-    case .zero:
-      // 1 2 => 초당 1도
-      return -.pi / 360 / 100
-    default:
-      return 0
+  let currentTime = BehaviorRelay<Double>(value: 13.0)
+  private var startTime: Double
+  
+  init(startTime: Double) {
+    self.startTime = startTime
+  }
+  
+  func start() {
+    guard disposable == nil else { return }
+    
+    disposable = Observable<Int>.interval(.milliseconds(10),
+                                          scheduler: MainScheduler.instance)
+    .take(Int(startTime * 100) + 1)
+    .map { [weak self] value in
+      guard let self = self else { return 0.0 }
+      return round((self.startTime * 100 - Double(value))) / 100
     }
+    .debug()
+    .bind(to: currentTime)
+  }
+  
+  func pause() {
+    startTime = currentTime.value
+    disposable?.dispose()
+    disposable = nil
   }
 }
 
-final class FallinguserCollectionViewCellModel: ViewModelType {
+final class FallingUserCollectionViewCellModel: ViewModelType {
   let userDomain: FallingUser
   
   init(userDomain: FallingUser) {
@@ -139,53 +133,55 @@ final class FallinguserCollectionViewCellModel: ViewModelType {
   
   struct Input {
     let timerActiveTrigger: Driver<Bool>
+    let rejectButtonTrigger: Driver<Void>
+    let likeButtonTrigger: Driver<Void>
   }
   
   struct Output {
     let user: Driver<FallingUser>
     let timeState: Driver<TimeState>
-    let timeStart: Driver<Void>
     let timeZero: Driver<Void>
     let isTimerActive: Driver<Bool>
+    let rejectButtonAction: Driver<Void>
+    let likeButtonAction: Driver<Void>
   }
   
   func transform(input: Input) -> Output {
-    var currentTime: Double = 13.0
-    var startTime: Double = 13.0
+    let timer = Timer(startTime: 13.0)
     let user = Driver.just(self.userDomain)
     
     let timerActiveTrigger = input.timerActiveTrigger
-      .asObservable()
     
-    let timer = timerActiveTrigger
-      .flatMapLatest { value in
+    let rejectButtonAction = input.rejectButtonTrigger
+      .do(onNext: { _ in
+        timer.pause()
+        timer.currentTime.accept(-1.0) // reject 시에는 0.5초 후에 넘어 가야하는 제약이 있어서, 0초로 설정하지 않았고, reject 버튼 이벤트에 대한 처리는 상위 뷰에서 따로 처리하고 있음.
+      })
+    
+    let likeButtonAction = input.likeButtonTrigger
+    
+    let timeActiveAction = timerActiveTrigger
+      .do { value in
         if !value {
-          startTime = currentTime // 타이머가 멈췄을 때 현재 시간으로 갱신
-          return Driver.just(currentTime)
+          timer.pause()
         } else {
-          return Observable<Int>.interval(.milliseconds(10),
-                                          scheduler: MainScheduler.instance)
-          .take(Int(startTime * 100) + 1) // 시간의 총 개수
-          .map { value in
-            currentTime = round((startTime * 100 - Double(value))) / 100 // 현재 시간 갱신
-            return currentTime
-          }
-          .debug()
-          .asDriver(onErrorJustReturn: currentTime)
+          timer.start()
         }
-      }.asDriver(onErrorJustReturn: currentTime)
+      }
     
-    let timeState = timer.map { TimeState(rawValue: $0) }
-    let timeStart = timer.filter { $0 == 13.0 }.map { _ in }
-    let timeZero = timer.filter { $0 == 0.0 }.map { _ in }
-    let isTimerActive = timerActiveTrigger.asDriver(onErrorJustReturn: true)
-
+    let time = timer.currentTime.asDriver(onErrorJustReturn: 0.0)
+    
+    let timeState = time.map { TimeState(rawValue: $0) }
+    let timeZero = time.filter { $0 == 0.0 }.map { _ in }
+    let isTimerActive = timeActiveAction.asDriver(onErrorJustReturn: true)
+    
     return Output(
       user: user,
       timeState: timeState,
-      timeStart: timeStart,
       timeZero: timeZero,
-      isTimerActive: isTimerActive
+      isTimerActive: isTimerActive,
+      rejectButtonAction: rejectButtonAction,
+      likeButtonAction: likeButtonAction
     )
   }
 }

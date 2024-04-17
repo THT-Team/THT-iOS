@@ -57,23 +57,27 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return pauseView
   }()
   
-  lazy var userInfoCollectionView: UserInfoCollectionView = {
-    let collectionView = UserInfoCollectionView()
-    collectionView.layer.cornerRadius = 20
-    collectionView.clipsToBounds = true
-    collectionView.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
-    collectionView.isHidden = true
-    return collectionView
+  lazy var rejectLottieView: LottieAnimationView = {
+    let lottieAnimationView = LottieAnimationView()
+    lottieAnimationView.animation = AnimationAsset.unlike.animation
+    lottieAnimationView.isHidden = true
+    lottieAnimationView.contentMode = .scaleAspectFit
+    return lottieAnimationView
+  }()
+  
+  lazy var userInfoView: UserInfoView = {
+    let view = UserInfoView()
+    view.layer.cornerRadius = 20
+    view.clipsToBounds = true
+    view.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
+    view.isHidden = true
+    return view
   }()
   
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubview(profileCollectionView)
-    self.contentView.addSubview(cardTimeView)
-    self.contentView.addSubview(userInfoBoxView)
-    self.contentView.addSubview(userInfoCollectionView)
-    self.contentView.addSubview(pauseView)
+    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, rejectLottieView, pauseView])
     
     profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -90,7 +94,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.bottom.equalToSuperview().inset(12)
     }
     
-    userInfoCollectionView.snp.makeConstraints {
+    userInfoView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(10)
       $0.height.equalTo(300)
       $0.bottom.equalTo(userInfoBoxView.snp.top).offset(-8)
@@ -98,6 +102,11 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     
     self.pauseView.snp.makeConstraints {
       $0.edges.equalToSuperview()
+    }
+    
+    self.rejectLottieView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+      $0.width.height.equalTo(188) // TODO: 사이즈 수정 예정
     }
     
     self.profileCollectionView.showDimView()
@@ -111,14 +120,20 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   }
   
   func bind<O>(
-    _ viewModel: FallinguserCollectionViewCellModel,
+    _ viewModel: FallingUserCollectionViewCellModel,
     timerActiveTrigger: Driver<Bool>,
     timeOverSubject: PublishSubject<Void>,
     profileDoubleTapTriggerObserver: PublishSubject<Void>,
     fallingCellButtonAction: O
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
-    let input = FallinguserCollectionViewCellModel.Input(
-      timerActiveTrigger: timerActiveTrigger
+    let rejectButtonTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    
+    let likeButtonTrigger = userInfoBoxView.likeButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    
+    let input = FallingUserCollectionViewCellModel.Input(
+      timerActiveTrigger: timerActiveTrigger,
+      rejectButtonTrigger: rejectButtonTrigger,
+      likeButtonTrigger: likeButtonTrigger
     )
     
     let output = viewModel
@@ -132,17 +147,14 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .drive(self.rx.timeState)
       .disposed(by: self.disposeBag)
     
-    output.timeStart
-      .drive(with: self) { owner, _ in
-        owner.profileCollectionView.hiddenDimView()
-      }
-      .disposed(by: disposeBag)
-    
     output.timeZero
       .drive(timeOverSubject)
       .disposed(by: disposeBag)
     
     output.isTimerActive
+      .do(onNext: { _ in
+        self.profileCollectionView.hiddenDimView()
+      })
       .drive(pauseView.rx.isHidden)
       .disposed(by: disposeBag)
     
@@ -175,24 +187,20 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
     
     userInfoBoxView.infoButton.rx.tap.asDriver()
-      .scan(true, accumulator: { value, _ in
-        return !value
-      })
-      .drive(userInfoCollectionView.rx.isHidden)
+      .scan(true) { value, _ in return !value }
+      .drive(userInfoView.rx.isHidden)
       .disposed(by: disposeBag)
     
-    userInfoBoxView.refuseButton.rx.tapGesture()
-      .when(.recognized)
+    output.rejectButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
-      .map { FallingCellButtonAction.refuse($0) }
-      .bind(to: fallingCellButtonAction)
+      .map { FallingCellButtonAction.reject($0) }
+      .drive(fallingCellButtonAction)
       .disposed(by: disposeBag)
     
-    userInfoBoxView.likeButton.rx.tapGesture()
-      .when(.recognized)
+    output.likeButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
-      .bind(to: fallingCellButtonAction)
+      .drive(fallingCellButtonAction)
       .disposed(by: disposeBag)
   }
   
@@ -206,10 +214,10 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   }
   
   func dotPosition(progress: CGFloat, rect: CGRect) -> CGPoint {
-    let progress = round(progress * 100) / 100 // 오차를 줄이기 위함
     let radius = CGFloat(rect.height / 2 - cardTimeView.timerView.strokeLayer.lineWidth / 2)
-    
-    var angle = 2 * CGFloat.pi * progress - CGFloat.pi / 2 + CGFloat.pi / 6 // 두 원의 중점과 원점이 이루는 각도를 30도로 가정
+      
+    // 3 / 2 pi(정점 각도) -> - 1 / 2 pi(정점)
+    var angle = 2 * CGFloat.pi * progress - CGFloat.pi / 2 + CGFloat.pi / 10 // 두 원의 중점과 원점이 이루는 각도를 18도로 가정
     if angle <= -CGFloat.pi / 2 || CGFloat.pi * 1.5 <= angle  {
       angle = -CGFloat.pi / 2 // 정점 각도
     }
@@ -258,12 +266,12 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       
       base.cardTimeView.progressView.progress = timeState.getProgress
       
-      let strokeEnd = timeState.getProgress
+      // 소수점 3번 째자리까지 표시하면 오차가 발생해서 2번 째자리까지만 표시
+      let strokeEnd = round(timeState.getProgress * 100) / 100
+      
       base.cardTimeView.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.cardTimeView.timerView.bounds)
       
       base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
-      
-      base.profileCollectionView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
     }
   }
   
@@ -271,7 +279,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     return Binder(self.base) { (base, user) in
       base.bind(userProfilePhotos: user.userProfilePhotos)
       base.userInfoBoxView.bind(user)
-      base.userInfoCollectionView.bind(user)
+      base.userInfoView.bind(user)
     }
   }
 }

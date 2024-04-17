@@ -27,7 +27,7 @@ public enum LikeCoordinatorAction {
   case chatRoom
   case meetMoody
   case backBtnTap
-  case toRefuseBtnTap
+  case toRejectBtnTap
   case toChatBtnTap
 }
 
