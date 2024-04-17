@@ -19,6 +19,15 @@ struct FallingUserCollectionViewCellObserver {
 final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   private var dataSource: DataSource!
   
+  private var indexPath: IndexPath? {
+    guard let collectionView = self.superview as? UICollectionView,
+          let indexPath = collectionView.indexPath(for: self) else {
+      TFLogger.ui.error("indexPath 얻기 실패")
+      return nil
+    }
+    return indexPath
+  }
+  
   lazy var profileCollectionView: TFBaseCollectionView = {
     let layout = UICollectionViewCompositionalLayout.horizontalListLayout()
     
@@ -31,14 +40,6 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     collectionView.isScrollEnabled = false
     return collectionView
   }()
-  
-  var photos: [UserProfilePhoto] = [] {
-    didSet {
-      userInfoBoxView.pageControl.currentPage = 0
-      userInfoBoxView.pageControl.numberOfPages = oldValue.count
-//      collectionView.reloadData()
-    }
-  }
   
   lazy var userInfoBoxView = UserInfoBoxView()
   
@@ -56,12 +57,22 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return pauseView
   }()
   
+  lazy var userInfoCollectionView: UserInfoCollectionView = {
+    let collectionView = UserInfoCollectionView()
+    collectionView.layer.cornerRadius = 20
+    collectionView.clipsToBounds = true
+    collectionView.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
+    collectionView.isHidden = true
+    return collectionView
+  }()
+  
   override func makeUI() {
     self.layer.cornerRadius = 20
     
     self.contentView.addSubview(profileCollectionView)
     self.contentView.addSubview(cardTimeView)
     self.contentView.addSubview(userInfoBoxView)
+    self.contentView.addSubview(userInfoCollectionView)
     self.contentView.addSubview(pauseView)
     
     profileCollectionView.snp.makeConstraints {
@@ -74,17 +85,24 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     }
     
     self.userInfoBoxView.snp.makeConstraints {
+      $0.height.equalTo(145)
       $0.leading.trailing.equalToSuperview().inset(16)
       $0.bottom.equalToSuperview().inset(12)
+    }
+    
+    userInfoCollectionView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(10)
+      $0.height.equalTo(300)
+      $0.bottom.equalTo(userInfoBoxView.snp.top).offset(-8)
     }
     
     self.pauseView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
     
-    self.configureDataSource()
-    
     self.profileCollectionView.showDimView()
+    
+    self.setDataSource()
   }
   
   override func prepareForReuse() {
@@ -94,10 +112,14 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   
   func bind<O>(
     _ viewModel: FallinguserCollectionViewCellModel,
-    _ timerTrigger: Driver<Bool>,
-    scrollToNextObserver: O
-  ) where O: ObserverType, O.Element == Void {
-    let input = FallinguserCollectionViewCellModel.Input(timerActiveTrigger: timerTrigger)
+    timerActiveTrigger: Driver<Bool>,
+    timeOverSubject: PublishSubject<Void>,
+    profileDoubleTapTriggerObserver: PublishSubject<Void>,
+    fallingCellButtonAction: O
+  ) where O: ObserverType, O.Element == FallingCellButtonAction {
+    let input = FallinguserCollectionViewCellModel.Input(
+      timerActiveTrigger: timerActiveTrigger
+    )
     
     let output = viewModel
       .transform(input: input)
@@ -111,36 +133,89 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: self.disposeBag)
     
     output.timeStart
-      .drive(with: self, onNext: { owner, _ in
+      .drive(with: self) { owner, _ in
         owner.profileCollectionView.hiddenDimView()
-      })
+      }
       .disposed(by: disposeBag)
     
     output.timeZero
-      .drive(scrollToNextObserver)
+      .drive(timeOverSubject)
       .disposed(by: disposeBag)
     
     output.isTimerActive
       .drive(pauseView.rx.isHidden)
       .disposed(by: disposeBag)
     
-    userInfoBoxView.infoButton.rx.tap.asDriver()
-      .scan(true) { lastValue, _ in
-        return !lastValue
+    let profileDoubleTapTrigger = self.profileCollectionView.rx
+      .tapGesture(configuration: { gestureRecognizer, delegate in
+        gestureRecognizer.numberOfTapsRequired = 2
+      })
+      .when(.recognized)
+      .mapToVoid()
+      .asDriverOnErrorJustEmpty()
+    
+    let pauseViewDoubleTapTrigger = self.pauseView.rx
+      .tapGesture(configuration: { gestureRecognizer, delegate in
+        gestureRecognizer.numberOfTapsRequired = 2
+      })
+      .when(.recognized)
+      .mapToVoid()
+      .asDriverOnErrorJustEmpty()
+    
+    Driver.merge(profileDoubleTapTrigger, pauseViewDoubleTapTrigger)
+      .map { _ in }
+      .drive(profileDoubleTapTriggerObserver)
+      .disposed(by: disposeBag)
+    
+    profileCollectionView.rx.didEndDisplayingCell.asDriver()
+      .debug()
+      .drive(with: self) { owner, indexPath in
+        self.userInfoBoxView.pageControl.currentPage
       }
-      .drive(userInfoBoxView.tagCollectionView.rx.isHidden)
+      .disposed(by: disposeBag)
+    
+    userInfoBoxView.infoButton.rx.tap.asDriver()
+      .scan(true, accumulator: { value, _ in
+        return !value
+      })
+      .drive(userInfoCollectionView.rx.isHidden)
+      .disposed(by: disposeBag)
+    
+    userInfoBoxView.refuseButton.rx.tapGesture()
+      .when(.recognized)
+      .compactMap { [weak self] _ in self?.indexPath }
+      .map { FallingCellButtonAction.refuse($0) }
+      .bind(to: fallingCellButtonAction)
+      .disposed(by: disposeBag)
+    
+    userInfoBoxView.likeButton.rx.tapGesture()
+      .when(.recognized)
+      .compactMap { [weak self] _ in self?.indexPath }
+      .map { FallingCellButtonAction.like($0) }
+      .bind(to: fallingCellButtonAction)
       .disposed(by: disposeBag)
   }
   
-  func dotPosition(progress: Double, rect: CGRect) -> CGPoint {
-    var progress = progress
-    // progress가 -0.05미만 혹은 1이상은 점(dot)을 0초에 위치시키기 위함
-    let strokeRange: Range<Double> = -0.05..<0.95
-    if !(strokeRange ~= progress) { progress = 0.95 }
+  func bind(userProfilePhotos: [UserProfilePhoto]) {
+    var snapshot = Snapshot()
+    snapshot.appendSections([.profile])
+    snapshot.appendItems(userProfilePhotos)
+    self.dataSource.apply(snapshot)
+    
+    userInfoBoxView.pageControl.numberOfPages = userProfilePhotos.count
+  }
+  
+  func dotPosition(progress: CGFloat, rect: CGRect) -> CGPoint {
+    let progress = round(progress * 100) / 100 // 오차를 줄이기 위함
     let radius = CGFloat(rect.height / 2 - cardTimeView.timerView.strokeLayer.lineWidth / 2)
-    let angle = 2 * CGFloat.pi * CGFloat(progress) - CGFloat.pi / 2
-    let dotX = radius * cos(angle + 0.35)
-    let dotY = radius * sin(angle + 0.35)
+    
+    var angle = 2 * CGFloat.pi * progress - CGFloat.pi / 2 + CGFloat.pi / 6 // 두 원의 중점과 원점이 이루는 각도를 30도로 가정
+    if angle <= -CGFloat.pi / 2 || CGFloat.pi * 1.5 <= angle  {
+      angle = -CGFloat.pi / 2 // 정점 각도
+    }
+    
+    let dotX = radius * cos(angle)
+    let dotY = radius * sin(angle)
     
     let point = CGPoint(x: dotX, y: dotY)
     
@@ -156,7 +231,7 @@ extension FallingUserCollectionViewCell {
   typealias DataSource = UICollectionViewDiffableDataSource<FallingProfileSection, Model>
   typealias Snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, Model>
   
-  func configureDataSource() {
+  func setDataSource() {
     let profileCellRegistration = UICollectionView.CellRegistration<ProfileCollectionViewCell, Model> { cell, indexPath, item in
       cell.bind(imageURL: item.url)
     }
@@ -164,13 +239,6 @@ extension FallingUserCollectionViewCell {
     self.dataSource = UICollectionViewDiffableDataSource(collectionView: profileCollectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
-  }
-  
-  func setupDataSource(userProfilePhotos: [UserProfilePhoto]) {
-    var snapshot = Snapshot()
-    snapshot.appendSections([.profile])
-    snapshot.appendItems(userProfilePhotos)
-    self.dataSource.apply(snapshot)
   }
 }
 
@@ -188,24 +256,22 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       
       base.cardTimeView.timerView.timerLabel.text = timeState.getText
       
-      base.cardTimeView.progressView.progress = CGFloat(timeState.getProgress)
+      base.cardTimeView.progressView.progress = timeState.getProgress
       
-      // TimerView Animation은 소수점 둘째 자리까지 표시해야 오차가 발생하지 않음
-      let strokeEnd = round(CGFloat(timeState.getProgress) * 100) / 100
+      let strokeEnd = timeState.getProgress
       base.cardTimeView.timerView.dotLayer.position = base.dotPosition(progress: strokeEnd, rect: base.cardTimeView.timerView.bounds)
       
       base.cardTimeView.timerView.strokeLayer.strokeEnd = strokeEnd
       
       base.profileCollectionView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
-      base.pauseView.transform = base.profileCollectionView.transform.rotated(by: timeState.rotateAngle)
     }
   }
   
   var user: Binder<FallingUser> {
     return Binder(self.base) { (base, user) in
-      base.photos = user.userProfilePhotos
-      base.setupDataSource(userProfilePhotos: user.userProfilePhotos)
+      base.bind(userProfilePhotos: user.userProfilePhotos)
       base.userInfoBoxView.bind(user)
+      base.userInfoCollectionView.bind(user)
     }
   }
 }
