@@ -22,8 +22,10 @@ final class FallingHomeViewModel: ViewModelType {
   
   struct Input {
     let initialTrigger: Driver<Void>
-    let timeOverTrigger: Driver<Void>
+    let timeOverTrigger: Driver<AnimationAction>
     let cellButtonAction: Driver<FallingCellButtonAction>
+    let complaintsButtonTapTrigger: Driver<Void>
+    let blockButtonTapTrigger: Driver<Void>
   }
   
   struct Output {
@@ -31,6 +33,8 @@ final class FallingHomeViewModel: ViewModelType {
     let nextCardIndexPath: Driver<IndexPath>
     let infoButtonAction: Driver<IndexPath>
     let rejectButtonAction: Driver<IndexPath>
+    let complaintsAction: Driver<IndexPath>
+    let blockAction: Driver<IndexPath>
   }
   
   init(fallingUseCase: FallingUseCaseInterface) {
@@ -57,8 +61,11 @@ final class FallingHomeViewModel: ViewModelType {
       currentIndexRelay.accept(currentIndexRelay.value)
     }
     
-    let updateScrollIndexTrigger = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { _, index in
-      currentIndexRelay.accept(index + 1)
+    let updateScrollIndexTrigger = timeOverTrigger.withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)) { action, index in
+      switch action {
+      case .scroll: currentIndexRelay.accept(index + 1)
+      case .delete: currentIndexRelay.accept(index + 1)
+      }
     }
     
     let nextCardIndexPath = Driver.merge(
@@ -82,11 +89,28 @@ final class FallingHomeViewModel: ViewModelType {
         return nil
       }
     
+    let complaintsAction = input.complaintsButtonTapTrigger.withLatestFrom(currentIndexRelay.asDriver()).map { IndexPath(item: $0, section: 0) }
+    
+    let blockAction = input.blockButtonTapTrigger
+      .withLatestFrom(currentIndexRelay.asDriver()).map { index in
+        let indexPath = IndexPath(item: index, section: 0)
+//        var mutable = snapshot.value
+//        if indexPath.item >= mutable.count {
+//          fatalError("index range")
+//        }
+//        let deleted = mutable[indexPath.item]
+//        mutable.remove(at: indexPath.item)
+//        snapshot.accept(mutable)
+        return indexPath
+      }
+    
     return Output(
       userList: userList,
       nextCardIndexPath: nextCardIndexPath,
       infoButtonAction: infoButtonAction,
-      rejectButtonAction: rejectButtonAction
+      rejectButtonAction: rejectButtonAction,
+      complaintsAction: complaintsAction,
+      blockAction: blockAction
     )
   }
 }
