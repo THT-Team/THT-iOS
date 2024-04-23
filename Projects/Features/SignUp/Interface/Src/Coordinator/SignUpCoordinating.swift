@@ -22,4 +22,7 @@ public protocol SignUpCoordinating: Coordinator {
   func finishFlow()
   func phoneNumberFlow()
   func policyFlow()
+  func genderPickerFlow()
+  func preferGenderPickerFlow()
+  func photoFlow()
 }

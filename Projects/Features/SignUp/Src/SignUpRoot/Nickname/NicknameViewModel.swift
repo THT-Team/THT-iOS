@@ -20,6 +20,8 @@ final class NicknameInputViewModel: ViewModelType {
 
   weak var delegate: NicknameInputDelegate?
 
+  private var disposeBag = DisposeBag()
+
   struct Input {
     let viewWillAppear: Driver<Void>
     let nickname: Driver<String>
@@ -28,11 +30,22 @@ final class NicknameInputViewModel: ViewModelType {
   }
 
   struct Output {
-
+    let validate: Driver<Bool>
   }
 
   func transform(input: Input) -> Output {
+    let text = input.nickname
 
-    return Output()
+    let validate = text.map { !$0.isEmpty }
+
+    input.nextBtn
+      .drive(with: self) { owner, _ in
+      owner.delegate?.nicknameNextButtonTap()
+      }
+      .disposed(by: disposeBag)
+
+    return Output(
+      validate: validate
+    )
   }
 }

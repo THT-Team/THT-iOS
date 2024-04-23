@@ -24,6 +24,4 @@ public struct UIViewPreview<View: UIView>: UIViewRepresentable {
     view.setContentHuggingPriority(.defaultHigh, for: .vertical)
   }
 }
-
-
 #endif

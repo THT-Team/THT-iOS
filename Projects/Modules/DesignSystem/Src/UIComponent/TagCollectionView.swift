@@ -88,11 +88,11 @@ extension TagCollectionView: UICollectionViewDataSource {
   }
 }
 
-class LeftAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
+public class LeftAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
 
   let cellSpacing: CGFloat = 10
 
-  override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+  public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 
     self.minimumLineSpacing = 10.0
         sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)

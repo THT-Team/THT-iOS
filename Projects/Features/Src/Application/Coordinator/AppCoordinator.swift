@@ -33,7 +33,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public override func start() {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
       self.selectFlow()
     }
   }
@@ -59,7 +59,11 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   // MARK: - Private
   private func selectFlow() {
-    mainFlow()
+    if AppData.Auth.needAuth {
+      signUpFlow()
+    } else {
+      mainFlow()
+    }
   }
 }
 

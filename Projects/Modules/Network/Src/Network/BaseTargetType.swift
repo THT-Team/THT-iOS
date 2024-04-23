@@ -7,6 +7,7 @@
 
 import Foundation
 import Moya
+import Core
 
 public protocol BaseTargetType: TargetType { }
 
@@ -16,7 +17,13 @@ public extension BaseTargetType {
   }
 
   var headers: [String: String]? {
-    return nil
+    return [
+      "Authorization": "Bearer \(AppData.Auth.accessToken)",
+      "Content-Type": "application/json",
+    ]
+  }
+//    return nil
+
 //    if let accessToken = Keychain.shared.get(.accessToken) {
 //      return [
 //        "Authorization": "Bearer \(accessToken)",
@@ -25,6 +32,8 @@ public extension BaseTargetType {
 //    } else {
 //      return nil
 //    }
+  var validationType: ValidationType {
+    return.customCodes(Array(200..<500).filter { $0 != 401 })
   }
 }
 

@@ -13,10 +13,6 @@ final class NicknameInputViewController: TFBaseViewController {
 
   fileprivate let mainView = NicknameView()
 
-  override func loadView() {
-    self.view = mainView
-  }
-  
   private let viewModel: NicknameInputViewModel
 
   init(viewModel: NicknameInputViewModel) {
@@ -28,8 +24,11 @@ final class NicknameInputViewController: TFBaseViewController {
     fatalError("init(coder:) has not been implemented")
   }
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
+  override func makeUI() {
+    view.addSubview(mainView)
+    mainView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
 
     keyBoardSetting()
   }
@@ -37,19 +36,21 @@ final class NicknameInputViewController: TFBaseViewController {
   override func bindViewModel() {
     let viewWillAppear =  rx.sentMessage(#selector(UIViewController.viewWillAppear(_:)))
       .do(onNext: { [weak self] _ in
-        self?.mainView.nicknameTextField.becomeFirstResponder()
+        self?.mainView.nicknameInputView.becomeFirstResponder()
       })
       .map { _ in }
       .asDriver(onErrorDriveWith: .empty())
 
     let input = NicknameInputViewModel.Input(
       viewWillAppear: viewWillAppear,
-      nickname: mainView.nicknameTextField.rx.text.orEmpty.asDriver(),
-      clearBtn: mainView.clearBtn.rx.tap.asDriver(),
+      nickname: mainView.nicknameInputField.textField.rx.text.orEmpty.asDriver(),
+      clearBtn: mainView.nicknameInputField.clearBtn.rx.tap.asDriver(),
       nextBtn: mainView.nextBtn.rx.tap.asDriver()
     )
 
     let output = viewModel.transform(input: input)
+
+
 //
 //    output.phoneNum
 //      .drive(phoneNumTextField.rx.text)
@@ -74,38 +75,10 @@ final class NicknameInputViewController: TFBaseViewController {
 //
 //    output.validate
 //      .map { $0 == true }
-//      .drive(verifyBtn.rx.isEnabled)
-//      .disposed(by: disposeBag)
-//
-//    output.error
-//      .asSignal()
-//      .emit {
-//        print($0)
-//      }.disposed(by: disposeBag)
-//
-//    output.clearButtonTapped
-//      .drive(phoneNumTextField.rx.text)
-//      .disposed(by: disposeBag)
-//
-//
-//    output.viewStatus
-//      .map { $0 != .authCode }
-//      .drive(codeInputView.rx.isHidden)
-//      .disposed(by: disposeBag)
-//
-//    output.viewStatus
-//      .map { $0 != .phoneNumber }
-//      .drive(onNext: { [weak self] in
-//        guard let self else { return }
-//        if $0 {
-//          self.codeInputTextField.becomeFirstResponder()
-//        }
+//      .do(onNext: { [weak self] status in
+//        self?.mainView.nextBtn.updateColors(status: isEnabled)
 //      })
-//      .disposed(by: disposeBag)
-
-//
-//    output.navigatorDisposble
-//      .drive()
+//      .drive(mainView.nextBtn.rx.isEnabled)
 //      .disposed(by: disposeBag)
   }
 
@@ -117,20 +90,20 @@ final class NicknameInputViewController: TFBaseViewController {
         vc.view.endEditing(true)
       }
       .disposed(by: disposeBag)
-
-    RxKeyboard.instance.visibleHeight
-      .skip(1)
-      .drive(with: self, onNext: { owner, keyboardHeight in
-        if keyboardHeight == 0 {
-          owner.mainView.snp.updateConstraints {
-            $0.bottom.equalToSuperview().inset(14)
-          }
-        } else {
-          owner.mainView.nextBtn.snp.updateConstraints {
-            $0.bottom.equalToSuperview().inset(keyboardHeight - owner.view.safeAreaInsets.bottom + 14)
-          }
-        }
-      })
-      .disposed(by: disposeBag)
+//
+//    RxKeyboard.instance.visibleHeight
+//      .skip(1)
+//      .drive(with: self, onNext: { owner, keyboardHeight in
+//        if keyboardHeight == 0 {
+//          owner.mainView.snp.updateConstraints {
+//            $0.bottom.equalToSuperview().inset(14)
+//          }
+//        } else {
+//          owner.mainView.nextBtn.snp.updateConstraints {
+//            $0.bottom.equalToSuperview().inset(keyboardHeight - owner.view.safeAreaInsets.bottom + 14)
+//          }
+//        }
+//      })
+//      .disposed(by: disposeBag)
   }
 }

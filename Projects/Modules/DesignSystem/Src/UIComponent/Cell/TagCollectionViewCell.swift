@@ -9,7 +9,7 @@ import UIKit
 
 //import LikeInterface
 
-final class TagCollectionViewCell: UICollectionViewCell {
+public final class TagCollectionViewCell: UICollectionViewCell {
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
@@ -64,7 +64,7 @@ final class TagCollectionViewCell: UICollectionViewCell {
     }
   }
 //
-  override func layoutSubviews() {
+  public override func layoutSubviews() {
     super.layoutSubviews()
     setUpLayer()
   }
@@ -74,13 +74,13 @@ final class TagCollectionViewCell: UICollectionViewCell {
     contentView.layer.masksToBounds = true
   }
 
-  func bind(_ viewModel: TagItemViewModel) {
+  public func bind(_ viewModel: TagItemViewModel) {
     self.titleLabel.text = viewModel.title
     self.emojiView.text = viewModel.emoji
   }
 }
 
-struct TagItemViewModel {
+public struct TagItemViewModel {
   let emojiCode: String
   let title: String
 
@@ -88,20 +88,8 @@ struct TagItemViewModel {
     emojiCode.unicodeToEmoji()
   }
 
-  init(emojiCode: String, title: String) {
+  public init(emojiCode: String, title: String) {
     self.emojiCode = emojiCode
     self.title = title
   }
 }
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-//struct TagCellPreview: PreviewProvider {
-////    static var previews: some View {
-////          PreviewRepresentable {
-////
-////          }.frame(width: 200, height: 150)
-////        .previewLayout(.sizeThatFits)
-////    }
-//}
-#endif
