@@ -121,19 +121,30 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   
   func bind<O>(
     _ viewModel: FallingUserCollectionViewCellModel,
-    timerActiveTrigger: Driver<Bool>,
-    timeOverSubject: PublishSubject<Void>,
+    timerActiveTrigger: Driver<TimerActiveAction>,
+    timeOverSubject: PublishSubject<AnimationAction>,
     profileDoubleTapTriggerObserver: PublishSubject<Void>,
-    fallingCellButtonAction: O
+    fallingCellButtonAction: O,
+    reportButtonTapTriggerObserver: PublishSubject<Void>
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
-    let rejectButtonTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    let infoButtonTapTrigger = userInfoBoxView.infoButton.rx.tap.asDriver()
     
-    let likeButtonTrigger = userInfoBoxView.likeButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    let rejectButtonTapTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    
+    let likeButtonTapTrigger = userInfoBoxView.likeButton.rx.tap.asDriver()
+    
+    let reportButtonTapTrigger = userInfoView.reportButton.rx.tap.asDriver()
+    
+    let showUserInfoTrigger = Driver.merge(infoButtonTapTrigger, reportButtonTapTrigger).scan(true) { value, _ in
+      return !value
+    }
     
     let input = FallingUserCollectionViewCellModel.Input(
       timerActiveTrigger: timerActiveTrigger,
-      rejectButtonTrigger: rejectButtonTrigger,
-      likeButtonTrigger: likeButtonTrigger
+      showUserInfoTrigger: showUserInfoTrigger,
+      rejectButtonTapTrigger: rejectButtonTapTrigger,
+      likeButtonTapTrigger: likeButtonTapTrigger,
+      reportButtonTapTrigger: reportButtonTapTrigger
     )
     
     let output = viewModel
@@ -151,11 +162,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .drive(timeOverSubject)
       .disposed(by: disposeBag)
     
-    output.isTimerActive
-      .do(onNext: { _ in
-        self.profileCollectionView.hiddenDimView()
-      })
-      .drive(pauseView.rx.isHidden)
+    output.timerActiveAction
+      .drive(self.rx.timerActiveAction)
       .disposed(by: disposeBag)
     
     let profileDoubleTapTrigger = self.profileCollectionView.rx
@@ -179,18 +187,10 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .drive(profileDoubleTapTriggerObserver)
       .disposed(by: disposeBag)
     
-    profileCollectionView.rx.didEndDisplayingCell.asDriver()
-      .debug()
-      .drive(with: self) { owner, indexPath in
-        self.userInfoBoxView.pageControl.currentPage
-      }
-      .disposed(by: disposeBag)
-    
-    userInfoBoxView.infoButton.rx.tap.asDriver()
-      .scan(true) { value, _ in return !value }
+    output.showUserInfoAction
       .drive(userInfoView.rx.isHidden)
       .disposed(by: disposeBag)
-    
+      
     output.rejectButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.reject($0) }
@@ -201,6 +201,10 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
       .drive(fallingCellButtonAction)
+      .disposed(by: disposeBag)
+    
+    output.reportButtonAction
+      .drive(reportButtonTapTriggerObserver)
       .disposed(by: disposeBag)
   }
   
@@ -276,10 +280,26 @@ extension Reactive where Base: FallingUserCollectionViewCell {
   }
   
   var user: Binder<FallingUser> {
-    return Binder(self.base) { (base, user) in
+    return Binder(self.base) { base, user in
       base.bind(userProfilePhotos: user.userProfilePhotos)
       base.userInfoBoxView.bind(user)
       base.userInfoView.bind(user)
+    }
+  }
+  
+  var timerActiveAction: Binder<TimerActiveAction> {
+    return Binder(self.base) { base, action in
+      if action.state {
+        base.profileCollectionView.hiddenDimView()
+        base.pauseView.isHidden = true
+      } else {
+        switch action {
+        case .reportButtonTap, .DimViewTap:
+          base.pauseView.isHidden = true
+        case .viewWillDisAppear, .profileDoubleTap:
+          base.pauseView.isHidden = false
+        }
+      }
     }
   }
 }
