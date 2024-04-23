@@ -17,6 +17,24 @@ enum FallingCellButtonAction {
   case like(IndexPath)
 }
 
+enum TimerActiveAction {
+  case viewWillDisAppear(Bool)
+  case profileDoubleTap(Bool)
+  case reportButtonTap(Bool)
+  case DimViewTap(Bool)
+  
+  var state: Bool {
+    switch self {
+    case .viewWillDisAppear(let flag), .profileDoubleTap(let flag), .reportButtonTap(let flag), .DimViewTap(let flag):
+      return flag
+    }
+  }
+}
+
+enum AnimationAction {
+  case scroll, delete
+}
+
 final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
   private var dataSource: DataSource!
@@ -49,28 +67,46 @@ final class FallingHomeViewController: TFBaseViewController {
   }
   
   override func bindViewModel() {
-    let timeOverSubject = PublishSubject<Void>()
+    let timeOverSubject = PublishSubject<AnimationAction>()
     
     let initialTrigger = Driver<Void>.just(())
     let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
     let fallingCellButtonAction = PublishSubject<FallingCellButtonAction>()
     
-    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in false }.asDriverOnErrorJustEmpty()
-    let timerActiveRelay = BehaviorRelay(value: true)
-    let profileDoubleTapTriggerObserver = PublishSubject<Void>()
+    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in
+      return TimerActiveAction.viewWillDisAppear(false)
+    }.asDriverOnErrorJustEmpty()
     
+    let timerActiveRelay = BehaviorRelay<TimerActiveAction>(value: .profileDoubleTap(true))
+    
+    let profileDoubleTapTriggerObserver = PublishSubject<Void>()
     let profileDoubleTapTrigger = profileDoubleTapTriggerObserver
-      .withLatestFrom(timerActiveRelay) { !$1 }
+      .withLatestFrom(timerActiveRelay) {
+        return TimerActiveAction.profileDoubleTap(!$1.state)
+      }
       .asDriverOnErrorJustEmpty()
     
-    Driver.merge(profileDoubleTapTrigger, viewWillDisAppearTrigger)
+    let reportButtonTapTriggerObserver = PublishSubject<Void>()
+    
+    let reportButtonTapTrigger = reportButtonTapTriggerObserver
+      .withLatestFrom(timerActiveRelay) { _, _ in 
+        return TimerActiveAction.reportButtonTap(false)
+      }
+      .asDriverOnErrorJustEmpty()
+    
+    Driver.merge(reportButtonTapTrigger, profileDoubleTapTrigger, viewWillDisAppearTrigger)
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
+    
+    let complaintsButtonTapTrigger = PublishRelay<Void>()
+    let blockButtonTapTrigger = PublishRelay<Void>()
     
     let input = FallingHomeViewModel.Input(
       initialTrigger: initialTrigger,
       timeOverTrigger: timerOverTrigger,
-      cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty()
+      cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty(),
+      complaintsButtonTapTrigger: complaintsButtonTapTrigger.asDriverOnErrorJustEmpty(),
+      blockButtonTapTrigger: blockButtonTapTrigger.asDriverOnErrorJustEmpty()
     )
     
     let output = viewModel.transform(input: input)
@@ -88,7 +124,8 @@ final class FallingHomeViewController: TFBaseViewController {
         timerActiveTrigger: timerActiveTrigger,
         timeOverSubject: timeOverSubject,
         profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
-        fallingCellButtonAction: fallingCellButtonAction
+        fallingCellButtonAction: fallingCellButtonAction,
+        reportButtonTapTriggerObserver: reportButtonTapTriggerObserver
       )
     }
     
@@ -124,7 +161,8 @@ final class FallingHomeViewController: TFBaseViewController {
           at: indexPath,
           at: .top,
           animated: true
-        )})
+        )
+      })
       .disposed(by: self.disposeBag)
     
     output.infoButtonAction
@@ -142,10 +180,53 @@ final class FallingHomeViewController: TFBaseViewController {
         cell.rejectLottieView.isHidden = false
         cell.rejectLottieView.play()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          timeOverSubject.onNext(())
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+          timeOverSubject.onNext(.scroll)
         }
       }
+      .disposed(by: disposeBag)
+    
+    reportButtonTapTriggerObserver.asDriverOnErrorJustEmpty()
+      .do { _ in
+        self.showAlert(
+          leftActionTitle: "신고하기",
+          rightActionTitle: "차단하기",
+          leftActionCompletion: {
+            self.showAlert(action: .complaints)
+          },
+          rightActionCompletion: {
+            self.showAlert(
+              action: .block,
+              leftActionCompletion: {
+                blockButtonTapTrigger.accept(())
+              },
+              rightActionCompletion: {
+                timerActiveRelay.accept(.DimViewTap(true))
+              }
+            )
+          },
+          dimActionCompletion: {
+            timerActiveRelay.accept(.DimViewTap(true))
+          }
+        )
+      }
+      .drive()
+      .disposed(by: disposeBag)
+    
+    Driver.merge(output.complaintsAction, output.blockAction)
+      .do { indexPath in
+//        timerActiveRelay.accept(.DimViewTap(true))
+        self.deleteItems(indexPath)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          timeOverSubject.onNext(.delete)
+          timerActiveRelay.accept(.DimViewTap(true))
+        }
+        
+//        timerActiveRelay.accept(.DimViewTap(true))
+        
+        
+      }
+      .drive()
       .disposed(by: disposeBag)
   }
 }
@@ -158,6 +239,21 @@ extension FallingHomeViewController {
   typealias SectionType = FallingProfileSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
   typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
+  
+  private func deleteItems(_ indexPath: IndexPath) {
+    guard
+      let item = self.dataSource.itemIdentifier(for: indexPath),
+      let cell = self.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
+    var snapshot = self.dataSource.snapshot()
+    snapshot.deleteItems([item])
+    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut) {
+      cell.transform = cell.transform.rotated(by: -.pi / 6).concatenating(cell.transform.translatedBy(x: cell.frame.minX - self.homeView.collectionView.frame.width, y: 37.62))
+    } completion: { [weak self] _ in
+      guard let self = self else { return }
+
+//      self.dataSource.apply(snapshot)
+    }
+  }
 }
 
 //#if DEBUG
