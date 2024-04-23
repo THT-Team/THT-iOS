@@ -132,18 +132,22 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
-    let timerActiveTrigger: Driver<Bool>
-    let rejectButtonTrigger: Driver<Void>
-    let likeButtonTrigger: Driver<Void>
+    let timerActiveTrigger: Driver<TimerActiveAction>
+    let showUserInfoTrigger: Driver<Bool>
+    let rejectButtonTapTrigger: Driver<Void>
+    let likeButtonTapTrigger: Driver<Void>
+    let reportButtonTapTrigger: Driver<Void>
   }
   
   struct Output {
     let user: Driver<FallingUser>
     let timeState: Driver<TimeState>
-    let timeZero: Driver<Void>
-    let isTimerActive: Driver<Bool>
+    let timeZero: Driver<AnimationAction>
+    let timerActiveAction: Driver<TimerActiveAction>
     let rejectButtonAction: Driver<Void>
     let likeButtonAction: Driver<Void>
+    let showUserInfoAction: Driver<Bool>
+    let reportButtonAction: Driver<Void>
   }
   
   func transform(input: Input) -> Output {
@@ -152,17 +156,17 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
     
     let timerActiveTrigger = input.timerActiveTrigger
     
-    let rejectButtonAction = input.rejectButtonTrigger
+    let rejectButtonAction = input.rejectButtonTapTrigger
       .do(onNext: { _ in
         timer.pause()
         timer.currentTime.accept(-1.0) // reject 시에는 0.5초 후에 넘어 가야하는 제약이 있어서, 0초로 설정하지 않았고, reject 버튼 이벤트에 대한 처리는 상위 뷰에서 따로 처리하고 있음.
       })
     
-    let likeButtonAction = input.likeButtonTrigger
+    let likeButtonAction = input.likeButtonTapTrigger
     
     let timeActiveAction = timerActiveTrigger
-      .do { value in
-        if !value {
+      .do { action in
+        if !action.state {
           timer.pause()
         } else {
           timer.start()
@@ -172,16 +176,23 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
     let time = timer.currentTime.asDriver(onErrorJustReturn: 0.0)
     
     let timeState = time.map { TimeState(rawValue: $0) }
-    let timeZero = time.filter { $0 == 0.0 }.map { _ in }
-    let isTimerActive = timeActiveAction.asDriver(onErrorJustReturn: true)
+    let timeZero = time.filter { $0 == 0.0 }.flatMapLatest { _ in Driver.just(AnimationAction.scroll) }
+    let timerActiveAction = timeActiveAction.asDriver(onErrorJustReturn:
+        .profileDoubleTap(true))
+    
+    let showUserInfoAction = input.showUserInfoTrigger
+    
+    let reportButtonTapTrigger = input.reportButtonTapTrigger
     
     return Output(
       user: user,
       timeState: timeState,
       timeZero: timeZero,
-      isTimerActive: isTimerActive,
+      timerActiveAction: timerActiveAction,
       rejectButtonAction: rejectButtonAction,
-      likeButtonAction: likeButtonAction
+      likeButtonAction: likeButtonAction,
+      showUserInfoAction: showUserInfoAction,
+      reportButtonAction: reportButtonTapTrigger
     )
   }
 }
