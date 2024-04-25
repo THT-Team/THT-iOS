@@ -45,13 +45,6 @@ open class PauseView: TFBaseView {
     return imageView
   }()
   
-  private lazy var labelStackView: UIStackView = {
-    let stackView = UIStackView()
-    stackView.axis = .vertical
-    stackView.spacing = 4
-    return stackView
-  }()
-  
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.thtP1R
@@ -59,18 +52,9 @@ open class PauseView: TFBaseView {
     label.textColor = DSKitAsset.Color.pauseTitle.color
     label.numberOfLines = 2
     label.setTextWithLineHeight(
-      text: "대화가 잘 통하는 무디를\n찾을 준비가 됐나요?",
-      lineHeight: 19.8
+      text: "무디 탐색을 일시정지했어요.\n다시 무디를 보고싶다면 더블 탭해주세요.",
+      lineHeight: 19.6
     )
-    return label
-  }()
-  
-  private lazy var resumeLabel: UILabel = {
-    let label = UILabel()
-    label.text = "더블탭으로 다시 시작하기"
-    label.font = UIFont.thtP1M
-    label.textAlignment = .center
-    label.textColor = DSKitAsset.Color.neutral50.color
     return label
   }()
     
@@ -79,11 +63,10 @@ open class PauseView: TFBaseView {
     
     self.addSubview(blurView)
     self.blurView.contentView.addSubview(stackView)
-    self.blurView.contentView.addSubview(resumeLabel)
     
     stackView.addArrangedSubviews([
       pauseView,
-      labelStackView
+      titleLabel
     ])
     
     pauseView.snp.makeConstraints {
@@ -95,16 +78,7 @@ open class PauseView: TFBaseView {
     pauseImageView.snp.makeConstraints {
       $0.centerX.centerY.equalToSuperview()
     }
-    
-    resumeLabel.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().inset(20)
-    }
-    
-    labelStackView.addArrangedSubviews([
-      titleLabel
-    ])
-    
+      
     stackView.snp.makeConstraints {
       $0.centerX.centerY.equalToSuperview()
     }
