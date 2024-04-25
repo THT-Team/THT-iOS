@@ -12,11 +12,6 @@ import RxCocoa
 
 import Core
 
-// FIXME: Refactor Need
-protocol SignUpRootDelegate: AnyObject {
-  func toPhoneButtonTap()
-}
-
 final class SignUpRootViewModel: ViewModelType {
   struct Input {
     let phoneBtn: Driver<Void>
@@ -29,14 +24,14 @@ final class SignUpRootViewModel: ViewModelType {
 
   }
 
-  weak var delegate: SignUpRootDelegate?
+  weak var delegate: SignUpCoordinatingActionDelegate?
 
   var disposeBag: DisposeBag = DisposeBag()
 
   func transform(input: Input) -> Output {
     input.phoneBtn
       .drive(with: self, onNext: { owner, _ in
-        owner.delegate?.toPhoneButtonTap()
+        owner.delegate?.invoke(.phoneNumber)
       })
       .disposed(by: disposeBag)
 

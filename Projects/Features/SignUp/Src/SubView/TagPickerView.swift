@@ -6,26 +6,44 @@
 //
 
 import UIKit
+import SignUpInterface
 
 import DSKit
 
-final class InterestTagPickerView: TFBaseView {
+final class TagPickerView: TFBaseView {
+  struct AttributedTitleInfo {
+    let title: String
+    let targetText: String
+  }
 
+  private let titleInfo: AttributedTitleInfo
+  private let subTitleInfo: AttributedTitleInfo
+
+  init(titleInfo: AttributedTitleInfo, subTitleInfo: AttributedTitleInfo) {
+    self.titleInfo = titleInfo
+    self.subTitleInfo = subTitleInfo
+    super.init(frame: .zero)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   lazy var container = UIView().then {
     $0.backgroundColor = DSKitAsset.Color.neutral700.color
   }
   lazy var titleLabel: UILabel = UILabel().then {
-    $0.text = "관심사를 알려주세요"
+    $0.text = self.titleInfo.title
     $0.textColor = DSKitAsset.Color.neutral300.color
     $0.font = .thtH1B
-    $0.asColor(targetString: "관심사", color: DSKitAsset.Color.neutral50.color)
+    $0.asColor(targetString: self.titleInfo.targetText, color: DSKitAsset.Color.neutral50.color)
   }
 
   lazy var subTitleLabel: UILabel = UILabel().then {
-    $0.text = "내 관심사 3개를 선택해주세요."
+    $0.text = self.subTitleInfo.title
     $0.textColor = DSKitAsset.Color.neutral300.color
     $0.font = .thtH4B
-    $0.asColor(targetString: "내 관심사", color: DSKitAsset.Color.neutral50.color)
+    $0.asColor(targetString: self.subTitleInfo.targetText, color: DSKitAsset.Color.neutral50.color)
   }
 
   lazy var collectionView: UICollectionView = {
@@ -34,7 +52,7 @@ final class InterestTagPickerView: TFBaseView {
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
 
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.register(cellType: TagCollectionViewCell.self)
+    collectionView.register(cellType: InputTagCollectionViewCell.self)
     collectionView.isScrollEnabled = true
     collectionView.showsVerticalScrollIndicator = false
     collectionView.backgroundColor = .clear

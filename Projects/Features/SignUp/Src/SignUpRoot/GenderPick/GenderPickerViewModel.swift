@@ -13,12 +13,6 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 
-enum Gender: Int {
-  case male
-  case female
-  case both
-}
-
 final class GenderPickerViewModel: ViewModelType {
   weak var delegate: SignUpCoordinatingActionDelegate?
 
@@ -55,12 +49,14 @@ final class GenderPickerViewModel: ViewModelType {
       .withLatestFrom(birthday)
       .debug("tapped")
       .drive(with: self) { owner, birthday in
-        owner.delegate?.invoke(.birthdayTap(birthday: birthday, listener: owner))
+        owner.delegate?.invoke(.birthdayTap(birthday, listener: owner))
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
-      .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtGender)
+      .withLatestFrom(birthday)
+      .withLatestFrom(selectedGender) { (date: $0, gender: $1) }
+      .drive(with: self) { owner, value in
+        owner.delegate?.invoke(.nextAtGender(birthday: value.date, gender: value.gender))
       }.disposed(by: disposeBag)
 
     let formattedBirthday = birthday.map {

@@ -1,8 +1,8 @@
 //
-//  TFTextField.swift
-//  SignUpInterface
+//  TFTextView.swift
+//  SignUp
 //
-//  Created by Kanghos on 2024/04/18.
+//  Created by Kanghos on 2024/04/24.
 //
 
 import UIKit
@@ -11,11 +11,16 @@ import DSKit
 
 // TODO: RxExtension 및 기존 프로퍼티 private
 // TODO: textField focus
-class TFTextField: UIControl {
+class TFTextView: UIControl {
+  private let maxHeight: CGFloat = 120
+  private let minHeight: CGFloat = 40
+  private var textViewHeightConstraint: NSLayoutConstraint?
 
   enum State {
     case text(text: String?)
     case error(error: InputError)
+    case focus
+    case focusOut
   }
 
   enum InputError: Error {
@@ -26,33 +31,21 @@ class TFTextField: UIControl {
   var text: String? {
     set {
       self.textField.text = newValue
-      self.divider.backgroundColor = (newValue?.isEmpty ?? true) == false
-      ? DSKitAsset.Color.primary500.color
-      : DSKitAsset.Color.neutral300.color
       self.calculateCount(count: newValue?.count ?? 0)
     } get {
       return self.textField.text
     }
   }
 
-  var placeholder: String? = nil {
-    didSet {
-      self.textField.placeholder = placeholder
-    }
-  }
-
   /// set Total Count
   private var totalCount: Int
 
-  var hasText: Bool {
-     return (text?.isEmpty ?? true) == false
-  }
-
-  lazy var textField: UITextField = UITextField().then {
-    $0.placeholder = "입력"
+  lazy var textField = UITextView().then {
     $0.textColor = DSKitAsset.Color.primary500.color
-    $0.font = .thtH2B
-//    $0.keyboardType = .numberPad
+    $0.font = .thtSubTitle1R
+    $0.isScrollEnabled = false
+    $0.isEditable = true
+    $0.keyboardType = .asciiCapable
   }
 
   lazy var clearBtn: UIButton = UIButton().then {
@@ -97,10 +90,9 @@ class TFTextField: UIControl {
     self.totalCount = totalCount
     super.init(frame: .zero)
     self.descLabel.text = description
-    self.placeholder = placeholder
     makeUI()
   }
-  
+
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
@@ -116,11 +108,14 @@ class TFTextField: UIControl {
     textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
     textField.snp.makeConstraints {
       $0.top.leading.equalToSuperview()
+      $0.trailing.equalTo(clearBtn.snp.leading)
     }
+    self.textViewHeightConstraint = textField.heightAnchor.constraint(equalToConstant: minHeight)
+    self.textViewHeightConstraint?.isActive = true
 
     clearBtn.snp.makeConstraints {
       $0.leading.equalTo(textField.snp.trailing)
-      $0.centerY.equalTo(textField)
+      $0.bottom.equalTo(textField)
       $0.trailing.equalToSuperview()
       $0.size.equalTo(24)
     }
@@ -164,19 +159,11 @@ class TFTextField: UIControl {
     clearBtn.addAction(UIAction(handler: { [weak self] _ in
       self?.textField.text = ""
       self?.clearBtn.isHidden = true
-      self?.textField.sendActions(for: .editingChanged)
       self?.sendActions(for: .editingChanged)
     }), for: .touchUpInside)
 
-    textField.addAction(UIAction(handler: { [weak self] _ in
-      self?.clearBtn.isHidden = self?.textField.text?.isEmpty == true
-      self?.text = self?.textField.text
-      self?.render(state: .text(text: self?.text))
-      if let totalCount = self?.totalCount, let count = self?.text?.count, count > totalCount {
-        self?.render(state: .error(error: InputError.overflow))
-      }
-      self?.sendActions(for: .editingChanged)
-    }), for: .editingChanged)
+    textField.delegate = self
+    updateDividerColor(.focusOut)
   }
 
   func render(state: State) {
@@ -187,17 +174,8 @@ class TFTextField: UIControl {
       self.errorDescriptionLabel.text = ""
 
     case .error(let inputError):
-      self.errorDescriptionLabel.isHidden = false
-      self.divider.backgroundColor = DSKitAsset.Color.error.color
-
-      if case let .validate(description) = inputError {
-        self.errorDescriptionLabel.text = description
-        self.countLabel.asColor(targetString: "\(self.text?.count ?? 0)", color: DSKitAsset.Color.neutral400.color)
-      }
-      if case .overflow = inputError {
-        self.errorDescriptionLabel.text = "\(self.totalCount)자 이상 입력할 수 없습니다."
-        self.countLabel.asColor(targetString: "\(self.text?.count ?? 0)", color: DSKitAsset.Color.error.color)
-      }
+      self.updateErrorView(inputError)
+    default: break
     }
   }
 
@@ -206,23 +184,85 @@ class TFTextField: UIControl {
     let target = "\(count)"
     self.countLabel.text = fullText
     self.countLabel.asFont(targetString: target, font: .thtCaption1B)
+
+    if count > totalCount {
+      self.render(state: .error(error: .overflow))
+    }
+  }
+}
+
+extension TFTextView: UITextViewDelegate {
+  public func textViewDidBeginEditing(_ textView: UITextView) {
+    updateDividerColor(.focus)
+  }
+
+  public func textViewDidEndEditing(_ textView: UITextView) {
+    updateDividerColor(.focusOut)
+  }
+
+  public func textViewDidChange(_ textView: UITextView) {
+    let constrained = CGSize(width: textView.bounds.width, height: minHeight)
+    let size = sizeThatFits(constrained)
+    let floor = max(minHeight, size.height)
+    let ceil = min(maxHeight, floor)
+    self.textViewHeightConstraint?.constant = ceil
+    self.layoutIfNeeded()
+    textView.isScrollEnabled = maxHeight <= size.height
+    updateDividerColor(.focusOut)
+    self.calculateCount(count: textView.text.count)
+    self.sendActions(for: .valueChanged)
+    updateDividerColor(.text(text: textField.text))
+  }
+
+  func updateDividerColor(_ state: State) {
+    switch state {
+    case .error:
+      self.divider.backgroundColor = DSKitAsset.Color.error.color
+    case .focus:
+      self.divider.backgroundColor = DSKitAsset.Color.primary500.color
+    default:
+      self.divider.backgroundColor = self.textField.text.isEmpty
+      ? DSKitAsset.Color.neutral300.color
+      : DSKitAsset.Color.primary500.color
+    }
+    self.clearBtn.isHidden = self.textField.text.isEmpty
+  }
+
+  func updateErrorView(_ inputError: InputError) {
+    self.errorDescriptionLabel.isHidden = false
+
+    if case let .validate(description) = inputError {
+      self.errorDescriptionLabel.text = description
+      self.countLabel.asColor(targetString: "\(self.text?.count ?? 0)", color: DSKitAsset.Color.neutral400.color)
+    }
+    if case .overflow = inputError {
+      self.errorDescriptionLabel.text = "\(self.totalCount)자 이상 입력할 수 없습니다."
+      self.countLabel.asColor(targetString: "\(self.text?.count ?? 0)", color: DSKitAsset.Color.error.color)
+    }
+    updateDividerColor(.error(error: inputError))
+  }
+
+}
+
+extension Reactive where Base: TFTextView {
+  var text: ControlProperty<String?> {
+    self.base.textField.rx.text
   }
 }
 
 #if canImport(SwiftUI) && DEBUG
 import SwiftUI
 
-struct TFTextFieldPreview: PreviewProvider {
+struct TFTextViewPreview: PreviewProvider {
 
   static var previews: some View {
     UIViewPreview {
-      let component = TFTextField()
-      component.render(state: .text(text: "닉네임닉네임"))
-      component.render(state: .error(error: .overflow))
+      let component = TFTextView()
       component.render(state: .error(error: .validate(text: "중복된 닉네임입니다.")))
 //      component.render(state: .text(text: nil))
       return component
     }
+    .frame(width: 375, height: 120)
     .previewLayout(.sizeThatFits)
   }
 }

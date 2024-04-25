@@ -10,18 +10,6 @@ import Foundation
 import Core
 import SignUpInterface
 
-enum SignUpCoordinatingAction {
-  case nextAtNickname
-  case nextAtGender
-  case birthdayTap(birthday: Date, listener: BottomSheetListener)
-  case heightLabelTap(height: Int, listener: BottomSheetListener)
-  case nextAtPreferGender
-  case nextAtPhoto
-  case nextAtHeight
-  case photoCellTap(index: Int, listener: PhotoPickerDelegate)
-  case nextAtAlcoholTobacco
-}
-
 protocol SignUpCoordinatingActionDelegate: AnyObject {
   func invoke(_ action: SignUpCoordinatingAction)
 }
@@ -119,66 +107,94 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func InterestTagPickerFlow() {
-    let vm = InterestTagPickerViewModel()
+    let vm = TagPickerViewModel(action: .nextAtInterest([]))
     vm.delegate = self
     let vc = InterestPickerViewController(viewModel: vm)
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
-}
 
-extension SignUpCoordinator: SignUpRootDelegate {
-  func toPhoneButtonTap() {
-    InterestTagPickerFlow()
-    //    phoneNumberFlow()
+  public func IdealTypeTagPickerFlow() {
+    let vm = TagPickerViewModel(action: .nextAtIdealType([]))
+    vm.delegate = self
+
+    let vc = IdealTypePickerViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func IntroductFlow() {
+    let vm = IntroduceInputViewModel()
+    vm.delegate = self
+
+    let vc = IntroduceInputViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func alcoholTobaccoFlow() {
+    let vm = AlcoholTobaccoPickerViewModel()
+    vm.delegate = self
+
+    let vc = AlcoholTobaccoPickerViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func religionFlow() {
+    let vm = ReligionPickerViewModel()
+    vm.delegate = self
+    let vc = ReligionPickerViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
   }
 }
 
-extension SignUpCoordinator: PhoneCertificationDelegate {
-  func finishAuth() {
-    emailFlow()
-  }
-}
-
-extension SignUpCoordinator: EmailInputDelegate {
-  func emailNextButtonTap() {
-    policyFlow()
-  }
-}
-
-extension SignUpCoordinator: PolicyAgreementDelegate {
-  func policyNextButtonTap() {
-    nicknameFlow()
-  }
-}
-
-extension SignUpCoordinator: NicknameInputDelegate {
-  func nicknameNextButtonTap() {
-    genderPickerFlow()
-  }
-}
 
 extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
   func invoke(_ action: SignUpCoordinatingAction) {
-    if case let .birthdayTap(birthDay, listener) = action {
+    switch action {
+    case .phoneNumber:
+      phoneNumberFlow()
+    case .nextAtPhoneNumber:
+      emailFlow()
+    case .nextAtEmail:
+      policyFlow()
+    case let .nextAtPolicy(agreement):
+      nicknameFlow()
+    case .nextAtNickname:
+      genderPickerFlow()
+
+    case let .birthdayTap(birthDay, listener):
       pickerBottomSheetFlow(.date(date: birthDay), listener: listener)
-    }
-
-    if case let .heightLabelTap(height, listener) = action {
-      singlePickerBottomSheetFlow(.text(text: String(height)), listener: listener)
-    }
-    if case .nextAtGender = action {
+    case .nextAtGender:
       preferGenderPickerFlow()
-    }
-    if case .nextAtPreferGender = action {
+
+    case .nextAtPreferGender:
       photoFlow()
-    }
 
-    if case let .photoCellTap(_, listener) = action {
+    case let .photoCellTap(_, listener):
       photoPickerFlow(delegate: listener)
+    case .nextAtPhoto:
+      heightPickerFlow()
+
+    case let .heightLabelTap(height, listener):
+      singlePickerBottomSheetFlow(.text(text: String(height)), listener: listener)
+
+    case .nextAtHeight:
+      alcoholTobaccoFlow()
+
+    case .nextAtAlcoholTobacco:
+      religionFlow()
+
+    case let .nextAtReligion(religion):
+      InterestTagPickerFlow()
+    case let .nextAtInterest(tags):
+      IdealTypeTagPickerFlow()
+
+    case let .nextAtIdealType(tags):
+      IntroductFlow()
+    case let .nextAtIntroduce(introduce):
+      print(introduce)
+
+    default: break
     }
-
-
   }
 }
 

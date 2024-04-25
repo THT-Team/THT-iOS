@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PhoneValidationResponse {
+public struct PhoneValidationResponse: Decodable {
   public let phoneNumber: String
   public let authNumber: Int
 

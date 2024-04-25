@@ -12,13 +12,9 @@ import Core
 import RxCocoa
 import RxSwift
 
-protocol NicknameInputDelegate: AnyObject {
-  func nicknameNextButtonTap()
-}
-
 final class NicknameInputViewModel: ViewModelType {
 
-  weak var delegate: NicknameInputDelegate?
+  weak var delegate: SignUpCoordinatingActionDelegate?
 
   private var disposeBag = DisposeBag()
 
@@ -39,8 +35,9 @@ final class NicknameInputViewModel: ViewModelType {
     let validate = text.map { !$0.isEmpty }
 
     input.nextBtn
-      .drive(with: self) { owner, _ in
-      owner.delegate?.nicknameNextButtonTap()
+      .withLatestFrom(text)
+      .drive(with: self) { owner, text in
+        owner.delegate?.invoke(.nextAtNickname(text))
       }
       .disposed(by: disposeBag)
 

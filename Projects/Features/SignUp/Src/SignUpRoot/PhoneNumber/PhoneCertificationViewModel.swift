@@ -10,10 +10,6 @@ import Foundation
 import SignUpInterface
 import DSKit
 
-protocol PhoneCertificationDelegate: AnyObject {
-  func finishAuth()
-}
-
 final class PhoneCertificationViewModel: ViewModelType {
 
   struct Input {
@@ -38,7 +34,7 @@ final class PhoneCertificationViewModel: ViewModelType {
     let navigatorDisposble: Driver<Void>
   }
 
-  weak var delegate: PhoneCertificationDelegate?
+  weak var delegate: SignUpCoordinatingActionDelegate?
 
   func transform(input: Input) -> Output {
 
@@ -108,7 +104,7 @@ final class PhoneCertificationViewModel: ViewModelType {
 
     let finishAuth = input.finishAnimationTrigger
       .do(onNext: { [weak self] _ in
-        self?.delegate?.finishAuth()
+        self?.delegate?.invoke(.nextAtPhoneNumber)
       })
 
     return Output(

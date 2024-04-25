@@ -109,6 +109,10 @@ final class PhotoInputViewModel: ViewModelType {
         }
         return true
       }
+    input.nextBtnTap
+      .drive(with: self) { owner, _ in
+        owner.delegate?.invoke(.nextAtPhoto([]))
+      }.disposed(by: disposeBag)
 
     return Output(
       images: imageDataArray.asDriver(),

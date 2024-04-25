@@ -33,8 +33,9 @@ final class PreferGenderPickerViewModel: ViewModelType {
     let nextBtnisEnabled = selectedGender.map { _ in true }
 
     input.nextBtnTap
-      .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtGender)
+      .withLatestFrom(selectedGender)
+      .drive(with: self) { owner, gender in
+        owner.delegate?.invoke(.nextAtPreferGender(gender))
       }.disposed(by: disposeBag)
 
     return Output(

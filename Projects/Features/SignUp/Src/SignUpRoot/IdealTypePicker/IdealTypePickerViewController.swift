@@ -1,8 +1,8 @@
 //
-//  InterestPickerViewController.swift
-//  SignUp
+//  IdealTypeViewController.swift
+//  SignUpInterface
 //
-//  Created by Kanghos on 2024/04/21.
+//  Created by Kanghos on 2024/04/24.
 //
 
 import UIKit
@@ -12,11 +12,11 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class InterestPickerViewController: TFBaseViewController {
+final class IdealTypePickerViewController: TFBaseViewController {
   typealias VMType = TagPickerViewModel
   private(set) var mainView = TagPickerView(
-    titleInfo: .init(title: "관심사를 알려주세요.", targetText: "관심사"),
-    subTitleInfo: .init(title: "내 관심사 3개를 선택해주세요.", targetText: "내 관심사")
+    titleInfo: .init(title: "이상형을 알려주세요.", targetText: "이상형"),
+    subTitleInfo: .init(title: "내 이상형 3개를 선택해주세요.", targetText: "내 이상형")
   )
   private let viewModel: VMType
 

@@ -1,8 +1,8 @@
 //
-//  InterestPickerViewController.swift
-//  SignUp
+//  ReligionPickerViewController.swift
+//  SignUpInterface
 //
-//  Created by Kanghos on 2024/04/21.
+//  Created by Kanghos on 2024/04/25.
 //
 
 import UIKit
@@ -12,12 +12,10 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class InterestPickerViewController: TFBaseViewController {
-  typealias VMType = TagPickerViewModel
-  private(set) var mainView = TagPickerView(
-    titleInfo: .init(title: "관심사를 알려주세요.", targetText: "관심사"),
-    subTitleInfo: .init(title: "내 관심사 3개를 선택해주세요.", targetText: "내 관심사")
-  )
+final class ReligionPickerViewController: TFBaseViewController {
+  typealias VMType = ReligionPickerViewModel
+  private(set) var mainView = ReligionPickerView()
+
   private let viewModel: VMType
 
   init(viewModel: VMType) {
@@ -38,15 +36,16 @@ final class InterestPickerViewController: TFBaseViewController {
     let nextBtnTap = mainView.nextBtn.rx.tap.asDriver()
 
     let input = VMType.Input(
-      chipTap: mainView.collectionView.rx.itemSelected.asDriver(),
+      chipTap: mainView.ReligionPickerView.rx.itemSelected.asDriver(),
       nextBtnTap: nextBtnTap
     )
 
     let output = viewModel.transform(input: input)
 
     output.chips
-      .drive(mainView.collectionView.rx.items(cellType: InputTagCollectionViewCell.self)) { index, viewModel, cell in
-        cell.bind(viewModel)
+      .drive(mainView.ReligionPickerView.rx.items(cellType: ReligionPickerCell.self)) { index, item, cell in
+        cell.bind(item.0)
+        cell.updateCell(item.1)
       }
       .disposed(by: disposeBag)
 
@@ -57,3 +56,15 @@ final class InterestPickerViewController: TFBaseViewController {
       .disposed(by: disposeBag)
   }
 }
+
+#if canImport(SwiftUI) && DEBUG
+import SwiftUI
+
+struct ReligionViewController_Preview: PreviewProvider {
+  static var previews: some View {
+    let vm = ReligionPickerViewModel()
+    let vc = ReligionPickerViewController(viewModel: vm)
+    return vc.showPreview()
+  }
+}
+#endif

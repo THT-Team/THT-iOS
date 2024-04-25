@@ -6,16 +6,12 @@
 //
 
 import Foundation
-
+import SignUpInterface
 import DSKit
-
-protocol PolicyAgreementDelegate: AnyObject {
-  func policyNextButtonTap()
-}
 
 final class PolicyAgreementViewModel: ViewModelType {
   
-  weak var delegate: PolicyAgreementDelegate?
+  weak var delegate: SignUpCoordinatingActionDelegate?
 
   struct Input {
     let agreeAllBtn: Driver<Void>
@@ -131,7 +127,13 @@ final class PolicyAgreementViewModel: ViewModelType {
 
     let nextButtonTap = input.nextBtn
       .do(onNext: { [weak self] in
-        self?.delegate?.policyNextButtonTap()
+        let agreement = Agreement(
+          serviceUseAgree: false,
+          personalPrivacyInfoAgree: false,
+          locationServiceAgree: false,
+          marketingAgree: false
+        )
+        self?.delegate?.invoke(.nextAtPolicy(agreement))
       })
 
     // TODO: Disposable로 만들어서 VC로 넘겨야할지 여기서 Disposed해야할지 아니면

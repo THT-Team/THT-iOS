@@ -13,12 +13,6 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 
-enum Frequency: Int {
-  case never
-  case offen
-  case always
-}
-
 final class AlcoholTobaccoPickerViewModel: ViewModelType {
   weak var delegate: SignUpCoordinatingActionDelegate?
 
@@ -42,7 +36,7 @@ final class AlcoholTobaccoPickerViewModel: ViewModelType {
 
     input.nextBtnTap
       .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtGender)
+        owner.delegate?.invoke(.nextAtAlcoholTobacco(alcoho: .frequently, tobacco: .frequently))
       }.disposed(by: disposeBag)
 
     return Output(

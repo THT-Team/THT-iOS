@@ -8,6 +8,7 @@
 import UIKit
 
 import DSKit
+import SignUpInterface
 
 import RxSwift
 import RxCocoa
@@ -34,7 +35,7 @@ final class PreferGenderPickerViewController: TFBaseViewController {
       .rx.selectedOption
       .asDriver()
       .compactMap { $0?.key }
-      .compactMap { Gender(rawValue: $0) }
+      .compactMap { Gender(number: $0) }
 
     let input = PreferGenderPickerViewModel.Input(
       genderTap: genderTap,

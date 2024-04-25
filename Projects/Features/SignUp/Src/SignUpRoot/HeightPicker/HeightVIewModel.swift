@@ -40,12 +40,13 @@ final class HeightPickerViewModel: ViewModelType {
     input.pickerLabelTap
       .withLatestFrom(height)
       .drive(with: self) { owner, height in
-        owner.delegate?.invoke(.heightLabelTap(height: height, listener: owner))
+        owner.delegate?.invoke(.heightLabelTap(height, listener: owner))
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
-      .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtHeight)
+      .withLatestFrom(height)
+      .drive(with: self) { owner, height in
+        owner.delegate?.invoke(.nextAtHeight(height))
       }.disposed(by: disposeBag)
 
     return Output(

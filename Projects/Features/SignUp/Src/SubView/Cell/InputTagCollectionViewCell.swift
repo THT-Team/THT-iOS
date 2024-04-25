@@ -1,27 +1,31 @@
 //
-//  TagCollectionViewCell.swift
-//  Falling
+//  InputTagChip.swift
+//  SignUpInterface
 //
-//  Created by Kanghos on 2023/10/02.
+//  Created by Kanghos on 2024/04/24.
 //
 
 import UIKit
 
-//import LikeInterface
+import DSKit
+import Domain
 
-public final class TagCollectionViewCell: UICollectionViewCell {
+// Suggest Selectable tag chip confirmed collectionView cell
+// it has to status selected and non-selected
+public final class InputTagCollectionViewCell: TFBaseCollectionViewCell {
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .horizontal
     stackView.spacing = 5
     stackView.alignment = .center
-//    stackView.distribution = .fill
+    stackView.distribution = .fill
     return stackView
   }()
+
   private lazy var emojiView: UILabel = {
     let label = UILabel()
     label.font = UIFont.thtSubTitle1R
-    label.text = "🍅"
+    label.text = ""
     label.numberOfLines = 1
     return label
   }()
@@ -36,21 +40,9 @@ public final class TagCollectionViewCell: UICollectionViewCell {
     return label
   }()
 
-  override init(frame: CGRect) {
-    super.init(frame: .zero)
-
-    setUpView()
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
-  func setUpView() {
-    contentView.backgroundColor = DSKitAsset.Color.neutral700.color
-    contentView.clipsToBounds = true
+  public override func makeUI() {
     contentView.addSubview(stackView)
-    
+
     stackView.addArrangedSubviews([emojiView, titleLabel])
     stackView.arrangedSubviews.forEach { subViews in
       subViews.snp.makeConstraints {
@@ -62,8 +54,13 @@ public final class TagCollectionViewCell: UICollectionViewCell {
       $0.leading.equalToSuperview().offset(10)
       $0.trailing.equalToSuperview().offset(-15)
     }
+
+    updateStatus(isSelected: false)
+
+    contentView.layer.masksToBounds = true
+    contentView.layer.borderColor = DSKitAsset.Color.neutral300.color.cgColor
   }
-//
+
   public override func layoutSubviews() {
     super.layoutSubviews()
     setUpLayer()
@@ -71,25 +68,37 @@ public final class TagCollectionViewCell: UICollectionViewCell {
 
   private func setUpLayer() {
     contentView.layer.cornerRadius = contentView.frame.height / 2
-    contentView.layer.masksToBounds = true
   }
 
-  public func bind(_ viewModel: TagItemViewModel) {
-    self.titleLabel.text = viewModel.title
+  public func bind(_ viewModel: InputTagItemViewModel) {
+    self.titleLabel.text = viewModel.emojiType.name
     self.emojiView.text = viewModel.emoji
+    updateStatus(isSelected: viewModel.isSelected)
+  }
+
+  public func updateStatus(isSelected: Bool) {
+    contentView.backgroundColor = isSelected
+    ? DSKitAsset.Color.primary500.color
+    : DSKitAsset.Color.neutral700.color
+
+    titleLabel.textColor = isSelected
+    ? DSKitAsset.Color.neutral700.color
+    : DSKitAsset.Color.neutral50.color
+
+    contentView.layer.borderWidth = isSelected ? 0 : 1
   }
 }
 
-public struct TagItemViewModel {
-  public let emojiCode: String
-  public let title: String
+public struct InputTagItemViewModel {
+  public let emojiType: EmojiType
+  public var isSelected: Bool
 
   public var emoji: String {
-    emojiCode.unicodeToEmoji()
+    return emojiType.emojiCode.unicodeToEmoji()
   }
 
-  public init(emojiCode: String, title: String) {
-    self.emojiCode = emojiCode
-    self.title = title
+  public init(item: EmojiType, isSelected: Bool) {
+    self.emojiType = item
+    self.isSelected = isSelected
   }
 }
