@@ -151,7 +151,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
   func invoke(_ action: SignUpCoordinatingAction) {
     switch action {
     case .phoneNumber:
-      phoneNumberFlow()
+//      phoneNumberFlow()
+        IntroductFlow()
     case .nextAtPhoneNumber:
       emailFlow()
     case .nextAtEmail:

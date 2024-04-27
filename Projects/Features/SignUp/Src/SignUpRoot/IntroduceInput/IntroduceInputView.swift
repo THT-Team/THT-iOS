@@ -22,10 +22,12 @@ final class IntroduceInputView: TFBaseView {
     $0.font = .thtH1B
   }
 
-  lazy var introduceInputField = TFTextView(
+  lazy var introduceInputField = TFResizableTextView(
     description: "자유롭게 소개해주세요",
     totalCount: 200
-  )
+  ).then {
+    $0.placeholder = "저의 MBTI는요"
+  }
 
   lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
 
@@ -69,7 +71,7 @@ struct IntroduceInputViewPreview: PreviewProvider {
   static var previews: some View {
     UIViewPreview {
       let view = IntroduceInputView()
-      view.introduceInputField.render(state: .text(text: "입력"))
+//      view.introduceInputField.render(state: .text(text: "입력"))
       return view
     }
     .previewLayout(.sizeThatFits)
