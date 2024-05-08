@@ -11,7 +11,7 @@ import DSKit
 
 class LocationInputField: UIControl {
 
-  private lazy var containView = UIView().then {
+  private lazy var containView = UIControl().then {
     $0.layer.borderWidth = 1
     $0.layer.borderColor = DSKitAsset.Color.neutral300.color.cgColor
     $0.clipsToBounds = true
@@ -95,6 +95,16 @@ class LocationInputField: UIControl {
       $0.trailing.equalTo(containView)
       $0.centerY.equalTo(infoImageView)
     }
+
+    let action = UIAction { [weak self] _ in self?.sendActions(for: .touchUpInside) }
+
+    containView.addAction(action, for: .touchUpInside)
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+    self.locationLabel.addGestureRecognizer(tapGesture)
+  }
+
+  @objc func tapAction() {
+    sendActions(for: .touchUpInside)
   }
 }
 
@@ -114,7 +124,7 @@ extension Reactive where Base: LocationInputField {
   }
 
   var tap: ControlEvent<Void> {
-      controlEvent(.touchUpInside)
+      return controlEvent(.touchUpInside)
   }
 }
 

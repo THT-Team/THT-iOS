@@ -49,7 +49,9 @@ public extension ViewControllable {
   }
 
   func dismiss() {
-    self.uiController.dismiss(animated: true)
+    if let presented = self.uiController.presentedViewController {
+      presented.dismiss(animated: true)
+    }
   }
 
   func presentBottomSheet(_ viewControllable: ViewControllable, animated: Bool) {

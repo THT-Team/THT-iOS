@@ -24,6 +24,12 @@ final class NicknameInputViewModel: ViewModelType {
     self.useCase = useCase
   }
 
+  private let nickName: String?
+
+  init(nickName: String) {
+    self.nickName = nickName
+  }
+
   struct Input {
     let viewWillAppear: Driver<Void>
     let nickname: Driver<String>
@@ -32,6 +38,7 @@ final class NicknameInputViewModel: ViewModelType {
   }
 
   struct Output {
+    let initialValue: Driver<String>
     let validate: Driver<Bool>
     let errorField: Driver<String>
   }

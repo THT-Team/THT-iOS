@@ -15,7 +15,6 @@ import SignUpInterface
 
 final class LocationInputViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
-  private let locationService: LocationServiceType
   weak var delegate: SignUpCoordinatingActionDelegate?
   
   private let locationTrigger = PublishSubject<String>()
@@ -30,9 +29,8 @@ final class LocationInputViewModel: ViewModelType {
     let currentLocation: Driver<String>
   }
 
-  init(locationservice: LocationServiceType) {
-    self.locationService = locationservice
-  }
+  // 필드 클릭하면 퍼미션 리퀘스트 후 -> granted: Bool
+  // granted 면 시작, 아니면,
 
   func transform(input: Input) -> Output {
     
@@ -58,7 +56,7 @@ final class LocationInputViewModel: ViewModelType {
       .disposed(by: disposeBag)
 
     input.nextBtn
-      .withLatestFrom(currentLocation)
+      .withLatestFrom(currentLocation.asDriver())
       .drive(with: self, onNext: { owner, location in
         owner.delegate?.invoke(.nextAtLocation(.init(address: location, regionCode: 0, lat: 0, lon: 0)))
       })

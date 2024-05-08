@@ -11,12 +11,6 @@ import Core
 import DSKit
 import LikeInterface
 
-enum LikeCellButtonAction {
-  case reject(IndexPath)
-  case chat(IndexPath)
-  case profile(IndexPath)
-}
-
 public final class LikeHomeViewController: TFBaseViewController {
   private lazy var mainView = HeartListView()
   private var dataSource: DataSource!
@@ -70,10 +64,6 @@ public final class LikeHomeViewController: TFBaseViewController {
 
       let output = viewModel.transform(input: input)
 
-      output.chatRoom
-        .drive()
-        .disposed(by: disposeBag)
-
       output.heartList
         .drive(onNext: { [weak self] list in
           self?.mainView.emptyView.isHidden = !list.isEmpty
@@ -89,10 +79,6 @@ public final class LikeHomeViewController: TFBaseViewController {
         .drive(onNext: { [weak self] items in
           self?.pagingDataSource(items)
         }).disposed(by: disposeBag)
-
-      output.profile
-        .drive()
-        .disposed(by: disposeBag)
 
       output.reject
         .drive(onNext: { [weak self] item in

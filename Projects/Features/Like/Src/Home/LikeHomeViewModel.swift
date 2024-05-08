@@ -13,17 +13,13 @@ import LikeInterface
 import RxSwift
 import RxCocoa
 
-protocol LikeHomeDelegate: AnyObject {
-  func toProfile(like: Like)
-  func toChatRoom(userID: String)
-}
-
 final class LikeHomeViewModel: ViewModelType {
   private let likeUseCase: LikeUseCaseInterface
-  
-  weak var delegate: LikeHomeDelegate?
 
-  var disposeBag: DisposeBag = DisposeBag()
+  weak var delegate: LikeCoordinatorActionDelegate?
+
+  private var disposeBag: DisposeBag = DisposeBag()
+  private let signal = PublishSubject<Action>()
 
   init(likeUseCase: LikeUseCaseInterface) {
     self.likeUseCase = likeUseCase
@@ -35,7 +31,17 @@ final class LikeHomeViewModel: ViewModelType {
   }
 }
 
+enum LikeCellButtonAction {
+  case reject(IndexPath)
+  case chat(IndexPath)
+  case profile(IndexPath)
+}
+
 extension LikeHomeViewModel {
+  enum Action {
+    case removeItem(Like)
+  }
+
   struct Input {
     let trigger: Driver<Void>
     let cellButtonAction: Driver<LikeCellButtonAction>
@@ -44,8 +50,6 @@ extension LikeHomeViewModel {
 
   struct Output {
     let heartList: Driver<[Like]>
-    let chatRoom: Driver<Void>
-    let profile: Driver<Void>
     let reject: Driver<Like>
     let pagingList: Driver<[Like]>
   }
@@ -59,34 +63,49 @@ extension LikeHomeViewModel {
   func transform(input: Input) -> Output {
     let currentCursor = BehaviorRelay<CursorInfo>(value: CursorInfo(nil, nil))
     let snapshot = BehaviorRelay<[Like]>(value: [])
+    let navigateAction = PublishSubject<LikeCoordinatorAction>()
 
     let refresh = input.trigger
-      .asObservable()
-      .flatMapLatest(weak: self, selector: { owner, _ in
-        owner.likeUseCase.fetchList(size: 100, lastTopicIndex: nil, lastLikeIndex: nil)
-        .map {
-          currentCursor.accept(CursorInfo($0.lastLikeIdx, $0.lastFallingTopicIdx))
-          let initial = $0.likeList
-          snapshot.accept(initial)
-          return initial
-        }
-      })
-      .asDriverOnErrorJustEmpty()
+      .flatMapLatest { [unowned self] _ in
+        self.likeUseCase.fetchList(size: 100, lastTopicIndex: nil, lastLikeIndex: nil)
+          .flatMap { info in
+            currentCursor.accept(CursorInfo(info.lastLikeIdx, info.lastFallingTopicIdx))
+            let initial = info.likeList
+            snapshot.accept(initial)
+            return Observable.just(initial)
+          }
+          .asDriverOnErrorJustEmpty()
+      }
 
     let newPage = input.pagingTrigger
       .asObservable()
       .withLatestFrom(currentCursor)
-      .flatMapLatest(weak: self, selector: { owner, cursorInfo in
+      .withUnretained(self)
+      .flatMapLatest { owner, cursorInfo in
         owner.likeUseCase.fetchList(size: 100, lastTopicIndex: nil, lastLikeIndex: nil)
-        .map {
-          currentCursor.accept(CursorInfo($0.lastLikeIdx, $0.lastFallingTopicIdx))
-          var mutable = snapshot.value
-          mutable.append(contentsOf: $0.likeList )
-          snapshot.accept(mutable)
-          return mutable
-        }
-      })
+          .map {
+            currentCursor.accept(CursorInfo($0.lastLikeIdx, $0.lastFallingTopicIdx))
+            var mutable = snapshot.value
+            mutable.append(contentsOf: $0.likeList )
+            snapshot.accept(mutable)
+            return mutable
+          }
+      }
       .asDriverOnErrorJustEmpty()
+
+    let rejectFromSignal = self.signal
+      .compactMap { action -> Like? in
+        if case let .removeItem(like) = action {
+          return like
+        }
+        return nil
+      }.map { like in
+        var mutable = snapshot.value
+        mutable.removeAll { $0 == like }
+        snapshot.accept(mutable)
+        return like
+      }.asDriverOnErrorJustEmpty()
+
 
     let reject = input.cellButtonAction
       .compactMap { action -> IndexPath? in
@@ -105,7 +124,7 @@ extension LikeHomeViewModel {
         return deleted
       }
 
-    let chatRoom = input.cellButtonAction
+    input.cellButtonAction
       .compactMap { action -> IndexPath? in
         if case let .chat(indexPath) = action {
           return indexPath
@@ -114,14 +133,13 @@ extension LikeHomeViewModel {
       }
       .withLatestFrom(snapshot.asDriverOnErrorJustEmpty()) {
         indexPath, dataSource in
-        dataSource[indexPath.item]
+        dataSource[indexPath.item].userUUID
       }
-      .do(onNext: { [weak self] item in
-        self?.delegate?.toChatRoom(userID: item.userUUID)
-      })
-      .map { _ in }
+      .map { .pushChatRoom(id: $0) }
+      .drive(navigateAction)
+      .disposed(by: disposeBag)
 
-    let profile = input.cellButtonAction
+    input.cellButtonAction
       .compactMap { action -> IndexPath? in
         if case let .profile(indexPath) = action {
           return indexPath
@@ -132,16 +150,33 @@ extension LikeHomeViewModel {
         indexPath, dataSource in
         dataSource[indexPath.item]
       }
-      .do(onNext: { [weak self] item in
-        self?.delegate?.toProfile(like: item)
-      }).map { _ in }
+      .drive(with: self, onNext: { owner, like in
+        navigateAction.onNext(.presentProfile(like: like, listener: owner))
+      } )
+      .disposed(by: disposeBag)
+
+    navigateAction
+      .subscribe(onNext: { [weak self] action in
+        self?.delegate?.invoke(action)
+      })
+      .disposed(by: disposeBag)
 
     return Output(
       heartList: refresh,
-      chatRoom: chatRoom,
-      profile: profile,
-      reject: reject,
+      reject: Driver.merge(reject, rejectFromSignal),
       pagingList: newPage
     )
+  }
+}
+
+extension LikeHomeViewModel: LikeProfileListener {
+
+  func likeProfileDidTapChat(_ like: Like) {
+    self.delegate?.invoke(.pushChatRoom(id: like.userUUID))
+  }
+
+  func likeProfileDidTapReject(_ like: Like) {
+    self.signal.onNext(.removeItem(like))
+    //    self.delegate?.invoke(.dismissProfile)
   }
 }

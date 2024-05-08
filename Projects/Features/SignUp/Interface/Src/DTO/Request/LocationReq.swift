@@ -9,9 +9,9 @@ import Foundation
 
 // MARK: - LocationRequest
 public struct LocationReq: Codable {
-  let address: String
-  let regionCode: Int
-  let lat, lon: Double
+  public let address: String
+  public let regionCode: Int
+  public let lat, lon: Double
 
   public init(
     address: String,

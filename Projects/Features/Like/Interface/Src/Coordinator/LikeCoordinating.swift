@@ -13,12 +13,18 @@ public protocol LikeCoordinatorDelegate: AnyObject {
   func test(_ coordinator: Coordinator)
 
 }
+
+public protocol LikeProfileListener: AnyObject {
+  func likeProfileDidTapReject(_ like: Like)
+  func likeProfileDidTapChat(_ like: Like)
+}
+
 public protocol LikeCoordinating: Coordinator {
   var delegate: LikeCoordinatorDelegate? { get set }
 
   func homeFlow()
   func chatRoomFlow()
-  func profileFlow(_ item: Like)
+  func profileFlow(_ item: Like, listener: LikeProfileListener)
 }
 
 public enum LikeCoordinatorAction {

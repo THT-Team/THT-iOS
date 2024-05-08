@@ -11,20 +11,14 @@ import DSKit
 import LikeInterface
 import Domain
 
-protocol LikeProfileDelegate: AnyObject {
-  func selectNextTime(userUUID: String)
-  func selectLike(userUUID: String)
-  func toList()
-}
-
 final class LikeProfileViewModel: ViewModelType {
 
   private let likeUseCase: LikeUseCaseInterface
   private let likItem: Like
   private var disposeBag = DisposeBag()
 
-  weak var delegate: LikeProfileDelegate?
-
+  weak var listener: LikeProfileListener?
+  weak var delegate: LikeCoordinatorActionDelegate?
 
   init(likeUseCase: LikeUseCaseInterface, likItem: Like) {
     self.likeUseCase = likeUseCase
@@ -65,23 +59,25 @@ final class LikeProfileViewModel: ViewModelType {
 
     input.rejectTrigger
       .withLatestFrom(userIDSubject.asDriverOnErrorJustEmpty())
-      .map { $0.likeIdx }.map(String.init)
-      .drive(with: self, onNext: { owner, uuid in
-        owner.delegate?.selectNextTime(userUUID: uuid)
+      .map { $0 }
+      .drive(with: self, onNext: { owner, like in
+        owner.listener?.likeProfileDidTapReject(like)
+        owner.delegate?.invoke(.dismissProfile)
       })
       .disposed(by: disposeBag)
 
     input.likeTrigger
       .withLatestFrom(userIDSubject.asDriver(onErrorDriveWith: .empty()))
-    .map { $0.likeIdx }.map(String.init)
-    .drive(with: self, onNext: { owner, id in
-      owner.delegate?.selectLike(userUUID: id)
+    .map { $0 }
+    .drive(with: self, onNext: { owner, like in
+      owner.listener?.likeProfileDidTapChat(like)
+      owner.delegate?.invoke(.dismissProfile)
     })
     .disposed(by: disposeBag)
 
     input.closeTrigger
       .drive(with: self, onNext: { owner, _ in
-        owner.delegate?.toList()
+        owner.delegate?.invoke(.dismissProfile)
       })
       .disposed(by: disposeBag)
 

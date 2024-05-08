@@ -48,6 +48,13 @@ final class LocationInputView: TFBaseView {
       $0.leading.trailing.equalToSuperview().inset(38)
     }
 
+    // webview -> 주소, 법정동코드 수집 -> KAKAO API 좌표 추가 수집
+    // 매니저에서 -> 주소(로드 정확하게), 좌표 -> 벙정동코드 추가 수집
+    // 파라미터 저장, 이미지 저장
+    // 파라미터로 값 초기화
+
+    // 
+
     nextBtn.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(38)
       $0.height.equalTo(54)
