@@ -80,11 +80,7 @@ class EmailInputViewController: TFBaseViewController {
     super.viewDidAppear(animated)
     emailTextField.becomeFirstResponder()
   }
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    keyboardSetting()
-  }
+  
 
   override func makeUI() {
     [
@@ -156,7 +152,7 @@ class EmailInputViewController: TFBaseViewController {
 
     nextButton.snp.makeConstraints {
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(14)
+      $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
       $0.height.equalTo(54)
     }
   }
@@ -223,42 +219,6 @@ class EmailInputViewController: TFBaseViewController {
 
     output.emailText
       .drive(emailTextField.rx.text)
-      .disposed(by: disposeBag)
-  }
-
-  func keyboardSetting() {
-    view.rx.tapGesture()
-      .when(.recognized)
-      .withUnretained(self)
-      .subscribe { vc, _ in
-        vc.view.endEditing(true)
-      }
-      .disposed(by: disposeBag)
-
-    RxKeyboard.instance.visibleHeight
-      .skip(1)
-      .drive(onNext: { [weak self] keyboardHeight in
-        guard let self else { return }
-        if keyboardHeight == 0 {
-          self.nextButton.snp.updateConstraints {
-            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(14)
-          }
-        } else {
-          self.nextButton.snp.updateConstraints {
-            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight - self.view.safeAreaInsets.bottom + 14)
-          }
-        }
-
-        if keyboardHeight == 0 {
-          self.titleLable.snp.updateConstraints {
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(76)
-          }
-        } else {
-          self.titleLable.snp.updateConstraints {
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(20)
-          }
-        }
-      })
       .disposed(by: disposeBag)
   }
 

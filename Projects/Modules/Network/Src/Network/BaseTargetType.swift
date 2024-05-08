@@ -13,14 +13,11 @@ public protocol BaseTargetType: TargetType { }
 
 public extension BaseTargetType {
   var baseURL: URL {
-    return URL(string: "http://tht-talk.store/")!
+    return URL(string: "http://tht-talk.co.kr/")!
   }
 
   var headers: [String: String]? {
-    return [
-      "Authorization": "Bearer \(AppData.Auth.accessToken)",
-      "Content-Type": "application/json",
-    ]
+    return [:]
   }
 //    return nil
 

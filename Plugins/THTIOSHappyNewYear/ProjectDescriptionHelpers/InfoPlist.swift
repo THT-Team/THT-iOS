@@ -25,6 +25,8 @@ public let infoPlistExtension: [String: InfoPlist.Value] = [
     ],
     "App Transport Security Settings": ["Allow Arbitrary Loads": true],
     "Privacy - Photo Library Additions Usage Description": "프로필에 사용됨",
+  "Privacy - Location When In Use Usage Description": "가까운 친구를 찾는데 사용됩니다.",
+  "Privacy - Location Always Usage Description": "가까운 친구를 찾는데 사용됩니다!",
     "UIAppFonts": [
       "Item 0": "Pretendard-Medium.otf",
       "Item 1": "Pretendard-Regular.otf",
@@ -54,6 +56,8 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
       ],
       "App Transport Security Settings": ["Allow Arbitrary Loads": true],
       "Privacy - Photo Library Additions Usage Description": "프로필에 사용됨",
+    "Privacy - Location When In Use Usage Description": "가까운 친구를 찾는데 사용됩니다.",
+    "Privacy - Location Always Usage Description": "가까운 친구를 찾는데 사용됩니다!",
       "UIAppFonts": [
         "Item 0": "Pretendard-Medium.otf",
         "Item 1": "Pretendard-Regular.otf",

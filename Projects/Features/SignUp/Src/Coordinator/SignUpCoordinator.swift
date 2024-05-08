@@ -15,6 +15,7 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
+  @Injected private var useCase: SignUpUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
 
@@ -24,7 +25,8 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
 
-    rootFlow()
+//    rootFlow()
+    blockUserFriendContactFlow()
   }
 
   public func rootFlow() {
@@ -51,7 +53,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func nicknameFlow() {
-    let viewModel = NicknameInputViewModel()
+    let viewModel = NicknameInputViewModel(useCase: self.useCase)
     viewModel.delegate = self
 
     let viewController = NicknameInputViewController(viewModel: viewModel)
@@ -68,7 +70,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func phoneNumberFlow() {
-    let viewModel = PhoneCertificationViewModel()
+    let viewModel = PhoneCertificationViewModel(useCase: self.useCase)
     viewModel.delegate = self
 
     let viewController = PhoneCertificationViewController(viewModel: viewModel)
@@ -107,7 +109,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func InterestTagPickerFlow() {
-    let vm = TagPickerViewModel(action: .nextAtInterest([]))
+    let vm = TagPickerViewModel(action: .nextAtInterest([]), useCase: useCase)
     vm.delegate = self
     let vc = InterestPickerViewController(viewModel: vm)
 
@@ -115,7 +117,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func IdealTypeTagPickerFlow() {
-    let vm = TagPickerViewModel(action: .nextAtIdealType([]))
+    let vm = IdealTypeTagPickerViewModel(action: .nextAtIdealType([]), useCase: self.useCase)
     vm.delegate = self
 
     let vc = IdealTypePickerViewController(viewModel: vm)
@@ -144,6 +146,27 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     let vc = ReligionPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
+  
+  func locationFlow() {
+    let vm = LocationInputViewModel(locationservice: LocationService())
+    vm.delegate = self
+    let vc = LocationInputViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+  
+  func webViewFlow(listener: WebViewDelegate) {
+    let vc = PostCodeWebViewController()
+    vc.delegate = listener
+    vc.modalPresentationStyle = .overFullScreen
+    self.viewControllable.present(vc, animated: true)
+  }
+  
+  func blockUserFriendContactFlow() {
+    let vm = UserContactViewModel(useCase: self.useCase)
+    vm.delegate = self
+    let vc = UserContactViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
 }
 
 
@@ -151,8 +174,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
   func invoke(_ action: SignUpCoordinatingAction) {
     switch action {
     case .phoneNumber:
-//      phoneNumberFlow()
-        IntroductFlow()
+      phoneNumberFlow()
+//locationFlow()
     case .nextAtPhoneNumber:
       emailFlow()
     case .nextAtEmail:
@@ -192,8 +215,12 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case let .nextAtIdealType(tags):
       IntroductFlow()
     case let .nextAtIntroduce(introduce):
-      print(introduce)
-
+      locationFlow()
+    case let .webViewTap(listener):
+      webViewFlow(listener: listener)
+      
+    case let .presentContactUI(delegate):
+      presentContactsUI(delegate: delegate)
     default: break
     }
   }

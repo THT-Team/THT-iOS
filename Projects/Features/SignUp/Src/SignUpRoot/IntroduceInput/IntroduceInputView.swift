@@ -45,7 +45,7 @@ final class IntroduceInputView: TFBaseView {
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(frame.height * 0.09)
+      $0.top.equalToSuperview().inset(76)
       $0.leading.equalToSuperview().inset(38)
     }
 
@@ -57,9 +57,9 @@ final class IntroduceInputView: TFBaseView {
     nextBtn.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(38)
       $0.height.equalTo(54)
-      $0.width.equalTo(100)
+      $0.width.equalTo(88)
+      $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-16)
     }
-    nextBtn.bottomAnchor.constraint(equalTo: self.keyboardLayoutGuide.topAnchor).isActive = true
   }
 }
 

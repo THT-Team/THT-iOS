@@ -8,9 +8,12 @@
 import Foundation
 
 import MyPageInterface
+import SignUpInterface
+
 import Networks
 
 import RxSwift
+import RxMoya
 import Moya
 
 public final class MyPageRepository: ProviderProtocol {
@@ -20,10 +23,11 @@ public final class MyPageRepository: ProviderProtocol {
     self.provider = MyPageRepository.consProvider(isStub, sampleStatusCode, customEndpointClosure)
   }
 }
-
-
-extension MyPageRepository: MyPageRepositoryInterface {
-  public func test() {
-    
-  }
-}
+//
+//
+//extension MyPageRepository: MyPageRepositoryInterface {
+//  public func blockUserFriendContact(request: UserFriendContactReq) -> Single<UserFriendContactRes> {
+//    req
+//    request(type: UserFriendContactRes.self, target: . .blo(request: request))
+//  }
+//}

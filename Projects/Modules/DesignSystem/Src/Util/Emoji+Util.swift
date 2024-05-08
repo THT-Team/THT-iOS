@@ -9,7 +9,7 @@ import Foundation
 
 public extension String {
   func unicodeToEmoji() -> String {
-    guard let hex = Int(self, radix: 16),
+    guard let hex = Int(self.dropFirst(2), radix: 16),
           let scalar = UnicodeScalar(hex)
     else {
       return "🧩"

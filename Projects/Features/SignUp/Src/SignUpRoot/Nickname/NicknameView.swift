@@ -24,8 +24,10 @@ final class NicknameView: TFBaseView {
 
   lazy var nicknameInputField = TFTextField(
     description: "폴링에서 활동할 자유로운 호칭을 설정해주세요",
-    totalCount: 20
-  )
+    totalCount: 12
+  ).then {
+    $0.placeholder = "닉네임"
+  }
 
   lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
 
@@ -43,7 +45,7 @@ final class NicknameView: TFBaseView {
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(frame.height * 0.09)
+      $0.top.equalToSuperview().inset(76)
       $0.leading.equalToSuperview().inset(38)
     }
 
@@ -55,9 +57,9 @@ final class NicknameView: TFBaseView {
     nextBtn.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(38)
       $0.height.equalTo(54)
-      $0.width.equalTo(100)
+      $0.width.equalTo(88)
+      $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-16)
     }
-    nextBtn.bottomAnchor.constraint(equalTo: self.keyboardLayoutGuide.topAnchor).isActive = true
   }
 }
 

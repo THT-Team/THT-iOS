@@ -88,9 +88,6 @@ final class PhotoInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
   }
 }
-extension PhotoInputViewController {
-
-}
 
 extension PhotoInputViewController: PHPickerViewControllerDelegate {
   func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {

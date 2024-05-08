@@ -28,15 +28,18 @@ final class IntroduceInputViewModel: ViewModelType {
 
   func transform(input: Input) -> Output {
 
+    let isEnableNextBtn = input.introduceText
+      .map { !$0.isEmpty && $0.count < 201 }
+    
     input.nextBtn
+      .withLatestFrom(isEnableNextBtn)
+      .filter{ $0 }
       .withLatestFrom(input.introduceText)
       .drive(with: self, onNext: { owner, text in
         owner.delegate?.invoke(.nextAtIntroduce(text))
       })
       .disposed(by: disposeBag)
 
-    let isEnableNextBtn = input.introduceText
-      .map { !$0.isEmpty }
 
     return Output(
       isEnableNextBtn: isEnableNextBtn

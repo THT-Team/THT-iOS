@@ -32,11 +32,15 @@ public enum SignUpCoordinatingAction {
   case nextAtIdealType([Int])
   case nextAtIntroduce(String)
   case nextAtLocation(LocationReq)
+  
   case nextAtHideFriends
   case nextAtSignUpComplete
 
+  
+  case webViewTap(listner: WebViewDelegate)
   case birthdayTap(Date, listener: BottomSheetListener)
   case heightLabelTap(Int, listener: BottomSheetListener)
   case photoCellTap(index: Int, listener: PhotoPickerDelegate)
-
+  
+  case presentContactUI(delegate: UserContactPickerDelegate)
 }

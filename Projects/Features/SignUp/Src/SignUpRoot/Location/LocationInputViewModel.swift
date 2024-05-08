@@ -17,6 +17,8 @@ final class LocationInputViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let locationService: LocationServiceType
   weak var delegate: SignUpCoordinatingActionDelegate?
+  
+  private let locationTrigger = PublishSubject<String>()
 
   struct Input {
     let locationBtnTap: Driver<Void>
@@ -25,6 +27,7 @@ final class LocationInputViewModel: ViewModelType {
 
   struct Output {
     let isNextBtnEnabled: Driver<Bool>
+    let currentLocation: Driver<String>
   }
 
   init(locationservice: LocationServiceType) {
@@ -32,31 +35,47 @@ final class LocationInputViewModel: ViewModelType {
   }
 
   func transform(input: Input) -> Output {
+    
+    Driver.just(Void())
+      .drive(with: self) { owner, _ in
+        owner.locationService.requestAuthorization()
+      }.disposed(by: disposeBag)
+    
+    let currentLocation = Observable<String>.merge(locationService.publisher, self.locationTrigger)
+      .asDriver(onErrorJustReturn: "")
+    let webViewTrigger = PublishSubject<Void>()
 
-    let currentLocation = input.locationBtnTap
-      .asObservable()
-      .withUnretained(self)
-      .flatMapLatest({ owner, _ in
-        owner.locationService.fetchLocation()
+    input.locationBtnTap
+      .drive(with: self, onNext: { owner, _ in
+        owner.locationService.handleAuthorization { granted in
+          if granted {
+            owner.locationService.requestLocation()
+          } else {
+            owner.delegate?.invoke(.webViewTap(listner: owner))
+          }
+        }
       })
-      .asDriverOnErrorJustEmpty()
+      .disposed(by: disposeBag)
 
     input.nextBtn
       .withLatestFrom(currentLocation)
       .drive(with: self, onNext: { owner, location in
-        owner.delegate?.invoke(.nextAtLocation(location))
+        owner.delegate?.invoke(.nextAtLocation(.init(address: location, regionCode: 0, lat: 0, lon: 0)))
       })
       .disposed(by: disposeBag)
 
     let isNextBtnEnabled = currentLocation
-      .asObservable()
-      .withUnretained(self)
-      .flatMapLatest { owner, location in
-        owner.locationService.isValid(location)
-      }.asDriver(onErrorJustReturn: false)
+      .map { !$0.isEmpty }
 
     return Output(
-      isNextBtnEnabled: isNextBtnEnabled
+      isNextBtnEnabled: isNextBtnEnabled,
+      currentLocation: currentLocation
     )
+  }
+}
+
+extension LocationInputViewModel: WebViewDelegate {
+  func didReceiveAddress(_ address: String) {
+    self.locationTrigger.onNext(address)
   }
 }

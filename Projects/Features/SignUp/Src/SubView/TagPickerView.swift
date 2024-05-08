@@ -47,7 +47,7 @@ final class TagPickerView: TFBaseView {
   }
 
   lazy var collectionView: UICollectionView = {
-    let layout = LeftAlignCollectionViewFlowLayout()
+    let layout = LeftAlignCollectionViewFlowLayout(sidePadding: 0)
     layout.scrollDirection = .vertical
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
 
@@ -72,11 +72,12 @@ final class TagPickerView: TFBaseView {
     )
 
     container.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(30)
+      $0.top.equalToSuperview().offset(76)
       $0.leading.trailing.equalToSuperview().inset(30)
     }
 
@@ -96,7 +97,7 @@ final class TagPickerView: TFBaseView {
       $0.top.equalTo(collectionView.snp.bottom).offset(30)
       $0.trailing.equalTo(titleLabel)
       $0.height.equalTo(50)
-      $0.width.equalTo(60)
+      $0.width.equalTo(88)
     }
   }
 }

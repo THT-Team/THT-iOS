@@ -17,9 +17,9 @@ final class PreferGenderPickerView: TFBaseView {
   lazy var genderPickerView = TFButtonPickerView(
     title: "선호 성별을 알려주세요.", targetString: "선호 성별",
     options: [
-      0:"여성",
-      1:"남성",
-      2:"모두"
+      "여성",
+      "남성",
+      "모두"
     ]
   )
 
@@ -47,11 +47,12 @@ final class PreferGenderPickerView: TFBaseView {
       nextBtn
     )
     container.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
     }
 
     genderPickerView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(30)
+      $0.top.equalToSuperview().offset(76)
       $0.leading.trailing.equalToSuperview().inset(0)
     }
 
@@ -70,7 +71,7 @@ final class PreferGenderPickerView: TFBaseView {
       $0.top.equalTo(descLabel.snp.bottom).offset(30)
       $0.trailing.equalTo(descLabel)
       $0.height.equalTo(50)
-      $0.width.equalTo(60)
+      $0.width.equalTo(88)
     }
   }
 }

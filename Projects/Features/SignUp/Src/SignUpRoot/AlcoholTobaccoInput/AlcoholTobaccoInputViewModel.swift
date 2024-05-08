@@ -35,6 +35,8 @@ final class AlcoholTobaccoPickerViewModel: ViewModelType {
     let nextBtnisEnabled = Driver.combineLatest(selectedAlcohol, selectedTobacco).map { _ in true }
 
     input.nextBtnTap
+      .withLatestFrom(nextBtnisEnabled)
+      .filter { $0 }
       .drive(with: self) { owner, _ in
         owner.delegate?.invoke(.nextAtAlcoholTobacco(alcoho: .frequently, tobacco: .frequently))
       }.disposed(by: disposeBag)

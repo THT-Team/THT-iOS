@@ -13,7 +13,7 @@ import RxSwift
 import RxCocoa
 
 final class IdealTypePickerViewController: TFBaseViewController {
-  typealias VMType = TagPickerViewModel
+  typealias VMType = IdealTypeTagPickerViewModel
   private(set) var mainView = TagPickerView(
     titleInfo: .init(title: "이상형을 알려주세요.", targetText: "이상형"),
     subTitleInfo: .init(title: "내 이상형 3개를 선택해주세요.", targetText: "내 이상형")

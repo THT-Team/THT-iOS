@@ -29,12 +29,6 @@ extension SignUpCoordinator {
   }
 }
 
-extension SignUpCoordinator: PHPickerViewControllerDelegate {
-  public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-    picker.dismiss()
-  }
-}
-
 extension PHPickerViewController: ViewControllable {
   public var uiController: UIViewController { return self }
 }

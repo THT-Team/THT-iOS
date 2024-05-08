@@ -23,7 +23,7 @@ class LocationInputField: UIControl {
   }
   private lazy var locationLabel = UILabel().then {
     $0.text = "서울시 강남구 대치동"
-    $0.textColor = DSKitAsset.Color.disabled.color
+    $0.textColor = DSKitAsset.Color.neutral300.color
     $0.font = .thtH5M
   }
 
@@ -101,7 +101,8 @@ class LocationInputField: UIControl {
 extension LocationInputField {
   func bind(_ location: String) {
     self.location = location
-
+    self.containView.layer.borderColor = DSKitAsset.Color.primary500.color.cgColor
+    self.locationLabel.textColor = DSKitAsset.Color.neutral50.color
   }
 }
 
@@ -125,7 +126,7 @@ struct LocationInputFieldPreview: PreviewProvider {
   static var previews: some View {
     UIViewPreview {
       let component =  LocationInputField()
-//      component.bind("서울시 성북구 성북동")
+      component.bind("서울시 성북구 성북동")
       return component
     }
     .previewLayout(.sizeThatFits)

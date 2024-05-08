@@ -32,9 +32,9 @@ class AlcoholTobaccoPickerView: TFBaseView {
   lazy var tobaccoPickerView = TFButtonPickerView(
     title: "흡연 스타일을 선택해주세요.", targetString: "흡연",
     options: [
-      0:"안함",
-      1:"가끔",
-      2:"자주"
+      "안함",
+      "가끔",
+      "자주"
     ],
     titleType: .sub
   )
@@ -42,9 +42,9 @@ class AlcoholTobaccoPickerView: TFBaseView {
   lazy var alcoholPickerView = TFButtonPickerView(
     title: "주량을 선택해주세요.", targetString: "주량",
     options: [
-      0:"안함",
-      1:"가끔",
-      2:"자주"
+      "안함",
+      "가끔",
+      "자주"
     ],
     titleType: .sub
   )
@@ -75,11 +75,12 @@ class AlcoholTobaccoPickerView: TFBaseView {
       nextBtn
     )
     container.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(30)
+      $0.top.equalToSuperview().offset(76)
       $0.leading.trailing.equalToSuperview().inset(30)
     }
 
@@ -108,7 +109,7 @@ class AlcoholTobaccoPickerView: TFBaseView {
       $0.top.equalTo(descLabel.snp.bottom).offset(30)
       $0.trailing.equalTo(descLabel)
       $0.height.equalTo(50)
-      $0.width.equalTo(60)
+      $0.width.equalTo(88)
     }
   }
 }

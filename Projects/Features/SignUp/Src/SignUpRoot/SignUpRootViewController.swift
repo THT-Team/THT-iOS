@@ -30,18 +30,19 @@ final class SignUpRootViewController: TFBaseViewController {
 
   var viewModel: SignUpRootViewModel!
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    setupAccessibilityIdentifier()
-  }
-
   override func makeUI() {
+    view.backgroundColor = DSKitAsset.Color.neutral700.color
     view.addSubview(signitureImageView)
     signitureImageView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(view.safeAreaLayoutGuide)
         .inset(view.bounds.height * 0.162)
       $0.height.equalTo(180)
+    }
+    
+    signitureImageView.transform = CGAffineTransform(translationX: 0, y: 60)
+    UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut) {
+      self.signitureImageView.transform = .identity
     }
 
     self.view.addSubview(buttonStackView)

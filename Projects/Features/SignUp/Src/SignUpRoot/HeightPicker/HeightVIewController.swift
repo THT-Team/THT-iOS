@@ -48,6 +48,7 @@ final class HeightPickerViewController: TFBaseViewController {
     output.height
       .drive(with: self) { owner, value in
         owner.mainView.heightLabel.text = value
+        owner.mainView.heightLabel.textColor = DSKitAsset.Color.primary500.color
       }
       .disposed(by: disposeBag)
 

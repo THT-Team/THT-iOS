@@ -35,7 +35,7 @@ class TFButtonPickerView: UIControl {
 
   private let titleType: TitleType
 
-  init(title: String, targetString: String, options: Dictionary<Int, String>, titleType: TitleType = .header) {
+  init(title: String, targetString: String, options: [String], titleType: TitleType = .header) {
     self.title = title
     self.targetString = targetString
     self.titleType = titleType
@@ -83,11 +83,11 @@ class TFButtonPickerView: UIControl {
     }
   }
 
-  func createButtons(_ pairs: Dictionary<Int, String>) {
-    pairs.forEach { pair in
-      let button = CTAButton(btnTitle: pair.value, initialStatus: false)
+  func createButtons(_ pairs: [String]) {
+    pairs.enumerated().forEach { index, value in
+      let button = CTAButton(btnTitle: value, initialStatus: false)
       button.addAction(UIAction { [weak self] _ in
-        self?.handleSelectedState(Option(key: pair.key, value: pair.value))
+        self?.handleSelectedState(Option(key: index, value: value))
       }, for: .touchUpInside)
       self.buttonHStackView.addArrangedSubview(button)
       self.options.append(button)
@@ -108,21 +108,3 @@ class TFButtonPickerView: UIControl {
     }
   }
 }
-//
-//#if canImport(SwiftUI) && DEBUG
-//import SwiftUI
-//import DSKit
-//
-//struct ButtonPickerViewPreview: PreviewProvider {
-//
-//  static var previews: some View {
-//    UIViewPreview {
-//      let text = "성별, 생일을 입력해주세요"
-//      let target = "성별, 생일"
-//
-//      return ButtonPickerView(title: text, targetString: target, option1: "여자", option2: "남자")
-//    }
-//    .previewLayout(.sizeThatFits)
-//  }
-//}
-//#endif

@@ -23,20 +23,20 @@ final class NicknameInputViewController: TFBaseViewController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  
 
   override func makeUI() {
     view.addSubview(mainView)
     mainView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-
-    keyBoardSetting()
   }
 
   override func bindViewModel() {
     let viewWillAppear =  rx.sentMessage(#selector(UIViewController.viewWillAppear(_:)))
       .do(onNext: { [weak self] _ in
-        self?.mainView.nicknameInputView.becomeFirstResponder()
+        self?.mainView.nicknameInputField.textField.becomeFirstResponder()
       })
       .map { _ in }
       .asDriver(onErrorDriveWith: .empty())
@@ -49,37 +49,14 @@ final class NicknameInputViewController: TFBaseViewController {
     )
 
     let output = viewModel.transform(input: input)
-
-
-//
-//    output.phoneNum
-//      .drive(phoneNumTextField.rx.text)
-//      .disposed(by: disposeBag)
-//
-//    output.phoneNum
-//      .map { $0 + "으로\n전송된 코드를 입력해주세요."}
-//      .drive(codeInputDescLabel.rx.text)
-//      .disposed(by: disposeBag)
-//
-//    output.validate
-//      .filter { $0 == true }
-//      .map { _ in DSKitAsset.Color.primary500.color }
-//      .drive(verifyBtn.rx.backgroundColor)
-//      .disposed(by: disposeBag)
-//
-//    output.validate
-//      .filter { $0 == false }
-//      .map { _ in DSKitAsset.Color.disabled.color }
-//      .drive(verifyBtn.rx.backgroundColor)
-//      .disposed(by: disposeBag)
-//
-//    output.validate
-//      .map { $0 == true }
-//      .do(onNext: { [weak self] status in
-//        self?.mainView.nextBtn.updateColors(status: isEnabled)
-//      })
-//      .drive(mainView.nextBtn.rx.isEnabled)
-//      .disposed(by: disposeBag)
+    
+    output.errorField
+      .drive(mainView.nicknameInputField.errorDescriptionLabel.rx.text)
+      .disposed(by: disposeBag)
+    
+    output.validate
+      .drive(mainView.nextBtn.rx.buttonStatus)
+      .disposed(by: disposeBag)
   }
 
   func keyBoardSetting() {
@@ -90,20 +67,5 @@ final class NicknameInputViewController: TFBaseViewController {
         vc.view.endEditing(true)
       }
       .disposed(by: disposeBag)
-//
-//    RxKeyboard.instance.visibleHeight
-//      .skip(1)
-//      .drive(with: self, onNext: { owner, keyboardHeight in
-//        if keyboardHeight == 0 {
-//          owner.mainView.snp.updateConstraints {
-//            $0.bottom.equalToSuperview().inset(14)
-//          }
-//        } else {
-//          owner.mainView.nextBtn.snp.updateConstraints {
-//            $0.bottom.equalToSuperview().inset(keyboardHeight - owner.view.safeAreaInsets.bottom + 14)
-//          }
-//        }
-//      })
-//      .disposed(by: disposeBag)
   }
 }

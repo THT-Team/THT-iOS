@@ -8,6 +8,7 @@
 import UIKit
 
 import DSKit
+import RxGesture
 
 final class LocationInputViewController: TFBaseViewController {
   typealias ViewModel = LocationInputViewModel
@@ -28,8 +29,16 @@ final class LocationInputViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
+    
+    let fieldTap = mainView.locationField.rx
+      .tapGesture()
+      .when(.recognized)
+      .map { _ in }
+      .asDriverOnErrorJustEmpty()
+      .debug("fieldTap")
+    
     let input = ViewModel.Input(
-      locationBtnTap: self.mainView.locationField.rx.tap.asDriver(),
+      locationBtnTap: fieldTap,
       nextBtn: self.mainView.nextBtn.rx.tap.asDriver()
     )
 
@@ -37,6 +46,10 @@ final class LocationInputViewController: TFBaseViewController {
 
     output.isNextBtnEnabled
       .drive(self.mainView.nextBtn.rx.buttonStatus)
+      .disposed(by: disposeBag)
+    
+    output.currentLocation
+      .drive(self.mainView.locationField.rx.location)
       .disposed(by: disposeBag)
   }
 }

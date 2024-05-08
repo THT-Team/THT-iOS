@@ -26,14 +26,20 @@ final class LocationInputView: TFBaseView {
   lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubviews(
+    addSubview(containerView)
+    containerView.addSubviews(
       titleLabel,
       locationField,
       nextBtn
     )
+    
+    containerView.snp.makeConstraints {
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
+    }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(frame.height * 0.09)
+      $0.top.equalToSuperview().inset(76)
       $0.leading.equalToSuperview().inset(38)
     }
 
@@ -45,10 +51,9 @@ final class LocationInputView: TFBaseView {
     nextBtn.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(38)
       $0.height.equalTo(54)
-      $0.width.equalTo(100)
+      $0.width.equalTo(88)
+      $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-16)
     }
-
-    nextBtn.bottomAnchor.constraint(equalTo: self.keyboardLayoutGuide.topAnchor).isActive = true
   }
 }
 #if canImport(SwiftUI) && DEBUG

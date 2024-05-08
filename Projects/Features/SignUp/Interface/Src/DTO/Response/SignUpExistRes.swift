@@ -8,6 +8,11 @@
 import Foundation
 
 public struct SignUpExistRes: Codable {
-  let isSignUp: Bool
-  let typeList: [SNSType]
+  public let isSignUp: Bool
+  public let typeList: [SNSType]
+  
+  public init(isSignUp: Bool, typeList: [SNSType]) {
+    self.isSignUp = isSignUp
+    self.typeList = typeList
+  }
 }

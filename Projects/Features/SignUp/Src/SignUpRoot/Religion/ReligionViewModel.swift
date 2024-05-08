@@ -55,6 +55,8 @@ final class ReligionPickerViewModel: ViewModelType {
       .map { $0.count == 1 }
 
     input.nextBtnTap
+      .withLatestFrom(isNextBtnEnabled)
+      .filter { $0 }
       .withLatestFrom(selectedItem) {
         $1.map { chips.value[$0.item] }
       }

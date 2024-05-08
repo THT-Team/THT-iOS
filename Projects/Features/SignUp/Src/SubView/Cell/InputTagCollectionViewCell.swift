@@ -102,3 +102,20 @@ public struct InputTagItemViewModel {
     self.isSelected = isSelected
   }
 }
+
+#if canImport(SwiftUI) && DEBUG
+import SwiftUI
+
+struct InputTagCellViewPreview: PreviewProvider {
+
+  static var previews: some View {
+    UIViewPreview {
+      let component =  InputTagCollectionViewCell()
+      component.bind(.init(item: .init(idx: 1, name: "샘플", emojiCode: "U+1F457"), isSelected: false))
+      return component
+    }
+    .previewLayout(.sizeThatFits)
+  }
+}
+#endif
+

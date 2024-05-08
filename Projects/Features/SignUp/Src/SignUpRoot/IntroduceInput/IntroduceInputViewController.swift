@@ -39,7 +39,7 @@ final class IntroduceInputViewController: TFBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.isEnableNextBtn
-      .drive(self.mainView.nextBtn.rx.isEnabled)
+      .drive(self.mainView.nextBtn.rx.buttonStatus)
       .disposed(by: disposeBag)
   }
 }

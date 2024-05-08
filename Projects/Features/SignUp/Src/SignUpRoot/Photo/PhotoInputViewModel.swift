@@ -95,8 +95,8 @@ final class PhotoInputViewModel: ViewModelType {
     Driver.zip(index, data) { index, data in
       var mutable = imageDataArray.value
       mutable[index].data = data
-      imageDataArray.accept(mutable)
-    }.drive()
+      return mutable
+    }.drive(imageDataArray)
       .disposed(by: disposeBag)
 
     let nextBtnStatus = imageDataArray
@@ -108,15 +108,18 @@ final class PhotoInputViewModel: ViewModelType {
           }
         }
         return true
-      }
+      }.asDriver(onErrorJustReturn: false)
+    
     input.nextBtnTap
+      .withLatestFrom(nextBtnStatus)
+      .filter { $0 }
       .drive(with: self) { owner, _ in
         owner.delegate?.invoke(.nextAtPhoto([]))
       }.disposed(by: disposeBag)
 
     return Output(
       images: imageDataArray.asDriver(),
-      nextBtn: nextBtnStatus.asDriverOnErrorJustEmpty()
+      nextBtn: nextBtnStatus
     )
   }
 }

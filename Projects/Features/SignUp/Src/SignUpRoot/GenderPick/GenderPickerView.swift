@@ -51,12 +51,13 @@ class GenderPickerView: TFBaseView {
       nextBtn
     )
     container.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
     }
 
     genderPickerView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(30)
-      $0.leading.trailing.equalToSuperview().inset(0)
+      $0.top.equalToSuperview().offset(76)
+      $0.leading.trailing.equalToSuperview()
     }
 
     birthdayLabel.snp.makeConstraints {
@@ -80,7 +81,7 @@ class GenderPickerView: TFBaseView {
       $0.top.equalTo(descLabel.snp.bottom).offset(30)
       $0.trailing.equalTo(birthdayLabel)
       $0.height.equalTo(50)
-      $0.width.equalTo(60)
+      $0.width.equalTo(88)
     }
   }
 }

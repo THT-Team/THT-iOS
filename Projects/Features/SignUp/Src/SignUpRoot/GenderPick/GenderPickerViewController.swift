@@ -63,6 +63,7 @@ final class GenderPickerViewController: TFBaseViewController {
     output.birthday
       .drive(with: self) { owner, selectedDate in
         owner.mainView.birthdayLabel.text = selectedDate
+        owner.mainView.birthdayLabel.textColor = DSKitAsset.Color.primary500.color
       }
       .disposed(by: disposeBag)
 

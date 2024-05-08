@@ -178,6 +178,10 @@ class TFTextField: UIControl {
       self?.sendActions(for: .editingChanged)
     }), for: .editingChanged)
   }
+  
+  override func becomeFirstResponder() -> Bool {
+    self.textField.becomeFirstResponder()
+  }
 
   func render(state: State) {
     switch state {

@@ -44,6 +44,8 @@ final class HeightPickerViewModel: ViewModelType {
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
+      .withLatestFrom(nextBtnisEnabled)
+      .filter { $0 }
       .withLatestFrom(height)
       .drive(with: self) { owner, height in
         owner.delegate?.invoke(.nextAtHeight(height))

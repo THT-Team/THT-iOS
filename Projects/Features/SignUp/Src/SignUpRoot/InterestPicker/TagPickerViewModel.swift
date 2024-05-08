@@ -16,6 +16,7 @@ import Domain
 
 final class TagPickerViewModel: ViewModelType {
   private let actionType: SignUpCoordinatingAction
+  private let useCase: SignUpUseCaseInterface
   weak var delegate: SignUpCoordinatingActionDelegate?
 
   struct Input {
@@ -30,20 +31,23 @@ final class TagPickerViewModel: ViewModelType {
 
   private var disposeBag = DisposeBag()
 
-  init(action: SignUpCoordinatingAction) {
+  init(action: SignUpCoordinatingAction, useCase: SignUpUseCaseInterface) {
     self.actionType = action
+    self.useCase = useCase
   }
 
   func transform(input: Input) -> Output {
-    let dummyEmojis:[EmojiType] = [
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-    ]
 
-    let chips = BehaviorRelay<[InputTagItemViewModel]>(value: dummyEmojis.map { .init(item: $0, isSelected: false) })
+    let chips = BehaviorRelay<[InputTagItemViewModel]>(value: [])
+    
+    Driver.just(())
+      .flatMapLatest { [unowned self] _ in
+        self.useCase.interests()
+          .asDriver(onErrorJustReturn: [])
+      }
+      .map { $0.map { InputTagItemViewModel(item: $0, isSelected: false) } }
+      .drive(chips)
+      .disposed(by: disposeBag)
 
     let selectedItemArray = input.chipTap
       .scan([]) { (prev, indexPath) -> [IndexPath] in
@@ -61,7 +65,7 @@ final class TagPickerViewModel: ViewModelType {
       }
       .startWith([])
 
-    let updatedChips = selectedItemArray
+    selectedItemArray
       .map { selectedItems in
         chips.value.enumerated()
           .map { index, item in
@@ -69,12 +73,15 @@ final class TagPickerViewModel: ViewModelType {
               item: item.emojiType, isSelected: selectedItems.contains(IndexPath(item: index, section: 0))
             )
           }
-      }
+      }.drive(chips)
+      .disposed(by: disposeBag)
 
     let isNextBtnEnabled = selectedItemArray
       .map { $0.count == 3 }
 
     input.nextBtnTap
+      .withLatestFrom(isNextBtnEnabled)
+      .filter { $0 }
       .withLatestFrom(selectedItemArray) {
         $1.map { chips.value[$0.item].emojiType.idx }
       }
@@ -90,7 +97,7 @@ final class TagPickerViewModel: ViewModelType {
       .disposed(by: disposeBag)
 
     return Output(
-      chips: updatedChips,
+      chips: chips.asDriver(),
       isNextBtnEnabled: isNextBtnEnabled
     )
   }

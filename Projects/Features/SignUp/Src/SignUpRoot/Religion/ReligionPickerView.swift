@@ -25,7 +25,7 @@ final class ReligionPickerView: TFBaseView {
     frame: .zero,
     collectionViewLayout: UICollectionViewFlowLayout()
       .then {
-        $0.itemSize = CGSize(width: 100, height: 60)
+        $0.itemSize = CGSize(width: 90, height: 60)
       }
   ).then {
     $0.register(cellType: ReligionPickerCell.self)
@@ -59,12 +59,14 @@ final class ReligionPickerView: TFBaseView {
       infoImageView, descLabel,
       nextBtn
     )
+    
     container.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.bottom.equalToSuperview()
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(30)
+      $0.top.equalToSuperview().offset(76)
       $0.leading.trailing.equalToSuperview().inset(30)
     }
 
@@ -89,7 +91,7 @@ final class ReligionPickerView: TFBaseView {
       $0.top.equalTo(descLabel.snp.bottom).offset(30)
       $0.trailing.equalTo(descLabel)
       $0.height.equalTo(50)
-      $0.width.equalTo(60)
+      $0.width.equalTo(88)
     }
   }
 }

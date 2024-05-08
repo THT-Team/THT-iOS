@@ -11,6 +11,7 @@ import SignUpInterface
 import DSKit
 
 final class PhoneCertificationViewModel: ViewModelType {
+  private let useCase: SignUpUseCaseInterface
 
   struct Input {
     let viewWillAppear: Driver<Void>
@@ -33,6 +34,10 @@ final class PhoneCertificationViewModel: ViewModelType {
     let timeLabelTextColor: Driver<DSKitColors>
     let navigatorDisposble: Driver<Void>
   }
+  
+  init(useCase: SignUpUseCaseInterface) {
+    self.useCase = useCase
+  }
 
   weak var delegate: SignUpCoordinatingActionDelegate?
 
@@ -53,11 +58,16 @@ final class PhoneCertificationViewModel: ViewModelType {
       .asObservable()
       .withUnretained(self)
       .flatMapLatest { owner, phoneNum in
-        owner.testApi(pNum: phoneNum)
+        owner.useCase.certificate(phoneNumber: phoneNum)
+          .asObservable()
+          .catch { error in
+            print(error.localizedDescription)
+            return .empty()
+          }
       }.asDriver(onErrorDriveWith: .empty())
 
     let authNumber = verifyButtonTapped
-      .map { AuthCodeWithTimeStamp(authCode: $0.authNumber) }
+      .map { AuthCodeWithTimeStamp(authCode: $0) }
 
     let viewStatus = authNumber.map { _ in ViewType.authCode }
       .startWith(.phoneNumber)
@@ -71,7 +81,6 @@ final class PhoneCertificationViewModel: ViewModelType {
         }
         return inputCode == "\(authNumber.authCode)"
       }
-      .debug()
       .asDriver(onErrorJustReturn: false)
 
     let timer = authNumber
@@ -124,11 +133,6 @@ final class PhoneCertificationViewModel: ViewModelType {
 
 // MARK: Test Code
 extension PhoneCertificationViewModel {
-  func testApi(pNum: String) -> Observable<PhoneValidationResponse> {
-    return Single<PhoneValidationResponse>
-      .just(PhoneValidationResponse(phoneNumber: pNum, authNumber: 123456))
-      .asObservable()
-  }
 
   enum ViewType {
     case phoneNumber

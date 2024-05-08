@@ -12,11 +12,16 @@ import SignUpInterface
 
 import RxSwift
 import RxCocoa
-import Domain
 
 final class IdealTypeTagPickerViewModel: ViewModelType {
   private let actionType: SignUpCoordinatingAction
+  private let useCase: SignUpUseCaseInterface
   weak var delegate: SignUpCoordinatingActionDelegate?
+  
+  init(action: SignUpCoordinatingAction, useCase: SignUpUseCaseInterface) {
+    self.actionType = action
+    self.useCase = useCase
+  }
 
   struct Input {
     var chipTap: Driver<IndexPath>
@@ -30,20 +35,17 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
 
   private var disposeBag = DisposeBag()
 
-  init(action: SignUpCoordinatingAction) {
-    self.actionType = action
-  }
-
   func transform(input: Input) -> Output {
-    let dummyEmojis:[EmojiType] = [
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-      EmojiType(idx: 0, name: "게임", emojiCode: "#2425fa"),
-    ]
-
-    let chips = BehaviorRelay<[InputTagItemViewModel]>(value: dummyEmojis.map { .init(item: $0, isSelected: false) })
+    let chips = BehaviorRelay<[InputTagItemViewModel]>(value: [])
+    
+    Driver.just(())
+      .flatMapLatest { _ in
+        self.useCase.idealTypes()
+          .asDriver(onErrorJustReturn: [])
+      }
+      .map { $0.map { InputTagItemViewModel(item: $0, isSelected: false) } }
+      .drive(chips)
+      .disposed(by: disposeBag)
 
     let selectedItemArray = input.chipTap
       .scan([]) { (prev, indexPath) -> [IndexPath] in
@@ -61,7 +63,7 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
       }
       .startWith([])
 
-    let updatedChips = selectedItemArray
+    selectedItemArray
       .map { selectedItems in
         chips.value.enumerated()
           .map { index, item in
@@ -69,12 +71,15 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
               item: item.emojiType, isSelected: selectedItems.contains(IndexPath(item: index, section: 0))
             )
           }
-      }
+      }.drive(chips)
+      .disposed(by: disposeBag)
 
     let isNextBtnEnabled = selectedItemArray
       .map { $0.count == 3 }
 
     input.nextBtnTap
+      .withLatestFrom(isNextBtnEnabled)
+      .filter { $0 }
       .withLatestFrom(selectedItemArray) {
         $1.map { chips.value[$0.item].emojiType.idx }
       }
@@ -83,14 +88,14 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
         case .nextAtInterest:
           owner.delegate?.invoke(.nextAtInterest(items))
         case .nextAtIdealType:
-          owner.delegate?.invoke(.nextAtInterest(items))
+          owner.delegate?.invoke(.nextAtIdealType(items))
         default: break
         }
       })
       .disposed(by: disposeBag)
 
     return Output(
-      chips: updatedChips,
+      chips: chips.asDriver(),
       isNextBtnEnabled: isNextBtnEnabled
     )
   }

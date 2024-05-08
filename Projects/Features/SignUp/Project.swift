@@ -29,7 +29,8 @@ let project = Project(
         .feature(
           demo: .SignUp,
           dependencies: [
-            .feature(implementation: .SignUp)
+            .feature(implementation: .SignUp),
+            .data
           ]
         )
 		]

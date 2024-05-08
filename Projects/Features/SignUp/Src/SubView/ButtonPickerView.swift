@@ -7,6 +7,8 @@
 
 import UIKit
 
+import DSKit
+
 class ButtonPickerView: UIControl {
 
   private let title: String
