@@ -8,15 +8,17 @@
 import Foundation
 
 public struct Agreement: Codable {
-  let serviceUseAgree : Bool
-  let personalPrivacyInfoAgree : Bool
-  let locationServiceAgree : Bool
-  let marketingAgree : Bool
+  public let keys: [String: Bool]
+}
 
-  public init(serviceUseAgree: Bool, personalPrivacyInfoAgree: Bool, locationServiceAgree: Bool, marketingAgree: Bool) {
-    self.serviceUseAgree = serviceUseAgree
-    self.personalPrivacyInfoAgree = personalPrivacyInfoAgree
-    self.locationServiceAgree = locationServiceAgree
-    self.marketingAgree = marketingAgree
+extension Agreement {
+  func toDictionary() -> [String: Any] {
+    do {
+      let data = try JSONEncoder().encode(keys)
+      let dic = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) as? [String: Any]
+      return dic ?? [:]
+    } catch {
+      return [:]
+    }
   }
 }

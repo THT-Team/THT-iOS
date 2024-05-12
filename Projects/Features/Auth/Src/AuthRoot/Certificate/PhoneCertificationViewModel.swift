@@ -7,7 +7,7 @@
 
 import Foundation
 
-import SignUpInterface
+import AuthInterface
 import DSKit
 
 final class PhoneCertificationViewModel: ViewModelType {
@@ -32,14 +32,20 @@ final class PhoneCertificationViewModel: ViewModelType {
     let certificateFailuer: Driver<Bool>
     let timeStampLabel: Driver<String>
     let timeLabelTextColor: Driver<DSKitColors>
-    let navigatorDisposble: Driver<Void>
   }
   
   init(useCase: SignUpUseCaseInterface) {
     self.useCase = useCase
   }
 
-  weak var delegate: SignUpCoordinatingActionDelegate?
+  weak var delegate: AuthCoordinatingActionDelegate?
+  private let useCase: AuthUseCaseInterface
+
+  private var disposeBag = DisposeBag()
+
+  init(useCase: AuthUseCaseInterface) {
+    self.useCase = useCase
+  }
 
   func transform(input: Input) -> Output {
 
@@ -53,26 +59,25 @@ final class PhoneCertificationViewModel: ViewModelType {
     let clearButtonTapped = input.clearBtn
       .map { "" }.asDriver()
 
-    let verifyButtonTapped = input.verifyBtn
+    let response = input.verifyBtn
       .throttle(.milliseconds(1500), latest: false)
       .asObservable()
       .withUnretained(self)
       .flatMapLatest { owner, phoneNum in
         owner.useCase.certificate(phoneNumber: phoneNum)
-          .asObservable()
-          .catch { error in
-            print(error.localizedDescription)
-            return .empty()
+          .catch { certificateError in
+            error.accept(())
+            return .error(certificateError)
           }
       }.asDriver(onErrorDriveWith: .empty())
 
-    let authNumber = verifyButtonTapped
+    let authNumber = response
       .map { AuthCodeWithTimeStamp(authCode: $0) }
 
     let viewStatus = authNumber.map { _ in ViewType.authCode }
       .startWith(.phoneNumber)
 
-    let inputtedCode = input.codeInput
+    let certificateResult = input.codeInput
       .distinctUntilChanged()
       .filter { $0.count == 6 }
       .withLatestFrom(authNumber) { inputCode, authNumber -> Bool in
@@ -83,14 +88,27 @@ final class PhoneCertificationViewModel: ViewModelType {
       }
       .asDriver(onErrorJustReturn: false)
 
+    let certificateSuccess = certificateResult.filter { $0 == true }
+
+    let checkUserExists = certificateSuccess
+      .withLatestFrom(phoneNum)
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, phoneNum in
+        owner.useCase.checkUserExists(phoneNumber: phoneNum)
+          .catch { networkError in
+            error.accept(())
+            return .error(networkError)
+          }
+      }.asDriverOnErrorJustEmpty()
+
     let timer = authNumber
       .flatMap { authNumber in
         return Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
           .filter { _ in authNumber.isAvailableCode() }
-          .take(until: inputtedCode.filter{ $0 == true }
+          .take(until: certificateResult.filter{ $0 == true }
             .asObservable()
           )
-          .share()
           .asDriver(onErrorDriveWith: Driver<Int>.empty())
       }
 
@@ -98,8 +116,6 @@ final class PhoneCertificationViewModel: ViewModelType {
       .withLatestFrom(authNumber) { _, authNumber in
         authNumber.timeString
       }
-      .debug("timer")
-      .asDriver(onErrorJustReturn: "")
 
     let timerLabelColor = timer
       .withLatestFrom(authNumber) { _, authNumber in
@@ -109,12 +125,32 @@ final class PhoneCertificationViewModel: ViewModelType {
           return DSKitAsset.Color.error
         }
       }
-      .asDriver(onErrorJustReturn: DSKitAsset.Color.neutral50)
 
-    let finishAuth = input.finishAnimationTrigger
-      .do(onNext: { [weak self] _ in
-        self?.delegate?.invoke(.nextAtPhoneNumber)
+    let isSignUp = Driver.zip(input.finishAnimationTrigger, checkUserExists) { $1 }
+
+    let newUser = isSignUp.filter { $0.isSignUp == false }
+
+    isSignUp
+      .filter { $0.isSignUp == true }
+      .withLatestFrom(phoneNum)
+      .flatMapLatest({ [unowned self] phoneNum in
+        self.useCase.login(phoneNumber: phoneNum, deviceKey: "")
+          .catch { loginError in
+            error.accept(())
+            return .error(loginError)
+          }
+          .asDriver(onErrorDriveWith: .empty())
       })
+      .drive(with: self) { owner, _ in
+        owner.delegate?.invoke(.toMain)
+      }.disposed(by: disposeBag)
+
+    newUser
+      .withLatestFrom(phoneNum)
+      .drive(with: self, onNext: { owner, phoneNum in
+        owner.delegate?.invoke(.toSignUp(phoneNumber: phoneNum))
+      })
+      .disposed(by: disposeBag)
 
     return Output(
       phoneNum: phoneNum,
@@ -122,11 +158,10 @@ final class PhoneCertificationViewModel: ViewModelType {
       error: error,
       clearButtonTapped: clearButtonTapped,
       viewStatus: viewStatus,
-      certificateSuccess: inputtedCode.filter { $0 == true },
-      certificateFailuer: inputtedCode.filter { $0 == false },
+      certificateSuccess: certificateSuccess,
+      certificateFailuer: certificateResult.filter { $0 == false },
       timeStampLabel: timeLabelStr,
-      timeLabelTextColor: timerLabelColor,
-      navigatorDisposble: finishAuth
+      timeLabelTextColor: timerLabelColor
     )
   }
 }

@@ -26,17 +26,21 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
 
 //    rootFlow()
-    blockUserFriendContactFlow()
+    emailFlow()
   }
 
   public func rootFlow() {
     let viewModel = SignUpRootViewModel()
+  public func locationFlow() {
+    let viewModel = LocationInputViewModel()
     viewModel.delegate = self
 
     let viewController = SignUpRootViewController()
     viewController.viewModel = viewModel
+    let viewController = LocationInputViewController(viewModel: viewModel)
 
     self.viewControllable.setViewControllers([viewController])
+    self.viewControllable.pushViewController(viewController, animated: true)
   }
 
   public func finishFlow() {
@@ -44,7 +48,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func emailFlow() {
-    let viewModel = EmailInputViewModel()
+    let viewModel = EmailInputViewModel(email: SignUpStore.email)
     viewModel.delegate = self
 
     let viewController = EmailInputViewController(viewModel: viewModel)
@@ -53,7 +57,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func nicknameFlow() {
-    let viewModel = NicknameInputViewModel(useCase: self.useCase)
+    let viewModel = NicknameInputViewModel(nickName: SignUpStore.nickname)
     viewModel.delegate = self
 
     let viewController = NicknameInputViewController(viewModel: viewModel)
@@ -65,15 +69,6 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     viewModel.delegate = self
 
     let viewController = PolicyAgreementViewController(viewModel: viewModel)
-
-    self.viewControllable.pushViewController(viewController, animated: true)
-  }
-
-  public func phoneNumberFlow() {
-    let viewModel = PhoneCertificationViewModel(useCase: self.useCase)
-    viewModel.delegate = self
-
-    let viewController = PhoneCertificationViewController(viewModel: viewModel)
 
     self.viewControllable.pushViewController(viewController, animated: true)
   }
@@ -173,12 +168,12 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
   func invoke(_ action: SignUpCoordinatingAction) {
     switch action {
-    case .phoneNumber:
-      phoneNumberFlow()
-//locationFlow()
+    case let .loginType(snsType):
+      print(snsType)
     case .nextAtPhoneNumber:
       emailFlow()
-    case .nextAtEmail:
+    case let .nextAtEmail(email):
+      SignUpStore.email = email
       policyFlow()
     case let .nextAtPolicy(agreement):
       nicknameFlow()

@@ -10,8 +10,10 @@ import UIKit
 
 import DSKit
 
-final class SignUpRootViewController: TFBaseViewController {
-  private lazy var buttonStackView: UIStackView = UIStackView().then {
+import AuthInterface
+
+final class AuthRootViewController: TFBaseViewController {
+  private lazy var buttonStackView = UIStackView().then {
     $0.axis = .vertical
     $0.spacing = 16
   }
@@ -28,7 +30,7 @@ final class SignUpRootViewController: TFBaseViewController {
     $0.contentMode = .scaleAspectFit
   }
 
-  var viewModel: SignUpRootViewModel!
+  var viewModel: AuthRootViewModel!
 
   override func makeUI() {
     view.backgroundColor = DSKitAsset.Color.neutral700.color
@@ -63,29 +65,17 @@ final class SignUpRootViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
-    let input = SignUpRootViewModel.Input(
-      phoneBtn: startPhoneBtn.rx.tap.asDriver(),
-      kakaoBtn: startKakaoButton.rx.tap.asDriver(),
-      googleBtn: startGoogleBtn.rx.tap.asDriver(),
-      naverBtn: startNaverBtn.rx.tap.asDriver()
+    let buttonTap = Driver<SNSType>.merge(
+      startPhoneBtn.rx.tap.asDriver().map { return SNSType.normal },
+      startKakaoButton.rx.tap.asDriver().map { return SNSType.kakao },
+      startGoogleBtn.rx.tap.asDriver().map { SNSType.google },
+      startNaverBtn.rx.tap.asDriver().map { SNSType.naver }
+    )
+
+    let input = AuthRootViewModel.Input(
+      buttonTap: buttonTap
     )
 
     let output = viewModel.transform(input: input)
   }
 }
-
-extension SignUpRootViewController {
-
-  private func setupAccessibilityIdentifier() {
-    startPhoneBtn.accessibilityIdentifier = AccessibilityIdentifier.phoneBtn
-    startKakaoButton.accessibilityIdentifier = AccessibilityIdentifier.kakoBtn
-    startNaverBtn.accessibilityIdentifier = AccessibilityIdentifier.naverBtn
-    startGoogleBtn.accessibilityIdentifier = AccessibilityIdentifier.googleBtn
-  }
-}
-
-//struct SignUpRootViewControllerPreview: PreviewProvider {
-//  static var previews: some View {
-//    SignUpRootViewController(viewModel: SignUpRootViewModel(navigator: SignUpNavigator(controller: UINavigationController()))).toPreView()
-//  }
-//}

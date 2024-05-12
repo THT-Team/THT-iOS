@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AuthInterface
 
 public struct SignUpReq: Encodable {
   let phoneNumber, username, email, birthDay: String

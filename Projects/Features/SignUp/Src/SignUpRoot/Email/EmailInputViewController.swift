@@ -179,10 +179,6 @@ class EmailInputViewController: TFBaseViewController {
       .drive(nextButton.rx.buttonStatus, nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
 
-    output.buttonTappedResult
-      .drive()
-      .disposed(by: disposeBag)
-
     output.emailTextStatus
       .drive(with: self, onNext: { vc, state in
         switch state {
@@ -218,7 +214,10 @@ class EmailInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.emailText
-      .drive(emailTextField.rx.text)
+      .drive(with: self, onNext: { owner, text in
+        owner.emailTextField.text = text
+        owner.emailTextField.sendActions(for: .valueChanged)
+      })
       .disposed(by: disposeBag)
   }
 

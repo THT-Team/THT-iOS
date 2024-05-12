@@ -7,18 +7,15 @@
 
 import Foundation
 import SignUpInterface
+import AuthInterface
 
 public enum SignUpCoordinatingAction {
 
-  case phoneNumber
-  case kakao
-  case google
-  case apple
-  case naver
+  case loginType(SNSType)
 
-  case nextAtPhoneNumber
+  case nextAtPhoneNumber(phoneNumber: String)
   case nextAtAuthCode
-  case nextAtEmail
+  case nextAtEmail(email: String)
 
   case nextAtPolicy(Agreement)
   case nextAtNickname(String)

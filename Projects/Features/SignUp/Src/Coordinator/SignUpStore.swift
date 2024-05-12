@@ -8,6 +8,10 @@
 import Foundation
 import Core
 
+protocol Signing {
+  
+}
+
 public struct SignUpStore {
 
   enum Key: String {

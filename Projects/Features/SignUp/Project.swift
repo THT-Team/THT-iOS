@@ -16,6 +16,7 @@ let project = Project(
 					interface: .SignUp,
 						dependencies: [
 							.core,
+              .feature(interface: .Auth)
 						]
 				),
 				.feature(

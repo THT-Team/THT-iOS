@@ -40,9 +40,3 @@ struct AddressRes: Codable {
     }
   }
 }
-
-extension Addressres {
-  func toDomain -> LocationReq {
-    
-  }
-}
