@@ -11,26 +11,23 @@ import SignUpInterface
 import Domain
 
 public final class SignUpUseCase: SignUpUseCaseInterface {
-  
+
   private let repository: SignUpRepositoryInterface
+  private let locationService: LocationServiceType
+  private let kakaoAPIService: KakaoAPIServiceType
+  private let contactService: ContactServiceType
 
-  public init(repository: SignUpRepositoryInterface) {
+  public init(repository: SignUpRepositoryInterface, locationService: LocationServiceType, kakaoAPIService: KakaoAPIServiceType, contactService: ContactServiceType) {
     self.repository = repository
-  }
-
-  public func certificate(phoneNumber: String) -> Single<Int> {
-    return repository.certificate(phoneNumber: phoneNumber)
-  }
-
-  public func checkExistence(phoneNumber: String) -> Single<Bool> {
-    return repository.checkExistence(phoneNumber: phoneNumber)
-      .map { $0.isSignUp }
+    self.kakaoAPIService = kakaoAPIService
+    self.contactService = contactService
+    self.locationService = locationService
   }
 
   public func checkNickname(nickname: String) -> Single<Bool> {
     return repository.checkNickname(nickname: nickname)
   }
-  
+
   public func idealTypes() -> Single<[Domain.EmojiType]> {
     return repository.idealTypes()
       .catchAndReturn([])
@@ -42,10 +39,45 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
       .catchAndReturn([])
       .map { $0.map { $0.toDomain() }}
   }
-  
+
   public func block() -> Single<Int> {
-    
-    return repository.block()
+    self.contactService.fetchContact()
+      .flatMap { [unowned self] contacts in
+        self.repository.block(contacts: contacts)
+      }
+  }
+
+  @MainActor
+  public func fetchLocation() -> Single<LocationReq> { //
+    self.locationService.requestAuthorization()
+    self.locationService.handleAuthorization { [weak self] granted in
+      guard granted else {
+        return
+      }
+      self?.locationService.requestLocation()
+    }
+
+    return self.locationService.publisher
+      .take(1)
+      .asSingle()
+      .flatMap { [unowned self] locationReq in
+        self.kakaoAPIService.fetchLocationByCoordinate2d(longitude: locationReq.lon, latitude: locationReq.lat)
+      }.map { model in
+        guard let model else {
+          throw LocationError.invalidLocation
+        }
+        return model
+      }
+  }
+
+  public func fetchLocation(_ address: String) -> Single<LocationReq> {
+    self.kakaoAPIService.fetchLocationByAddress(address: address)
+      .map { model in
+        guard let model else {
+          throw LocationError.invalidLocation
+        }
+        return model
+      }
   }
 }
 

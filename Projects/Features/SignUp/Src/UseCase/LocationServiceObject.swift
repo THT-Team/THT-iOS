@@ -10,11 +10,8 @@ import CoreLocation
 import SignUpInterface
 import RxSwift
 
-enum LocationError: Error {
-  case denied
-}
 
-class LocationService: NSObject {
+class LocationServiceObject: NSObject {
   private var manager = CLLocationManager()
   public let publisher = PublishSubject<LocationReq>()
 
@@ -50,7 +47,7 @@ class LocationService: NSObject {
   }
 }
 
-extension LocationService: CLLocationManagerDelegate {
+extension LocationServiceObject: CLLocationManagerDelegate {
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
     if manager.authorizationStatus == .authorizedWhenInUse {
       manager.requestLocation()

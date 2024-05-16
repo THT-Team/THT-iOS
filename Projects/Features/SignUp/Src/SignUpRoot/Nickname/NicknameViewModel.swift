@@ -19,16 +19,13 @@ final class NicknameInputViewModel: ViewModelType {
   weak var delegate: SignUpCoordinatingActionDelegate?
 
   private var disposeBag = DisposeBag()
-  
-  init(useCase: SignUpUseCaseInterface) {
-    self.useCase = useCase
-  }
-
   private let nickName: String?
 
-  init(nickName: String) {
+  init(useCase: SignUpUseCaseInterface, nickName: String?) {
+    self.useCase = useCase
     self.nickName = nickName
   }
+
 
   struct Input {
     let viewWillAppear: Driver<Void>
@@ -38,7 +35,7 @@ final class NicknameInputViewModel: ViewModelType {
   }
 
   struct Output {
-    let initialValue: Driver<String>
+    let initialValue: Driver<String?>
     let validate: Driver<Bool>
     let errorField: Driver<String>
   }
@@ -46,7 +43,9 @@ final class NicknameInputViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     let text = input.nickname
     let errorTracker = PublishSubject<Error>()
-    
+
+    let outputText = BehaviorRelay<String?>(value: self.nickName)
+
     input.viewWillAppear
       .drive()
       .disposed(by: disposeBag)
@@ -63,6 +62,7 @@ final class NicknameInputViewModel: ViewModelType {
           })
           .asDriver(onErrorJustReturn: false)
       }
+
     let latest = Driver.zip(text, validate) { text, validate in
       return text
     }
@@ -85,6 +85,7 @@ final class NicknameInputViewModel: ViewModelType {
       }.asDriverOnErrorJustEmpty()
 
     return Output(
+      initialValue: outputText.asDriver(),
       validate: validate,
       errorField: errorField
     )

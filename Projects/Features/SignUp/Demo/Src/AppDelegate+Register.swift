@@ -24,10 +24,10 @@ extension AppDelegate {
       interface: SignUpUseCaseInterface.self,
       implement: {
         SignUpUseCase(
-          repository: SignUpRepository(
-            isStub: false,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil)
+          repository: SignUpRepository(),
+          locationService: LocationService(),
+          kakaoAPIService: KakaoAPIService(),
+          contactService: ContactService()
         )
       }
     )

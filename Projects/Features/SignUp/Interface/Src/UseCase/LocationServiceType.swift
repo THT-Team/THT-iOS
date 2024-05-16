@@ -9,8 +9,13 @@ import Foundation
 import RxSwift
 
 public protocol LocationServiceType {
-  var publisher: PublishSubject<String> { get }
+  var publisher: PublishSubject<LocationReq> { get }
   func handleAuthorization(granted: @escaping (Bool) -> Void)
   func requestLocation()
   func requestAuthorization()
+}
+
+public enum LocationError: Error {
+  case denied
+  case invalidLocation
 }

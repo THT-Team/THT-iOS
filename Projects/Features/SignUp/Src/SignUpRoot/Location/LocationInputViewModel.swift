@@ -16,8 +16,10 @@ import SignUpInterface
 final class LocationInputViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   weak var delegate: SignUpCoordinatingActionDelegate?
-  
+
   private let locationTrigger = PublishSubject<String>()
+  private let useCase: SignUpUseCaseInterface
+  private let initialValue: LocationReq?
 
   struct Input {
     let locationBtnTap: Driver<Void>
@@ -29,46 +31,63 @@ final class LocationInputViewModel: ViewModelType {
     let currentLocation: Driver<String>
   }
 
+  init(useCase: SignUpUseCaseInterface, initialLocation: LocationReq?) {
+    self.useCase = useCase
+    self.initialValue = initialLocation
+  }
+
   // 필드 클릭하면 퍼미션 리퀘스트 후 -> granted: Bool
   // granted 면 시작, 아니면,
 
   func transform(input: Input) -> Output {
     
-    Driver.just(Void())
-      .drive(with: self) { owner, _ in
-        owner.locationService.requestAuthorization()
-      }.disposed(by: disposeBag)
-    
-    let currentLocation = Observable<String>.merge(locationService.publisher, self.locationTrigger)
-      .asDriver(onErrorJustReturn: "")
-    let webViewTrigger = PublishSubject<Void>()
+    let addressTrigger = self.locationTrigger
+    let currentLocation = BehaviorRelay<LocationReq?>(value: self.initialValue)
 
     input.locationBtnTap
-      .drive(with: self, onNext: { owner, _ in
-        owner.locationService.handleAuthorization { granted in
-          if granted {
-            owner.locationService.requestLocation()
-          } else {
-            owner.delegate?.invoke(.webViewTap(listner: owner))
+      .throttle(.microseconds(300), latest: false)
+      .flatMapLatest { [unowned self] _ in
+        self.useCase.fetchLocation()
+          .catch { error in
+            self.delegate?.invoke(.webViewTap(listner: self))
+            return .error(error)
           }
-        }
-      })
+          .asDriver(onErrorDriveWith: .empty())
+      }
+      .drive(currentLocation)
+      .disposed(by: disposeBag)
+
+    addressTrigger
+      .asDriverOnErrorJustEmpty()
+      .flatMap { [unowned self] address in
+        self.useCase.fetchLocation(address)
+          .asDriver(onErrorDriveWith: .empty())
+      }
+      .drive(currentLocation)
       .disposed(by: disposeBag)
 
     input.nextBtn
+      .throttle(.microseconds(300), latest: false)
       .withLatestFrom(currentLocation.asDriver())
+      .compactMap { $0 }
       .drive(with: self, onNext: { owner, location in
-        owner.delegate?.invoke(.nextAtLocation(.init(address: location, regionCode: 0, lat: 0, lon: 0)))
+        owner.delegate?.invoke(.nextAtLocation(location))
       })
       .disposed(by: disposeBag)
 
     let isNextBtnEnabled = currentLocation
-      .map { !$0.isEmpty }
+      .compactMap { $0 }
+      .map(validator)
+      .asDriver(onErrorJustReturn: false)
 
     return Output(
       isNextBtnEnabled: isNextBtnEnabled,
-      currentLocation: currentLocation
+      currentLocation: currentLocation.compactMap { $0?.address }.asDriverOnErrorJustEmpty()
     )
+  }
+
+  func validator(_ location: LocationReq) -> Bool {
+    return true
   }
 }
 

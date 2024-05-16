@@ -108,17 +108,17 @@ extension PostCodeWebViewController: WKNavigationDelegate {
     indicator.stopAnimating()
   }
 }
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct Location_ViewController_Preview: PreviewProvider {
-    static var previews: some View {
-      let vm = LocationInputViewModel(locationservice: LocationService())
-      let vc = LocationInputViewController(viewModel: vm)
-      return vc.showPreview()
-    }
-}
-#endif
-
-
+//
+//#if canImport(SwiftUI) && DEBUG
+//import SwiftUI
+//
+//struct Location_ViewController_Preview: PreviewProvider {
+//    static var previews: some View {
+//      let vm = LocationInputViewModel(locationservice: LocationService())
+//      let vc = LocationInputViewController(viewModel: vm)
+//      return vc.showPreview()
+//    }
+//}
+//#endif
+//
+//

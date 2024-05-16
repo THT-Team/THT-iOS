@@ -26,20 +26,14 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
 
 //    rootFlow()
-    emailFlow()
+    locationFlow()
+//    blockUserFriendContactFlow()
   }
 
-  public func rootFlow() {
-    let viewModel = SignUpRootViewModel()
   public func locationFlow() {
-    let viewModel = LocationInputViewModel()
+    let viewModel = LocationInputViewModel(useCase: useCase, initialLocation: SignUpStore.location)
     viewModel.delegate = self
-
-    let viewController = SignUpRootViewController()
-    viewController.viewModel = viewModel
     let viewController = LocationInputViewController(viewModel: viewModel)
-
-    self.viewControllable.setViewControllers([viewController])
     self.viewControllable.pushViewController(viewController, animated: true)
   }
 
@@ -57,7 +51,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func nicknameFlow() {
-    let viewModel = NicknameInputViewModel(nickName: SignUpStore.nickname)
+    let viewModel = NicknameInputViewModel(useCase: useCase, nickName: SignUpStore.nickname)
     viewModel.delegate = self
 
     let viewController = NicknameInputViewController(viewModel: viewModel)
@@ -142,13 +136,6 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
-  func locationFlow() {
-    let vm = LocationInputViewModel(locationservice: LocationService())
-    vm.delegate = self
-    let vc = LocationInputViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-  
   func webViewFlow(listener: WebViewDelegate) {
     let vc = PostCodeWebViewController()
     vc.delegate = listener
@@ -206,6 +193,9 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       InterestTagPickerFlow()
     case let .nextAtInterest(tags):
       IdealTypeTagPickerFlow()
+    case let .nextAtLocation(location):
+      SignUpStore.location = location
+      IntroductFlow()
 
     case let .nextAtIdealType(tags):
       IntroductFlow()
@@ -213,9 +203,6 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       locationFlow()
     case let .webViewTap(listener):
       webViewFlow(listener: listener)
-      
-    case let .presentContactUI(delegate):
-      presentContactsUI(delegate: delegate)
     default: break
     }
   }

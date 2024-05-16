@@ -38,6 +38,4 @@ public enum SignUpCoordinatingAction {
   case birthdayTap(Date, listener: BottomSheetListener)
   case heightLabelTap(Int, listener: BottomSheetListener)
   case photoCellTap(index: Int, listener: PhotoPickerDelegate)
-  
-  case presentContactUI(delegate: UserContactPickerDelegate)
 }

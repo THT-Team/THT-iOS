@@ -30,6 +30,7 @@ public let infoPlistExtension: [String: InfoPlist.Value] = [
   "Privacy - Location When In Use Usage Description": "위치 정보 사용",
   "Privacy - Contacts Usage Description": "연락처 사용",
 
+
   "UIAppFonts": [
     "Item 0": "Pretendard-Medium.otf",
     "Item 1": "Pretendard-Regular.otf",

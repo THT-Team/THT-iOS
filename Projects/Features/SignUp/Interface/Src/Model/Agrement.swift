@@ -9,6 +9,10 @@ import Foundation
 
 public struct Agreement: Codable {
   public let keys: [String: Bool]
+
+  public init(keys: [String : Bool]) {
+    self.keys = keys
+  }
 }
 
 extension Agreement {

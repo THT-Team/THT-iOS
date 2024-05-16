@@ -18,8 +18,7 @@ final class UserContactViewModel: ViewModelType {
   private let useCase: SignUpUseCaseInterface
   weak var delegate: SignUpCoordinatingActionDelegate?
   private let disposeBag = DisposeBag()
-  private let contactsTrigger = PublishSubject<[UserFriendContactReq.Contact]>()
-  
+
   enum Action {
     case block
     case skip
@@ -41,8 +40,7 @@ final class UserContactViewModel: ViewModelType {
     let toast = PublishSubject<String>()
     let nextTrigger = PublishSubject<Void>()
     let blockTrigger = PublishSubject<Void>()
-    let timerTrigger = PublishSubject<Void>()
-    
+
     input.actionTrigger
       .drive(onNext: { action in
         switch action {
@@ -56,28 +54,22 @@ final class UserContactViewModel: ViewModelType {
     
     blockTrigger
       .flatMapLatest { [unowned self] _ in
-        self.useCase.block(contacts: <#T##UserFriendContactReq#>)
-      }
-    
-    contactsTrigger
-      .map { UserFriendContactReq(contacts: $0) }
-      .flatMapLatest { [unowned self] request in
-        self.useCase.block(contacts: request)
-          .map { count in
-            timerTrigger.onNext(())
-            return "저장된 연락처 \(count)개를 모두 차단했습니다."
+        self.useCase.block()
+          .flatMap { count in
+            toast.onNext("\(count)개의 연락처를 차단했습니다.")
+            return .just(true)
           }
           .catch { error in
-            return .just(error.localizedDescription)
+            toast.onNext("친구 목록을 불러오는데 실패했습니다. 다시 시도해주세요.")
+            return .just(false)
           }
-      }
-      .bind(to: toast)
+      }.asDriver(onErrorJustReturn: false)
+      .filter { $0 }
+      .map { _ in }
+      .delay(.seconds(2))
+      .drive(nextTrigger)
       .disposed(by: disposeBag)
-    
-    timerTrigger
-      .delay(.seconds(3), scheduler: MainScheduler.instance)
-      .bind(to: nextTrigger)
-      .disposed(by: disposeBag)
+    // TODO: Block 성공하면 toast 띄우고, 2초 뒤 next, 실패하면 toast 띄우고, next 안함
     
     nextTrigger
       .asDriverOnErrorJustEmpty()
@@ -89,13 +81,5 @@ final class UserContactViewModel: ViewModelType {
     return Output(
       toast: toast.asSignal(onErrorJustReturn: "")
     )
-  }
-}
-
-
-extension UserContactViewModel: UserContactListener {
-  func picker(didFinishPicking contacts: [UserFriendContactReq.Contact]) {
-    print(contacts)
-    self.contactsTrigger.onNext(contacts)
   }
 }

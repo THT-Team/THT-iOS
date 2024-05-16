@@ -8,18 +8,9 @@
 import Foundation
 
 public struct UserFriendContactReq: Codable {
-  public struct Contact: Codable {
-    public let name: String
-    public let phoneNumber: String
-    
-    public init(name: String, phoneNumber: String) {
-      self.name = name
-      self.phoneNumber = phoneNumber
-    }
-  }
-  public let contacts: [Contact]
-  
-  public init(contacts: [Contact]) {
+  public let contacts: [ContactType]
+
+  public init(contacts: [ContactType]) {
     self.contacts = contacts
   }
 }

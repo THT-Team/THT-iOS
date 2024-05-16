@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SignUpInterface
 import Core
 
 protocol Signing {
@@ -87,14 +88,19 @@ public struct SignUpStore {
   @Storage<String>(key: Key.introduce.rawValue, defaultValue: "")
   public static var introduce
 
-  @Storage<String>(key: Key.address.rawValue, defaultValue: "")
-  public static var address
-
   @Storage<String>(key: Key.avoidFriends.rawValue, defaultValue: "")
   public static var avoidFriends
+
+  @CodableStorage<LocationReq>(key: Key.address.rawValue, defaultValue: nil)
+  public static var location
+
 }
 
 extension SignUpStore {
+  static func savePhotoData(_ data: Data) {
+    let base64String = data.base64EncodedString()
+    SignUpStore.photo = base64String
+  }
 //  func checkStartFlow() -> SignUpCoordinatingAction {
 //    if phone
 //  }
