@@ -10,71 +10,78 @@ import UIKit
 extension UIViewController {
   public func showAlert(title: String? = nil,
                         message: String? = nil,
-                        attributedMessage: NSAttributedString? = nil,
-                        leftActionTitle: String? = "확인",
-                        rightActionTitle: String = "취소",
-                        leftActionCompletion: (() -> Void)? = nil,
-                        rightActionCompletion: (() -> Void)? = nil,
+                        topActionTitle: String? = "확인",
+                        bottomActionTitle: String = "취소",
+                        dimColor: UIColor = DSKitAsset.Color.DimColor.default.color,
+                        topActionCompletion: (() -> Void)? = nil,
+                        bottomActionCompletion: (() -> Void)? = nil,
                         dimActionCompletion: (() -> Void)? = nil) {
     let alertViewController = TFAlertViewController(titleText: title,
-                                                    messageText: message)
+                                                    messageText: message,
+                                                    dimColor: dimColor)
     showAlert(alertViewController: alertViewController,
-              leftActionTitle: leftActionTitle,
-              rightActionTitle: rightActionTitle,
-              leftActionCompletion: leftActionCompletion,
-              rightActionCompletion: rightActionCompletion,
+              topActionTitle: topActionTitle,
+              bottomActionTitle: bottomActionTitle,
+              topActionCompletion: topActionCompletion,
+              bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
   
   public func showAlert(contentView: UIView,
-                        leftActionTitle: String? = "확인",
-                        rightActionTitle: String = "취소",
-                        leftActionCompletion: (() -> Void)? = nil,
-                        rightActionCompletion: (() -> Void)? = nil,
+                        topActionTitle: String? = "확인",
+                        bottomActionTitle: String = "취소",
+                        dimColor: UIColor = DSKitAsset.Color.DimColor.default.color,
+                        topActionCompletion: (() -> Void)? = nil,
+                        bottomActionCompletion: (() -> Void)? = nil,
                         dimActionCompletion: (() -> Void)? = nil) {
-    let alertViewController = TFAlertViewController(contentView: contentView)
+    let alertViewController = TFAlertViewController(contentView: contentView,
+                                                    dimColor: dimColor)
     
     showAlert(alertViewController: alertViewController,
-              leftActionTitle: leftActionTitle,
-              rightActionTitle: rightActionTitle,
-              leftActionCompletion: leftActionCompletion,
-              rightActionCompletion: rightActionCompletion,
+              topActionTitle: topActionTitle,
+              bottomActionTitle: bottomActionTitle,
+              topActionCompletion: topActionCompletion,
+              bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
   
   public func showAlert(action: ReportAction,
-                        leftActionCompletion: (() -> Void)? = nil,
-                        rightActionCompletion: (() -> Void)? = nil,
+                        dimColor: UIColor = DSKitAsset.Color.DimColor.default.color,
+                        topActionCompletion: (() -> Void)? = nil,
+                        bottomActionCompletion: (() -> Void)? = nil,
                         dimActionCompletion: (() -> Void)? = nil) {
-    let alertViewController = TFAlertViewController(
-      titleText: action.title,
-      messageText: action.message
-    )
+    let alertViewController = TFAlertViewController(titleText: action.title,
+                                                    messageText: action.message,
+                                                    dimColor: dimColor)
     
     showAlert(alertViewController: alertViewController,
-              leftActionTitle: action.leftActionTitle,
-              rightActionTitle: action.rightActionTitle,
-              leftActionCompletion: leftActionCompletion,
-              rightActionCompletion: rightActionCompletion,
+              topActionTitle: action.topActionTitle,
+              bottomActionTitle: action.bottomActionTitle,
+              topActionCompletion: topActionCompletion,
+              bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
   
   private func showAlert(alertViewController: TFAlertViewController,
-                         leftActionTitle: String?,
-                         rightActionTitle: String,
-                         leftActionCompletion: (() -> Void)?,
-                         rightActionCompletion: (() -> Void)?,
+                         topActionTitle: String?,
+                         bottomActionTitle: String,
+                         topActionCompletion: (() -> Void)?,
+                         bottomActionCompletion: (() -> Void)?,
                          dimActionCompletion: (() -> Void)?) {
-    alertViewController.addActionToButton(title: leftActionTitle) {
-      alertViewController.dismiss(animated: false, completion: leftActionCompletion)
+    alertViewController.addActionToButton(title: topActionTitle) {
+      alertViewController.dismiss(animated: false, 
+                                  completion: topActionCompletion)
     }
     
-    alertViewController.addActionToButton(title: rightActionTitle) {
-      alertViewController.dismiss(animated: false, completion: rightActionCompletion)
+    alertViewController.addActionToButton(title: bottomActionTitle, 
+                                          withSeparator: true) {
+      alertViewController.dismiss(animated: false, 
+                                  completion: bottomActionCompletion)
     }
     
     alertViewController.addActionToDim() {
-      alertViewController.dismiss(animated: false, completion: dimActionCompletion)
+      alertViewController.dismiss(animated: false, 
+                                  completion: dimActionCompletion)
     }
     
     present(alertViewController, animated: false, completion: nil)

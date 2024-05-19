@@ -13,9 +13,9 @@ public enum ReportAction {
   var title: String {
     switch self {
     case .complaints:
-      return "차단할까요?"
-    case .block:
       return "어떤 문제가 있나요?"
+    case .block:
+      return "차단할까요?"
     case .withdraw:
       return "계정 탈퇴하기"
     }
@@ -32,7 +32,7 @@ public enum ReportAction {
     }
   }
   
-  var leftActionTitle: String {
+  var topActionTitle: String {
     switch self {
     case .complaints:
       return "차단할까요?"
@@ -43,7 +43,7 @@ public enum ReportAction {
     }
   }
   
-  var rightActionTitle: String {
+  var bottomActionTitle: String {
     switch self {
     default:
       return "취소"
@@ -122,19 +122,21 @@ public final class TFAlertViewController: TFBaseViewController {
   
   init(
     titleText: String? = nil,
-    messageText: String? = nil
+    messageText: String? = nil,
+    dimColor: UIColor = DSKitAsset.Color.DimColor.default.color
   ) {
     super.init(nibName: nil, bundle: nil)
     self.titleText = titleText
     self.messageText = messageText
-    
+    self.dimView.backgroundColor = dimColor
     modalPresentationStyle = .overFullScreen
   }
   
-  convenience init(contentView: UIView) {
+  convenience init(contentView: UIView, dimColor: UIColor) {
     self.init()
     
     self.contentView = contentView
+    self.dimView.backgroundColor = dimColor
     modalPresentationStyle = .overFullScreen
   }
   
@@ -164,7 +166,32 @@ public final class TFAlertViewController: TFBaseViewController {
   
   public override func makeUI() {
     view.addSubviews([dimView, containerStackView])
-    containerStackView.addArrangedSubviews([labelStackView, buttonStackView])
+    
+    if let contentView = contentView {
+      containerStackView.addArrangedSubview(contentView)
+      contentView.snp.makeConstraints {
+        $0.leading.trailing.equalToSuperview()
+      }
+    }
+    
+    if let titleLabel = titleLabel {
+      labelStackView.addArrangedSubview(titleLabel)
+      
+      containerStackView.addArrangedSubview(labelStackView)
+      labelStackView.snp.makeConstraints {
+        $0.width.equalToSuperview()
+      }
+      
+      if let messageLabel = messageLabel {
+        labelStackView.addArrangedSubview(messageLabel)
+      }
+    }
+    
+    if let lastView = containerStackView.subviews.last {
+      containerStackView.setCustomSpacing(20, after: lastView)
+    }
+    
+    containerStackView.addArrangedSubview(buttonStackView)
     
     dimView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -175,25 +202,8 @@ public final class TFAlertViewController: TFBaseViewController {
       $0.leading.trailing.equalToSuperview().inset(28)
     }
     
-    labelStackView.snp.makeConstraints {
-      $0.width.equalToSuperview()
-    }
-    
     buttonStackView.snp.makeConstraints {
       $0.width.equalToSuperview()
-    }
-    
-    if let titleLabel = titleLabel {
-      labelStackView.addArrangedSubview(titleLabel)
-      
-    }
-    
-    if let messageLabel = messageLabel {
-      labelStackView.addArrangedSubview(messageLabel)
-    }
-    
-    if !labelStackView.subviews.isEmpty {
-      containerStackView.setCustomSpacing(20, after: labelStackView)
     }
     
     separatorView.snp.makeConstraints {
@@ -204,10 +214,11 @@ public final class TFAlertViewController: TFBaseViewController {
   
   public func addActionToButton(
     title: String? = nil,
+    withSeparator: Bool = false,
     completion: (() -> Void)? = nil
   ) {
     guard let title = title else { return }
-    
+  
     let button = UIButton()
     button.titleLabel?.font = UIFont.thtSubTitle2Sb
     
@@ -224,12 +235,13 @@ public final class TFAlertViewController: TFBaseViewController {
       completion?()
     }
     
-    if let _ = buttonStackView.subviews.first {
-      buttonStackView.addArrangedSubview(separatorView)
-    }
+    if withSeparator { buttonStackView.addArrangedSubview(separatorView) }
     
     buttonStackView.addArrangedSubview(button)
-    button.snp.makeConstraints { $0.width.equalToSuperview() }
+    button.snp.makeConstraints {
+      $0.width.equalToSuperview()
+      $0.height.equalTo(21)
+    }
   }
   
   public func addActionToDim(completion: (() -> Void)? = nil) {
