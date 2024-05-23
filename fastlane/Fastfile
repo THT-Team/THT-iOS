@@ -1,0 +1,86 @@
+default_platform(:ios)
+
+platform :ios do
+  #------------- Config -------------------------
+  schemeName = "Falling"
+  projPath = "./Projects/Features/Falling/Falling.xcodeproj"
+
+
+  #------------- FETCH CERTFICATE ---------------
+  desc "match certificate "
+  lane :match_certificate do
+    match(
+      type: "development"
+    )
+    match(
+      type: "appstore"
+    )
+  end
+
+
+  #------------- TEST ---------------------------
+  desc "Run all the tests"
+  lane :run_unit_tests do
+  scan(
+    scheme: schemeName,
+    clean: true,
+    devices: ["iPhone 15"]
+    )
+  end
+
+  #------------- BUILD --------------------------
+  desc "build"
+  lane :gym_app do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+    new_build_number = latest_testflight_build_number() + 1
+  
+    increment_build_number(
+      build_number: new_build_number,
+      xcodeproj: projPath
+    )
+
+    gym(
+      scheme: schemeName
+    )
+  end
+
+  #------------- Test Flight --------------------
+  desc "upload to TestFlight"
+  lane :pilot_app do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+    app_store_connect_api_key(is_key_content_base64: true)
+    pilot(skip_waiting_for_build_processing: true)
+  end
+
+  #------------- run distribution ------------------
+  desc "run distribution"
+  lane :run_app do
+     gym_app
+     pilot_app
+     td
+  end
+  
+  desc "test discord"
+  lane :td do
+    discord_notifier(
+    webhook_url:"https://discord.com/api/webhooks/1242348352973045801/9Y9OMT9AC5Uwpsj9PgckBTsCcYIYvkmvg5ygzqBiR1J9xiNK5UBHnHKlzCWnpdnKY4f6",
+    title: "title",
+    description: "테스트플라이트 업로드",
+    fields:[
+      {
+        name:"version", 
+        value:"업로드 성공"
+      }
+    ]  
+  )
+  end
+
+end
+
+
