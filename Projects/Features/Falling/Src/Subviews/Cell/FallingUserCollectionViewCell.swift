@@ -121,11 +121,12 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   
   func bind<O>(
     _ viewModel: FallingUserCollectionViewCellModel,
-    timerActiveTrigger: Driver<TimerActiveAction>,
+    timerActiveTrigger: Driver<Bool>,
     timeOverSubject: PublishSubject<AnimationAction>,
     profileDoubleTapTriggerObserver: PublishSubject<Void>,
     fallingCellButtonAction: O,
-    reportButtonTapTriggerObserver: PublishSubject<Void>
+    reportButtonTapTriggerObserver: PublishSubject<Void>,
+    deleteCellTrigger: Driver<Void>
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
     let infoButtonTapTrigger = userInfoBoxView.infoButton.rx.tap.asDriver()
     
@@ -144,7 +145,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       showUserInfoTrigger: showUserInfoTrigger,
       rejectButtonTapTrigger: rejectButtonTapTrigger,
       likeButtonTapTrigger: likeButtonTapTrigger,
-      reportButtonTapTrigger: reportButtonTapTrigger
+      reportButtonTapTrigger: reportButtonTapTrigger,
+      deleteCellTrigger: deleteCellTrigger
     )
     
     let output = viewModel
@@ -204,7 +206,18 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
     
     output.reportButtonAction
-      .drive(reportButtonTapTriggerObserver)
+      .drive(with: self) { owner, _ in
+        reportButtonTapTriggerObserver.onNext(())
+        owner.pauseView.ImageContainerView.isHidden = true
+        owner.pauseView.titleLabel.isHidden = true
+      }
+      .disposed(by: disposeBag)
+    
+    output.deleteCellAction
+      .drive(with: self) { owner, _ in
+        owner.pauseView.isHidden = true
+        owner.profileCollectionView.showDimView()
+      }
       .disposed(by: disposeBag)
   }
   
@@ -287,18 +300,15 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     }
   }
   
-  var timerActiveAction: Binder<TimerActiveAction> {
-    return Binder(self.base) { base, action in
-      if action.state {
+  var timerActiveAction: Binder<Bool> {
+    return Binder(self.base) { base, value in
+      if value {
         base.profileCollectionView.hiddenDimView()
         base.pauseView.isHidden = true
       } else {
-        switch action {
-        case .reportButtonTap, .DimViewTap:
-          base.pauseView.isHidden = true
-        case .viewWillDisAppear, .profileDoubleTap:
-          base.pauseView.isHidden = false
-        }
+        base.pauseView.ImageContainerView.isHidden = false
+        base.pauseView.titleLabel.isHidden = false
+        base.pauseView.isHidden = false
       }
     }
   }

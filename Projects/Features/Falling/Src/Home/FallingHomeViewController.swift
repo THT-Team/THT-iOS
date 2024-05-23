@@ -17,20 +17,6 @@ enum FallingCellButtonAction {
   case like(IndexPath)
 }
 
-enum TimerActiveAction {
-  case viewWillDisAppear(Bool)
-  case profileDoubleTap(Bool)
-  case reportButtonTap(Bool)
-  case DimViewTap(Bool)
-  
-  var state: Bool {
-    switch self {
-    case .viewWillDisAppear(let flag), .profileDoubleTap(let flag), .reportButtonTap(let flag), .DimViewTap(let flag):
-      return flag
-    }
-  }
-}
-
 enum AnimationAction {
   case scroll, delete
 }
@@ -39,6 +25,8 @@ final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
   private var dataSource: DataSource!
   private lazy var homeView = FallingHomeView()
+  
+  private lazy var alertContentView = TFAlertContentView()
   
   init(viewModel: FallingHomeViewModel) {
     self.viewModel = viewModel
@@ -74,15 +62,15 @@ final class FallingHomeViewController: TFBaseViewController {
     let fallingCellButtonAction = PublishSubject<FallingCellButtonAction>()
     
     let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in
-      return TimerActiveAction.viewWillDisAppear(false)
+      return false
     }.asDriverOnErrorJustEmpty()
     
-    let timerActiveRelay = BehaviorRelay<TimerActiveAction>(value: .profileDoubleTap(true))
+    let timerActiveRelay = BehaviorRelay<Bool>(value: true)
     
     let profileDoubleTapTriggerObserver = PublishSubject<Void>()
     let profileDoubleTapTrigger = profileDoubleTapTriggerObserver
       .withLatestFrom(timerActiveRelay) {
-        return TimerActiveAction.profileDoubleTap(!$1.state)
+        return !$1
       }
       .asDriverOnErrorJustEmpty()
     
@@ -90,7 +78,7 @@ final class FallingHomeViewController: TFBaseViewController {
     
     let reportButtonTapTrigger = reportButtonTapTriggerObserver
       .withLatestFrom(timerActiveRelay) { _, _ in 
-        return TimerActiveAction.reportButtonTap(false)
+        return false
       }
       .asDriverOnErrorJustEmpty()
     
@@ -100,6 +88,8 @@ final class FallingHomeViewController: TFBaseViewController {
     
     let complaintsButtonTapTrigger = PublishRelay<Void>()
     let blockButtonTapTrigger = PublishRelay<Void>()
+    
+    let deleteCellTrigger = Driver.merge(complaintsButtonTapTrigger.asDriverOnErrorJustEmpty(), blockButtonTapTrigger.asDriverOnErrorJustEmpty())
     
     let input = FallingHomeViewModel.Input(
       initialTrigger: initialTrigger,
@@ -125,7 +115,8 @@ final class FallingHomeViewController: TFBaseViewController {
         timeOverSubject: timeOverSubject,
         profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
         fallingCellButtonAction: fallingCellButtonAction,
-        reportButtonTapTriggerObserver: reportButtonTapTriggerObserver
+        reportButtonTapTriggerObserver: reportButtonTapTriggerObserver,
+        deleteCellTrigger: deleteCellTrigger
       )
     }
     
@@ -186,28 +177,51 @@ final class FallingHomeViewController: TFBaseViewController {
       }
       .disposed(by: disposeBag)
     
+    Driver.merge(
+      alertContentView.unpleasantPhotoButton.rx.tap.asDriver(),
+      alertContentView.fakeProfileButton.rx.tap.asDriver(),
+      alertContentView.photoTheftButton.rx.tap.asDriver(),
+      alertContentView.profanityButton.rx.tap.asDriver(),
+      alertContentView.sharingIllegalFootageButton.rx.tap.asDriver())
+    .do { _ in
+      complaintsButtonTapTrigger.accept(())
+      
+      self.homeView.makeToast("신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며, 신고 사유는 검토 후 처리됩니다.", duration: 3.0, position: .bottom)
+      
+      UIWindow.keyWindow?.rootViewController?.dismiss(animated: false)
+    }
+    .drive()
+    .disposed(by: disposeBag)
+    
     reportButtonTapTriggerObserver.asDriverOnErrorJustEmpty()
       .do { _ in
         self.showAlert(
-          leftActionTitle: "신고하기",
-          rightActionTitle: "차단하기",
-          leftActionCompletion: {
-            self.showAlert(action: .complaints)
-          },
-          rightActionCompletion: {
+          topActionTitle: "신고하기",
+          bottomActionTitle: "차단하기",
+          dimColor: DSKitAsset.Color.clear.color,
+          topActionCompletion: {
             self.showAlert(
-              action: .block,
-              leftActionCompletion: {
-                blockButtonTapTrigger.accept(())
-              },
-              rightActionCompletion: {
-                timerActiveRelay.accept(.DimViewTap(true))
-              }
+              contentView: self.alertContentView,
+              topActionTitle: nil,
+              dimColor: DSKitAsset.Color.clear.color,
+              bottomActionCompletion: { timerActiveRelay.accept(true) },
+              dimActionCompletion: { timerActiveRelay.accept(true) }
             )
           },
-          dimActionCompletion: {
-            timerActiveRelay.accept(.DimViewTap(true))
-          }
+          bottomActionCompletion: {
+            self.showAlert(
+              action: .block,
+              dimColor: DSKitAsset.Color.clear.color,
+              topActionCompletion: {
+                blockButtonTapTrigger.accept(())
+                
+                self.homeView.makeToast("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.", duration: 3.0, position: .bottom)
+              },
+              bottomActionCompletion: { timerActiveRelay.accept(true) },
+              dimActionCompletion: { timerActiveRelay.accept(true) }
+            )
+          },
+          dimActionCompletion: { timerActiveRelay.accept(true) }
         )
       }
       .drive()
@@ -215,16 +229,14 @@ final class FallingHomeViewController: TFBaseViewController {
     
     Driver.merge(output.complaintsAction, output.blockAction)
       .do { indexPath in
-//        timerActiveRelay.accept(.DimViewTap(true))
+        guard let _ = self.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
+        
         self.deleteItems(indexPath)
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
           timeOverSubject.onNext(.delete)
-          timerActiveRelay.accept(.DimViewTap(true))
+          timerActiveRelay.accept(true)
         }
-        
-//        timerActiveRelay.accept(.DimViewTap(true))
-        
-        
       }
       .drive()
       .disposed(by: disposeBag)
