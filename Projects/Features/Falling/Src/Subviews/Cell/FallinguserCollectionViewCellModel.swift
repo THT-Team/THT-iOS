@@ -103,6 +103,7 @@ final private class Timer {
   
   func start() {
     guard disposable == nil else { return }
+    if startTime < 0 { startTime = 13.0 }
     
     disposable = Observable<Int>.interval(.milliseconds(10),
                                           scheduler: MainScheduler.instance)
@@ -132,22 +133,24 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
   
   struct Input {
-    let timerActiveTrigger: Driver<TimerActiveAction>
+    let timerActiveTrigger: Driver<Bool>
     let showUserInfoTrigger: Driver<Bool>
     let rejectButtonTapTrigger: Driver<Void>
     let likeButtonTapTrigger: Driver<Void>
     let reportButtonTapTrigger: Driver<Void>
+    let deleteCellTrigger: Driver<Void>
   }
   
   struct Output {
     let user: Driver<FallingUser>
     let timeState: Driver<TimeState>
     let timeZero: Driver<AnimationAction>
-    let timerActiveAction: Driver<TimerActiveAction>
+    let timerActiveAction: Driver<Bool>
     let rejectButtonAction: Driver<Void>
     let likeButtonAction: Driver<Void>
     let showUserInfoAction: Driver<Bool>
     let reportButtonAction: Driver<Void>
+    let deleteCellAction: Driver<Void>
   }
   
   func transform(input: Input) -> Output {
@@ -165,8 +168,8 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
     let likeButtonAction = input.likeButtonTapTrigger
     
     let timeActiveAction = timerActiveTrigger
-      .do { action in
-        if !action.state {
+      .do { value in
+        if !value {
           timer.pause()
         } else {
           timer.start()
@@ -178,11 +181,17 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
     let timeState = time.map { TimeState(rawValue: $0) }
     let timeZero = time.filter { $0 == 0.0 }.flatMapLatest { _ in Driver.just(AnimationAction.scroll) }
     let timerActiveAction = timeActiveAction.asDriver(onErrorJustReturn:
-        .profileDoubleTap(true))
+        true)
     
     let showUserInfoAction = input.showUserInfoTrigger
     
     let reportButtonTapTrigger = input.reportButtonTapTrigger
+    
+    let deleteCellAction = input.deleteCellTrigger
+      .do(onNext: {
+        timer.pause()
+        timer.currentTime.accept(-1.0)
+      })
     
     return Output(
       user: user,
@@ -192,7 +201,8 @@ final class FallingUserCollectionViewCellModel: ViewModelType {
       rejectButtonAction: rejectButtonAction,
       likeButtonAction: likeButtonAction,
       showUserInfoAction: showUserInfoAction,
-      reportButtonAction: reportButtonTapTrigger
+      reportButtonAction: reportButtonTapTrigger,
+      deleteCellAction: deleteCellAction
     )
   }
 }
