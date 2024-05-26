@@ -44,4 +44,23 @@ final class CardProgressView: TFBaseView {
     self.layer.masksToBounds = true
     self.backgroundColor = DSKitAsset.Color.neutral600.color
   }
+  
+  func addGradientLayer() {
+    let gradientLayer = CAGradientLayer()
+    
+    gradientLayer.frame = self.bounds
+    
+    gradientLayer.colors = [
+      DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor,
+      DSKitAsset.Color.LikeGradient.gradientSecond.color.cgColor,
+      DSKitAsset.Color.LikeGradient.gradientThird.color.cgColor
+    ]
+    
+    gradientLayer.locations = [0.0, 0.5, 1.0]
+    
+    gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+    gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+    
+    layer.addSublayer(gradientLayer)
+  }
 }
