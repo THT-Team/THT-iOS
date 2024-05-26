@@ -57,9 +57,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return pauseView
   }()
   
-  lazy var rejectLottieView: LottieAnimationView = {
+  lazy var lottieView: LottieAnimationView = {
     let lottieAnimationView = LottieAnimationView()
-    lottieAnimationView.animation = AnimationAsset.unlike.animation
     lottieAnimationView.isHidden = true
     lottieAnimationView.contentMode = .scaleAspectFit
     return lottieAnimationView
@@ -77,7 +76,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, rejectLottieView, pauseView])
+    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, lottieView, pauseView])
     
     profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -104,7 +103,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.edges.equalToSuperview()
     }
     
-    self.rejectLottieView.snp.makeConstraints {
+    self.lottieView.snp.makeConstraints {
       $0.center.equalToSuperview()
       $0.width.height.equalTo(188) // TODO: 사이즈 수정 예정
     }
@@ -130,7 +129,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
     let infoButtonTapTrigger = userInfoBoxView.infoButton.rx.tap.asDriver()
     
-    let rejectButtonTapTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    let rejectButtonTapTrigger = userInfoBoxView.rejectButton.rx.tap.asDriver()
     
     let likeButtonTapTrigger = userInfoBoxView.likeButton.rx.tap.asDriver()
     
@@ -196,13 +195,28 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     output.rejectButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.reject($0) }
-      .drive(fallingCellButtonAction)
+      .drive(with: self) { owner, action in
+        fallingCellButtonAction.onNext(action)
+        owner.lottieView.snp.updateConstraints { $0.width.height.equalTo(188) }
+        owner.lottieView.animation = AnimationAsset.unlike.animation
+        owner.lottieView.isHidden = false
+        owner.lottieView.play()
+      }
       .disposed(by: disposeBag)
     
     output.likeButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
-      .drive(fallingCellButtonAction)
+      .drive(with: self) { owner, action in
+        fallingCellButtonAction.onNext(action)
+        owner.lottieView.snp.updateConstraints { $0.width.height.equalTo(200) }
+        owner.lottieView.animation = AnimationAsset.likeHeart.animation
+        owner.lottieView.isHidden = false
+        owner.lottieView.play()
+        owner.cardTimeView.progressView.addGradientLayer()
+        owner.cardTimeView.timerView.timerLabel.isHidden = true
+        owner.cardTimeView.timerView.addGradientLayer()
+      }
       .disposed(by: disposeBag)
     
     output.reportButtonAction
@@ -270,7 +284,7 @@ extension FallingUserCollectionViewCell {
 extension Reactive where Base: FallingUserCollectionViewCell {
   var timeState: Binder<TimeState> {
     return Binder(self.base) { (base, timeState) in
-      base.cardTimeView.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
+      base.cardTimeView.timerView.trackLayer.strokeColor = timeState.trackLayerStrokeColor.color.cgColor
       base.cardTimeView.timerView.strokeLayer.strokeColor = timeState.timerTintColor.color.cgColor
       base.cardTimeView.timerView.dotLayer.strokeColor = timeState.timerTintColor.color.cgColor
       base.cardTimeView.timerView.dotLayer.fillColor = timeState.timerTintColor.color.cgColor

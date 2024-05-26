@@ -12,7 +12,6 @@ import DSKit
 import FallingInterface
 
 enum FallingCellButtonAction {
-  case info(IndexPath)
   case reject(IndexPath)
   case like(IndexPath)
 }
@@ -121,7 +120,7 @@ final class FallingHomeViewController: TFBaseViewController {
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
-    <UICollectionReusableView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
+    <DummyFooterView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
     
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
@@ -156,21 +155,16 @@ final class FallingHomeViewController: TFBaseViewController {
       })
       .disposed(by: self.disposeBag)
     
-    output.infoButtonAction
-      .drive(with: self) { owner, indexPath in
-        guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell
-        else { return }
-        cell.userInfoView.isHidden.toggle()
+    output.likeButtonAction
+      .drive(with: self) { owner, _ in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+          timeOverSubject.onNext(.scroll)
+        }
       }
       .disposed(by: disposeBag)
     
     output.rejectButtonAction
-      .drive(with: self) { owner, indexPath in
-        guard let cell = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
-        
-        cell.rejectLottieView.isHidden = false
-        cell.rejectLottieView.play()
-        
+      .drive(with: self) { owner, _ in
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
           timeOverSubject.onNext(.scroll)
         }
