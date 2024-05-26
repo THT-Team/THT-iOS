@@ -43,6 +43,12 @@ final class CardCircleTimerView: TFBaseView {
     return layer
   }()
   
+  private lazy var likeImageView: UIImageView = {
+    let imageView = UIImageView()
+    imageView.image = DSKitAsset.Image.Icons.cardLike.image.withTintColor(DSKitAsset.Color.error.color)
+    return imageView
+  }()
+  
   override func makeUI() {
     layer.addSublayer(trackLayer)
     layer.addSublayer(strokeLayer)
@@ -80,5 +86,53 @@ final class CardCircleTimerView: TFBaseView {
                                endAngle: 3 * CGFloat.pi / 2,
                                clockwise: true)
     dotLayer.path = dotPath.cgPath
+  }
+  
+  func addGradientLayer() {
+    self.addSubview(likeImageView)
+    
+    likeImageView.snp.makeConstraints {
+      $0.centerX.centerY.equalToSuperview()
+      $0.width.equalTo(8)
+      $0.height.equalTo(7)
+    }
+    
+    let gradientLayer = CAGradientLayer()
+    
+    gradientLayer.frame = self.bounds
+    
+    gradientLayer.colors = [
+      DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor,
+      DSKitAsset.Color.LikeGradient.gradientSecond.color.cgColor,
+      DSKitAsset.Color.LikeGradient.gradientThird.color.cgColor
+    ]
+    
+    gradientLayer.locations = [0.0, 0.5, 1.0]
+    
+    gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
+    gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+    
+    gradientLayer.mask = trackLayer
+    
+    layer.addSublayer(gradientLayer)
+    
+//    // 그라디언트 방향 애니메이션 설정
+//    let startPointAnimation = CABasicAnimation(keyPath: "startPoint")
+//    startPointAnimation.fromValue = CGPoint(x: 0.5, y: 0.0)
+//    startPointAnimation.toValue = CGPoint(x: 0.5, y: 1.0)
+//    
+//    let endPointAnimation = CABasicAnimation(keyPath: "endPoint")
+//    endPointAnimation.fromValue = CGPoint(x: 0.5, y: 1.0)
+//    endPointAnimation.toValue = CGPoint(x: 0.5, y: 0.0)
+//    
+//    // 애니메이션 설정 (동일한 타이밍으로 적용)
+//    let animationGroup = CAAnimationGroup()
+//    animationGroup.animations = [startPointAnimation, endPointAnimation]
+//    animationGroup.duration = 2.0
+//    animationGroup.autoreverses = true
+//    animationGroup.repeatCount = .infinity
+//    
+//    // 그라디언트 레이어에 애니메이션 추가
+//    gradientLayer.add(animationGroup, forKey: "gradientMove")
   }
 }
