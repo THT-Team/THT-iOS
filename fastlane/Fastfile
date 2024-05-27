@@ -10,11 +10,14 @@ platform :ios do
   desc "match certificate "
   lane :match_certificate do
     match(
-      type: "development"
+      type: "development",
+      readonly: true
     )
     match(
-      type: "appstore"
+      type: "appstore",
+      readonly: true
     )
+    app_store_connect_api_key(is_key_content_base64: true)
   end
 
 
@@ -50,17 +53,13 @@ platform :ios do
   #------------- Test Flight --------------------
   desc "upload to TestFlight"
   lane :pilot_app do
-    match(
-      type: "appstore",
-      readonly: true
-    )
-    app_store_connect_api_key(is_key_content_base64: true)
     pilot(skip_waiting_for_build_processing: true)
   end
 
   #------------- run distribution ------------------
   desc "run distribution"
   lane :run_app do
+     match_certificate
      gym_app
      pilot_app
      td
