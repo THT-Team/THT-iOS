@@ -10,28 +10,27 @@ import UIKit
 import DSKit
 
 final class DummyFooterView: UICollectionReusableView {
+  private let backgroundGradientLayer = CAGradientLayer()
+  private let borderGradientLayer = CAGradientLayer()
+  private let maskLayer = CAShapeLayer()
+  
   private lazy var cardTimeView = CardTimeView()
   
   override init(frame: CGRect) {
     super.init(frame: .zero)
-
-    configureUI()
+    layer.cornerRadius = 20
+    clipsToBounds = true
+    
     makeUI()
+    setupLayers()
+  }
+  
+  override func layoutSubviews() {
+    layoutGradientLayers()
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  private func configureUI() {
-    layer.borderWidth = 1
-    layer.cornerRadius = 20
-    clipsToBounds = true
-//    backgroundColor = .blue
-//    layer.borderColor = UIColor.orange.cgColor
-    
-    addGradientBackground()
-    addGradientBorder()
   }
   
   private func makeUI() {
@@ -43,51 +42,39 @@ final class DummyFooterView: UICollectionReusableView {
     }
   }
   
-  private func addGradientBackground() {
-    let gradientLayer = CAGradientLayer()
-    gradientLayer.frame = bounds
-    
-    gradientLayer.colors = [
-      DSKitAsset.Color.DummyUserGradient.backgroundFirst.color,
-      DSKitAsset.Color.DummyUserGradient.backgroundSecond.color,
-      DSKitAsset.Color.DummyUserGradient.backgroundFirst.color
+  private func setupLayers() {
+    backgroundGradientLayer.colors = [
+      DSKitAsset.Color.DummyUserGradient.backgroundFirst.color.cgColor,
+      DSKitAsset.Color.DummyUserGradient.backgroundSecond.color.cgColor,
+      DSKitAsset.Color.DummyUserGradient.backgroundFirst.color.cgColor
     ]
     
-    gradientLayer.locations = [0.0, 0.5, 1.0]
+    backgroundGradientLayer.locations = [0.0, 0.5, 1.0]
     
-    gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
-    gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+    backgroundGradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
+    backgroundGradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+    layer.addSublayer(backgroundGradientLayer)
     
-//    layer.addSublayer(gradientLayer)
-    
-    layer.insertSublayer(gradientLayer, at: 0)
+    borderGradientLayer.colors = [
+      DSKitAsset.Color.DummyUserGradient.borderFirst.color.cgColor,
+      DSKitAsset.Color.DummyUserGradient.borderSecond.color.cgColor
+    ]
+        
+    borderGradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
+    borderGradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+    borderGradientLayer.mask = maskLayer
+    layer.addSublayer(borderGradientLayer)
   }
   
-  private func addGradientBorder() {
-    let gradientLayer = CAGradientLayer()
-    gradientLayer.frame = bounds
+  private func layoutGradientLayers() {
+    backgroundGradientLayer.frame = bounds
+    borderGradientLayer.frame = bounds
     
-    gradientLayer.colors = [
-      DSKitAsset.Color.DummyUserGradient.borderFirst.color,
-      DSKitAsset.Color.DummyUserGradient.borderSecond.color
-    ]
-    
-//    gradientLayer.locations = [0.0, 0.5, 1.0]
-    
-    gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
-    gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
-    
-    let shapeLayer = CAShapeLayer()
     let path = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius)
-    shapeLayer.path = path.cgPath
-    shapeLayer.lineWidth = 1
-    shapeLayer.fillColor = DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor
-    shapeLayer.strokeColor = DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor
-    
-    gradientLayer.mask = shapeLayer
-    
-//    layer.addSublayer(gradientLayer)
-    
-    layer.insertSublayer(gradientLayer, at: 0)
+
+    maskLayer.path = path.cgPath
+    maskLayer.lineWidth = 1
+    maskLayer.fillColor = UIColor.clear.cgColor
+    maskLayer.strokeColor = UIColor.orange.cgColor
   }
 }
