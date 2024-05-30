@@ -193,6 +193,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
       
     output.rejectButtonAction
+      .throttle(.milliseconds(5000), latest: false)
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.reject($0) }
       .drive(with: self) { owner, action in
@@ -205,6 +206,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .disposed(by: disposeBag)
     
     output.likeButtonAction
+      .throttle(.milliseconds(5000), latest: false)
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
       .drive(with: self) { owner, action in
