@@ -61,6 +61,7 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
         "Item 3": "Pretendard-Bold.otf",
         "Item 4": "Pretendard-ExtraBold.otf"
       ],
-      "UIUserInterfaceStyle": "Dark"
+    "UIUserInterfaceStyle": "Dark",
+    "ITSAppUsesNonExemptEncryption": false // 수출 규정 누락 문제
   ]
 }
