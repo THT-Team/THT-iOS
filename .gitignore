@@ -68,3 +68,16 @@ Derived/
 
 ### Tuist managed dependencies ###
 Tuist/Dependencies
+
+### Fastlane ###
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/*.env
+.env
+
+# App Packaging
+*.ipa
+*.dSYM.zip
+*.dSYM

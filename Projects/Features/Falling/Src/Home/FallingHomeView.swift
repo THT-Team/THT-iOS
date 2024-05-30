@@ -73,7 +73,7 @@ extension NSCollectionLayoutSection {
     section.contentInsets = NSDirectionalEdgeInsets(
       top: 0,
       leading: 16,
-      bottom: 0,
+      bottom: 16,
       trailing: 16
     )
     section.interGroupSpacing = 14

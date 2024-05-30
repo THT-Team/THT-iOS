@@ -5,9 +5,9 @@
         "color-space" : "srgb",
         "components" : {
           "alpha" : "0.200",
-          "blue" : "0.067",
-          "green" : "0.067",
-          "red" : "0.067"
+          "blue" : "0x11",
+          "green" : "0x11",
+          "red" : "0x11"
         }
       },
       "idiom" : "iphone"

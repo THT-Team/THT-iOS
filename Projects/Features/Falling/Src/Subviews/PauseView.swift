@@ -32,7 +32,7 @@ open class PauseView: TFBaseView {
     return stackView
   }()
   
-  private lazy var pauseView: UIView = {
+  lazy var ImageContainerView: UIView = {
     let view = UIView()
     view.backgroundColor = DSKitAsset.Color.DimColor.pauseDim.color
     view.layer.cornerRadius = 31
@@ -45,7 +45,7 @@ open class PauseView: TFBaseView {
     return imageView
   }()
   
-  private lazy var titleLabel: UILabel = {
+  lazy var titleLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.thtP1R
     label.textAlignment = .center
@@ -65,15 +65,15 @@ open class PauseView: TFBaseView {
     self.blurView.contentView.addSubview(stackView)
     
     stackView.addArrangedSubviews([
-      pauseView,
+      ImageContainerView,
       titleLabel
     ])
     
-    pauseView.snp.makeConstraints {
+    ImageContainerView.addSubview(pauseImageView)
+    
+    ImageContainerView.snp.makeConstraints {
       $0.width.height.equalTo(62)
     }
-    
-    pauseView.addSubview(pauseImageView)
     
     pauseImageView.snp.makeConstraints {
       $0.centerX.centerY.equalToSuperview()

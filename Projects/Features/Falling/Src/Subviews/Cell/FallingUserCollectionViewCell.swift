@@ -57,9 +57,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     return pauseView
   }()
   
-  lazy var rejectLottieView: LottieAnimationView = {
+  lazy var lottieView: LottieAnimationView = {
     let lottieAnimationView = LottieAnimationView()
-    lottieAnimationView.animation = AnimationAsset.unlike.animation
     lottieAnimationView.isHidden = true
     lottieAnimationView.contentMode = .scaleAspectFit
     return lottieAnimationView
@@ -77,7 +76,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   override func makeUI() {
     self.layer.cornerRadius = 20
     
-    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, rejectLottieView, pauseView])
+    self.contentView.addSubviews([profileCollectionView, cardTimeView, userInfoBoxView, userInfoBoxView, userInfoView, lottieView, pauseView])
     
     profileCollectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -104,7 +103,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.edges.equalToSuperview()
     }
     
-    self.rejectLottieView.snp.makeConstraints {
+    self.lottieView.snp.makeConstraints {
       $0.center.equalToSuperview()
       $0.width.height.equalTo(188) // TODO: 사이즈 수정 예정
     }
@@ -121,15 +120,16 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   
   func bind<O>(
     _ viewModel: FallingUserCollectionViewCellModel,
-    timerActiveTrigger: Driver<TimerActiveAction>,
+    timerActiveTrigger: Driver<Bool>,
     timeOverSubject: PublishSubject<AnimationAction>,
     profileDoubleTapTriggerObserver: PublishSubject<Void>,
     fallingCellButtonAction: O,
-    reportButtonTapTriggerObserver: PublishSubject<Void>
+    reportButtonTapTriggerObserver: PublishSubject<Void>,
+    deleteCellTrigger: Driver<Void>
   ) where O: ObserverType, O.Element == FallingCellButtonAction {
     let infoButtonTapTrigger = userInfoBoxView.infoButton.rx.tap.asDriver()
     
-    let rejectButtonTapTrigger = userInfoBoxView.rejectButton.rx.tap.mapToVoid().asDriverOnErrorJustEmpty()
+    let rejectButtonTapTrigger = userInfoBoxView.rejectButton.rx.tap.asDriver()
     
     let likeButtonTapTrigger = userInfoBoxView.likeButton.rx.tap.asDriver()
     
@@ -144,7 +144,8 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       showUserInfoTrigger: showUserInfoTrigger,
       rejectButtonTapTrigger: rejectButtonTapTrigger,
       likeButtonTapTrigger: likeButtonTapTrigger,
-      reportButtonTapTrigger: reportButtonTapTrigger
+      reportButtonTapTrigger: reportButtonTapTrigger,
+      deleteCellTrigger: deleteCellTrigger
     )
     
     let output = viewModel
@@ -194,17 +195,43 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     output.rejectButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.reject($0) }
-      .drive(fallingCellButtonAction)
+      .drive(with: self) { owner, action in
+        fallingCellButtonAction.onNext(action)
+        owner.lottieView.snp.updateConstraints { $0.width.height.equalTo(188) }
+        owner.lottieView.animation = AnimationAsset.unlike.animation
+        owner.lottieView.isHidden = false
+        owner.lottieView.play()
+      }
       .disposed(by: disposeBag)
     
     output.likeButtonAction
       .compactMap { [weak self] _ in self?.indexPath }
       .map { FallingCellButtonAction.like($0) }
-      .drive(fallingCellButtonAction)
+      .drive(with: self) { owner, action in
+        fallingCellButtonAction.onNext(action)
+        owner.lottieView.snp.updateConstraints { $0.width.height.equalTo(200) }
+        owner.lottieView.animation = AnimationAsset.likeHeart.animation
+        owner.lottieView.isHidden = false
+        owner.lottieView.play()
+        owner.cardTimeView.progressView.addGradientLayer()
+        owner.cardTimeView.timerView.timerLabel.isHidden = true
+        owner.cardTimeView.timerView.addGradientLayer()
+      }
       .disposed(by: disposeBag)
     
     output.reportButtonAction
-      .drive(reportButtonTapTriggerObserver)
+      .drive(with: self) { owner, _ in
+        reportButtonTapTriggerObserver.onNext(())
+        owner.pauseView.ImageContainerView.isHidden = true
+        owner.pauseView.titleLabel.isHidden = true
+      }
+      .disposed(by: disposeBag)
+    
+    output.deleteCellAction
+      .drive(with: self) { owner, _ in
+        owner.pauseView.isHidden = true
+        owner.profileCollectionView.showDimView()
+      }
       .disposed(by: disposeBag)
   }
   
@@ -257,7 +284,7 @@ extension FallingUserCollectionViewCell {
 extension Reactive where Base: FallingUserCollectionViewCell {
   var timeState: Binder<TimeState> {
     return Binder(self.base) { (base, timeState) in
-      base.cardTimeView.timerView.trackLayer.strokeColor = timeState.fillColor.color.cgColor
+      base.cardTimeView.timerView.trackLayer.strokeColor = timeState.trackLayerStrokeColor.color.cgColor
       base.cardTimeView.timerView.strokeLayer.strokeColor = timeState.timerTintColor.color.cgColor
       base.cardTimeView.timerView.dotLayer.strokeColor = timeState.timerTintColor.color.cgColor
       base.cardTimeView.timerView.dotLayer.fillColor = timeState.timerTintColor.color.cgColor
@@ -287,18 +314,15 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     }
   }
   
-  var timerActiveAction: Binder<TimerActiveAction> {
-    return Binder(self.base) { base, action in
-      if action.state {
+  var timerActiveAction: Binder<Bool> {
+    return Binder(self.base) { base, value in
+      if value {
         base.profileCollectionView.hiddenDimView()
         base.pauseView.isHidden = true
       } else {
-        switch action {
-        case .reportButtonTap, .DimViewTap:
-          base.pauseView.isHidden = true
-        case .viewWillDisAppear, .profileDoubleTap:
-          base.pauseView.isHidden = false
-        }
+        base.pauseView.ImageContainerView.isHidden = false
+        base.pauseView.titleLabel.isHidden = false
+        base.pauseView.isHidden = false
       }
     }
   }

@@ -31,7 +31,7 @@ final class FallingHomeViewModel: ViewModelType {
   struct Output {
     let userList: Driver<[FallingUser]>
     let nextCardIndexPath: Driver<IndexPath>
-    let infoButtonAction: Driver<IndexPath>
+    let likeButtonAction: Driver<IndexPath>
     let rejectButtonAction: Driver<IndexPath>
     let complaintsAction: Driver<IndexPath>
     let blockAction: Driver<IndexPath>
@@ -74,11 +74,12 @@ final class FallingHomeViewModel: ViewModelType {
     ).withLatestFrom(currentIndexRelay.asDriver(onErrorJustReturn: 0)
       .map { IndexPath(row: $0, section: 0) })
     
-    let infoButtonAction = input.cellButtonAction
+    let likeButtonAction = input.cellButtonAction
       .compactMap { action -> IndexPath? in
-        if case let .info(indexPath) = action {
+        if case let .like(indexPath) = action {
           return indexPath
-        } else { return nil }
+        }
+        return nil
       }
     
     let rejectButtonAction = input.cellButtonAction
@@ -107,7 +108,7 @@ final class FallingHomeViewModel: ViewModelType {
     return Output(
       userList: userList,
       nextCardIndexPath: nextCardIndexPath,
-      infoButtonAction: infoButtonAction,
+      likeButtonAction: likeButtonAction,
       rejectButtonAction: rejectButtonAction,
       complaintsAction: complaintsAction,
       blockAction: blockAction
