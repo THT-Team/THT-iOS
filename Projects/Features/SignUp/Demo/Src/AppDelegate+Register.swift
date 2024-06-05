@@ -11,6 +11,7 @@ import Core
 
 import SignUp
 import SignUpInterface
+import AuthInterface
 import Data
 
 extension AppDelegate {
@@ -31,6 +32,12 @@ extension AppDelegate {
         )
       }
     )
+
+    container.register(
+      interface: UserInfoUseCaseInterface.self,
+      implement: {
+        UserInfoUseCase(repository: UserDefaultUserInfoRepository())
+      })
   }
 }
 

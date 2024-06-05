@@ -62,8 +62,8 @@ extension KakaoSearchRes {
           let latitude = Double(document.y) else {
       return nil
     }
-
-    let addressName = address.region1depthName + address.region2depthName + address.region3depthName
+    
+    let addressName = [address.region1depthName, address.region2depthName, address.region3depthName].joined(separator: " ")
 
     let code = Int(address.lawCode) ?? 0
     return .init(address: addressName, regionCode: code, lat: latitude, lon: longitude)

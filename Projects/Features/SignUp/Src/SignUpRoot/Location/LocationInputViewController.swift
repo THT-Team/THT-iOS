@@ -35,7 +35,6 @@ final class LocationInputViewController: TFBaseViewController {
       .when(.recognized)
       .map { _ in }
       .asDriverOnErrorJustEmpty()
-      .debug("fieldTap")
     
     let input = ViewModel.Input(
       locationBtnTap: fieldTap,

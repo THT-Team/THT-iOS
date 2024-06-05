@@ -9,29 +9,28 @@ import Foundation
 
 import Core
 import SignUpInterface
+import AuthInterface
+import DSKit
 
 protocol SignUpCoordinatingActionDelegate: AnyObject {
   func invoke(_ action: SignUpCoordinatingAction)
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
+  
   @Injected private var useCase: SignUpUseCaseInterface
+  @Injected private var userInfoUseCase: UserInfoUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
 
-  //  private let store = UserStore()
-
   // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
   public override func start() {
-    replaceWindowRootViewController(rootViewController: self.viewControllable)
-
-//    rootFlow()
-    locationFlow()
-//    blockUserFriendContactFlow()
+    replaceWindowRootViewController(rootViewController: viewControllable)
+    emailFlow()
   }
 
   public func locationFlow() {
-    let viewModel = LocationInputViewModel(useCase: useCase, initialLocation: SignUpStore.location)
+    let viewModel = LocationInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
     viewModel.delegate = self
     let viewController = LocationInputViewController(viewModel: viewModel)
     self.viewControllable.pushViewController(viewController, animated: true)
@@ -42,7 +41,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func emailFlow() {
-    let viewModel = EmailInputViewModel(email: SignUpStore.email)
+    let viewModel = EmailInputViewModel(userInfoUseCase: self.userInfoUseCase)
     viewModel.delegate = self
 
     let viewController = EmailInputViewController(viewModel: viewModel)
@@ -51,7 +50,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func nicknameFlow() {
-    let viewModel = NicknameInputViewModel(useCase: useCase, nickName: SignUpStore.nickname)
+    let viewModel = NicknameInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
     viewModel.delegate = self
 
     let viewController = NicknameInputViewController(viewModel: viewModel)
@@ -59,7 +58,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func policyFlow() {
-    let viewModel = PolicyAgreementViewModel()
+    let viewModel = PolicyAgreementViewModel(useCase: self.useCase, userInfoUseCase: self.userInfoUseCase)
     viewModel.delegate = self
 
     let viewController = PolicyAgreementViewController(viewModel: viewModel)
@@ -68,7 +67,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func genderPickerFlow() {
-    let vm = GenderPickerViewModel()
+    let vm = GenderPickerViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = GenderPickerViewController(viewModel: vm)
 
@@ -76,7 +75,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func preferGenderPickerFlow() {
-    let vm = PreferGenderPickerViewModel()
+    let vm = PreferGenderPickerViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = PreferGenderPickerViewController(viewModel: vm)
 
@@ -84,29 +83,28 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func photoFlow() {
-    let vm = PhotoInputViewModel()
+    let vm = PhotoInputViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = PhotoInputViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   public func heightPickerFlow() {
-    let vm = HeightPickerViewModel()
+    let vm = HeightPickerViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = HeightPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   public func InterestTagPickerFlow() {
-    let vm = TagPickerViewModel(action: .nextAtInterest([]), useCase: useCase)
+    let vm = TagPickerViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = InterestPickerViewController(viewModel: vm)
-
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   public func IdealTypeTagPickerFlow() {
-    let vm = IdealTypeTagPickerViewModel(action: .nextAtIdealType([]), useCase: self.useCase)
+    let vm = IdealTypeTagPickerViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
 
     let vc = IdealTypePickerViewController(viewModel: vm)
@@ -114,7 +112,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func IntroductFlow() {
-    let vm = IntroduceInputViewModel()
+    let vm = IntroduceInputViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
 
     let vc = IntroduceInputViewController(viewModel: vm)
@@ -122,7 +120,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func alcoholTobaccoFlow() {
-    let vm = AlcoholTobaccoPickerViewModel()
+    let vm = AlcoholTobaccoPickerViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
 
     let vc = AlcoholTobaccoPickerViewController(viewModel: vm)
@@ -130,7 +128,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func religionFlow() {
-    let vm = ReligionPickerViewModel()
+    let vm = ReligionPickerViewModel(userInfoUseCase: self.userInfoUseCase)
     vm.delegate = self
     let vc = ReligionPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
@@ -149,6 +147,19 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     let vc = UserContactViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
+
+  func signUpCompleteFlow(_ contacts: [ContactType]) {
+    let vm = SignUpCompleteViewModel(useCase: self.useCase, userInfoUseCase: userInfoUseCase, contacts: contacts)
+    vm.delegate = self
+    let vc = SignUpCompleteViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  private func agreementWebViewFlow(url: URL) {
+    let vc = TFWebViewController(url: url)
+    let nav = NavigationViewControllable(rootViewControllable: vc)
+    self.viewControllable.present(nav, animated: true)
+  }
 }
 
 
@@ -159,19 +170,16 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       print(snsType)
     case .nextAtPhoneNumber:
       emailFlow()
-    case let .nextAtEmail(email):
-      SignUpStore.email = email
+    case .nextAtEmail:
       policyFlow()
-    case let .nextAtPolicy(agreement):
+    case .nextAtPolicy:
       nicknameFlow()
     case .nextAtNickname:
       genderPickerFlow()
-
     case let .birthdayTap(birthDay, listener):
       pickerBottomSheetFlow(.date(date: birthDay), listener: listener)
     case .nextAtGender:
       preferGenderPickerFlow()
-
     case .nextAtPreferGender:
       photoFlow()
 
@@ -189,20 +197,25 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case .nextAtAlcoholTobacco:
       religionFlow()
 
-    case let .nextAtReligion(religion):
+    case .nextAtReligion:
       InterestTagPickerFlow()
-    case let .nextAtInterest(tags):
+    case .nextAtInterest:
       IdealTypeTagPickerFlow()
-    case let .nextAtLocation(location):
-      SignUpStore.location = location
-      IntroductFlow()
 
-    case let .nextAtIdealType(tags):
+    case .nextAtIdealType:
       IntroductFlow()
-    case let .nextAtIntroduce(introduce):
+    case .nextAtIntroduce:
       locationFlow()
     case let .webViewTap(listener):
       webViewFlow(listener: listener)
+    case .nextAtLocation:
+      blockUserFriendContactFlow()
+    case let .nextAtHideFriends(contacts):
+      signUpCompleteFlow(contacts)
+    case .nextAtSignUpComplete:
+      finishFlow()
+    case let .agreementWebView(url):
+      agreementWebViewFlow(url: url)
     default: break
     }
   }

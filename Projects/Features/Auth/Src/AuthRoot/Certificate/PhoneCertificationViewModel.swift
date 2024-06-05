@@ -8,10 +8,10 @@
 import Foundation
 
 import AuthInterface
+import SignUpInterface
 import DSKit
 
 final class PhoneCertificationViewModel: ViewModelType {
-  private let useCase: SignUpUseCaseInterface
 
   struct Input {
     let viewWillAppear: Driver<Void>
@@ -25,7 +25,7 @@ final class PhoneCertificationViewModel: ViewModelType {
   struct Output {
     let phoneNum: Driver<String>
     let validate: Driver<Bool>
-    let error: PublishRelay<Void>
+    let error: Driver<Error>
     let clearButtonTapped: Driver<String>
     let viewStatus: Driver<ViewType>
     let certificateSuccess: Driver<Bool>
@@ -33,40 +33,39 @@ final class PhoneCertificationViewModel: ViewModelType {
     let timeStampLabel: Driver<String>
     let timeLabelTextColor: Driver<DSKitColors>
   }
-  
-  init(useCase: SignUpUseCaseInterface) {
-    self.useCase = useCase
-  }
 
   weak var delegate: AuthCoordinatingActionDelegate?
   private let useCase: AuthUseCaseInterface
+  private let userInfoUseCase: UserInfoUseCaseInterface
 
   private var disposeBag = DisposeBag()
 
-  init(useCase: AuthUseCaseInterface) {
+  init(useCase: AuthUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
     self.useCase = useCase
+    self.userInfoUseCase = userInfoUseCase
   }
 
   func transform(input: Input) -> Output {
 
-    let error = PublishRelay<Void>()
-
-    let validate = input.phoneNum
-      .map { $0.phoneNumValidation() }
-
+    let errorTracker = PublishRelay<Error>()
+    
     let phoneNum = input.phoneNum
+      .debounce(.milliseconds(300))
+
+    let validate = phoneNum
+      .map { $0.phoneNumValidation() }
 
     let clearButtonTapped = input.clearBtn
       .map { "" }.asDriver()
 
     let response = input.verifyBtn
-      .throttle(.milliseconds(1500), latest: false)
+      .throttle(.milliseconds(500), latest: false)
       .asObservable()
       .withUnretained(self)
       .flatMapLatest { owner, phoneNum in
         owner.useCase.certificate(phoneNumber: phoneNum)
           .catch { certificateError in
-            error.accept(())
+            errorTracker.accept(certificateError)
             return .error(certificateError)
           }
       }.asDriver(onErrorDriveWith: .empty())
@@ -96,11 +95,33 @@ final class PhoneCertificationViewModel: ViewModelType {
       .withUnretained(self)
       .flatMapLatest { owner, phoneNum in
         owner.useCase.checkUserExists(phoneNumber: phoneNum)
+          .asObservable()
           .catch { networkError in
-            error.accept(())
-            return .error(networkError)
+            errorTracker.accept(networkError)
+            return .empty()
           }
       }.asDriverOnErrorJustEmpty()
+
+    let userInfo = certificateSuccess
+      .withLatestFrom(phoneNum)
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest({ owner, phoneNum in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: phoneNum))
+      })
+      .asDriverOnErrorJustEmpty()
+
+    checkUserExists
+      .withLatestFrom(Driver<UserInfo>.combineLatest(userInfo, phoneNum) { userinfo, phoneNum in
+        var mutable = userinfo
+        mutable.phoneNumber = phoneNum
+        return mutable
+      })
+      .drive(with: self) { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+      }.disposed(by: disposeBag)
+
 
     let timer = authNumber
       .flatMap { authNumber in
@@ -128,24 +149,31 @@ final class PhoneCertificationViewModel: ViewModelType {
 
     let isSignUp = Driver.zip(input.finishAnimationTrigger, checkUserExists) { $1 }
 
-    let newUser = isSignUp.filter { $0.isSignUp == false }
+    isSignUp.filter { $0.isSignUp == true }
+      .withLatestFrom(phoneNum) { _, phoneNum in phoneNum }
+      .drive(with: self) { owner, phoneNum in
+        owner.userInfoUseCase.savePhoneNumber(phoneNum)
+      }
+      .disposed(by: disposeBag)
 
-    isSignUp
-      .filter { $0.isSignUp == true }
-      .withLatestFrom(phoneNum)
-      .flatMapLatest({ [unowned self] phoneNum in
-        self.useCase.login(phoneNumber: phoneNum, deviceKey: "")
-          .catch { loginError in
-            error.accept(())
-            return .error(loginError)
+    isSignUp.filter { $0.isSignUp == true }
+      .withLatestFrom(phoneNum) { _, phoneNum in phoneNum }
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, phoneNum in
+        owner.useCase.login(phoneNumber: phoneNum, deviceKey: "device_key")
+          .asObservable()
+          .catch { error in
+            errorTracker.accept(error)
+            return .empty()
           }
-          .asDriver(onErrorDriveWith: .empty())
-      })
+      }
+      .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, _ in
         owner.delegate?.invoke(.toMain)
       }.disposed(by: disposeBag)
 
-    newUser
+    isSignUp.filter { $0.isSignUp == false }
       .withLatestFrom(phoneNum)
       .drive(with: self, onNext: { owner, phoneNum in
         owner.delegate?.invoke(.toSignUp(phoneNumber: phoneNum))
@@ -155,7 +183,7 @@ final class PhoneCertificationViewModel: ViewModelType {
     return Output(
       phoneNum: phoneNum,
       validate: validate,
-      error: error,
+      error: errorTracker.asDriverOnErrorJustEmpty(),
       clearButtonTapped: clearButtonTapped,
       viewStatus: viewStatus,
       certificateSuccess: certificateSuccess,

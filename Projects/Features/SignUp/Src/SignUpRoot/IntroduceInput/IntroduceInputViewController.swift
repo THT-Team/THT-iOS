@@ -41,6 +41,10 @@ final class IntroduceInputViewController: TFBaseViewController {
     output.isEnableNextBtn
       .drive(self.mainView.nextBtn.rx.buttonStatus)
       .disposed(by: disposeBag)
+
+    output.initialValue
+      .drive(self.mainView.introduceInputField.rx.text)
+      .disposed(by: disposeBag)
   }
 }
 

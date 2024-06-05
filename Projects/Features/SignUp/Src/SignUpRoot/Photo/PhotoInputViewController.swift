@@ -45,8 +45,10 @@ final class PhotoInputViewController: TFBaseViewController {
       .filter { $0.item == 2 }
 
     let alertTrigger = optionalCell
-      .flatMapLatest { indexPath in
-        return Observable<PhotoAlertAction>.create { [weak self] observer in
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, indexPath in
+        return Observable<PhotoAlertAction>.create { observer in
           let alert = UIAlertController(title: "사진 수정하기",
                                         message: "",
                                         preferredStyle: .actionSheet
@@ -60,13 +62,12 @@ final class PhotoInputViewController: TFBaseViewController {
           alert.addAction(deleteAction)
           alert.addAction(noAction)
 
-          self?.present(alert, animated: true, completion: nil)
+          owner.present(alert, animated: true, completion: nil)
           return Disposables.create {
-            self?.dismiss()
+            owner.dismiss()
           }
         }
       }.asDriverOnErrorJustEmpty()
-
 
     let nextBtnTap = mainView.nextBtn.rx.tap.asDriver()
 
@@ -88,31 +89,3 @@ final class PhotoInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
   }
 }
-
-extension PhotoInputViewController: PHPickerViewControllerDelegate {
-  func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-    dismiss(animated: true)
-
-    // Listenr에게 result 전달
-
-    // VM -> Coordinator
-    // Coordinattor -> PHPicker
-    // PHPicker -> Coordinator(Listener에게 전달) == VM
-    // VM -> VC
-
-  }
-}
-
-
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct PhotoInputViewController_Preview: PreviewProvider {
-  static var previews: some View {
-    let vm = PhotoInputViewModel()
-    let vc = PhotoInputViewController(viewModel: vm)
-    return vc.showPreview()
-  }
-}
-#endif

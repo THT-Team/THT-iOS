@@ -62,12 +62,8 @@ class PickerBottomSheetView: TFBaseView {
     let fragmentY = selectedView.frame.height - 3
     var dx = 0.0
     for _ in 0..<3 {
-      var topLine = UIView(
-        frame:
-          CGRect(x: dx, y: 0, width: fragmentWidth, height: 3))
-      var bottomLine = UIView(
-        frame:
-          CGRect(x: dx, y: fragmentY, width: fragmentWidth, height: 3))
+      var topLine = UIView(frame: CGRect(x: dx, y: 0, width: fragmentWidth, height: 3))
+      var bottomLine = UIView(frame: CGRect(x: dx, y: fragmentY, width: fragmentWidth, height: 3))
       dx += fragmentWidth + 5
       topLine.backgroundColor = DSKitAsset.Color.neutral500.color
       bottomLine.backgroundColor = DSKitAsset.Color.neutral500.color

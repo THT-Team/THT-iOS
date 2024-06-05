@@ -19,7 +19,7 @@ final class LocationInputViewModel: ViewModelType {
 
   private let locationTrigger = PublishSubject<String>()
   private let useCase: SignUpUseCaseInterface
-  private let initialValue: LocationReq?
+  private let userInfoUseCase: UserInfoUseCaseInterface
 
   struct Input {
     let locationBtnTap: Driver<Void>
@@ -31,29 +31,49 @@ final class LocationInputViewModel: ViewModelType {
     let currentLocation: Driver<String>
   }
 
-  init(useCase: SignUpUseCaseInterface, initialLocation: LocationReq?) {
+  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
     self.useCase = useCase
-    self.initialValue = initialLocation
+    self.userInfoUseCase = userInfoUseCase
   }
 
   // 필드 클릭하면 퍼미션 리퀘스트 후 -> granted: Bool
   // granted 면 시작, 아니면,
 
   func transform(input: Input) -> Output {
-    
+
     let addressTrigger = self.locationTrigger
-    let currentLocation = BehaviorRelay<LocationReq?>(value: self.initialValue)
+    let currentLocation = BehaviorRelay<LocationReq?>(value: nil)
+
+    let userinfo = Driver.just(())
+      .asObservable()
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+
+    userinfo.map { $0.address }
+      .drive(currentLocation)
+      .disposed(by: disposeBag)
 
     input.locationBtnTap
-      .throttle(.microseconds(300), latest: false)
-      .flatMapLatest { [unowned self] _ in
-        self.useCase.fetchLocation()
+      .throttle(.milliseconds(500), latest: false)
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, _ in
+
+        return owner.useCase.fetchLocation()
+          .debug("location usecase")
           .catch { error in
-            self.delegate?.invoke(.webViewTap(listner: self))
+            print(error.localizedDescription)
+            owner.delegate?.invoke(.webViewTap(listner: self))
             return .error(error)
           }
           .asDriver(onErrorDriveWith: .empty())
       }
+      .asDriverOnErrorJustEmpty()
       .drive(currentLocation)
       .disposed(by: disposeBag)
 
@@ -67,16 +87,20 @@ final class LocationInputViewModel: ViewModelType {
       .disposed(by: disposeBag)
 
     input.nextBtn
-      .throttle(.microseconds(300), latest: false)
+      .throttle(.milliseconds(300), latest: false)
       .withLatestFrom(currentLocation.asDriver())
-      .compactMap { $0 }
-      .drive(with: self, onNext: { owner, location in
-        owner.delegate?.invoke(.nextAtLocation(location))
+      .withLatestFrom(userinfo) { location, userinfo in
+        var mutable = userinfo
+        mutable.address = location
+        return mutable
+      }
+      .drive(with: self, onNext: { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtLocation)
       })
       .disposed(by: disposeBag)
 
     let isNextBtnEnabled = currentLocation
-      .compactMap { $0 }
       .map(validator)
       .asDriver(onErrorJustReturn: false)
 
@@ -86,7 +110,12 @@ final class LocationInputViewModel: ViewModelType {
     )
   }
 
-  func validator(_ location: LocationReq) -> Bool {
+  func validator(_ location: LocationReq?) -> Bool {
+    guard
+      let location,
+      location.address.isEmpty == false,
+      location.lat != 0, location.lon != 0
+    else { return false }
     return true
   }
 }

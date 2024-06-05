@@ -8,6 +8,7 @@
 import UIKit
 
 import DSKit
+import SignUpInterface
 
 final class ReligionPickerCell: TFBaseCollectionViewCell {
 
@@ -28,7 +29,23 @@ final class ReligionPickerCell: TFBaseCollectionViewCell {
     }
   }
 
-  func bind(_ text: String) {
+  func bind(_ model: Religion) {
+    let text: String
+
+    switch model {
+    case .christian:
+      text = "기독교"
+    case .catholic:
+      text = "천주교"
+    case .buddhism:
+      text = "불교"
+    case .wonBuddhism:
+      text = "원불교"
+    case .none:
+      text = "무교"
+    case .other:
+      text = "기타"
+    }
     religionLabel.text = text
   }
 

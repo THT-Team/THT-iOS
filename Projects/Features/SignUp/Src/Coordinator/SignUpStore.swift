@@ -67,7 +67,7 @@ public struct SignUpStore {
   @Storage<String>(key: Key.photo.rawValue, defaultValue: "")
   public static var photo
 
-  @Storage<[String]>(key: Key.height.rawValue, defaultValue: [])
+  @Storage<Int>(key: Key.height.rawValue, defaultValue: 145)
   public static var height
 
   @Storage<String>(key: Key.smoke.rawValue, defaultValue: "")
@@ -79,21 +79,20 @@ public struct SignUpStore {
   @Storage<String>(key: Key.religion.rawValue, defaultValue: "")
   public static var religion
 
-  @Storage<[String]>(key: Key.interest.rawValue, defaultValue: [])
+  @Storage<[Int]>(key: Key.interest.rawValue, defaultValue: [])
   public static var interest
 
-  @Storage<[String]>(key: Key.ideal.rawValue, defaultValue: [])
+  @Storage<[Int]>(key: Key.ideal.rawValue, defaultValue: [])
   public static var ideal
 
   @Storage<String>(key: Key.introduce.rawValue, defaultValue: "")
   public static var introduce
 
-  @Storage<String>(key: Key.avoidFriends.rawValue, defaultValue: "")
+  @CodableStorage<[ContactType]>(key: Key.avoidFriends.rawValue, defaultValue: [])
   public static var avoidFriends
 
   @CodableStorage<LocationReq>(key: Key.address.rawValue, defaultValue: nil)
   public static var location
-
 }
 
 extension SignUpStore {

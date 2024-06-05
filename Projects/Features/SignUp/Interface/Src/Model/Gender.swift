@@ -14,9 +14,9 @@ public enum Gender: String, Codable {
 
   public init?(number: Int) {
     switch number {
-    case 0:
-      self = .male
     case 1:
+      self = .male
+    case 0:
       self = .female
     case 2:
       self = .both

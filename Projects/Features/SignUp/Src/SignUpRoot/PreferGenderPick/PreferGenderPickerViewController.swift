@@ -34,8 +34,8 @@ final class PreferGenderPickerViewController: TFBaseViewController {
     let genderTap = self.mainView.genderPickerView
       .rx.selectedOption
       .asDriver()
-      .compactMap { $0?.key }
-      .compactMap { Gender(number: $0) }
+      .compactMap { $0 }
+      .compactMap { GenderMapper.toGender($0) }
 
     let input = PreferGenderPickerViewModel.Input(
       genderTap: genderTap,
@@ -48,6 +48,11 @@ final class PreferGenderPickerViewController: TFBaseViewController {
       .drive(with: self) { owner, status in
         owner.mainView.nextBtn.updateColors(status: status)
       }
+      .disposed(by: disposeBag)
+
+    output.initialGender
+      .debug("initialGender")
+      .drive(mainView.rx.selectedGender)
       .disposed(by: disposeBag)
   }
 }

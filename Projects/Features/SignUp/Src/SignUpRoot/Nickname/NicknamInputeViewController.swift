@@ -23,8 +23,12 @@ final class NicknameInputViewController: TFBaseViewController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+
+    mainView.nicknameInputField.textField.becomeFirstResponder()
+  }
 
   override func makeUI() {
     view.addSubview(mainView)
@@ -44,28 +48,25 @@ final class NicknameInputViewController: TFBaseViewController {
     let input = NicknameInputViewModel.Input(
       viewWillAppear: viewWillAppear,
       nickname: mainView.nicknameInputField.textField.rx.text.orEmpty.asDriver(),
-      clearBtn: mainView.nicknameInputField.clearBtn.rx.tap.asDriver(),
       nextBtn: mainView.nextBtn.rx.tap.asDriver()
     )
 
     let output = viewModel.transform(input: input)
     
     output.errorField
-      .drive(mainView.nicknameInputField.errorDescriptionLabel.rx.text)
+      .debug("errorField")
+      .drive(with: self, onNext: { owner, message in
+        owner.mainView.nicknameInputField.render(state: .error(error: .validate(text: message)))
+      })
       .disposed(by: disposeBag)
     
     output.validate
       .drive(mainView.nextBtn.rx.buttonStatus)
       .disposed(by: disposeBag)
-  }
 
-  func keyBoardSetting() {
-    view.rx.tapGesture()
-      .when(.recognized)
-      .withUnretained(self)
-      .subscribe { vc, _ in
-        vc.view.endEditing(true)
-      }
+    output.initialValue
+      .debug("initial")
+      .drive(mainView.nicknameInputField.rx.text)
       .disposed(by: disposeBag)
   }
 }

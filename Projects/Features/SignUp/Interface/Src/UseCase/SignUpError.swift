@@ -10,4 +10,5 @@ import Foundation
 public enum SignUpError: Error {
   case alreadySignUp
   case duplicateNickname
+  case invalidRequest
 }

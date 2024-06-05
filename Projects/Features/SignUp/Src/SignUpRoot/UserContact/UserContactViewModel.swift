@@ -40,6 +40,7 @@ final class UserContactViewModel: ViewModelType {
     let toast = PublishSubject<String>()
     let nextTrigger = PublishSubject<Void>()
     let blockTrigger = PublishSubject<Void>()
+    let fetchedContacts = BehaviorRelay<[ContactType]>(value: [])
 
     input.actionTrigger
       .drive(onNext: { action in
@@ -53,17 +54,20 @@ final class UserContactViewModel: ViewModelType {
       .disposed(by: disposeBag)
     
     blockTrigger
+      .observe(on: ConcurrentDispatchQueueScheduler(qos: .background))
       .flatMapLatest { [unowned self] _ in
         self.useCase.block()
-          .flatMap { count in
-            toast.onNext("\(count)개의 연락처를 차단했습니다.")
+          .flatMap { contacts in
+            fetchedContacts.accept(contacts)
+            toast.onNext("\(contacts.count)개의 연락처를 차단했습니다.")
             return .just(true)
           }
           .catch { error in
             toast.onNext("친구 목록을 불러오는데 실패했습니다. 다시 시도해주세요.")
             return .just(false)
           }
-      }.asDriver(onErrorJustReturn: false)
+      }
+      .asDriver(onErrorJustReturn: false)
       .filter { $0 }
       .map { _ in }
       .delay(.seconds(2))
@@ -72,9 +76,10 @@ final class UserContactViewModel: ViewModelType {
     // TODO: Block 성공하면 toast 띄우고, 2초 뒤 next, 실패하면 toast 띄우고, next 안함
     
     nextTrigger
+      .withLatestFrom(fetchedContacts)
       .asDriverOnErrorJustEmpty()
-      .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtHideFriends)
+      .drive(with: self) { owner, contacts in
+        owner.delegate?.invoke(.nextAtHideFriends(contacts))
       }
       .disposed(by: disposeBag)
     

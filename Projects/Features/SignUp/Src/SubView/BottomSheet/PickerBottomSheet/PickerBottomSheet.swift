@@ -51,17 +51,10 @@ final class PickerBottomSheet: TFBaseViewController {
     output.items
       .drive(mainView.pickerView.rx.items(adapter: PickerViewViewAdapter()))
       .disposed(by: disposeBag)
+    output.initialDate
+      .drive(with: self) { owner, components in
+        owner.mainView.pickerView.selectRow(components.0, inComponent: components.1, animated: false)
+      }
+      .disposed(by: disposeBag)
   }
 }
-
-//#if canImport(SwiftUI) && DEBUG
-//import SwiftUI
-//
-//struct PickerViewController_Preview: PreviewProvider {
-//    static var previews: some View {
-//      let vm = PickerBottomSheetViewModel(initialValue: .date(date: Date()))
-//      let vc = PickerBottomSheet(viewModel: vm)
-//      return vc.showPreview()
-//    }
-//}
-//#endif

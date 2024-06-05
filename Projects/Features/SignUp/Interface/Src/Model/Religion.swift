@@ -9,7 +9,9 @@ import Foundation
 
 public enum Religion: String, Codable {
   case christian = "CHRISTIAN"
-  case catholic = "CATOLIC"
+  case catholic = "CATHOLICISM"
   case buddhism = "BUDDHISM"
+  case wonBuddhism = "WON_BUDDHISM"
   case none = "NONE"
+  case other = "OTHER"
 }

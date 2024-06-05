@@ -51,6 +51,8 @@ public extension ViewControllable {
   func dismiss() {
     if let presented = self.uiController.presentedViewController {
       presented.dismiss(animated: true)
+    } else {
+      self.uiController.dismiss(animated: true)
     }
   }
 

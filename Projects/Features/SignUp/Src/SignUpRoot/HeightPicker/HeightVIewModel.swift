@@ -27,14 +27,34 @@ final class HeightPickerViewModel: ViewModelType {
   }
 
   private var disposeBag = DisposeBag()
+  private let userInfoUseCase: UserInfoUseCaseInterface
 
   private var selectedHeight = BehaviorRelay<Int>(value: 145)
 
+  init(userInfoUseCase: UserInfoUseCaseInterface) {
+    self.userInfoUseCase = userInfoUseCase
+  }
+
   func transform(input: Input) -> Output {
+    let userinfo = Driver.just(())
+      .asObservable()
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+
+    userinfo
+      .compactMap { $0.tall }
+      .drive(selectedHeight)
+      .disposed(by: disposeBag)
+
     let height = self.selectedHeight
       .asDriver()
 
-    let nextBtnisEnabled = height.skip(1)
+    let nextBtnisEnabled = height
       .map { _ in return true }
 
     input.pickerLabelTap
@@ -46,9 +66,16 @@ final class HeightPickerViewModel: ViewModelType {
     input.nextBtnTap
       .withLatestFrom(nextBtnisEnabled)
       .filter { $0 }
+      .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(height)
-      .drive(with: self) { owner, height in
-        owner.delegate?.invoke(.nextAtHeight(height))
+      .withLatestFrom(userinfo) { height, userinfo in
+        var mutable = userinfo
+        mutable.tall = height
+        return mutable
+      }
+      .drive(with: self) { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtHeight)
       }.disposed(by: disposeBag)
 
     return Output(

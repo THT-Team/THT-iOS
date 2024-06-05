@@ -25,11 +25,19 @@ extension DateFormatter {
 //    formatter.locale = Locale(identifier: "ko-KR")
     return formatter
   }
+
+  static var normalDateFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy.MM.dd"
+    formatter.locale = Locale(identifier: "ko-KR")
+
+    return formatter
+  }
 }
 
 public extension String {
   func toDate() -> Date {
-    DateFormatter.unixDateFormatter.date(from: self) ?? Date()
+    DateFormatter.normalDateFormatter.date(from: self) ?? Date()
   }
 }
 
@@ -37,4 +45,31 @@ public extension Date {
   func toTimeString() -> String {
     DateFormatter.timeFormatter.string(from: self)
   }
+  func toDateString() -> String {
+    DateFormatter.unixDateFormatter.string(from: self)
+  }
+  func toYMDDotDateString() -> String {
+    DateFormatter.normalDateFormatter.string(from: self)
+  }
+
+  // From GPT
+  static func currentAdultDateOrNil() -> Date? {
+         // 성년이 되는 나이
+         let adulthoodAge = 21
+
+         // 현재 달력
+         var calendar = Calendar.current
+
+         // 지역을 한국으로 설정 (옵션)
+         calendar.locale = Locale(identifier: "ko_KR")
+
+         // 날짜 구성 요소를 추출
+         var dateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+
+         // 성년 나이를 더함
+         dateComponents.year = (dateComponents.year ?? 0) - adulthoodAge
+
+         // 새로운 날짜를 생성하여 반환
+         return calendar.date(from: dateComponents)
+     }
 }

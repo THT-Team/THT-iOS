@@ -15,6 +15,7 @@ import RxCocoa
 
 final class PreferGenderPickerViewModel: ViewModelType {
   weak var delegate: SignUpCoordinatingActionDelegate?
+  private let userInfoUseCase: UserInfoUseCaseInterface
 
   struct Input {
     var genderTap: Driver<Gender>
@@ -23,23 +24,59 @@ final class PreferGenderPickerViewModel: ViewModelType {
 
   struct Output {
     var isNextBtnEnabled: Driver<Bool>
+    var initialGender: Driver<Gender>
   }
 
   private var disposeBag = DisposeBag()
 
+  init(userInfoUseCase: UserInfoUseCaseInterface) {
+    self.userInfoUseCase = userInfoUseCase
+  }
+
+  deinit {
+    print("deinit: PreferGenderPickerViewModel")
+  }
+
   func transform(input: Input) -> Output {
+
+    let userinfo = Driver.just(())
+      .asObservable()
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+      .debug("fetched UserInfo")
+
+    let initialGender = userinfo.map { $0.preferGender }
+      .compactMap { $0 }
+      .debug("fetched preferGender")
+
     let selectedGender = input.genderTap
+      .debug("tapped Gender")
 
     let nextBtnisEnabled = selectedGender.map { _ in true }
 
     input.nextBtnTap
+      .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(selectedGender)
-      .drive(with: self) { owner, gender in
-        owner.delegate?.invoke(.nextAtPreferGender(gender))
+      .debug("toSave preferGender")
+      .withLatestFrom(userinfo) { preferGender, info in
+        var mutable = info
+        mutable.preferGender = preferGender
+        print("mutable - preferGender: \(preferGender)")
+        return mutable
+      }
+      .drive(with: self) { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtPreferGender)
       }.disposed(by: disposeBag)
 
     return Output(
-      isNextBtnEnabled: nextBtnisEnabled
+      isNextBtnEnabled: nextBtnisEnabled,
+      initialGender: initialGender
     )
   }
 }

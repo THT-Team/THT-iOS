@@ -47,6 +47,18 @@ public extension ProviderProtocol {
   func request<D: Decodable>(type: D.Type, target: Target) -> Single<D> {
     provider.rx.request(target)
       .map(type)
+      .catch { error in
+        if let error = error as? MoyaError {
+          print(error.localizedDescription)
+          return .error(error)
+        }
+        if let error = error as? DecodingError {
+          print(error.localizedDescription)
+          return .error(error)
+        }
+        print(error.localizedDescription)
+        return .error(error)
+      }
   }
 
   func requestWithNoContent(target: Target) -> Single<Void> {

@@ -60,6 +60,11 @@ final class GenderPickerViewController: TFBaseViewController {
     
     let output = viewModel.transform(input: input)
 
+    output.initialGender
+      .compactMap { $0 }
+      .drive(self.mainView.rx.selectedGender)
+      .disposed(by: disposeBag)
+
     output.birthday
       .drive(with: self) { owner, selectedDate in
         owner.mainView.birthdayLabel.text = selectedDate
@@ -68,9 +73,7 @@ final class GenderPickerViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.isNextBtnEnabled
-      .drive(with: self) { owner, status in
-        owner.mainView.nextBtn.updateColors(status: status)
-      }
+      .drive(self.mainView.nextBtn.rx.buttonStatus)
       .disposed(by: disposeBag)
   }
 }

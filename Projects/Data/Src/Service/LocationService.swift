@@ -37,7 +37,6 @@ public final class LocationService: NSObject, LocationServiceType {
 
   public func requestAuthorization() {
     manager.requestWhenInUseAuthorization()
-    print(manager.authorizationStatus)
   }
 
   public func handleAuthorization(granted: @escaping (Bool) -> Void) {
@@ -62,7 +61,7 @@ public final class LocationService: NSObject, LocationServiceType {
 
 extension LocationService: CLLocationManagerDelegate {
   public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-    handleAuthorization() { _ in }
+
   }
 
   public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

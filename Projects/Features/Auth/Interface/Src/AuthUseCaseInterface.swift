@@ -14,4 +14,5 @@ public protocol AuthUseCaseInterface {
   func checkUserExists(phoneNumber: String) -> Single<UserSignUpInfoRes>
   func login(phoneNumber: String, deviceKey: String) -> Single<Void>
   func loginSNS(_ request: UserSNSLoginRequest) -> Single<Void>
+  func refresh() -> Single<Void>
 }

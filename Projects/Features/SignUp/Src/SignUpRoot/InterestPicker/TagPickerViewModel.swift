@@ -15,8 +15,8 @@ import RxCocoa
 import Domain
 
 final class TagPickerViewModel: ViewModelType {
-  private let actionType: SignUpCoordinatingAction
   private let useCase: SignUpUseCaseInterface
+  private let userInfoUseCase: UserInfoUseCaseInterface
   weak var delegate: SignUpCoordinatingActionDelegate?
 
   struct Input {
@@ -31,68 +31,87 @@ final class TagPickerViewModel: ViewModelType {
 
   private var disposeBag = DisposeBag()
 
-  init(action: SignUpCoordinatingAction, useCase: SignUpUseCaseInterface) {
-    self.actionType = action
+  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
     self.useCase = useCase
+    self.userInfoUseCase = userInfoUseCase
   }
 
   func transform(input: Input) -> Output {
 
     let chips = BehaviorRelay<[InputTagItemViewModel]>(value: [])
-    
-    Driver.just(())
+
+    let userinfo = Driver.just(())
+      .asObservable()
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+
+    let local = userinfo.map { $0.interestsList }
+
+    let remote = Driver.just(())
       .flatMapLatest { [unowned self] _ in
         self.useCase.interests()
           .asDriver(onErrorJustReturn: [])
       }
       .map { $0.map { InputTagItemViewModel(item: $0, isSelected: false) } }
-      .drive(chips)
-      .disposed(by: disposeBag)
 
-    let selectedItemArray = input.chipTap
-      .scan([]) { (prev, indexPath) -> [IndexPath] in
-        var updatedSelectedItems = prev
-        let selectedItemCount = prev.count
+    Driver.zip(local, remote) { local, remote in
+      var mutable = remote
 
-        // 이미 선택된 셀일 때
-        if updatedSelectedItems.contains(indexPath) {
-          updatedSelectedItems.removeAll { $0 == indexPath }
-        } else if selectedItemCount < 3 { // 선택된게 3개 미만일 때
-          updatedSelectedItems.append(indexPath)
+      local.forEach { selectedIndex in
+        if let index = mutable.firstIndex(where: { $0.emojiType.idx == selectedIndex }) {
+          mutable[index].isSelected = true
+        }
+      }
+      return mutable
+    }
+    .drive(chips)
+    .disposed(by: disposeBag)
+
+    input.chipTap.map { $0.item }
+      .withLatestFrom(chips.asDriver()) { index, chips in
+        var prev = chips.enumerated().filter { $0.element.isSelected }.map { $0.offset }
+
+        if prev.contains(index) {
+          prev.removeAll { $0 == index }
+        } else if prev.count < 3 {
+          prev.append(index)
+        }
+        var mutable = chips.map {
+          var model = $0
+          model.isSelected = false
+          return model
         }
 
-        return updatedSelectedItems
-      }
-      .startWith([])
+        prev.forEach { index in
+          mutable[index].isSelected = true
+        }
 
-    selectedItemArray
-      .map { selectedItems in
-        chips.value.enumerated()
-          .map { index, item in
-            InputTagItemViewModel(
-              item: item.emojiType, isSelected: selectedItems.contains(IndexPath(item: index, section: 0))
-            )
-          }
+        return mutable
       }.drive(chips)
       .disposed(by: disposeBag)
 
-    let isNextBtnEnabled = selectedItemArray
-      .map { $0.count == 3 }
+    let isNextBtnEnabled = chips.asDriver()
+      .map { $0.filter { $0.isSelected }.count == 3 }
 
     input.nextBtnTap
       .withLatestFrom(isNextBtnEnabled)
       .filter { $0 }
-      .withLatestFrom(selectedItemArray) {
-        $1.map { chips.value[$0.item].emojiType.idx }
+      .withLatestFrom(chips.asDriver()) { _, chips in
+        chips.filter { $0.isSelected }.map { $0.emojiType.idx }
       }
-      .drive(with: self, onNext: { owner, items in
-        switch owner.actionType {
-        case .nextAtInterest:
-          owner.delegate?.invoke(.nextAtInterest(items))
-        case .nextAtIdealType:
-          owner.delegate?.invoke(.nextAtIdealType(items))
-        default: break
-        }
+      .withLatestFrom(userinfo) { items, userinfo in
+        var mutable = userinfo
+        mutable.interestsList = items
+        return mutable
+      }
+      .drive(with: self, onNext: { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtInterest)
       })
       .disposed(by: disposeBag)
 

@@ -9,16 +9,15 @@ import Foundation
 
 extension UserDefaults {
 
-    func setCodableObject<Object>(
+    public func setCodableObject<Object>(
         _ object: Object, forKey: String
     ) throws where Object: Encodable {
 
         let data = try JSONEncoder().encode(object)
         self.set(data, forKey: forKey)
-
     }
 
-    func getCodableObject<Object>(
+    public func getCodableObject<Object>(
       forKey: String,
       as type: Object.Type
     ) throws -> Object? where Object: Decodable {
@@ -27,7 +26,6 @@ extension UserDefaults {
             return nil
         }
         return try JSONDecoder().decode(type, from: data)
-
     }
 }
 

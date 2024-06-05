@@ -7,22 +7,12 @@
 
 import Foundation
 
-public struct Agreement: Codable {
-  public let keys: [String: Bool]
-
-  public init(keys: [String : Bool]) {
-    self.keys = keys
-  }
+// MARK: - AgreementElement
+public struct AgreementElement: Codable {
+    public let name, subject: String
+    public let isRequired: Bool
+    public let description: String?
+    public let detailLink: String?
 }
 
-extension Agreement {
-  func toDictionary() -> [String: Any] {
-    do {
-      let data = try JSONEncoder().encode(keys)
-      let dic = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) as? [String: Any]
-      return dic ?? [:]
-    } catch {
-      return [:]
-    }
-  }
-}
+public typealias Agreement = [AgreementElement]

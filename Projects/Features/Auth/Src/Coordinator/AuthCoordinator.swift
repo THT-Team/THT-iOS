@@ -17,6 +17,8 @@ protocol AuthCoordinatingActionDelegate: AnyObject {
 
 public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   @Injected private var authUseCase: AuthUseCaseInterface
+  @Injected private var userInfoUseCase: UserInfoUseCaseInterface
+  
   private let signUpBuildable: SignUpBuildable
   private var signUpCoordinator: SignUpCoordinating?
   public weak var delegate: AuthCoordinatingDelegate?
@@ -36,6 +38,11 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   // MARK: Launch Screen
   public func launchFlow() {
     // TODO: Launch Screen 에서 가입/인증/메인 분기 처리
+
+    var needAuth = true
+    if needAuth {
+      rootFlow()
+    }
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
@@ -50,7 +57,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   }
 
   public func phoneNumberFlow() {
-    let viewModel = PhoneCertificationViewModel(useCase: authUseCase)
+    let viewModel = PhoneCertificationViewModel(useCase: authUseCase, userInfoUseCase: self.userInfoUseCase)
     viewModel.delegate = self
 
     let viewController = PhoneCertificationViewController(viewModel: viewModel)
@@ -79,7 +86,7 @@ extension AuthCoordinator: AuthCoordinatingActionDelegate {
     switch action {
     case let .tologinType(snsType):
       snsFlow(type: snsType)
-    case .toSignUp:
+    case let .toSignUp(phoneNum):
       attachSignUpCoordiantor()
     case .toMain:
       self.delegate?.detachAuth(self)
@@ -97,7 +104,7 @@ extension AuthCoordinator {
     self.attachChild(coordinator)
     self.signUpCoordinator = coordinator
 
-    coordinator.emailFlow()
+    coordinator.start()
   }
   func detachSignUpCoordinator() {
     guard let coordinator = self.signUpCoordinator else { return }

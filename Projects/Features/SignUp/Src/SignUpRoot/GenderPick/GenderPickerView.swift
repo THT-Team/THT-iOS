@@ -8,7 +8,8 @@
 import UIKit
 
 import DSKit
-
+import RxSwift
+import SignUpInterface
 
 class GenderPickerView: TFBaseView {
   lazy var container = UIView().then {
@@ -82,6 +83,14 @@ class GenderPickerView: TFBaseView {
       $0.trailing.equalTo(birthdayLabel)
       $0.height.equalTo(50)
       $0.width.equalTo(88)
+    }
+  }
+}
+
+extension Reactive where Base: GenderPickerView {
+  var selectedGender: Binder<Gender> {
+    return Binder(base.self) { view, gender in
+      view.genderPickerView.handleSelectedState(gender == .female ? .left : .right)
     }
   }
 }

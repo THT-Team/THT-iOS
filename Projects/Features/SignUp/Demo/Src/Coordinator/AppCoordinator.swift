@@ -8,6 +8,7 @@
 import UIKit
 import SignUpInterface
 import Core
+import DSKit
 
 protocol AppCoordinating {
   func signUpFlow()
@@ -38,11 +39,21 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
     signUpCoordinator.start()
   }
+
+  class MainViewController: TFBaseViewController {
+    override func viewDidLoad() {
+      super.viewDidLoad()
+
+      let label = UILabel()
+      label.center = self.view.center
+      label.text = "Main"
+      self.view.addSubview(label)
+    }
+  }
 }
 
 extension AppCoordinator: SignUpCoordinatorDelegate {
   func detachSignUp(_ coordinator: Core.Coordinator) {
-    self.viewControllable.setViewControllers([])
     detachChild(coordinator)
   }
 }

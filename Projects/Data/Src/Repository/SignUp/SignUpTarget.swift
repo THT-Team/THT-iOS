@@ -19,6 +19,8 @@ public enum SignUpTarget {
   case idealTypes
   case interests
   case block(contacts: UserFriendContactReq)
+  case signUp(signUpReq: SignUpReq)
+  case agreement
 }
 
 extension SignUpTarget: BaseTargetType {
@@ -37,12 +39,18 @@ extension SignUpTarget: BaseTargetType {
       return "interests"
     case .block:
       return "user/friend-contact-list"
+    case .signUp:
+      return "users/join/signup"
+    case .agreement:
+      return "users/join/agreements/main-category"
     }
   }
 
   public var method: Moya.Method {
     switch self {
     case .block:
+      return .post
+    case .signUp:
       return .post
     default: return .get
     }
@@ -53,6 +61,8 @@ extension SignUpTarget: BaseTargetType {
     switch self {
     case let .block(contacts):
       return .requestParameters(parameters: contacts.toDictionary(), encoding: JSONEncoding.default)
+    case let .signUp(dto):
+      return .requestParameters(parameters: dto.toDictionary(), encoding: JSONEncoding.default)
     default:
       return .requestPlain
     }

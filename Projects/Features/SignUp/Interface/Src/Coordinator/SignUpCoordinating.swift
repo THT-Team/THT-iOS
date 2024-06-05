@@ -8,6 +8,7 @@
 import Foundation
 
 import Core
+import AuthInterface
 
 public protocol SignUpCoordinatorDelegate: AnyObject {
   func detachSignUp(_ coordinator: Coordinator)

@@ -39,9 +39,10 @@ public protocol PhotoPickerDelegate: PHPickerViewControllerDelegate {
 
 public class PhotoPickerDelegator: PhotoPickerDelegate {
   weak public var listener: PhotoPickerListener?
+
   public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-    listener?.picker(didFinishPicking: results)
     picker.dismiss()
+    listener?.picker(didFinishPicking: results)
   }
 
   deinit {

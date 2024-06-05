@@ -43,7 +43,11 @@ final class UserContactViewController: TFBaseViewController {
     output.toast
       .emit(with: self) { owner, message in
         let alert = UIAlertController(title: message, message: nil, preferredStyle: .alert)
+
         owner.present(alert, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          owner.dismiss(animated: true)
+        }
       }
       .disposed(by: disposeBag)
   }

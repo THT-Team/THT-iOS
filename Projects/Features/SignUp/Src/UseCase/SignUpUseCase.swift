@@ -8,20 +8,23 @@
 import Foundation
 import RxSwift
 import SignUpInterface
+import AuthInterface
 import Domain
 
 public final class SignUpUseCase: SignUpUseCaseInterface {
 
   private let repository: SignUpRepositoryInterface
+  private let tokenStore: TokenStore
   private let locationService: LocationServiceType
   private let kakaoAPIService: KakaoAPIServiceType
   private let contactService: ContactServiceType
 
-  public init(repository: SignUpRepositoryInterface, locationService: LocationServiceType, kakaoAPIService: KakaoAPIServiceType, contactService: ContactServiceType) {
+  public init(repository: SignUpRepositoryInterface, locationService: LocationServiceType, kakaoAPIService: KakaoAPIServiceType, contactService: ContactServiceType, tokenStore: TokenStore) {
     self.repository = repository
     self.kakaoAPIService = kakaoAPIService
     self.contactService = contactService
     self.locationService = locationService
+    self.tokenStore = tokenStore
   }
 
   public func checkNickname(nickname: String) -> Single<Bool> {
@@ -40,16 +43,36 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
       .map { $0.map { $0.toDomain() }}
   }
 
-  public func block() -> Single<Int> {
+  public func block() -> Single<[ContactType]> {
     self.contactService.fetchContact()
-      .flatMap { [unowned self] contacts in
-        self.repository.block(contacts: contacts)
+      .map { contacts in
+        contacts.map { contact in
+          let phoneNumber = contact.phoneNumber.replacingOccurrences(of: "\\D", with: "", options: .regularExpression)
+          return ContactType(name: contact.name, phoneNumber: phoneNumber)
+        }
       }
+  }
+
+  public func signUp(request: SignUpReq) -> Single<Void> {
+    return repository.signUp(request)
+      .flatMap { [weak self] token in
+        self?.tokenStore.saveToken(token: token)
+        return .just(())
+      }
+  }
+
+  public func uploadImage(data: [Data]) -> Single<[String]> {
+    return repository.uploadImage(data: data)
+  }
+
+  public func fetchAgreements() -> Single<Agreement> {
+    repository.fetchAgreements()
   }
 
   @MainActor
   public func fetchLocation() -> Single<LocationReq> { //
     self.locationService.requestAuthorization()
+
     self.locationService.handleAuthorization { [weak self] granted in
       guard granted else {
         return

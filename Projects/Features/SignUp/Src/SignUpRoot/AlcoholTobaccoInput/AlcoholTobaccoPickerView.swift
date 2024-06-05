@@ -5,17 +5,10 @@
 //  Created by Kanghos on 2024/04/21.
 //
 
-import Foundation
-//
-//  HeightView.swift
-//  SignUp
-//
-//  Created by Kanghos on 2024/04/21.
-//
-
 import UIKit
-
+import SignUpInterface
 import DSKit
+import RxSwift
 
 class AlcoholTobaccoPickerView: TFBaseView {
   lazy var container = UIView().then {
@@ -111,6 +104,44 @@ class AlcoholTobaccoPickerView: TFBaseView {
       $0.height.equalTo(50)
       $0.width.equalTo(88)
     }
+  }
+}
+
+extension Reactive where Base == AlcoholTobaccoPickerView {
+  var selectedFrequecy: Binder<AlcoholTobaccoPickerViewModel.FrequencyType> {
+    Binder(base.self) { view, frequencyType in
+      switch frequencyType {
+      case let .drinking(frequency):
+        view.alcoholPickerView.handleSelectedState(FrequencyMapper.toOption(frequency))
+      case let .smoking(frequency):
+        view.tobaccoPickerView.handleSelectedState(FrequencyMapper.toOption(frequency))
+      }
+    }
+  }
+}
+
+struct FrequencyMapper {
+  static func toOption(_ frequency: Frequency) -> TFButtonPickerView.Option {
+    switch frequency {
+    case .none:
+      return .init(key: 0, value: "안함")
+    case .sometimes:
+      return .init(key: 1, value: "가끔")
+    case .frequently:
+      return .init(key: 2, value: "자주")
+    }
+  }
+
+  static func toFrequency(_ option: TFButtonPickerView.Option) -> Frequency {
+    switch option.key {
+    case 0: return .none
+    case 1: return .sometimes
+    default: return .frequently
+    }
+  }
+
+  static var options: [String] {
+    return ["안함", "가끔", "자주"]
   }
 }
 

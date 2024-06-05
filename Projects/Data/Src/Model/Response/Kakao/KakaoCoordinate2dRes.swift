@@ -48,7 +48,23 @@ extension KakaoCoordinateRes {
 
     guard let document = lawAddress else { return nil }
 
-    let addressName = document.addressName
+
+    var cityName = document.region1depthName
+    if cityName.hasSuffix("특별시") {
+      cityName = cityName.replacingOccurrences(of: "특별시", with: "")
+    } else if cityName.hasSuffix("광역시") {
+      cityName = cityName.replacingOccurrences(of: "광역시", with: "")
+    }
+
+    var dongName = document.region3depthName
+    while !dongName.isEmpty {
+      if dongName.hasSuffix("동") {
+        break
+      }
+      dongName.removeLast()
+    }
+
+    let addressName = [cityName, document.region2depthName, dongName].joined(separator: " ")
 
     return .init(address: addressName, regionCode: Int(document.code) ?? 0, lat: document.y, lon: document.x)
   }

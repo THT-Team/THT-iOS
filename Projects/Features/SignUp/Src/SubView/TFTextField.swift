@@ -52,6 +52,7 @@ class TFTextField: UIControl {
     $0.placeholder = "입력"
     $0.textColor = DSKitAsset.Color.primary500.color
     $0.font = .thtH2B
+    $0.autocapitalizationType = .none
 //    $0.keyboardType = .numberPad
   }
 

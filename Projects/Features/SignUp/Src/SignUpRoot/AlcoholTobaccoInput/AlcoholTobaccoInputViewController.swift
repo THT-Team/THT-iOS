@@ -33,12 +33,14 @@ final class AlcoholTobaccoPickerViewController: TFBaseViewController {
     let tobaccoTap = self.mainView.tobaccoPickerView
       .rx.selectedOption
       .asDriver()
-      .compactMap { $0?.key }
+      .compactMap { $0 }
+      .map { FrequencyMapper.toFrequency($0) }
 
     let alcoholTap = self.mainView.alcoholPickerView
       .rx.selectedOption
       .asDriver()
-      .compactMap { $0?.key }
+      .compactMap { $0 }
+      .map { FrequencyMapper.toFrequency($0) }
 
     let input = AlcoholTobaccoPickerViewModel.Input(
       tobaccoTap: tobaccoTap,
@@ -52,6 +54,11 @@ final class AlcoholTobaccoPickerViewController: TFBaseViewController {
       .drive(with: self) { owner, status in
         owner.mainView.nextBtn.updateColors(status: status)
       }
+      .disposed(by: disposeBag)
+
+    output.initialFrequecy
+      .debug("initial")
+      .drive(mainView.rx.selectedFrequecy)
       .disposed(by: disposeBag)
   }
 }

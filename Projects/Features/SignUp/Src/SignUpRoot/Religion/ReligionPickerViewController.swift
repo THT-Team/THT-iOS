@@ -43,6 +43,7 @@ final class ReligionPickerViewController: TFBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.chips
+      .debug("chips")
       .drive(mainView.ReligionPickerView.rx.items(cellType: ReligionPickerCell.self)) { index, item, cell in
         cell.bind(item.0)
         cell.updateCell(item.1)
@@ -56,15 +57,3 @@ final class ReligionPickerViewController: TFBaseViewController {
       .disposed(by: disposeBag)
   }
 }
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct ReligionViewController_Preview: PreviewProvider {
-  static var previews: some View {
-    let vm = ReligionPickerViewModel()
-    let vc = ReligionPickerViewController(viewModel: vm)
-    return vc.showPreview()
-  }
-}
-#endif

@@ -23,27 +23,39 @@ final class GenderPickerViewModel: ViewModelType {
   }
 
   struct Output {
+    var initialGender: Driver<Gender?>
     var birthday: Driver<String>
     var isNextBtnEnabled: Driver<Bool>
   }
 
   private var disposeBag = DisposeBag()
 
-  private var selectedBirthday = PublishRelay<Date>()
+  private var selectedBirthday = PublishRelay<Date?>()
+  private let userInfoUseCase: UserInfoUseCaseInterface
+
+  init(userInfoUseCase: UserInfoUseCaseInterface) {
+    self.userInfoUseCase = userInfoUseCase
+  }
 
   func transform(input: Input) -> Output {
-    let selectedGender = input.genderTap
-    let birthday = self.selectedBirthday.asDriverOnErrorJustEmpty()
-      .startWith("".toDate())
-      .debug("birthday")
-    // TODO: 성년으로 초기화날짜
 
-    let nextBtnisEnabled = Driver.combineLatest(
-      selectedGender.map { _ in },
-      birthday.map { _ in }
-    ) { _, _ in
-      return true
-    }
+    let userInfo = Observable.just(())
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+
+    let initialGender = userInfo.map { $0.gender }
+    let initialBirthday = userInfo.map { $0.birthday?.toDate() }
+
+    let selectedGender = Driver.merge(input.genderTap, initialGender.compactMap { $0 })
+    let birthday = Driver.merge(self.selectedBirthday.asDriverOnErrorJustEmpty(), initialBirthday)
+      .map { $0 ?? Date.currentAdultDateOrNil() ?? Date() }
+
+    let nextBtnisEnabled = Driver.zip(selectedGender, birthday).map { _ in true }
 
     input.birthdayTap
       .withLatestFrom(birthday)
@@ -53,21 +65,23 @@ final class GenderPickerViewModel: ViewModelType {
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
+      .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(birthday)
       .withLatestFrom(selectedGender) { (date: $0, gender: $1) }
-      .drive(with: self) { owner, value in
-        owner.delegate?.invoke(.nextAtGender(birthday: value.date, gender: value.gender))
+      .withLatestFrom(userInfo) { info, userInfo in
+        var mutable = userInfo
+        mutable.birthday = info.date.toYMDDotDateString()
+        mutable.gender = info.gender
+        return mutable
+      }
+      .drive(with: self) { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtGender)
       }.disposed(by: disposeBag)
 
-    let formattedBirthday = birthday.map {
-      let formatter = DateFormatter()
-      formatter.dateFormat = "yyyy.MM.dd"
-      let formatted = formatter.string(from: $0)
-      return formatted
-    }
-
     return Output(
-      birthday: formattedBirthday,
+      initialGender: initialGender,
+      birthday: birthday.map { $0.toYMDDotDateString() },
       isNextBtnEnabled: nextBtnisEnabled
     )
   }

@@ -8,6 +8,7 @@
 import Foundation
 
 import SignUpInterface
+import AuthInterface
 import Networks
 
 import RxSwift
@@ -29,6 +30,14 @@ public final class SignUpRepository: ProviderProtocol {
 }
 
 extension SignUpRepository: SignUpRepositoryInterface {
+  public func uploadImage(data: [Data]) -> RxSwift.Single<[String]> {
+    .just(["test.jpg", "test2.jpg"])
+  }
+  
+  public func signUp(_ signUpRequest: SignUpInterface.SignUpReq) -> RxSwift.Single<AuthInterface.Token> {
+    request(type: Token.self, target: .signUp(signUpReq: signUpRequest))
+  }
+  
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     Single.just(PhoneValidationResponse(phoneNumber: "01012345678", authNumber: 123456))
       .map { $0.authNumber }
@@ -49,9 +58,7 @@ extension SignUpRepository: SignUpRepositoryInterface {
     request(type: [EmojiType].self, target: .interests)
   }
 
-  // TODO: Separate the logic of fetching contacts
-  public func block(contacts: [ContactType]) -> Single<Int> {
-    self.request(type: UserFriendContactRes.self, target: .block(contacts: .init(contacts: contacts)))
-      .map { $0.count }
+  public func fetchAgreements() -> Single<Agreement> {
+    request(type: Agreement.self, target: .agreement)
   }
 }

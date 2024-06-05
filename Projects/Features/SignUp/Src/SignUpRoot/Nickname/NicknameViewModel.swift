@@ -15,22 +15,20 @@ import RxSwift
 
 final class NicknameInputViewModel: ViewModelType {
   private let useCase: SignUpUseCaseInterface
+  private let userInfoUseCase: UserInfoUseCaseInterface
 
   weak var delegate: SignUpCoordinatingActionDelegate?
 
   private var disposeBag = DisposeBag()
-  private let nickName: String?
 
-  init(useCase: SignUpUseCaseInterface, nickName: String?) {
+  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
     self.useCase = useCase
-    self.nickName = nickName
+    self.userInfoUseCase = userInfoUseCase
   }
-
 
   struct Input {
     let viewWillAppear: Driver<Void>
     let nickname: Driver<String>
-    let clearBtn: Driver<Void>
     let nextBtn: Driver<Void>
   }
 
@@ -43,34 +41,56 @@ final class NicknameInputViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     let text = input.nickname
     let errorTracker = PublishSubject<Error>()
+    let outputText = BehaviorRelay<String?>(value: nil)
+    let userinfo = input.viewWillAppear
+      .asObservable()
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.userInfoUseCase.fetchUserInfo()
+          .catchAndReturn(UserInfo(phoneNumber: ""))
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
 
-    let outputText = BehaviorRelay<String?>(value: self.nickName)
+    let initialNickname = userinfo.map { $0.name }
 
-    input.viewWillAppear
-      .drive()
-      .disposed(by: disposeBag)
-
-    let validate = text
+    let isDuplicate = text
+      .debounce(.milliseconds(500))
       .distinctUntilChanged()
-      .filter { !$0.isEmpty && $0.count < 13 }
-      .throttle(.milliseconds(500), latest: false)
-      .flatMapLatest { [unowned self] text in
-        self.useCase.checkNickname(nickname: text)
+      .filter(validateNickname)
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, text in
+        owner.useCase.checkNickname(nickname: text)
+          .asObservable()
           .catch({ error in
             errorTracker.onNext(error)
-            return .just(false)
+            return .empty()
           })
-          .asDriver(onErrorJustReturn: false)
       }
+      .asDriverOnErrorJustEmpty()
 
-    let latest = Driver.zip(text, validate) { text, validate in
-      return text
+    let isAvailableNickname = isDuplicate.map { $0 == false }
+
+    isDuplicate
+      .filter { $0 }
+      .debug("isDuplicate to ErrorTracker")
+      .map { _ in SignUpError.duplicateNickname }
+      .drive(errorTracker)
+      .disposed(by: disposeBag)
+
+    let updatedUserInfo = Driver.combineLatest(text, userinfo) {
+      var mutable = $1
+      mutable.name = $0
+      return mutable
     }
 
     input.nextBtn
-      .withLatestFrom(latest)
-      .drive(with: self) { owner, text in
-        owner.delegate?.invoke(.nextAtNickname(text))
+      .throttle(.milliseconds(500), latest: false)
+      .withLatestFrom(updatedUserInfo)
+      .drive(with: self) { owner, userinfo in
+        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.delegate?.invoke(.nextAtNickname)
       }
       .disposed(by: disposeBag)
     
@@ -80,14 +100,18 @@ final class NicknameInputViewModel: ViewModelType {
         case SignUpError.duplicateNickname:
           return "이미 사용중인 닉네임입니다."
         default:
-          return nil
+          return error.localizedDescription
         }
       }.asDriverOnErrorJustEmpty()
 
     return Output(
-      initialValue: outputText.asDriver(),
-      validate: validate,
+      initialValue: initialNickname,
+      validate: isAvailableNickname,
       errorField: errorField
     )
+  }
+
+  func validateNickname(_ text: String) -> Bool {
+    !text.isEmpty && text.count < 13 && text.count > 5
   }
 }

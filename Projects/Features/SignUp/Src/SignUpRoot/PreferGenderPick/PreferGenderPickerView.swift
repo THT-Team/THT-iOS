@@ -7,7 +7,8 @@
 import UIKit
 
 import DSKit
-
+import RxSwift
+import SignUpInterface
 
 final class PreferGenderPickerView: TFBaseView {
   lazy var container = UIView().then {
@@ -16,11 +17,7 @@ final class PreferGenderPickerView: TFBaseView {
 
   lazy var genderPickerView = TFButtonPickerView(
     title: "선호 성별을 알려주세요.", targetString: "선호 성별",
-    options: [
-      "여성",
-      "남성",
-      "모두"
-    ]
+    options: GenderMapper.options
   )
 
   lazy var infoImageView: UIImageView = UIImageView().then {
@@ -73,6 +70,39 @@ final class PreferGenderPickerView: TFBaseView {
       $0.height.equalTo(50)
       $0.width.equalTo(88)
     }
+  }
+}
+
+extension Reactive where Base: PreferGenderPickerView {
+  var selectedGender: Binder<Gender> {
+    Binder(base.self) { view, gender in
+      view.genderPickerView.handleSelectedState(GenderMapper.toOption(gender))
+    }
+  }
+}
+
+struct GenderMapper {
+  static func toOption(_ gender: Gender) -> TFButtonPickerView.Option {
+    switch gender {
+    case .female:
+      return .init(key: 0, value: "여자")
+    case .male:
+      return .init(key: 1, value: "남자")
+    case .both:
+      return .init(key: 2, value: "모두")
+    }
+  }
+
+  static func toGender(_ option: TFButtonPickerView.Option) -> Gender {
+    switch option.key {
+    case 0: return .female
+    case 1: return .male
+    default: return .both
+    }
+  }
+
+  static var options: [String] {
+    return ["여자", "남자", "모두"]
   }
 }
 

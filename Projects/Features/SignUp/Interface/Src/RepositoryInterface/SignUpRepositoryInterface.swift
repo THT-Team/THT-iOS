@@ -8,10 +8,13 @@
 import Foundation
 
 import RxSwift
+import AuthInterface
 
 public protocol SignUpRepositoryInterface {
   func checkNickname(nickname: String) -> Single<Bool>
   func idealTypes() -> Single<[EmojiType]>
   func interests() -> Single<[EmojiType]>
-  func block(contacts: [ContactType]) -> Single<Int>
+  func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
+  func uploadImage(data: [Data]) -> Single<[String]>
+  func fetchAgreements() -> Single<Agreement>
 }

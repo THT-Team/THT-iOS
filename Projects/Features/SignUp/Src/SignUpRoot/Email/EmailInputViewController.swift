@@ -21,6 +21,7 @@ class EmailInputViewController: TFBaseViewController {
     $0.placeholder = "welcome@falling.com"
     $0.textColor = DSKitAsset.Color.primary500.color
     $0.font = .thtH2B
+    $0.autocapitalizationType = .none
   }
 
   private lazy var clearBtn: UIButton = UIButton().then {
@@ -34,7 +35,7 @@ class EmailInputViewController: TFBaseViewController {
   }
 
   private lazy var descView = UIView().then {
-    $0.backgroundColor = .cyan
+    $0.backgroundColor = .clear
   }
 
   private lazy var descImageView: UIImageView = UIImageView().then {
@@ -165,6 +166,7 @@ class EmailInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     let input = EmailInputViewModel.Input(
+      viewDidAppear: rx.viewDidAppear.asDriver().map { _ in },
       emailText: emailTFStrDriver,
       clearBtnTapped: clearBtn.rx.tap.asDriver(),
       nextBtnTap: nextButton.rx.tap.asDriver(),

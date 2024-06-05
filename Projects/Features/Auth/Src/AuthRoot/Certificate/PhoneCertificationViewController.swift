@@ -279,10 +279,10 @@ final class PhoneCertificationViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.error
-      .asSignal()
-      .emit {
-        print($0)
-      }.disposed(by: disposeBag)
+      .drive(with: self, onNext: { owner, error in
+        print(error.localizedDescription)
+      })
+      .disposed(by: disposeBag)
 
     output.clearButtonTapped
       .drive(phoneNumTextField.rx.text)
