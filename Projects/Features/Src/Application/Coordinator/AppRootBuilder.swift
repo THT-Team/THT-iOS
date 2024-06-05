@@ -9,8 +9,8 @@ import UIKit
 
 import Core
 import DSKit
+import Auth
 import SignUp
-import SignUpInterface
 
 public protocol AppRootBuildable {
   func build() -> LaunchCoordinating
@@ -19,22 +19,31 @@ public protocol AppRootBuildable {
 public final class AppRootBuilder: AppRootBuildable {
   public init() { }
 
-  lazy var mainBuildable: MainBuildable = {
+  private lazy var mainBuildable: MainBuildable = {
     MainBuilder()
   }()
 
-  lazy var signUpBuildable: SignUpBuildable = {
+  private lazy var signUpBuildable: SignUpBuildable = {
     SignUpBuilder()
+  }()
+
+  private lazy var authBuildable: AuthBuildable = {
+    AuthBuilder(signUpBuilable: signUpBuildable)
+  }()
+
+  private lazy var launchBuildable: LaunchBuildable = {
+    LaunchBuilder()
   }()
 
   public func build() -> LaunchCoordinating {
 
-    let viewController = TFLaunchViewController() 
+    let viewController = NavigationViewControllable()
 
     let coordinator = AppCoordinator(
       viewControllable: viewController,
       mainBuildable: self.mainBuildable,
-      signUpBuildable: self.signUpBuildable
+      authBuildable: self.authBuildable,
+      launchBUidlable: self.launchBuildable
     )
     return coordinator
   }

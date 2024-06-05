@@ -30,6 +30,18 @@ protocol ChatRoomActionDelegate: AnyObject {
 }
 
 class MockChatCoordinator: BaseCoordinator, ChatRoomCoordinating  {
+  func profileFLow() {
+
+  }
+  
+  func photoselect() {
+
+  }
+  
+  func logout() {
+    
+  }
+  
   weak var delegate: ChatRoomCoordinatorDelegate?
   func chatRoomFlow() {
     let vc = MockChatRoomViewController()

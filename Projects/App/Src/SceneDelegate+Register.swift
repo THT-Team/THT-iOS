@@ -22,6 +22,10 @@ extension AppDelegate {
     let tokenStore = UserDefaultTokenStore()
 
     container.register(
+      interface: UserInfoUseCaseInterface.self,
+      implement: { UserInfoUseCase(repository: UserDefaultUserInfoRepository()) })
+
+    container.register(
       interface: AuthUseCaseInterface.self,
       implement: { AuthUseCase(authRepository: AuthRepository(),
                                tokenStore: tokenStore) })

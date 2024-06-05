@@ -51,15 +51,22 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   class MainViewController: TFBaseViewController {
-    override func viewDidLoad() {
-      super.viewDidLoad()
+    override func makeUI() {
+      let button = UIButton()
+      button.setTitle("가입내역 지우기", for: .normal)
+      button.backgroundColor = DSKitAsset.Color.primary500.color
+      self.view.addSubview(button)
+      button.addAction(UIAction {_ in 
+        UserDefaults.standard.removeObject(forKey: "phoneNumber")
+      }, for: .touchUpInside)
+      button.layer.cornerRadius = 16
+      button.clipsToBounds = true
 
-      let label = UILabel()
-      label.center = self.view.center
-      label.text = "Main"
-      label.textColor = DSKitAsset.Color.neutral50.color
-      self.view.backgroundColor = .yellow
-      self.view.addSubview(label)
+      button.snp.makeConstraints {
+        $0.center.equalToSuperview()
+        $0.height.equalTo(60)
+        $0.width.equalToSuperview().inset(80)
+      }
     }
   }
 
