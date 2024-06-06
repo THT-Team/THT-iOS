@@ -13,9 +13,8 @@ public final class AuthUseCase: AuthUseCaseInterface {
   private let repository: AuthRepositoryInterface
   private let tokenStore: TokenStore
 
-  public init(authRepository: AuthRepositoryInterface, tokenStore: TokenStore) {
+  public init(authRepository: AuthRepositoryInterface) {
     self.repository = authRepository
-    self.tokenStore = tokenStore
   }
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
@@ -43,11 +42,11 @@ public final class AuthUseCase: AuthUseCaseInterface {
 
   // TODO: token을 어디서 집어넣을 지 생각해볼 것 e,g Authenticator
   public func refresh() -> Single<Void> {
-    tokenStore.getToken()
-      .flatMap { [weak self] token -> Single<Token> in
-        guard let self = self else { return .error(NSError()) }
-        return self.repository.refresh(token: token)
-      }.flatMap { [weak self] token -> Single<Void> in
+    guard let token = try? tokenStore.getToken() else {
+      return .error(AuthError.invalidToken)
+    }
+    return repository.refresh(token)
+      .flatMap { [weak self] token in
         self?.tokenStore.saveToken(token: token)
         return .just(())
       }

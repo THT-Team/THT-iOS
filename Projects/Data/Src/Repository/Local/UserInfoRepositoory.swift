@@ -36,9 +36,7 @@ public class UserDefaultUserInfoRepository: UserInfoRepositoryInterface {
 
   public func fetchUserInfo() -> Single<UserInfo> {
     do {
-      guard let userinfo = try UserDefaults.standard.getCodableObject(forKey: Key.userInfo, as: UserInfo.self) else {
-        return .error(NSError(domain: "UserDefaultRepository", code: 0))
-      }
+      let userinfo = try UserDefaults.standard.getCodableObject(forKey: Key.userInfo, as: UserInfo.self)
       return .just(userinfo)
     } catch {
       return .error(error)

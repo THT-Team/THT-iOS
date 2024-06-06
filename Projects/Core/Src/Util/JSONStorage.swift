@@ -20,10 +20,10 @@ extension UserDefaults {
     public func getCodableObject<Object>(
       forKey: String,
       as type: Object.Type
-    ) throws -> Object? where Object: Decodable {
+    ) throws -> Object where Object: Decodable {
 
         guard let data = self.data(forKey: forKey) else {
-            return nil
+            throw NSError(domain: "UserDefaults", code: 0, userInfo: nil)
         }
         return try JSONDecoder().decode(type, from: data)
     }

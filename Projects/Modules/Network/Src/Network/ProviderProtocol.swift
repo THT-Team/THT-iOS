@@ -13,7 +13,6 @@ import RxSwift
 
 public protocol ProviderProtocol: AnyObject, Networkable {
   var provider: MoyaProvider<Target> { get set }
-  init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Endpoint)?)
 }
 
 public extension ProviderProtocol {
@@ -59,6 +58,23 @@ public extension ProviderProtocol {
         print(error.localizedDescription)
         return .error(error)
       }
+  }
+
+  func request<D: Decodable>(target: Target, completion: @escaping (Result<D, Error>) -> Void) {
+    provider.request(target) { result in
+      switch result {
+      case let .success(response):
+        let decoder = JSONDecoder()
+        do {
+          let model = try decoder.decode(D.self, from: response.data)
+          completion(.success(model))
+        } catch {
+          completion(.failure(error))
+        }
+      case let .failure(error):
+        completion(.failure(error))
+      }
+    }
   }
 
   func requestWithNoContent(target: Target) -> Single<Void> {

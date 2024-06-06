@@ -2,8 +2,8 @@ default_platform(:ios)
 
 platform :ios do
   #------------- Config -------------------------
-  schemeName = "Falling"
-  projPath = "./Projects/Features/Falling/Falling.xcodeproj"
+  schemeName = "Auth"
+  projPath = "./Projects/Features/Auth/Auth.xcodeproj"
 
 
   #------------- FETCH CERTFICATE ---------------
@@ -11,11 +11,11 @@ platform :ios do
   lane :match_certificate do
     match(
       type: "development",
-      readonly: true
+      readonly: false
     )
     match(
       type: "appstore",
-      readonly: true
+      readonly: false
     )
     app_store_connect_api_key(is_key_content_base64: true)
   end

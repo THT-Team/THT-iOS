@@ -59,6 +59,9 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
     "NSContactsUsageDescription": "연락처 사용",
     "NSLocationWhenInUseUsageDescription": "위치 정보 사용",
 
+    // MARK: 수출 규청 알고리즘 통과
+    "ITSAppUsesNonExemptEncryption": false,
+
     "UIAppFonts": [
       "Item 0": "Pretendard-Medium.otf",
       "Item 1": "Pretendard-Regular.otf",

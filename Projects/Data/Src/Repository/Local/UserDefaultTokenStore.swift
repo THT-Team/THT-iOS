@@ -23,19 +23,8 @@ public final class UserDefaultTokenStore: TokenStore {
     try? UserDefaults.standard.setCodableObject(token, forKey: Key.token)
   }
 
-  public func getToken() -> RxSwift.Single<AuthInterface.Token> {
-    return Single.create { observer in
-      do {
-        guard let token = try UserDefaults.standard.getCodableObject(forKey: Key.token, as: AuthInterface.Token.self) else {
-          observer(.failure(NSError()))
-          return Disposables.create { }
-        }
-        observer(.success(token))
-      } catch {
-        observer(.failure(error))
-      }
-      return Disposables.create { }
-    }
+  public func getToken() throws -> Token {
+    try UserDefaults.standard.getCodableObject(forKey: Key.token, as: AuthInterface.Token.self)
   }
 
   public func clearToken() {

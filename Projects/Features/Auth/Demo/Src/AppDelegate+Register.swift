@@ -22,6 +22,7 @@ extension AppDelegate {
 
   func registerDependencies() {
     let tokenStore = UserDefaultTokenStore()
+    let tokenProvider = DefaultTokenProvider()
 
     container.register(
       interface: SignUpUseCaseInterface.self,
@@ -40,7 +41,7 @@ extension AppDelegate {
       interface: AuthUseCaseInterface.self,
       implement: {
         AuthUseCase(
-          authRepository: AuthRepository(),
+          authRepository: AuthRepository(tokenStore: tokenStore, tokenProvider: tokenProvider),
           tokenStore: tokenStore
         )
       })

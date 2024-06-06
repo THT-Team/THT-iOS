@@ -14,18 +14,27 @@ import Networks
 import RxSwift
 import RxMoya
 import Moya
+import Alamofire
 
 public final class AuthRepository: ProviderProtocol {
 
   public typealias Target = AuthTarget
   public var provider: MoyaProvider<Target>
+  private let tokenStore: TokenStore
+  private let tokenProvider: TokenProvider
 
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
-  }
+  public init(tokenStore: TokenStore, tokenProvider: TokenProvider) {
+    self.tokenStore = tokenStore
+    self.tokenProvider = tokenProvider
 
-  public convenience init() {
-    self.init(isStub: false, sampleStatusCode: 200, customEndpointClosure: nil)
+    let token = (try? tokenStore.getToken()) ?? Token(accessToken: "", accessTokenExpiresIn: 0)
+    let credential = token.toAuthOCredential()
+
+    let authenticator = OAuthAuthenticator(tokenProvider: tokenProvider)
+    let intercepter = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
+    let session = Session(interceptor: intercepter)
+
+    self.provider = MoyaProvider(session: session)
   }
 }
 
@@ -34,10 +43,14 @@ extension AuthRepository: AuthRepositoryInterface {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
   }
   
-  public func refresh(token: Token) -> Single<Token> {
-    request(type: Token.self, target: .refresh(token))
+  public func refresh(_ token: Token, completion: @escaping (Result<Token, Error>) -> Void) {
+    tokenProvider.refreshToken(token: token, completion: completion)
   }
-  
+
+  public func refresh(_ token: Token) -> Single<Token> {
+    tokenProvider.refresh(token: token)
+  }
+
   public func certificate(phoneNumber: String) -> Single<Int> {
     Single.just(PhoneValidationResponse(phoneNumber: "01012345678", authNumber: 123456))
       .map { $0.authNumber }
@@ -45,11 +58,11 @@ extension AuthRepository: AuthRepositoryInterface {
   }
 
   public func login(phoneNumber: String, deviceKey: String) -> Single<AuthInterface.Token> {
-    request(type: Token.self, target: .login(phoneNumber: phoneNumber, deviceKey: deviceKey))
+    tokenProvider.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
   }
 
   public func loginSNS(_ userSNSLoginRequest: AuthInterface.UserSNSLoginRequest) -> Single<AuthInterface.Token> {
-    request(type: Token.self, target: .loginSNS(request: userSNSLoginRequest))
+    tokenProvider.loginSNS(userSNSLoginRequest)
   }
 }
 
