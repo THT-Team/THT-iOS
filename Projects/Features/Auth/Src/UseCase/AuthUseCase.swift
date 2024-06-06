@@ -13,8 +13,9 @@ public final class AuthUseCase: AuthUseCaseInterface {
   private let repository: AuthRepositoryInterface
   private let tokenStore: TokenStore
 
-  public init(authRepository: AuthRepositoryInterface) {
+  public init(authRepository: AuthRepositoryInterface, tokenStore: TokenStore) {
     self.repository = authRepository
+    self.tokenStore = tokenStore
   }
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
