@@ -127,7 +127,7 @@ final class FallingHomeViewController: TFBaseViewController {
     })
     
     dataSource.supplementaryViewProvider = { (view, kind, index) in
-      return self.homeView.collectionView.dequeueConfiguredReusableSupplementary(
+      return view.dequeueConfiguredReusableSupplementary(
         using: footerRegistration,
         for: index
       )
@@ -177,25 +177,23 @@ final class FallingHomeViewController: TFBaseViewController {
       alertContentView.photoTheftButton.rx.tap.asDriver(),
       alertContentView.profanityButton.rx.tap.asDriver(),
       alertContentView.sharingIllegalFootageButton.rx.tap.asDriver())
-    .do { _ in
+    .drive(with: self, onNext: { owner, _ in
       complaintsButtonTapTrigger.accept(())
-      
-      self.homeView.makeToast("신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며, 신고 사유는 검토 후 처리됩니다.", duration: 3.0, position: .bottom)
+      owner.homeView.makeToast("신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며, 신고 사유는 검토 후 처리됩니다.", duration: 3.0, position: .bottom)
       
       UIWindow.keyWindow?.rootViewController?.dismiss(animated: false)
-    }
-    .drive()
+    })
     .disposed(by: disposeBag)
     
     reportButtonTapTriggerObserver.asDriverOnErrorJustEmpty()
-      .do { _ in
-        self.showAlert(
+      .drive(with: self) { owner, _ in
+        owner.showAlert(
           topActionTitle: "신고하기",
           bottomActionTitle: "차단하기",
           dimColor: DSKitAsset.Color.clear.color,
           topActionCompletion: {
-            self.showAlert(
-              contentView: self.alertContentView,
+            owner.showAlert(
+              contentView: owner.alertContentView,
               topActionTitle: nil,
               dimColor: DSKitAsset.Color.clear.color,
               bottomActionCompletion: { timerActiveRelay.accept(true) },
@@ -203,13 +201,12 @@ final class FallingHomeViewController: TFBaseViewController {
             )
           },
           bottomActionCompletion: {
-            self.showAlert(
+            owner.showAlert(
               action: .block,
               dimColor: DSKitAsset.Color.clear.color,
               topActionCompletion: {
                 blockButtonTapTrigger.accept(())
-                
-                self.homeView.makeToast("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.", duration: 3.0, position: .bottom)
+                owner.homeView.makeToast("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.", duration: 3.0, position: .bottom)
               },
               bottomActionCompletion: { timerActiveRelay.accept(true) },
               dimActionCompletion: { timerActiveRelay.accept(true) }
@@ -218,21 +215,19 @@ final class FallingHomeViewController: TFBaseViewController {
           dimActionCompletion: { timerActiveRelay.accept(true) }
         )
       }
-      .drive()
       .disposed(by: disposeBag)
     
     Driver.merge(output.complaintsAction, output.blockAction)
-      .do { indexPath in
-        guard let _ = self.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
+      .drive(with: self, onNext: { owner, indexPath in
+        guard let _ = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
         
-        self.deleteItems(indexPath)
+        owner.deleteItems(indexPath)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
           timeOverSubject.onNext(.delete)
           timerActiveRelay.accept(true)
         }
-      }
-      .drive()
+      })
       .disposed(by: disposeBag)
   }
 }

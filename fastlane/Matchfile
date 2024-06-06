@@ -5,7 +5,7 @@ storage_mode("git")
 # The default type, can be: appstore, adhoc, enterprise or development
 type("appstore")
 
-app_identifier(["com.tht.demo.signupdemoapp"])
+app_identifier(["com.tht.demo.fallingdemoapp"])
 username("ibcylon@naver.com") # Your Apple Developer Portal username
 
 # For all available options run `fastlane match --help`
