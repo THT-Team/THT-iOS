@@ -8,6 +8,7 @@
 import Foundation
 import AuthInterface
 import RxSwift
+import Core
 
 public final class AuthUseCase: AuthUseCaseInterface {
   private let repository: AuthRepositoryInterface
@@ -16,6 +17,7 @@ public final class AuthUseCase: AuthUseCaseInterface {
   public init(authRepository: AuthRepositoryInterface, tokenStore: TokenStore) {
     self.repository = authRepository
     self.tokenStore = tokenStore
+    TFLogger.domain.debug("AuthUseCase init")
   }
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
