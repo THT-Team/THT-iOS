@@ -43,14 +43,10 @@ final class NicknameInputViewModel: ViewModelType {
     let errorTracker = PublishSubject<Error>()
     let outputText = BehaviorRelay<String?>(value: nil)
     let userinfo = input.viewWillAppear
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
+      .flatMapLatest(with: self) { owner, _ in
         owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
+          .asDriver(onErrorJustReturn: .init(phoneNumber: ""))
       }
-      .asDriverOnErrorJustEmpty()
 
     let initialNickname = userinfo.map { $0.name }
 
@@ -58,17 +54,13 @@ final class NicknameInputViewModel: ViewModelType {
       .debounce(.milliseconds(500))
       .distinctUntilChanged()
       .filter(validateNickname)
-      .asObservable()
-      .withUnretained(self)
-      .flatMapLatest { owner, text in
+      .flatMapLatest(with: self) { owner, text in
         owner.useCase.checkNickname(nickname: text)
-          .asObservable()
-          .catch({ error in
+          .asDriver(onErrorRecover: { error in
             errorTracker.onNext(error)
             return .empty()
           })
       }
-      .asDriverOnErrorJustEmpty()
 
     let isAvailableNickname = isDuplicate.map { $0 == false }
 
