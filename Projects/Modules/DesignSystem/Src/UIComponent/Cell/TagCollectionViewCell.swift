@@ -54,7 +54,7 @@ public final class TagCollectionViewCell: UICollectionViewCell {
     stackView.addArrangedSubviews([emojiView, titleLabel])
     stackView.arrangedSubviews.forEach { subViews in
       subViews.snp.makeConstraints {
-        $0.height.equalTo(40)
+        $0.height.equalTo(30)
       }
     }
     stackView.snp.makeConstraints {
@@ -72,6 +72,11 @@ public final class TagCollectionViewCell: UICollectionViewCell {
   private func setUpLayer() {
     contentView.layer.cornerRadius = contentView.frame.height / 2
     contentView.layer.masksToBounds = true
+  }
+
+  public func setFont(_ font: UIFont) {
+    titleLabel.font = font
+    emojiView.font = font
   }
 
   public func bind(_ viewModel: TagItemViewModel) {
