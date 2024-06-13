@@ -18,4 +18,5 @@ public protocol LocationServiceType {
 public enum LocationError: Error {
   case denied
   case invalidLocation
+  case notDetermined
 }

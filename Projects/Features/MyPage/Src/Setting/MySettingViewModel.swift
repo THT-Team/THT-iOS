@@ -59,7 +59,18 @@ final class MySettingViewModel: ViewModelType {
           }
           .catch { error in
             TFLogger.dataLogger.error("\(error.localizedDescription)")
-            toast.accept("위치를 불러올 수 없습니다.")
+            if let error = error as? LocationError {
+              switch error {
+              case .denied:
+                toast.accept("위치 권한을 허용해주세요.")
+              case .invalidLocation:
+                toast.accept("올바르지 않은 위치입니다.")
+              case .notDetermined:
+                break
+              }
+            } else {
+              toast.accept("위치를 불러올 수 없습니다.")
+            }
             return .empty()
           }
       }.asDriverOnErrorJustEmpty()

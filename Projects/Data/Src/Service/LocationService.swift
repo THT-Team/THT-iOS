@@ -66,6 +66,12 @@ public final class LocationService: NSObject, LocationServiceType {
   private func request() -> Single<Void> {
     .create { [weak self] observer in
       self?.manager.requestWhenInUseAuthorization()
+      
+      if self?.manager.authorizationStatus == .notDetermined {
+        observer(.failure(LocationError.notDetermined))
+        return Disposables.create {
+        }
+      }
 
       self?.handleAuthorization { granted in
         guard granted else {
