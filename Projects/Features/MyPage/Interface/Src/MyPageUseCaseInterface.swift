@@ -6,7 +6,10 @@
 //
 
 import Foundation
+import RxSwift
 
 public protocol MyPageUseCaseInterface {
-  func test()
+  func fetchUser() -> Single<User>
+  func fetchUserContacts() -> Single<Int>
+  func updateUserContact() -> Single<Int>
 }
