@@ -19,6 +19,10 @@ import Moya
 public final class MyPageRepository: ProviderProtocol {
   public typealias Target = MyPageTarget
   public var provider: MoyaProvider<Target>
+
+  public init() {
+    self.provider = MoyaProvider()
+  }
   public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
     self.provider = MyPageRepository.consProvider(isStub, sampleStatusCode, customEndpointClosure)
   }
@@ -26,5 +30,16 @@ public final class MyPageRepository: ProviderProtocol {
 
 
 extension MyPageRepository: MyPageRepositoryInterface {
+  public func fetchUserContacts() -> RxSwift.Single<Int> {
+    .just(1)
+  }
   
+  public func updateUserContacts(contacts: [SignUpInterface.ContactType]) -> RxSwift.Single<Int> {
+    .just(1)
+  }
+
+  public func fetchUser() -> Single<User> {
+    request(type: UserDetailRes.self, target: .user)
+      .map { $0.toDomain() }
+  }
 }

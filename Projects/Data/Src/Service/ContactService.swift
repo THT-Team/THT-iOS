@@ -22,7 +22,7 @@ public final class ContactService: ContactServiceType {
       self.fetchContacts { result in
         switch result {
         case .success(let contacts):
-          single(.success(contacts))
+          single(.success(contacts.toValidate()))
         case .failure(let error):
           single(.failure(error))
         }
@@ -53,6 +53,15 @@ public final class ContactService: ContactServiceType {
       } catch {
         completion(.failure(.fetchError(message: error.localizedDescription)))
       }
+    }
+  }
+}
+
+extension Array where Element == ContactType {
+  func toValidate() -> [Element] {
+    self.map { contact in
+      let phoneNumber = contact.phoneNumber.replacingOccurrences(of: "\\D", with: "", options: .regularExpression)
+      return ContactType(name: contact.name, phoneNumber: phoneNumber)
     }
   }
 }
