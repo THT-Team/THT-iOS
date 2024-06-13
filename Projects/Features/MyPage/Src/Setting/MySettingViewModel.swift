@@ -93,7 +93,7 @@ final class MySettingViewModel: ViewModelType {
 
     switch section {
     case .account:
-        break
+break
     case .activity:
       self.delegate?.invoke(.editUserContacts)
     case .location:
@@ -105,7 +105,7 @@ final class MySettingViewModel: ViewModelType {
     case .law:
       TFLogger.dataLogger.debug("url \(indexPath.item)")
     case .accoutSetting:
-      TFLogger.dataLogger.debug("account Setting/")
+            self.delegate?.invoke(.accountSetting)
     }
   }
 }

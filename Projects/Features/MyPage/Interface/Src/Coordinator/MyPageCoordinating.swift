@@ -30,8 +30,19 @@ public protocol MyPageCoordinatingActionDelegate: AnyObject {
   func invoke(_ action: MyPageCoordinatingAction)
 }
 
+public protocol LogoutListenr: AnyObject {
+  func logoutTap()
+}
+
+public protocol DeactivateListener: AnyObject {
+  func deactivateTap()
+}
+
+
 public enum MyPageCoordinatingAction {
   case setting(User)
+
+  case edit(MyPageSection)
 
   case editNickname(String)
   case editPhoto
@@ -46,4 +57,9 @@ public enum MyPageCoordinatingAction {
 
   case editLocation
   case editUserContacts
+
+  case accountSetting
+
+  case showLogoutAlert(LogoutListenr)
+  case showDeactivateAlert(DeactivateListener)
 }

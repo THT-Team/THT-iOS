@@ -24,6 +24,7 @@ final class PhotoHeaderViewCollectionViewCell: TFBaseCollectionViewCell {
 
   lazy var addButton = UIButton().then {
     $0.setImage(DSKitAsset.Image.Icons.addWhite.image, for: .normal)
+    $0.isUserInteractionEnabled = false
   }
 
   lazy var editButton = UIButton().then {

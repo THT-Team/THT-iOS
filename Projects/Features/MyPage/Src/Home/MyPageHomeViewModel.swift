@@ -48,17 +48,6 @@ final class MyPageHomeViewModel: ViewModelType {
       }
       .asDriverOnErrorJustEmpty()
 
-    input.delegateAction.filter {
-      if case .settingTap = $0 {
-        return true
-      }
-      return false
-    }
-    .withLatestFrom(user)
-    .drive(with: self) { owner, user in
-      owner.delegate?.invoke(.setting(user))
-    }.disposed(by: disposeBag)
-
    let output = user.map { user -> [MyPageInfoCollectionViewCellViewModel] in
       [
         .init(model: .birthday(Date().toYMDDotDateString())),
@@ -76,6 +65,30 @@ final class MyPageHomeViewModel: ViewModelType {
 
     let photos = user
       .map { $0.userProfilePhotos }
+
+    input.delegateAction.filter {
+      if case .settingTap = $0 {
+        return true
+      }
+      return false
+    }
+    .withLatestFrom(user)
+    .drive(with: self) { owner, user in
+      owner.delegate?.invoke(.setting(user))
+    }.disposed(by: disposeBag)
+
+    input.delegateAction
+      .withLatestFrom(output) { action, array in
+        if case let .sectionTap(index) = action {
+          return array[index]
+        }
+        return nil
+      }
+      .compactMap { $0 }
+      .drive(with: self, onNext: { owner, viewModel in
+        owner.delegate?.invoke(.edit(viewModel.model))
+      })
+      .disposed(by: disposeBag)
 
     return Output(
       user: output,

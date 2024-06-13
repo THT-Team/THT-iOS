@@ -47,6 +47,10 @@ final class MyPageHomeViewController: TFBaseViewController {
       .bind(to: delegateAction)
       .disposed(by: disposeBag)
 
+    _ = mainView.infoCollectionView.rx.itemSelected.map { $0.item }
+      .map { MyPageHome.Action.sectionTap($0) }
+      .bind(to: delegateAction)
+
     let input = MyPageHomeViewModel.Input(
       viewDidload: rx.viewDidAppear.asDriver().map { _ in },
       delegateAction: delegateAction.asDriverOnErrorJustEmpty()
@@ -74,6 +78,7 @@ enum MyPageHome {
     case photoAdd(Int)
     case nicknameEdit
     case settingTap
+    case sectionTap(Int)
   }
 }
 

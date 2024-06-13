@@ -10,6 +10,7 @@ import Foundation
 import MyPageInterface
 import SignUpInterface
 import Core
+import DSKit
 
 public final class MyPageCoordinator: BaseCoordinator {
 
@@ -17,17 +18,14 @@ public final class MyPageCoordinator: BaseCoordinator {
   @Injected var locationUseCase: LocationUseCaseInterface
 
   public weak var delegate: MyPageCoordinatorDelegate?
-  
+  private lazy var alertBuilder = MyPageAlertBuilder(viewControllable: self.viewControllable)
+
   public override func start() {
     homeFlow()
   }
 }
 
 extension MyPageCoordinator: MyPageCoordinating {
-  public func testFlow() {
-    let vc = TagsPickerViewController(nibName: nil, bundle: nil)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
 
   public func homeFlow() {
     let viewModel = MyPageHomeViewModel(myPageUseCase: myPageUseCase)
@@ -62,6 +60,13 @@ extension MyPageCoordinator: MyPageCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
+  public func accountSettingFlow() {
+    let vm = AccountSettingViewModel(useCase: self.myPageUseCase)
+    vm.delegate = self
+    let vc = AccountSettingViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
   public func settingFlow(_ user: User) {
     let vm = MySettingViewModel(useCase: self.myPageUseCase, locationUseCase: locationUseCase, user: user)
     let vc = MySettingsViewController(viewModel: vm)
@@ -78,28 +83,52 @@ extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
       settingFlow(user)
     case .editUserContacts:
       editUserContactsFlow()
+    case .accountSetting:
+      accountSettingFlow()
+
+    case let .edit(section):
+      sectionFlow(section)
+
+    case let .showLogoutAlert(listener):
+      LogOutAlertFlow(listener: listener)
+    case let .showDeactivateAlert(listener):
+      DeactivateAlertFlow(listener: listener)
     default: break
-      
-//    case .editNickname(let string):
-//      <#code#>
-//    case .editPhoto:
+    }
+  }
+
+  private func sectionFlow(_ section: MyPageSection) {
+    switch section {
+    case .birthday(let string):
+      let vc = TFBaseViewController(nibName: nil, bundle: nil)
+      self.viewControllable.presentBottomSheet(vc, animated: true)
+    default: break
+//    case .gender(let gender):
 //      <#code#>
 //    case .introduction(let string):
 //      <#code#>
 //    case .preferGender(let gender):
 //      <#code#>
-//    case .editHeight(let int):
+//    case .height(let int):
 //      <#code#>
-//    case .editSmoke(let frequency):
+//    case .smoking(let frequency):
 //      <#code#>
-//    case .editDrink(let frequency):
+//    case .drinking(let frequency):
 //      <#code#>
-//    case .editReligion(let religion):
+//    case .religion(let religion):
 //      <#code#>
-//    case .editInterest(let array):
+//    case .interest(let array):
 //      <#code#>
-//    case .editIdealType(let array):
+//    case .idealType(let array):
 //      <#code#>
     }
+  }
+
+  private func LogOutAlertFlow(listener: LogoutListenr) {
+    alertBuilder.buildLogoutAlert(listener: listener)
+  }
+
+  private func DeactivateAlertFlow(listener: DeactivateListener) {
+    alertBuilder.buildDeactivateAlert(listener: listener)
   }
 }
