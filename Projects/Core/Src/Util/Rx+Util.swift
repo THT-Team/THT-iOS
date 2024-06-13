@@ -43,6 +43,27 @@ public extension ObservableType {
   }
 }
 
+public extension PrimitiveSequence where Trait == SingleTrait {
+  func asDriverOnErrorJustEmpty() -> Driver<Element> {
+    asDriver { error in
+        .empty()
+    }
+  }
+}
+
+extension SharedSequenceConvertibleType where SharingStrategy == DriverSharingStrategy {
+  func mapToVoid() -> SharedSequence<SharingStrategy, Void> {
+    map { _ in }
+  }
+
+  public func flatMapLatest<A: AnyObject, O: SharedSequenceConvertibleType>(with obj: A, selector: @escaping (A, Element) -> O) -> SharedSequence<O.SharingStrategy, O.Element> {
+    flatMapLatest { [weak obj] value -> SharedSequence<O.SharingStrategy, O.Element> in
+      obj.map { selector($0, value).asSharedSequence() }
+      ?? .empty()
+    }
+  }
+}
+
 public extension ObservableType {
   func flatMapLatest<A: AnyObject, O: ObservableType>(weak obj: A, selector: @escaping (A, Self.Element) throws -> O) -> Observable<O.Element> {
     return flatMapLatest { [weak obj] value -> Observable<O.Element> in
