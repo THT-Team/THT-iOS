@@ -67,7 +67,6 @@ final class MyPageView: TFBaseView {
 
     infoCollectionView.snp.makeConstraints {
       $0.top.equalToSuperview()
-      $0.height.equalTo(400).priority(.low)
       $0.leading.trailing.bottom.equalToSuperview()
     }
   }

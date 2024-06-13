@@ -52,7 +52,7 @@ public extension PrimitiveSequence where Trait == SingleTrait {
 }
 
 extension SharedSequenceConvertibleType where SharingStrategy == DriverSharingStrategy {
-  func mapToVoid() -> SharedSequence<SharingStrategy, Void> {
+  public func mapToVoid() -> SharedSequence<SharingStrategy, Void> {
     map { _ in }
   }
 

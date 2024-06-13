@@ -40,6 +40,8 @@ final class MyPageTagCollectionViewCell: TFBaseCollectionViewCell {
       collectionView.backgroundColor =  DSKitAsset.Color.neutral600.color
       collectionView.isScrollEnabled = false
       collectionView.dataSource = self
+    collectionView.allowsSelection = false
+    collectionView.isUserInteractionEnabled = false
       return collectionView
   }()
 

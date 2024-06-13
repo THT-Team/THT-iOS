@@ -65,7 +65,7 @@ final class PhotoHeaderView: UICollectionReusableView {
   lazy var container = UIView()
 
   override init(frame: CGRect) {
-    super.init(frame: .zero)
+    super.init(frame: frame)
     makeUI()
   }
 
@@ -75,20 +75,17 @@ final class PhotoHeaderView: UICollectionReusableView {
 
   func makeUI() {
     self.addSubview(container)
-
     container.addSubviews(
       nicknameLabel, nicknameEditButton,
       photoCollectionView,
       descriptionLabel
     )
     container.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(20)
+      $0.top.bottom.equalToSuperview().priority(.high)
       $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-10)
     }
-
     nicknameLabel.snp.makeConstraints {
-      $0.top.equalToSuperview()
+      $0.top.equalToSuperview().offset(20)
       $0.leading.equalToSuperview()
     }
 
@@ -100,13 +97,13 @@ final class PhotoHeaderView: UICollectionReusableView {
     photoCollectionView.snp.makeConstraints {
       $0.top.equalTo(nicknameLabel.snp.bottom).offset(20)
       $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(150).priority(.low)
+      $0.height.equalTo(150) .priority(.low)
     }
 
     descriptionLabel.snp.makeConstraints {
       $0.top.equalTo(photoCollectionView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-10)
     }
   }
 
