@@ -25,7 +25,6 @@ public enum Gender: String, Codable {
     }
   }
 }
-
 extension Gender {
   public var title: String {
     switch self {

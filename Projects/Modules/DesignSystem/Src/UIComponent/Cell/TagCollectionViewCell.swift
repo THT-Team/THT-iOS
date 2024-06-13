@@ -73,12 +73,10 @@ public final class TagCollectionViewCell: UICollectionViewCell {
     contentView.layer.cornerRadius = contentView.frame.height / 2
     contentView.layer.masksToBounds = true
   }
-
   public func setFont(_ font: UIFont) {
     titleLabel.font = font
     emojiView.font = font
   }
-
   public func bind(_ viewModel: TagItemViewModel) {
     self.titleLabel.text = viewModel.title
     self.emojiView.text = viewModel.emoji
