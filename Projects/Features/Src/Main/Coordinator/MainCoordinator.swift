@@ -100,7 +100,10 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
 }
 
 extension MainCoordinator: FallingCoordinatorDelegate, LikeCoordinatorDelegate, ChatCoordinatorDelegate, MyPageCoordinatorDelegate {
-  func test(_ coordinator: Core.Coordinator) {
-    detachTab()
+
+  
+
+  func detachMyPage(_ coordinator: Core.Coordinator) {
+
   }
 }
