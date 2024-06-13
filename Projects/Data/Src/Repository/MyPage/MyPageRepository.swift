@@ -8,9 +8,12 @@
 import Foundation
 
 import MyPageInterface
+import SignUpInterface
+
 import Networks
 
 import RxSwift
+import RxMoya
 import Moya
 
 public final class MyPageRepository: ProviderProtocol {
@@ -23,7 +26,5 @@ public final class MyPageRepository: ProviderProtocol {
 
 
 extension MyPageRepository: MyPageRepositoryInterface {
-  public func test() {
-    
-  }
+  
 }

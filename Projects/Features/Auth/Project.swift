@@ -22,9 +22,18 @@ let project = Project(
 			implementation: .Auth,
 			dependencies: [
 				.feature(interface: .Auth),
+        .feature(interface: .SignUp),
         .dsKit
 			]
-		)
+		),
+    .feature(
+      demo: .Auth,
+      dependencies: [
+        .feature(implementation: .SignUp),
+        .feature(implementation: .Auth),
+        .data
+      ]
+    )
 	]
 )
 

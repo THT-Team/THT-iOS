@@ -14,13 +14,18 @@ open class TFBaseViewController: UIViewController, ViewControllable {
     super.init(nibName: nil, bundle: nil)
     TFLogger.cycle(name: self)
   }
+  
+  open override func loadView() {
+    super.loadView()
+    
+    view.backgroundColor = DSKitAsset.Color.neutral700.color
+  }
 
   open override func viewDidLoad() {
     super.viewDidLoad()
     
     TFLogger.cycle(name: self)
 
-//    self.view.backgroundColor = DSKitAsset.Color.neutral700.color
     makeUI()
     bindViewModel()
     navigationSetting()
@@ -39,18 +44,27 @@ open class TFBaseViewController: UIViewController, ViewControllable {
 
   open func bindViewModel() { }
 
+//  https://ios-development.tistory.com/697
   open func navigationSetting() {
-//    navigationController?.navigationBar.topItem?.title = ""
-    navigationController?.navigationBar.backIndicatorImage = DSKitAsset.Image.Icons.chevron.image
-    navigationController?.navigationBar.backIndicatorTransitionMaskImage = DSKitAsset.Image.Icons.chevron.image
-    navigationController?.navigationBar.tintColor = DSKitAsset.Color.neutral50.color
-
+    
+    let backButtonImage = DSKitAsset.Image.Icons.chevron.image.withAlignmentRectInsets(.init(top: 0, left: -10, bottom: 0, right: 0))
+    
+    let backButtonAppearence = UIBarButtonItemAppearance()
+    backButtonAppearence.normal.titleTextAttributes = [.foregroundColor: UIColor.clear, .font: UIFont.systemFont(ofSize: 0)]
+    
     let navBarAppearance = UINavigationBarAppearance()
     navBarAppearance.titlePositionAdjustment.horizontal = -CGFloat.greatestFiniteMagnitude
     navBarAppearance.titleTextAttributes = [.font: UIFont.thtH4Sb, .foregroundColor: DSKitAsset.Color.neutral50.color]
     navBarAppearance.backgroundColor = DSKitAsset.Color.neutral700.color
-    navBarAppearance.shadowColor = nil
-    navigationItem.standardAppearance = navBarAppearance
-    navigationItem.scrollEdgeAppearance = navBarAppearance
+    navBarAppearance.shadowColor = .clear
+    navBarAppearance.setBackIndicatorImage(backButtonImage, transitionMaskImage: backButtonImage)
+    navBarAppearance.backButtonAppearance = backButtonAppearence
+    
+    // Bar button title color
+    navigationController?.navigationBar.tintColor = DSKitAsset.Color.neutral50.color
+
+    navigationController?.navigationBar.standardAppearance = navBarAppearance
+    navigationController?.navigationBar.scrollEdgeAppearance = navBarAppearance
+    navigationController?.navigationBar.isTranslucent = false
   }
 }

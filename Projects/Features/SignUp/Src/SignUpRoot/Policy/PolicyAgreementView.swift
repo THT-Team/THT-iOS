@@ -8,33 +8,32 @@
 import UIKit
 
 import DSKit
+import SignUpInterface
 
 final class PolicyAgreementView: TFBaseView {
   private lazy var logoView: UIImageView = UIImageView().then {
     $0.image = DSKitAsset.Image.Component.fallingLogo.image
   }
 
-  lazy var selectAllBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.Component.checkCir.image, for: .normal)
-    $0.setTitle("전체 동의", for: .normal)
-    $0.setTitleColor(DSKitAsset.Color.neutral50.color, for: .normal)
+  private lazy var titleLabel = UILabel().then {
+    $0.text = "폴링을 이용하려면 동의가 필요해요."
+    $0.font = .thtH5Sb
+    $0.textColor = DSKitAsset.Color.neutral50.color
+  }
+
+  lazy var selectAllBtn = TFCheckButton(btnTitle: "전체 동의", initialStatus: false).then {
+
     $0.titleLabel?.font = .thtH5B
-    $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: -7, bottom: 0, right: 7)
-    $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 7, bottom: 0, right: -7)
   }
 
-  private lazy var serviceRowsView = UIStackView().then {
-    $0.axis = .vertical
-    $0.spacing = 20
+  private(set) lazy var tableView = UITableView().then {
+    $0.separatorStyle = .none
+    $0.backgroundColor = .clear
+    $0.register(cellType: ServiceAgreementRowView.self)
+    $0.estimatedRowHeight = 110
+    $0.rowHeight = UITableView.automaticDimension
+    $0.allowsSelection = true
   }
-  
-  lazy var termsOfServiceRow = ServiceAgreementRowView(serviceType: .termsOfServie)
-
-  lazy var privacyPolicyRow = ServiceAgreementRowView(serviceType: .privacyPolicy)
-
-  lazy var locationServiceRow = ServiceAgreementRowView(serviceType: .locationService)
-
-  lazy var marketingServiceRow = ServiceAgreementRowView(serviceType: .marketingService)
 
   lazy var nextBtn = CTAButton(btnTitle: "시작하기", initialStatus: false)
 
@@ -50,8 +49,7 @@ final class PolicyAgreementView: TFBaseView {
   }
 
   override func makeUI() {
-    addSubviews([logoView, selectAllBtn, serviceRowsView, nextBtn, discriptionText])
-
+    addSubviews([logoView, titleLabel, selectAllBtn, tableView, nextBtn, discriptionText])
 
     logoView.snp.makeConstraints {
       $0.leading.equalToSuperview().inset(30)
@@ -60,22 +58,25 @@ final class PolicyAgreementView: TFBaseView {
       $0.width.equalTo(77)
     }
 
-    selectAllBtn.snp.makeConstraints {
-      $0.leading.equalToSuperview().inset(30)
-      $0.top.equalTo(logoView.snp.bottom).offset(83)
+    titleLabel.snp.makeConstraints {
+      $0.top.equalTo(logoView.snp.bottom).offset(30)
+      $0.leading.equalTo(logoView)
+      $0.trailing.equalToSuperview()
+      $0.height.equalTo(40)
     }
 
-    serviceRowsView.snp.makeConstraints {
+    tableView.snp.makeConstraints {
       $0.leading.equalToSuperview().inset(30)
       $0.trailing.equalToSuperview().inset(28)
-      $0.top.equalTo(selectAllBtn.snp.bottom).offset(34)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(34)
+      $0.height.lessThanOrEqualTo(400).priority(.low)
+      $0.bottom.equalTo(selectAllBtn.snp.top).offset(20)
     }
 
-    serviceRowsView.addArrangedSubviews([termsOfServiceRow, privacyPolicyRow, locationServiceRow, marketingServiceRow])
-
-    discriptionText.snp.makeConstraints {
-      $0.bottom.equalToSuperview().inset(61)
-      $0.leading.equalToSuperview().offset(38)
+    selectAllBtn.snp.makeConstraints {
+      $0.leading.trailing.equalTo(nextBtn)
+      $0.bottom.equalTo(nextBtn.snp.top).offset(-20)
+      $0.height.equalTo(54)
     }
 
     nextBtn.snp.makeConstraints {
@@ -83,8 +84,23 @@ final class PolicyAgreementView: TFBaseView {
       $0.leading.trailing.equalToSuperview().inset(38)
       $0.height.equalTo(54)
     }
-
-
+    discriptionText.snp.makeConstraints {
+      $0.bottom.equalToSuperview().inset(61)
+      $0.leading.equalToSuperview().offset(38)
+    }
   }
-
 }
+
+#if canImport(SwiftUI) && DEBUG
+import SwiftUI
+
+struct TFCheckButtonwPreview: PreviewProvider {
+
+  static var previews: some View {
+    UIViewPreview {
+      PolicyAgreementView()
+    }
+    .previewLayout(.sizeThatFits)
+  }
+}
+#endif

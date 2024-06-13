@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct UserProfilePhoto {
+public struct UserProfilePhoto: Codable {
   public let identifier = UUID()
   public let url: String
   public let priority: Int

@@ -206,7 +206,6 @@ final class FallingHomeViewController: TFBaseViewController {
               dimColor: DSKitAsset.Color.clear.color,
               topActionCompletion: {
                 blockButtonTapTrigger.accept(())
-                
                 owner.homeView.makeToast("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.", duration: 3.0, position: .bottom)
               },
               bottomActionCompletion: { timerActiveRelay.accept(true) },

@@ -9,7 +9,7 @@ import UIKit
 
 import DSKit
 
-final class CTAButton: UIButton {
+class CTAButton: UIButton {
   init(btnTitle: String, initialStatus: Bool) {
     super.init(frame: .zero)
     titleLabel?.font = .thtH5B

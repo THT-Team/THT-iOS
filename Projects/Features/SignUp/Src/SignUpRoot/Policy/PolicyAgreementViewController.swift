@@ -32,51 +32,43 @@ final class PolicyAgreementViewController: TFBaseViewController {
   }
 
   override func bindViewModel() {
+    let cellAction = PublishRelay<(IndexPath, PolicyAgreementViewModel.CellAction)>()
+
+    customView.tableView.rx.itemSelected.asDriver()
+      .do(onNext: { [weak self] IndexPath in
+//        self?.customView.tableView.deselectRow(at: IndexPath, animated: true)
+      })
+      .drive(onNext: { indexPath in
+        cellAction.accept((indexPath, .Agree))
+      }).disposed(by: disposeBag)
+
     let input = PolicyAgreementViewModel.Input(
+      viewDidAppear: rx.viewDidAppear.asDriver().map { _ in },
       agreeAllBtn: customView.selectAllBtn.rx.tap.asDriver(),
-      tosAgreeBtn: customView.termsOfServiceRow.agreeBtn.rx.tap.asDriver(),
-      showTosDetailBtn: customView.termsOfServiceRow.goWebviewBtn.rx.tap.asDriver(),
-      privacyAgreeBtn: customView.privacyPolicyRow.agreeBtn.rx.tap.asDriver(),
-      showPrivacyDetailBtn: customView.privacyPolicyRow.goWebviewBtn.rx.tap.asDriver(),
-      locationServiceAgreeBtn: customView.locationServiceRow.agreeBtn.rx.tap.asDriver(),
-      showLocationServiceDetailBtn: customView.locationServiceRow.goWebviewBtn.rx.tap.asDriver(),
-      marketingServiceAgreeBtn: customView.marketingServiceRow.agreeBtn.rx.tap.asDriver(),
+      cellTap: cellAction.asDriverOnErrorJustEmpty(),
       nextBtn: customView.nextBtn.rx.tap.asDriver()
     )
 
     let output = viewModel.transform(input: input)
 
-    output.agreeAllRowImage
-      .map { $0.image }
-      .drive(customView.selectAllBtn.rx.image())
+    output.cellViewModels
+      .drive(customView.tableView.rx.items(cellType: ServiceAgreementRowView.self)) { index, viewModel, cell in
+        cell.bind(viewModel)
+        cell.agreeBtnOnCliek = {
+          cellAction.accept((IndexPath(row: index, section: 0), .Agree))
+        }
+        cell.goWebviewBtnOnClick = {
+          cellAction.accept((IndexPath(row: index, section: 0), .WebView))
+        }
+      }
       .disposed(by: disposeBag)
 
-    output.tosAgreeRowImage
-      .map { $0.image }
-      .drive(customView.termsOfServiceRow.agreeBtn.rx.image())
-      .disposed(by: disposeBag)
-
-    output.privacyAgreeRowImage
-      .map { $0.image }
-      .drive(customView.privacyPolicyRow.agreeBtn.rx.image())
-      .disposed(by: disposeBag)
-
-    output.locationServiceAgreeRowImage
-      .map { $0.image }
-      .drive(customView.locationServiceRow.agreeBtn.rx.image())
-      .disposed(by: disposeBag)
-
-    output.marketingServiceRowImage
-      .map { $0.image }
-      .drive(customView.marketingServiceRow.agreeBtn.rx.image())
+    output.agreeAllBtnStatus
+      .drive(customView.selectAllBtn.rx.buttonStatus)
       .disposed(by: disposeBag)
 
     output.nextBtnStatus
       .drive(customView.nextBtn.rx.buttonStatus)
-      .disposed(by: disposeBag)
-
-    output.nextButtonTap
-      .drive()
       .disposed(by: disposeBag)
   }
 }

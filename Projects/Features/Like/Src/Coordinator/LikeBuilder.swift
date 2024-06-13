@@ -15,7 +15,8 @@ public final class LikeBuilder: LikeBuildable {
   public init() { }
   public func build(rootViewControllable: ViewControllable) -> LikeCoordinating {
 
-    let coordinator = LikeCoordinator(viewControllable: rootViewControllable)
+    let buildable = MockChatRoomBuilder()
+    let coordinator = LikeCoordinator(chatRoomBuildable: buildable, viewControllable: rootViewControllable)
 
     return coordinator
   }

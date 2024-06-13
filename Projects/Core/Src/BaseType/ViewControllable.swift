@@ -39,4 +39,50 @@ public extension ViewControllable {
       self.uiController.navigationController?.popViewController(animated: animated)
     }
   }
+
+  func present(_ viewControllable: ViewControllable, animated: Bool) {
+    if let nav = self.uiController as? UINavigationController {
+      nav.present(viewControllable.uiController, animated: animated)
+    } else {
+      self.uiController.navigationController?.present(viewControllable.uiController, animated: animated)
+    }
+  }
+
+  func dismiss() {
+    if let presented = self.uiController.presentedViewController {
+      presented.dismiss(animated: true)
+    } else {
+      self.uiController.dismiss(animated: true)
+    }
+  }
+
+  func presentBottomSheet(_ viewControllable: ViewControllable, animated: Bool) {
+    let navigation = NavigationViewControllable(rootViewControllable: viewControllable)
+    if let sheet = navigation.uiController.sheetPresentationController {
+      sheet.prefersGrabberVisible = false
+      sheet.preferredCornerRadius = 12
+      sheet.detents = [
+        .small()
+      ]
+    }
+
+    if let nav = self.uiController as? UINavigationController {
+      nav.present(navigation.uiController, animated: animated)
+    } else {
+      self.uiController.navigationController?.present(navigation.uiController, animated: animated)
+    }
+  }
+}
+
+extension UISheetPresentationController.Detent {
+  static func small(
+      identifier: UISheetPresentationController.Detent.Identifier? = nil,
+      resolvedValue:  CGFloat = 300
+  ) -> UISheetPresentationController.Detent {
+    return .custom { context in
+      resolvedValue
+    }
+  }
+
+//  static let small = UISheetPresentationController.Detent.Identifier("small")
 }

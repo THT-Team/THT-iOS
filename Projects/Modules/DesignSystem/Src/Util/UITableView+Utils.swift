@@ -32,3 +32,13 @@ public extension UITableView {
     return cell
   }
 }
+
+extension Reactive where Base: UITableView {
+  public func items<Sequence: Swift.Sequence, Cell: UITableViewCell, Source: ObservableType>
+  (cellType: Cell.Type = Cell.self)
+  -> (_ source: Source)
+  -> (_ configureCell: @escaping (Int, Sequence.Element, Cell) -> Void)
+  -> Disposable where Source.Element == Sequence {
+    return self.items(cellIdentifier: Cell.reuseIdentifier, cellType: cellType)
+  }
+}

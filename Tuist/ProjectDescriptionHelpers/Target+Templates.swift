@@ -38,7 +38,7 @@ public extension Target {
 			product: .app,
 			bundleId: makeBundleID(with: "app"),
 			deploymentTarget: basicDeployment,
-			infoPlist: .extendingDefault(with: infoPlistExtension),
+			infoPlist: .extendingDefault(with: infoPlistExtension(name: name)),
 			sources: sources,
 			resources:  [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
 			dependencies: dependencies

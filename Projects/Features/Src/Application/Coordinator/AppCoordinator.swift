@@ -10,42 +10,51 @@ import Foundation
 
 import Core
 import SignUpInterface
+import AuthInterface
 import DSKit
 
 protocol AppCoordinating {
-  func signUpFlow()
+  func launchFlow()
+  func authFlow()
   func mainFlow()
 }
 
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   private let mainBuildable: MainBuildable
-  private let signUpBuildable: SignUpBuildable
+  private let authBuildable: AuthBuildable
+  private let launchBuildable: LaunchBuildable
 
   init(
     viewControllable: ViewControllable,
     mainBuildable: MainBuildable,
-    signUpBuildable: SignUpBuildable
+    authBuildable: AuthBuildable,
+    launchBUidlable: LaunchBuildable
   ) {
     self.mainBuildable = mainBuildable
-    self.signUpBuildable = signUpBuildable
+    self.authBuildable = authBuildable
+    self.launchBuildable = launchBUidlable
     super.init(viewControllable: viewControllable)
   }
 
   public override func start() {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-      self.selectFlow()
-    }
+    launchFlow()
+  }
+
+  func launchFlow() {
+    let coordinator = self.launchBuildable.build(rootViewControllable: self.viewControllable)
+    attachChild(coordinator)
+    coordinator.delegate = self
+    coordinator.start()
   }
 
   // MARK: - public
-  func signUpFlow() {
-    let signUpCoordinator = self.signUpBuildable.build()
+  func authFlow() {
+    let coordinator = self.authBuildable.build()
 
-    attachChild(signUpCoordinator)
-    signUpCoordinator.delegate = self
-
-    signUpCoordinator.start()
+    attachChild(coordinator)
+    coordinator.delegate = self
+    coordinator.start()
   }
 
   func mainFlow() {
@@ -56,26 +65,32 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
     mainCoordinator.start()
   }
-
-  // MARK: - Private
-  private func selectFlow() {
-    mainFlow()
-  }
 }
 
 extension AppCoordinator: MainCoordinatorDelegate {
   func detachTab(_ coordinator: Coordinator) {
     detachChild(coordinator)
 
-    signUpFlow()
+    authFlow()
   }
 }
 
-extension AppCoordinator: SignUpCoordinatorDelegate {
-  
-  func detachSignUp(_ coordinator: Coordinator) {
+extension AppCoordinator: AuthCoordinatingDelegate {
+  func detachAuth(_ coordinator: Core.Coordinator) {
     detachChild(coordinator)
-    
+
     mainFlow()
+  }
+}
+
+extension AppCoordinator: LaunchCoordinatingDelegate {
+  func finishFlow(_ coordinator: Core.Coordinator, _ action: AuthInterface.LaunchAction) {
+    switch action {
+    case .needAuth:
+      authFlow()
+    case .toMain:
+      mainFlow()
+    }
+    detachChild(coordinator)
   }
 }

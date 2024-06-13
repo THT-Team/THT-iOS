@@ -21,6 +21,7 @@ class EmailInputViewController: TFBaseViewController {
     $0.placeholder = "welcome@falling.com"
     $0.textColor = DSKitAsset.Color.primary500.color
     $0.font = .thtH2B
+    $0.autocapitalizationType = .none
   }
 
   private lazy var clearBtn: UIButton = UIButton().then {
@@ -34,7 +35,7 @@ class EmailInputViewController: TFBaseViewController {
   }
 
   private lazy var descView = UIView().then {
-    $0.backgroundColor = .cyan
+    $0.backgroundColor = .clear
   }
 
   private lazy var descImageView: UIImageView = UIImageView().then {
@@ -80,11 +81,7 @@ class EmailInputViewController: TFBaseViewController {
     super.viewDidAppear(animated)
     emailTextField.becomeFirstResponder()
   }
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    keyboardSetting()
-  }
+  
 
   override func makeUI() {
     [
@@ -156,7 +153,7 @@ class EmailInputViewController: TFBaseViewController {
 
     nextButton.snp.makeConstraints {
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(14)
+      $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
       $0.height.equalTo(54)
     }
   }
@@ -169,6 +166,7 @@ class EmailInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     let input = EmailInputViewModel.Input(
+      viewDidAppear: rx.viewDidAppear.asDriver().map { _ in },
       emailText: emailTFStrDriver,
       clearBtnTapped: clearBtn.rx.tap.asDriver(),
       nextBtnTap: nextButton.rx.tap.asDriver(),
@@ -181,10 +179,6 @@ class EmailInputViewController: TFBaseViewController {
 
     output.buttonState
       .drive(nextButton.rx.buttonStatus, nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
-
-    output.buttonTappedResult
-      .drive()
       .disposed(by: disposeBag)
 
     output.emailTextStatus
@@ -222,42 +216,9 @@ class EmailInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.emailText
-      .drive(emailTextField.rx.text)
-      .disposed(by: disposeBag)
-  }
-
-  func keyboardSetting() {
-    view.rx.tapGesture()
-      .when(.recognized)
-      .withUnretained(self)
-      .subscribe { vc, _ in
-        vc.view.endEditing(true)
-      }
-      .disposed(by: disposeBag)
-
-    RxKeyboard.instance.visibleHeight
-      .skip(1)
-      .drive(onNext: { [weak self] keyboardHeight in
-        guard let self else { return }
-        if keyboardHeight == 0 {
-          self.nextButton.snp.updateConstraints {
-            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(14)
-          }
-        } else {
-          self.nextButton.snp.updateConstraints {
-            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight - self.view.safeAreaInsets.bottom + 14)
-          }
-        }
-
-        if keyboardHeight == 0 {
-          self.titleLable.snp.updateConstraints {
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(76)
-          }
-        } else {
-          self.titleLable.snp.updateConstraints {
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(20)
-          }
-        }
+      .drive(with: self, onNext: { owner, text in
+        owner.emailTextField.text = text
+        owner.emailTextField.sendActions(for: .valueChanged)
       })
       .disposed(by: disposeBag)
   }

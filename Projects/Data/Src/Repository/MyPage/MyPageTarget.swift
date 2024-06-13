@@ -8,29 +8,32 @@
 import Networks
 
 import Moya
+import SignUpInterface
 
 public enum MyPageTarget {
-  case test
+  case blockUserFriendContact(request: UserFriendContactReq)
 }
 
 extension MyPageTarget: BaseTargetType {
   public var path: String {
     switch self {
-    case .test:
-      return ""
+    case .blockUserFriendContact:
+      return "user/friend-contact-list"
     }
   }
   
   public var method: Moya.Method {
     switch self {
-    case .test:
-      return .get
+    case .blockUserFriendContact:
+      return .post
     }
   }
   
   public var task: Moya.Task {
     switch self {
-    case .test:
+    case let .blockUserFriendContact(request):
+      return .requestParameters(parameters: request.toDictionary(), encoding: JSONEncoding.default)
+    default:
       return .requestPlain
     }
   }
