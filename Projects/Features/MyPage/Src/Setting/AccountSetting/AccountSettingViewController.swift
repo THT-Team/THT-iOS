@@ -12,7 +12,8 @@ import DSKit
 
 final class AccountSettingViewController: TFBaseViewController {
   typealias VMType = AccountSettingViewModel
-  private let mainView = AccountSettingView()
+  typealias CellType = MyPageDefaultTableViewCell
+  private let mainView = AccountSettingView<CellType>()
   private let viewModel: VMType
 
   static let reuseIdentifier = "cell"
@@ -33,30 +34,15 @@ final class AccountSettingViewController: TFBaseViewController {
   override func bindViewModel() {
     mainView.tableView.dataSource = self
 
-    mainView.tableView.rx.itemSelected
+    let tap = mainView.tableView.rx.itemSelected
       .asDriver()
-      .drive(onNext: { [weak self] indexPath in
+      .do(onNext: { [weak self] indexPath in
         self?.mainView.tableView.deselectRow(at: indexPath, animated: true)
       })
-      .disposed(by: disposeBag)
-
-    let tap = mainView.tableView.rx.itemSelected.asDriver()
       .mapToVoid()
-      .drive(with: self) { owner, _ in
-        owner.showAlert(
-          action: .block,
-          dimColor: DSKitAsset.Color.clear.color,
-          topActionCompletion: {
-
-          },
-          bottomActionCompletion: {  },
-          dimActionCompletion: {  }
-        )
-      }
-      .disposed(by: disposeBag)
 
     let input = VMType.Input(
-      tap: Driver.just(()).skip(1),
+      tap: tap,
       deactivateTap: mainView.deactivateBtn.rx.tap.asDriver()
     )
 
@@ -87,14 +73,16 @@ extension AccountSettingViewController: UITableViewDataSource {
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: Self.reuseIdentifier, for: indexPath)
+    let cell = tableView.dequeueReusableCell(for: indexPath, cellType: CellType.self)
+
+    cell.containerView.text = "로그아웃"
+    cell.containerView.accessoryType = .rightArrow
     var content = cell.defaultContentConfiguration()
-    cell.accessoryType = .disclosureIndicator
 
     content.text = "로그아웃"
     content.textProperties.font = .thtSubTitle1R
 
-    cell.contentConfiguration = content
+//    cell.contentConfiguration = content
     return cell
   }
 

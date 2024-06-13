@@ -9,10 +9,10 @@ import UIKit
 
 import DSKit
 
-final class TFTextButton: UIButton {
-  let title: String
+public final class TFTextButton: UIButton {
+  public let title: String
 
-  init(title: String) {
+  public init(title: String) {
     self.title = title
     super.init(frame: .zero)
     makeView()

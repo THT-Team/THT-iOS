@@ -9,48 +9,14 @@ import UIKit
 
 import DSKit
 
-final class AccountSettingView: TFBaseView {
+final class AccountSettingView<CellType: MyPageDefaultTableViewCell>: MyPageDefaultTableView<CellType> {
 
-  var tableView: UITableView!
-
-  var emptyVIew = UIView().then {
-    $0.backgroundColor = .clear
-  }
-
-  var cardView = UIImageView().then {
-    $0.image = DSKitAsset.Bx.noBlocked.image
-    $0.contentMode = .scaleAspectFill
-  }
-
-  var deactivateBtn = UIButton().then {
-    $0.setTitle("탈퇴하기", for: .normal)
-    $0.setTitleColor(.red, for: .normal)
-    $0.titleLabel?.font = .systemFont(ofSize: 16)
-    $0.layer.cornerRadius = 8
-    $0.layer.borderWidth = 1
-    $0.layer.borderColor = UIColor.red.cgColor
-  }
+  var deactivateBtn = TFTextButton(title: "탈퇴하기")
 
   override func makeUI() {
-    tableView = UITableView(frame: .zero, style: .insetGrouped)
-    tableView.showsVerticalScrollIndicator = false
-    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+    super.makeUI()
 
-    self.addSubview(tableView)
-    self.addSubviews(deactivateBtn)
-
-    emptyVIew.addSubview(cardView)
-
-    tableView.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
-    }
-
-    tableView.backgroundView = emptyVIew
-
-    cardView.snp.makeConstraints {
-      $0.size.equalTo(250)
-      $0.center.equalToSuperview()
-    }
+    self.addSubview(deactivateBtn)
 
     deactivateBtn.snp.makeConstraints {
       $0.centerX.equalToSuperview()

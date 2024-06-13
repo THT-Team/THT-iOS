@@ -62,7 +62,9 @@ final class PhotoHeaderView: UICollectionReusableView {
     $0.font = .thtCaption1R
   }
 
-  lazy var container = UIView()
+  lazy var container = UIView().then {
+    $0.backgroundColor = DSKitAsset.Color.neutral700.color
+  }
 
   override init(frame: CGRect) {
     super.init(frame: frame)

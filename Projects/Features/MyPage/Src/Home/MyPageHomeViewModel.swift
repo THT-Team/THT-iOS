@@ -39,6 +39,7 @@ final class MyPageHomeViewModel: ViewModelType {
       .debug("viewD")
       .asObservable()
       .withUnretained(self)
+      .take(1)
       .flatMapLatest { owner, _ in
         owner.myPageUseCase.fetchUser()
           .asObservable()
