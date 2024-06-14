@@ -68,8 +68,9 @@ public final class TFAlertViewController: TFBaseViewController {
     stackView.alignment = .center
     stackView.backgroundColor = DSKitAsset.Color.neutral600.color
     stackView.layer.cornerRadius = 8
+    stackView.clipsToBounds = true
     stackView.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
-    stackView.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+    stackView.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
     stackView.isLayoutMarginsRelativeArrangement = true
     return stackView
   }()
@@ -85,7 +86,7 @@ public final class TFAlertViewController: TFBaseViewController {
   private lazy var buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
-    stackView.spacing = 16.0
+    stackView.spacing = 3 //16.0
     stackView.alignment = .center
     return stackView
   }()
@@ -166,7 +167,7 @@ public final class TFAlertViewController: TFBaseViewController {
   
   public override func makeUI() {
     view.addSubviews([dimView, containerStackView])
-    
+    self.view.backgroundColor = .clear
     if let contentView = contentView {
       containerStackView.addArrangedSubview(contentView)
       contentView.snp.makeConstraints {
@@ -188,7 +189,7 @@ public final class TFAlertViewController: TFBaseViewController {
     }
     
     if let lastView = containerStackView.subviews.last {
-      containerStackView.setCustomSpacing(20, after: lastView)
+      containerStackView.setCustomSpacing(10, after: lastView)
     }
     
     containerStackView.addArrangedSubview(buttonStackView)
@@ -240,7 +241,7 @@ public final class TFAlertViewController: TFBaseViewController {
     buttonStackView.addArrangedSubview(button)
     button.snp.makeConstraints {
       $0.width.equalToSuperview()
-      $0.height.equalTo(21)
+      $0.height.equalTo(60)
     }
   }
   
