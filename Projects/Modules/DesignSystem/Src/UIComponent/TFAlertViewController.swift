@@ -190,8 +190,11 @@ public final class TFAlertViewController: TFBaseViewController {
     
     if let lastView = containerStackView.subviews.last {
       containerStackView.setCustomSpacing(10, after: lastView)
+    } else {
+      // 버튼만 있는 Alert의 경우
+      containerStackView.layoutMargins = .zero
     }
-    
+
     containerStackView.addArrangedSubview(buttonStackView)
     
     dimView.snp.makeConstraints {
