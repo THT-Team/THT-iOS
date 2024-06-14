@@ -33,30 +33,15 @@ final class AccountSettingViewController: TFBaseViewController {
   override func bindViewModel() {
     mainView.tableView.dataSource = self
 
-    mainView.tableView.rx.itemSelected
+    let tap = mainView.tableView.rx.itemSelected
       .asDriver()
-      .drive(onNext: { [weak self] indexPath in
+      .do(onNext: { [weak self] indexPath in
         self?.mainView.tableView.deselectRow(at: indexPath, animated: true)
       })
-      .disposed(by: disposeBag)
-
-    let tap = mainView.tableView.rx.itemSelected.asDriver()
       .mapToVoid()
-      .drive(with: self) { owner, _ in
-        owner.showAlert(
-          action: .block,
-          dimColor: DSKitAsset.Color.clear.color,
-          topActionCompletion: {
-
-          },
-          bottomActionCompletion: {  },
-          dimActionCompletion: {  }
-        )
-      }
-      .disposed(by: disposeBag)
 
     let input = VMType.Input(
-      tap: Driver.just(()).skip(1),
+      tap: tap,
       deactivateTap: mainView.deactivateBtn.rx.tap.asDriver()
     )
 

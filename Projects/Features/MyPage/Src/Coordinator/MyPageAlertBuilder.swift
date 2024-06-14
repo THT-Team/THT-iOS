@@ -21,7 +21,7 @@ final class MyPageAlertBuilder {
       title: "로그아웃하시겠어요?",
       topActionTitle: "로그아웃",
       bottomActionTitle: "취소", 
-      dimColor: DSKitAsset.Color.clear.color,
+      dimColor: DSKitAsset.Color.DimColor.default.color,
       topActionCompletion: {
         listener.logoutTap()
       }
@@ -31,14 +31,10 @@ final class MyPageAlertBuilder {
   func buildDeactivateAlert(listener: DeactivateListener) {
     self.viewControllable?.uiController.showAlert(
       title: "계정 탈퇴하기",
-      message: """
-정말 탈퇴하시겠어요? 회원님의 모든 정보 및
-      사용 내역은 복구 불가합니다. 관련 문의는
-      teamtht23@gmail.com 으로 부탁드립니다.
-""",
+      message: "정말 탈퇴하시겠어요? 회원님의 모든 정보 및\n사용 내역은 복구 불가합니다. 관련 문의는\nteamtht23@gmail.com 으로 부탁드립니다.",
       topActionTitle: "탈퇴하기",
       bottomActionTitle: "취소",
-      dimColor: DSKitAsset.Color.clear.color,
+      dimColor: DSKitAsset.Color.DimColor.pauseDim.color,
       topActionCompletion: {
         listener.deactivateTap()
       }
