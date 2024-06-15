@@ -14,6 +14,7 @@ final class SuccessCertificationView: UIView {
 
   private lazy var backCardView = UIView().then {
     $0.layer.cornerRadius = 12
+    $0.layer.masksToBounds = true
     $0.backgroundColor = DSKitAsset.Color.neutral600.color
   }
 
@@ -31,6 +32,7 @@ final class SuccessCertificationView: UIView {
   }
 
   func makeUI() {
+    self.animationView.contentMode = .scaleAspectFill
     self.backgroundColor = DSKitAsset.Color.DimColor.signUpDim.color
 
     self.addSubview(backCardView)
@@ -47,7 +49,7 @@ final class SuccessCertificationView: UIView {
     animationView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalToSuperview().offset(69)
-      $0.height.equalToSuperview().multipliedBy(0.469)
+      $0.height.equalToSuperview().multipliedBy(0.470)
       $0.width.equalToSuperview().multipliedBy(0.852)
     }
 
