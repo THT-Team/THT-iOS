@@ -13,15 +13,17 @@ import Then
 import SnapKit
 import MyPageInterface
 
-final class MyPageDefaultTableViewCell: TFBaseCollectionViewCell {
+final class MyPageDefaultTableViewCell: TFBaseTableViewCell {
 
   private(set) lazy var containerView = MyPageCellContainerView(frame: .zero)
 
   override func makeUI() {
     contentView.addSubview(containerView)
+    contentView.backgroundColor = .clear
 
     containerView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.top.leading.trailing.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-10)
     }
   }
 }

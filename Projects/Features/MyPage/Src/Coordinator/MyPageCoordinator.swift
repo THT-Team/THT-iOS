@@ -15,10 +15,16 @@ import DSKit
 public final class MyPageCoordinator: BaseCoordinator {
 
   @Injected var myPageUseCase: MyPageUseCaseInterface
-  @Injected var locationUseCase: LocationUseCaseInterface
+
+  private let mySettingBuildable: MySettingBuildable
+  private var mySettingCoordinator: MySettingCoordinating?
 
   public weak var delegate: MyPageCoordinatorDelegate?
-  private lazy var alertBuilder = MyPageAlertBuilder(viewControllable: self.viewControllable)
+
+  init(viewControllable: ViewControllable, mySettingBuildable: MySettingBuildable) {
+    self.mySettingBuildable = mySettingBuildable
+    super.init(viewControllable: viewControllable)
+  }
 
   public override func start() {
     homeFlow()
@@ -51,48 +57,20 @@ extension MyPageCoordinator: MyPageCoordinating {
   public func editHeightBottomSheetFlow(height: Int) {
 
   }
-
-  public func editUserContactsFlow() {
-    let vm = UserContactSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = UserContactSettingViewController(viewModel: vm)
-
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func accountSettingFlow() {
-    let vm = AccountSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = AccountSettingViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func settingFlow(_ user: User) {
-    let vm = MySettingViewModel(useCase: self.myPageUseCase, locationUseCase: locationUseCase, user: user)
-    let vc = MySettingsViewController(viewModel: vm)
-    vm.delegate = self
-
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
 }
+
+// MARK: Navigate Action
 
 extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
   public func invoke(_ action: MyPageCoordinatingAction) {
     switch action {
     case let .setting(user):
-      settingFlow(user)
-    case .editUserContacts:
-      editUserContactsFlow()
-    case .accountSetting:
-      accountSettingFlow()
+      attachMySetting(user)
 
+    // Cell 누르면 Section casting해서 넘겨줌
     case let .edit(section):
       sectionFlow(section)
 
-    case let .showLogoutAlert(listener):
-      LogOutAlertFlow(listener: listener)
-    case let .showDeactivateAlert(listener):
-      DeactivateAlertFlow(listener: listener)
     default: break
     }
   }
@@ -103,32 +81,28 @@ extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
       let vc = TFBaseViewController(nibName: nil, bundle: nil)
       self.viewControllable.presentBottomSheet(vc, animated: true)
     default: break
-//    case .gender(let gender):
-//      <#code#>
-//    case .introduction(let string):
-//      <#code#>
-//    case .preferGender(let gender):
-//      <#code#>
-//    case .height(let int):
-//      <#code#>
-//    case .smoking(let frequency):
-//      <#code#>
-//    case .drinking(let frequency):
-//      <#code#>
-//    case .religion(let religion):
-//      <#code#>
-//    case .interest(let array):
-//      <#code#>
-//    case .idealType(let array):
-//      <#code#>
     }
   }
+}
 
-  private func LogOutAlertFlow(listener: LogoutListenr) {
-    alertBuilder.buildLogoutAlert(listener: listener)
+// MARK: MySetting
+
+extension MyPageCoordinator: MySettingCoordinatorDelegate {
+  public func detachMySetting() {
+    guard let coordinator = self.mySettingCoordinator else {
+      return
+    }
+
+    self.viewControllable.popViewController(animated: true)
+    self.detachChild(coordinator)
+    self.mySettingCoordinator = nil
   }
 
-  private func DeactivateAlertFlow(listener: DeactivateListener) {
-    alertBuilder.buildDeactivateAlert(listener: listener)
+  public func attachMySetting(_ user: User) {
+    let coordinator = self.mySettingBuildable.build(rootViewControllable: self.viewControllable, user: user)
+    coordinator.delegate = self
+    self.attachChild(coordinator)
+    self.mySettingCoordinator = coordinator
+    coordinator.settingHomeFlow(user)
   }
 }

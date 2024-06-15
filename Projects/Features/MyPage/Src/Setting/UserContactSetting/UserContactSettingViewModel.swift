@@ -17,7 +17,7 @@ import MyPageInterface
 final class UserContactSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
-  weak var delegate: MyPageCoordinatingActionDelegate?
+  weak var delegate: MySettingCoordinatingActionDelegate?
 
   init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase

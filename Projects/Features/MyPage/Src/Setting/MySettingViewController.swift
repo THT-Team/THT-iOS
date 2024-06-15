@@ -18,6 +18,8 @@ final class MySettingsViewController: TFBaseViewController {
 
   fileprivate var dataSource: MySettingsDataSource!
 
+  private let backButton: UIBarButtonItem = .backButton
+
   init(viewModel: MySettingViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -34,6 +36,7 @@ final class MySettingsViewController: TFBaseViewController {
   override func bindViewModel() {
     configureDataSource()
     mainView.tableView.separatorStyle = .singleLine
+
     let itemSelected = mainView.tableView.rx.itemSelected
       .asDriver()
       .do(onNext: { [weak self] indexPath in
@@ -42,7 +45,8 @@ final class MySettingsViewController: TFBaseViewController {
 
     let input = MySettingViewModel.Input(
       viewDidLoad: self.rx.viewDidAppear.asDriver().map { _ in },
-      indexPath: itemSelected
+      indexPath: itemSelected, 
+      backBtnTap: self.backButton.rx.tap.asSignal()
     )
 
     let output = viewModel.transform(input: input)
@@ -63,6 +67,7 @@ final class MySettingsViewController: TFBaseViewController {
     super.navigationSetting()
 
     self.title = "설정 관리"
+    self.navigationItem.leftBarButtonItem = self.backButton
   }
 
   func configureDataSource() {

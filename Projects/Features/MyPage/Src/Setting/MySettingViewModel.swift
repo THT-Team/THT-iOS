@@ -18,12 +18,13 @@ final class MySettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
   private let locationUseCase: LocationUseCaseInterface
-  weak var delegate: MyPageCoordinatingActionDelegate?
+  weak var delegate: MySettingCoordinatingActionDelegate?
   private let user: User
 
   struct Input {
     let viewDidLoad: Driver<Void>
     let indexPath: Driver<IndexPath>
+    let backBtnTap: Signal<Void>
   }
   
   struct Output {
@@ -83,6 +84,11 @@ final class MySettingViewModel: ViewModelType {
         owner.navigate(indexPath: indexPath)
       }.disposed(by: disposeBag)
 
+    input.backBtnTap
+      .emit(with: self) { owner, _ in
+        owner.delegate?.invoke(.finish)
+      }.disposed(by: disposeBag)
+
     return Output(toast: toast.asDriverOnErrorJustEmpty())
   }
 
@@ -99,7 +105,7 @@ break
     case .location:
       break
     case .notification:
-      TFLogger.dataLogger.debug("notification")
+      self.delegate?.invoke(.alarmSetting)
     case .support:
       TFLogger.dataLogger.debug("support")
     case .law:

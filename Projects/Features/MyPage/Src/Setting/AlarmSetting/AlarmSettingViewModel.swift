@@ -11,10 +11,12 @@ import Core
 
 import RxSwift
 import RxCocoa
+import MyPageInterface
 
 final class AlarmSettingViewModel: ViewModelType {
 
   private var disposeBag = DisposeBag()
+  weak var delegate: MySettingCoordinatingActionDelegate?
 
   func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
@@ -33,6 +35,7 @@ final class AlarmSettingViewModel: ViewModelType {
 
     initialState
       .map(transformAlarmSetting(_:))
+      .debug("sections")
       .emit(to: alarmSection)
       .disposed(by: disposeBag)
 
@@ -47,7 +50,6 @@ final class AlarmSettingViewModel: ViewModelType {
   }
 
   func transformAlarmSetting(_ alarmSetting: [String: Bool]) -> [AlarmSection] {
-    var pairs = alarmSetting
     var sections: [AlarmSection] = []
     var marketingSection = AlarmSection(
       title: "마케팅 알람 설정",
@@ -56,13 +58,14 @@ final class AlarmSettingViewModel: ViewModelType {
     )
     var alarmSection = AlarmSection(title: "알람 설정", description: nil, items: [])
 
-    pairs.forEach { pair in
-      if pair.key == "marketingAlarm" {
-        let item = AlarmSettingCellViewModel(title: "마케팅 알림 수신 동의", secondaryTitle: nil, isOn: pair.value)
-        marketingSection.items.append(item)
-      } else {
-        let item = AlarmSettingCellViewModel(title: pair.key, secondaryTitle: "secondary", isOn: pair.value)
-        alarmSection.items.append(item)
+    alarmSetting.forEach { pair in
+      if let alarm = AlarmModel(rawValue: pair.key) {
+        let item = AlarmSettingCellViewModel(title: alarm.title, secondaryTitle: alarm.secondaryTitle, isOn: pair.value)
+        if pair.key == "marketingAlarm" {
+            marketingSection.items.append(item)
+          } else {
+          alarmSection.items.append(item)
+        }
       }
     }
     sections.append(contentsOf: [marketingSection, alarmSection])
@@ -73,7 +76,7 @@ final class AlarmSettingViewModel: ViewModelType {
 extension AlarmSettingViewModel {
   struct Input {
     let viewDidLoad: Signal<Void>
-    let tap: Signal<String>
+    let tap: Signal<IndexPath>
   }
 
   struct Output {
@@ -117,15 +120,30 @@ enum AlarmModel: String {
   var title: String {
     switch self {
     case .marketingAlarm:
-      return "마케팅 알림 수신 동의"
+      return "마케팅 정보 수신 동의"
     case .newMatchSuccessAlarm:
-      return "매칭 성공 알림"
+      return "새로운 매치"
     case .likeMeAlarm:
-      return "나를 좋아요 알림"
+      return "나를 좋아요"
     case .newConversationAlarm:
-      return "새로운 대화 알림"
+      return "새로운 대화"
     case .talkAlarm:
-      return "톡 알림"
+      return "기존 대화"
+    }
+  }
+
+  var secondaryTitle: String? {
+    switch self {
+    case .marketingAlarm:
+      return "폴링에서 다양한 이벤트와 혜택을 알려드립니다."
+    case .newMatchSuccessAlarm:
+      return "새로운 매치가 되었을 때 알림을 받습니다."
+    case .likeMeAlarm:
+      return "상대방으로부터 좋아요를 받았을 때 알림을 받습니다."
+    case .newConversationAlarm:
+      return "새로운 메세지를 받았을 때 알림을 받습니다."
+    case .talkAlarm:
+      return "기존 대화 메세지를 받았을 때 알림을 받습니다."
     }
   }
 }

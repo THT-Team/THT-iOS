@@ -31,10 +31,28 @@ final class MyPageCellContainerView: TFBaseView {
     }
   }
 
+  var accessoryView: UIView? = nil {
+    didSet {
+      if let oldValue {
+        oldValue.removeFromSuperview()
+      }
+      if let accessoryView {
+        contentStackView.addArrangedSubview(accessoryView)
+      }
+    }
+  }
+
   var accessoryType: IconType? = nil {
     didSet {
       contentImage.isHidden = accessoryType == nil
       contentImage.image = accessoryType?.image
+    }
+  }
+
+  var text: String? {
+    didSet {
+      titleLabel.isHidden = text == nil
+      titleLabel.text = text
     }
   }
 
@@ -133,14 +151,15 @@ final class MyPageCellContainerView: TFBaseView {
 
     titleStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
     titleStackView.snp.makeConstraints {
-      $0.top.leading.equalToSuperview().offset(25)
-      $0.bottom.equalToSuperview().offset(-25)
+      $0.top.equalToSuperview().offset(10)
+      $0.leading.equalToSuperview().offset(14)
+      $0.bottom.equalToSuperview().offset(-10)
     }
 
     contentStackView.snp.makeConstraints {
       $0.top.bottom.equalTo(titleStackView)
       $0.leading.equalTo(titleLabel.snp.trailing)
-      $0.trailing.equalToSuperview().offset(-10)
+      $0.trailing.equalToSuperview().offset(-14)
     }
 
     contentImage.snp.makeConstraints {

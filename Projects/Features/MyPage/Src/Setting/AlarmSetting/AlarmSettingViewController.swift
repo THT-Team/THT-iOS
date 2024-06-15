@@ -11,9 +11,12 @@ import Core
 import DSKit
 
 final class AlarmSettingViewController: TFBaseViewController {
-  typealias VMType = AccountSettingViewModel
-  private let mainView = AccountSettingView()
+  typealias CellType = MyPageDefaultTableViewCell
+  typealias VMType = AlarmSettingViewModel
+
+  private let mainView = MyPageDefaultTableView<CellType>()
   private let viewModel: VMType
+  private var sections = [AlarmSection]()
 
   static let reuseIdentifier = "cell"
 
@@ -33,57 +36,74 @@ final class AlarmSettingViewController: TFBaseViewController {
   override func bindViewModel() {
     mainView.tableView.dataSource = self
 
-    let tap = mainView.tableView.rx.itemSelected
-      .asDriver()
+    let tap = mainView.tableView.rx.itemSelected.asSignal()
       .do(onNext: { [weak self] indexPath in
         self?.mainView.tableView.deselectRow(at: indexPath, animated: true)
       })
-      .mapToVoid()
 
     let input = VMType.Input(
-      tap: tap,
-      deactivateTap: mainView.deactivateBtn.rx.tap.asDriver()
-    )
+      viewDidLoad: self.rx.viewDidAppear.asSignal().map { _ in },
+      tap: tap
+      )
 
     let output = viewModel.transform(input: input)
 
     output.toast
       .debug("vc toast")
-      .drive(with: self) { owner, message in
-        let alert = UIAlertController(title: message, message: nil, preferredStyle: .alert)
-
-        owner.present(alert, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-          owner.dismiss(animated: true)
-        }
+      .emit(with: self) { owner, message in
+        owner.mainView.makeToast(message)
       }
       .disposed(by: disposeBag)
+
+    output.alarmSection
+      .drive(with: self) { owner, sections in
+        owner.updateSections(sections)
+      }.disposed(by: disposeBag)
   }
 
   override func navigationSetting() {
     super.navigationSetting()
-    self.title = "계정 관리"
+    self.title = "알람 설정"
   }
 }
 
-extension AccountSettingViewController: UITableViewDataSource {
+extension AlarmSettingViewController {
+  func updateSections(_ sections: [AlarmSection]) {
+    self.sections = sections
+    mainView.tableView.reloadData()
+  }
+}
+
+extension AlarmSettingViewController: UITableViewDataSource {
+  func numberOfSections(in tableView: UITableView) -> Int {
+    sections.count
+  }
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    1
+    sections[section].items.count
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: Self.reuseIdentifier, for: indexPath)
-    var content = cell.defaultContentConfiguration()
-    cell.accessoryType = .disclosureIndicator
+    let cell = tableView.dequeueReusableCell(for: indexPath, cellType: CellType.self)
+    let model = sections[indexPath.section].items[indexPath.item]
 
-    content.text = "로그아웃"
-    content.textProperties.font = .thtSubTitle1R
+    let alarmSwitch = UISwitch().then {
+      $0.isOn = model.isOn
+      $0.tag = indexPath.item
+      $0.onTintColor = DSKitAsset.Color.primary500.color
+    }
 
-    cell.contentConfiguration = content
+    cell.containerView.accessoryView = alarmSwitch
+    cell.containerView.text = model.title
+    cell.containerView.secondaryText = model.secondaryTitle
+
     return cell
   }
 
   func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return "계정 관리"
+    return sections[section].title
+  }
+
+  func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    sections[section].description
   }
 }

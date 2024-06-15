@@ -23,21 +23,11 @@ public protocol MyPageCoordinating: Coordinator {
   func editphotoFlow()
   func editPreferGenderBottomSheetFlow(prefetGender: Gender)
   func editHeightBottomSheetFlow(height: Int)
-  func editUserContactsFlow()
 }
 
 public protocol MyPageCoordinatingActionDelegate: AnyObject {
   func invoke(_ action: MyPageCoordinatingAction)
 }
-
-public protocol LogoutListenr: AnyObject {
-  func logoutTap()
-}
-
-public protocol DeactivateListener: AnyObject {
-  func deactivateTap()
-}
-
 
 public enum MyPageCoordinatingAction {
   case setting(User)
@@ -54,12 +44,4 @@ public enum MyPageCoordinatingAction {
   case editReligion(Religion)
   case editInterest([Int])
   case editIdealType([Int])
-
-  case editLocation
-  case editUserContacts
-
-  case accountSetting
-
-  case showLogoutAlert(LogoutListenr)
-  case showDeactivateAlert(DeactivateListener)
 }

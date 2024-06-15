@@ -9,11 +9,12 @@ import UIKit
 
 import DSKit
 
-class MyPageDefaultTableView: TFBaseView {
+class MyPageDefaultTableView<CellType: MyPageDefaultTableViewCell>: TFBaseView {
 
   lazy var tableView = UITableView(frame: .zero, style: .insetGrouped).then {
     $0.showsVerticalScrollIndicator = false
     $0.backgroundView = emptyView
+    $0.register(cellType: CellType.self)
   }
 
   lazy var emptyView = UIView().then {
