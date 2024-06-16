@@ -31,6 +31,14 @@ final class MyPageCellContainerView: TFBaseView {
     }
   }
 
+  var isSelected: Bool = false {
+    didSet {
+      backgroundColor = isSelected
+      ? DSKitAsset.Color.neutral500.color
+      : DSKitAsset.Color.neutral600.color
+    }
+  }
+
   var accessoryView: UIView? = nil {
     didSet {
       if let oldValue {
@@ -81,7 +89,8 @@ final class MyPageCellContainerView: TFBaseView {
   private lazy var titleStackView = UIStackView().then {
     $0.axis = .vertical
     $0.alignment = .fill
-    $0.distribution = .fillProportionally
+    $0.distribution = .fill
+    $0.spacing = 3
   }
 
   private lazy var titleLabel = UILabel().then {
@@ -93,7 +102,7 @@ final class MyPageCellContainerView: TFBaseView {
 
   private lazy var secondaryTitleLabel = UILabel().then {
     $0.font = UIFont.thtCaption1R
-    $0.textColor = DSKitAsset.Color.neutral50.color
+    $0.textColor = DSKitAsset.Color.neutral300.color
     $0.text = "세컨더리 타이틀 텍스트"
     $0.numberOfLines = 2
     $0.isHidden = true
@@ -141,7 +150,7 @@ final class MyPageCellContainerView: TFBaseView {
 
   override func makeUI() {
     backgroundColor = DSKitAsset.Color.neutral600.color
-    layer.cornerRadius = 12
+    layer.cornerRadius = 6
     clipsToBounds = true
 
     addSubviews(titleStackView, contentStackView)
@@ -151,13 +160,14 @@ final class MyPageCellContainerView: TFBaseView {
 
     titleStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
     titleStackView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(10)
+      $0.top.equalToSuperview().offset(13)
       $0.leading.equalToSuperview().offset(14)
-      $0.bottom.equalToSuperview().offset(-10)
+      $0.height.equalTo(50).priority(.low)
+      $0.bottom.equalToSuperview().offset(-13)
     }
 
     contentStackView.snp.makeConstraints {
-      $0.top.bottom.equalTo(titleStackView)
+      $0.centerY.equalToSuperview()
       $0.leading.equalTo(titleLabel.snp.trailing)
       $0.trailing.equalToSuperview().offset(-14)
     }

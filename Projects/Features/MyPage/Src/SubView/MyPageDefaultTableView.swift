@@ -14,6 +14,9 @@ class MyPageDefaultTableView<CellType: MyPageDefaultTableViewCell>: TFBaseView {
   lazy var tableView = UITableView(frame: .zero, style: .insetGrouped).then {
     $0.showsVerticalScrollIndicator = false
     $0.backgroundView = emptyView
+    $0.separatorStyle = .none
+    $0.backgroundColor = DSKitAsset.Color.neutral700.color
+
     $0.register(cellType: CellType.self)
   }
 
@@ -32,7 +35,7 @@ class MyPageDefaultTableView<CellType: MyPageDefaultTableViewCell>: TFBaseView {
     emptyView.addSubview(cardView)
 
     tableView.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
+      $0.edges.equalToSuperview()
     }
 
     cardView.snp.makeConstraints {

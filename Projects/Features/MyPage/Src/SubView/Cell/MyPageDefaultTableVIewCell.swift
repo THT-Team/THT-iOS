@@ -18,14 +18,27 @@ final class MyPageDefaultTableViewCell: TFBaseTableViewCell {
   private(set) lazy var containerView = MyPageCellContainerView(frame: .zero)
 
   override func makeUI() {
+    self.selectionStyle = .none
     contentView.addSubview(containerView)
-    contentView.backgroundColor = .clear
+    self.backgroundColor = .clear
 
     containerView.snp.makeConstraints {
-      $0.top.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-10)
+      $0.top.equalToSuperview().offset(6)
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-6)
     }
   }
+
+  override func setSelected(_ selected: Bool, animated: Bool) {
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: { [self] in
+      containerView.isSelected = selected
+    })
+  }
+}
+
+enum MyPageDefaultTableVIewCellStyle {
+  case alarmCell
+  case normal
 }
 
 #if canImport(SwiftUI) && DEBUG
