@@ -7,8 +7,13 @@
 
 import UIKit
 
+public protocol MenuType {
+  var title: String { get }
+  var content: String? { get }
+}
+
 enum MySetting {
-  enum Section: Int {
+  enum Section: Int, CaseIterable {
     case account
     case activity
     case location
@@ -47,9 +52,77 @@ enum MySetting {
     }
   }
 
-  struct Item: Hashable {
+  struct Item: Hashable, MenuType {
     let title: String
+    let content: String?
     let identifier = UUID()
+
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(identifier)
+    }
+
+    public init(title: String, content: String? = nil) {
+      self.title = title
+      self.content = content
+    }
+  }
+
+  struct LinkItem: Hashable, MenuType {
+    let title: String
+    let content: String?
+    let url: URL
+    let identifier = UUID()
+
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(identifier)
+    }
+
+    public init(title: String, content: String? = nil, url: URL) {
+      self.title = title
+      self.content = content
+      self.url = url
+    }
+  }
+
+  enum MenuItem: MenuType, Hashable {
+    case item(Item)
+    case linkItem(LinkItem)
+
+    var title: String {
+      switch self {
+      case .item(let item):
+        return item.title
+      case .linkItem(let item):
+        return item.title
+      }
+    }
+
+    var content: String? {
+      switch self {
+      case .item(let item):
+        return item.content
+      case .linkItem(let item):
+        return item.content
+      }
+    }
+
+    var identifier: UUID {
+      switch self {
+      case .item(let item):
+        return item.identifier
+      case .linkItem(let item):
+        return item.identifier
+      }
+    }
+
+    var url: URL? {
+      switch self {
+      case .linkItem(let item):
+        return item.url
+      default:
+        return nil
+      }
+    }
 
     func hash(into hasher: inout Hasher) {
       hasher.combine(identifier)
