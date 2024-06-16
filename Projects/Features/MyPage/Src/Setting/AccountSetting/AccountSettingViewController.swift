@@ -12,7 +12,8 @@ import DSKit
 
 final class AccountSettingViewController: TFBaseViewController {
   typealias VMType = AccountSettingViewModel
-  private let mainView = AccountSettingView()
+  typealias CellType = MyPageDefaultTableViewCell
+  private let mainView = AccountSettingView<CellType>()
   private let viewModel: VMType
 
   static let reuseIdentifier = "cell"
@@ -72,14 +73,16 @@ extension AccountSettingViewController: UITableViewDataSource {
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: Self.reuseIdentifier, for: indexPath)
+    let cell = tableView.dequeueReusableCell(for: indexPath, cellType: CellType.self)
+
+    cell.containerView.text = "로그아웃"
+    cell.containerView.accessoryType = .rightArrow
     var content = cell.defaultContentConfiguration()
-    cell.accessoryType = .disclosureIndicator
 
     content.text = "로그아웃"
     content.textProperties.font = .thtSubTitle1R
 
-    cell.contentConfiguration = content
+//    cell.contentConfiguration = content
     return cell
   }
 
