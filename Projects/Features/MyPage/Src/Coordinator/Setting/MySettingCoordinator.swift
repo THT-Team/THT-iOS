@@ -61,7 +61,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func alarmSettingFlow() {
-    let vm = AlarmSettingViewModel()
+    let vm = AlarmSettingViewModel(myPageUseCase: self.myPageUseCase)
     vm.delegate = self
     let vc = AlarmSettingViewController(viewModel: vm)
 
@@ -100,18 +100,8 @@ extension MySettingCoordinator: MySettingCoordinatingActionDelegate {
       alarmSettingFlow()
     case .feedback:
       feedBackFlow()
-    case let .cs(url):
-      webViewFlow("자주하는 질문", url)
-    case let .locationPolicy(url):
-      webViewFlow("위치 정보 이용 약관", url)
-    case let .servicePolicy(uRL):
-      webViewFlow("서비스 이용 약관", uRL)
-    case let .privacyPolicy( uRL):
-      webViewFlow("개인정보 처리방침", uRL)
-    case .license(let uRL):
-      webViewFlow("오픈소스 라이센스", uRL)
-    case .businessInfo(let uRL):
-      webViewFlow("사업자 정보", uRL)
+    case let .webView(webviewInfo):
+      webViewFlow(webviewInfo.title, webviewInfo.url)
     case .accountSetting:
       accountSettingFlow()
     case let .showLogoutAlert(listener):
