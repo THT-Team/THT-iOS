@@ -45,17 +45,20 @@ public enum MySettingCoordinatingAction {
   case alarmSetting
 
   case feedback
-  case cs(URL)
-
-  case locationPolicy(URL)
-  case servicePolicy(URL)
-  case privacyPolicy(URL)
-
-  case license(URL)
-  case businessInfo(URL)
+  case webView(WebViewInfo)
 
   case accountSetting
 
   case showLogoutAlert(LogoutListenr)
   case showDeactivateAlert(DeactivateListener)
+}
+
+public struct WebViewInfo {
+  public let title: String?
+  public let url: URL
+
+  public init(title: String?, url: URL) {
+    self.title = title
+    self.url = url
+  }
 }

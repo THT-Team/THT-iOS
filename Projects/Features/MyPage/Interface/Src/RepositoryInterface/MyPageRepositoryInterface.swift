@@ -16,6 +16,7 @@ public protocol MyPageRepositoryInterface {
   func fetchUser() -> Single<User>
   func fetchUserContacts() -> Single<Int>
   func updateUserContacts(contacts: [ContactType]) -> Single<Int>
+  func updateAlarmSetting(_ settings: [String: Bool]) -> Completable
 }
 
 public class MockMyPageRepository: MyPageRepositoryInterface {
@@ -31,5 +32,12 @@ public class MockMyPageRepository: MyPageRepositoryInterface {
 
   public func updateUserContacts(contacts: [ContactType]) -> Single<Int> {
     .just(100)
+  }
+
+  public func updateAlarmSetting(_ settings: [String : Bool]) -> Completable {
+    return Completable.create { completable in
+      completable(.completed)
+      return Disposables.create()
+    }.delay(.seconds(1), scheduler: MainScheduler.instance)
   }
 }

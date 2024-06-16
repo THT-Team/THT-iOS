@@ -14,6 +14,16 @@ import Moya
 extension MyPageTarget {
   public var sampleData: Data {
     switch self {
+    case .updateAlarmSetting:
+      return Data("""
+""".utf8)
+    case .updateUserContacts:
+      return Data("""
+      {
+        "count": 1
+      }
+      """.utf8)
+
     case .user:
       return Data("""
       {
