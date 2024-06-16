@@ -17,6 +17,8 @@ final class AlarmSettingViewController: TFBaseViewController {
   private let mainView = MyPageDefaultTableView<CellType>()
   private let viewModel: VMType
   private var sections = [AlarmSection]()
+  private let cellTap = PublishRelay<IndexPath>()
+  private let footerDescription = BehaviorRelay<String>(value: "")
 
   static let reuseIdentifier = "cell"
 
@@ -35,21 +37,32 @@ final class AlarmSettingViewController: TFBaseViewController {
 
   override func bindViewModel() {
     mainView.tableView.dataSource = self
+    mainView.tableView.delegate = self
+    mainView.tableView.backgroundView = nil
 
-    let tap = mainView.tableView.rx.itemSelected.asSignal()
+    mainView.tableView.rx.itemSelected.asSignal()
       .do(onNext: { [weak self] indexPath in
         self?.mainView.tableView.deselectRow(at: indexPath, animated: true)
+
+        guard let cell = self?.mainView.tableView.cellForRow(at: indexPath) as? CellType else {
+          return
+        }
+        guard let alarmSwitch = cell.containerView.accessoryView as? UISwitch else {
+          return
+        }
+        alarmSwitch.setOn(!alarmSwitch.isOn, animated: true)
+        return
       })
+      .emit(to: cellTap)
+      .disposed(by: disposeBag)
 
     let input = VMType.Input(
-      viewDidLoad: self.rx.viewDidAppear.asSignal().map { _ in },
-      tap: tap
+      tap: cellTap.asSignal()
       )
 
     let output = viewModel.transform(input: input)
 
     output.toast
-      .debug("vc toast")
       .emit(with: self) { owner, message in
         owner.mainView.makeToast(message)
       }
@@ -59,6 +72,19 @@ final class AlarmSettingViewController: TFBaseViewController {
       .drive(with: self) { owner, sections in
         owner.updateSections(sections)
       }.disposed(by: disposeBag)
+
+    output.marketingDescription
+      .drive(footerDescription)
+      .disposed(by: disposeBag)
+
+//    output.updateMarketingSection
+//      .drive(with: self) { owner, section in
+//        owner.sections[0] = section
+//        owner.mainView.tableView.beginUpdates()
+//        owner.mainView.tableView.reloadSections(IndexSet(integer: 0), with: .none)
+//        owner.mainView.tableView.endUpdates()
+//      }
+//      .disposed(by: disposeBag)
   }
 
   override func navigationSetting() {
@@ -74,6 +100,63 @@ extension AlarmSettingViewController {
   }
 }
 
+extension AlarmSettingViewController: UITableViewDelegate {
+
+  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    guard let text = sections[section].title else {
+      return nil
+    }
+
+    let header = UIView()
+
+    let label = UILabel().then {
+      $0.text = text
+      $0.font = UIFont.thtP1R
+      $0.textColor = DSKitAsset.Color.neutral50.color
+    }
+
+    header.addSubview(label)
+    label.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(16)
+      $0.top.equalToSuperview().offset(10)
+      $0.bottom.equalToSuperview().offset(-5)
+    }
+
+    return header
+  }
+
+  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    guard let text = sections[section].description else {
+      return nil
+    }
+
+    let header = UIView()
+
+    let label = UILabel().then {
+      $0.text = text
+      $0.font = UIFont.thtCaption2R
+      $0.textColor = DSKitAsset.Color.neutral300.color
+      $0.numberOfLines = 2
+    }
+
+    header.addSubview(label)
+
+    label.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(16)
+      $0.centerY.equalToSuperview()
+    }
+
+    if section == 0 {
+      footerDescription
+        .skip(1)
+        .bind(to: label.rx.text)
+        .disposed(by: disposeBag)
+    }
+
+    return header
+  }
+}
+
 extension AlarmSettingViewController: UITableViewDataSource {
   func numberOfSections(in tableView: UITableView) -> Int {
     sections.count
@@ -86,24 +169,21 @@ extension AlarmSettingViewController: UITableViewDataSource {
     let cell = tableView.dequeueReusableCell(for: indexPath, cellType: CellType.self)
     let model = sections[indexPath.section].items[indexPath.item]
 
-    let alarmSwitch = UISwitch().then {
+    let alarmSwitch = UISwitch(frame: .zero).then {
       $0.isOn = model.isOn
       $0.tag = indexPath.item
       $0.onTintColor = DSKitAsset.Color.primary500.color
+      $0.frame.size = UIView.layoutFittingCompressedSize
     }
+
+    alarmSwitch.addAction(UIAction { [weak self] action in
+      self?.cellTap.accept(indexPath)
+    }, for: .valueChanged)
 
     cell.containerView.accessoryView = alarmSwitch
     cell.containerView.text = model.title
     cell.containerView.secondaryText = model.secondaryTitle
 
     return cell
-  }
-
-  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return sections[section].title
-  }
-
-  func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-    sections[section].description
   }
 }
