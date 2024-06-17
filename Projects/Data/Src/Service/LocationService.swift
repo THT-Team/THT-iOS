@@ -7,7 +7,9 @@
 
 import Foundation
 import CoreLocation
+
 import SignUpInterface
+import AuthInterface
 
 import RxSwift
 

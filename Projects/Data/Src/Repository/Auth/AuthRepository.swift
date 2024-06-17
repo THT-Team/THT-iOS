@@ -14,29 +14,24 @@ import Networks
 import RxSwift
 import RxMoya
 import Moya
-import Alamofire
+
 import Core
 
 public final class AuthRepository: ProviderProtocol {
 
   public typealias Target = AuthTarget
   public var provider: MoyaProvider<Target>
-  private let tokenStore: TokenStore
-  private let tokenProvider: TokenProvider
+  private let authService: AuthServiceType
 
-  public init(tokenStore: TokenStore, tokenProvider: TokenProvider) {
-    self.tokenStore = tokenStore
-    self.tokenProvider = tokenProvider
+  public init(authService: AuthServiceType) {
+    self.authService = authService
 
-    let token = (try? tokenStore.getToken()) ?? Token(accessToken: "", accessTokenExpiresIn: 0)
-    let credential = token.toAuthOCredential()
+    self.provider = Self.makeProvider(session: authService.createSession())
+    TFLogger.dataLogger.debug("init AuthRepo")
+  }
 
-    let authenticator = OAuthAuthenticator(tokenProvider: tokenProvider)
-    let intercepter = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
-    let session = Session(interceptor: intercepter)
-
-    self.provider = Self.makeProvider()
-    TFLogger.dataLogger.log("AuthRepository init")
+  deinit {
+    TFLogger.cycle(name: self)
   }
 }
 
@@ -45,12 +40,12 @@ extension AuthRepository: AuthRepositoryInterface {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
   }
   
-  public func refresh(_ token: Token, completion: @escaping (Result<Token, Error>) -> Void) {
-    tokenProvider.refreshToken(token: token, completion: completion)
+  public func refresh(completion: @escaping (Result<Token, Error>) -> Void) {
+    authService.refreshToken(completion: completion)
   }
 
-  public func refresh(_ token: Token) -> Single<Token> {
-    tokenProvider.refresh(token: token)
+  public func refresh() -> Single<Token> {
+    authService.refresh()
   }
 
   public func certificate(phoneNumber: String) -> Single<Int> {
@@ -60,11 +55,11 @@ extension AuthRepository: AuthRepositoryInterface {
   }
 
   public func login(phoneNumber: String, deviceKey: String) -> Single<AuthInterface.Token> {
-    tokenProvider.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
+    authService.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
   }
 
   public func loginSNS(_ userSNSLoginRequest: AuthInterface.UserSNSLoginRequest) -> Single<AuthInterface.Token> {
-    tokenProvider.loginSNS(userSNSLoginRequest)
+    authService.loginSNS(userSNSLoginRequest)
   }
 }
 

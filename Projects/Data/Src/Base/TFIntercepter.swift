@@ -10,19 +10,23 @@ import Moya
 import Alamofire
 import RxSwift
 import AuthInterface
+import Core
 
 final class OAuthAuthenticator: Authenticator {
-  private let tokenProvider: TokenProvider
+  private var token: OAuthCredential?
+  private let authService: AuthServiceType
 
-  init(tokenProvider: TokenProvider) {
-    self.tokenProvider = tokenProvider
+  init(authService: AuthServiceType) {
+    self.authService = authService
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
 
     // SignUp 관련 API는 토큰 없이 호출해야함
-    if let url = urlRequest.url, url.path().contains("users/join") == false {
-      urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
+    if let url = urlRequest.url {
+      if !(url.path().contains("users/join") || url.path().contains("users/login/normal") || url.path().contains("users/login/sns")) {
+        urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
+      }
     }
   }
 
@@ -36,12 +40,14 @@ final class OAuthAuthenticator: Authenticator {
     // The new credential will automatically be stored within the `AuthenticationInterceptor`. Future requests will
     // be authenticated using the `apply(_:to:)` method using the new credential.
     
-    tokenProvider.refreshToken(token: credential.toToken()) { result in
+    TFLogger.dataLogger.notice("try refresing token!!")
+
+    authService.refreshToken() { result in
       switch result {
-      case .success(let token):
-        completion(.success(token.toAuthOCredential()))
-      case .failure(let error):
-        completion(.failure(error))
+      case .success(let refreshedToken):
+        completion(.success(refreshedToken.toAuthOCredential()))
+      case .failure(let failure):
+        completion(.failure(failure))
       }
     }
   }

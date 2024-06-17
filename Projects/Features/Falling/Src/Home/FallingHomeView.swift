@@ -78,6 +78,10 @@ extension NSCollectionLayoutSection {
     )
     section.interGroupSpacing = 14
     section.boundarySupplementaryItems = [sectionFooter]
+    
+    section.visibleItemsInvalidationHandler = { item, offset, environment in
+      
+    }
     return section
   }
   

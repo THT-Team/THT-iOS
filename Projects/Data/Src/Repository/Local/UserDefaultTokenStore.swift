@@ -23,8 +23,8 @@ public final class UserDefaultTokenStore: TokenStore {
     try? UserDefaults.standard.setCodableObject(token, forKey: Key.token)
   }
 
-  public func getToken() throws -> Token {
-    try UserDefaults.standard.getCodableObject(forKey: Key.token, as: AuthInterface.Token.self)
+  public func getToken() -> Token? {
+    try? UserDefaults.standard.getCodableObject(forKey: Key.token, as: AuthInterface.Token.self)
   }
 
   public func clearToken() {

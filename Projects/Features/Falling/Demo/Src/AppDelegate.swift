@@ -12,6 +12,8 @@ import Data
 
 import FallingInterface
 import Falling
+import AuthInterface
+import Auth
 //import FirebaseCore
 
 @main
@@ -20,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
     registerDependencies()
-    
+
     return true
   }
 
@@ -38,6 +40,14 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
+    let authService = DefaultAuthService()
+
+    container.register(
+      interface: AuthUseCaseInterface.self,
+      implement: {
+        AuthUseCase(
+          authRepository: AuthRepository(authService: authService))})
+
     container.register(
       interface: FallingUseCaseInterface.self,
       implement: {
@@ -49,6 +59,8 @@ extension AppDelegate {
         )
       }
     )
+
+
   }
 }
 

@@ -10,6 +10,7 @@ import RxSwift
 import RxCocoa
 
 import SignUpInterface
+import AuthInterface
 
 import RxSwift
 import RxCocoa

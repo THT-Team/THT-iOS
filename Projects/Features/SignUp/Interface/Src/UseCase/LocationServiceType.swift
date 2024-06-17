@@ -8,6 +8,8 @@
 import Foundation
 import RxSwift
 
+import AuthInterface
+
 public protocol LocationServiceType {
   var publisher: PublishSubject<LocationReq> { get }
   func handleAuthorization(granted: @escaping (Bool) -> Void)

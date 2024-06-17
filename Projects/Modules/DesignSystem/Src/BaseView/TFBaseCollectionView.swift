@@ -27,6 +27,8 @@ open class TFBaseCollectionView: UICollectionView {
     }
   }
   
+  open func makeUI() {}
+  
   public func hiddenDimView() {
     if let dimView {
       DispatchQueue.main.async {

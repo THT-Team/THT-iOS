@@ -9,6 +9,8 @@ import Foundation
 
 import RxSwift
 
+import AuthInterface
+
 public protocol ContactServiceType {
   func fetchContact() -> Single<[ContactType]>
 }
