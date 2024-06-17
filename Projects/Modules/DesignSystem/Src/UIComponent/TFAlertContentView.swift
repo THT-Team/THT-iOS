@@ -11,7 +11,7 @@ public final class TFAlertContentView: TFBaseView {
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
-    stackView.spacing = 24
+    stackView.spacing = 16
     return stackView
   }()
   
@@ -28,7 +28,6 @@ public final class TFAlertContentView: TFBaseView {
   let buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
-    stackView.spacing = 20
     return stackView
   }()
   
@@ -89,12 +88,17 @@ public final class TFAlertContentView: TFBaseView {
       $0.leading.trailing.equalToSuperview()
     }
     
-    buttonStackView.addArrangedSubviews([
+    [
       unpleasantPhotoButton,
       fakeProfileButton,
       photoTheftButton,
       profanityButton,
       sharingIllegalFootageButton
-    ])
+    ].forEach { view in
+      view.snp.makeConstraints {
+        $0.height.equalTo(41)
+      }
+      buttonStackView.addArrangedSubview(view)
+    }
   }
 }
