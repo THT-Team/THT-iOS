@@ -20,18 +20,25 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
+    let authService = DefaultAuthService()
+    let locationService = LocationService()
+    let kakoService = KakaoAPIService()
 
     container.register(
       interface: SignUpUseCaseInterface.self,
       implement: {
         SignUpUseCase(
-          repository: SignUpRepository(),
-          locationService: LocationService(),
-          kakaoAPIService: KakaoAPIService(),
+          repository: SignUpRepository(authService: authService),
           contactService: ContactService()
         )
       }
     )
+
+    container.register(
+      interface: LocationUseCaseInterface.self,
+      implement: {
+        LocationUseCase(locationService: locationService,
+                        kakaoAPIService: kakoService)})
 
     container.register(
       interface: UserInfoUseCaseInterface.self,

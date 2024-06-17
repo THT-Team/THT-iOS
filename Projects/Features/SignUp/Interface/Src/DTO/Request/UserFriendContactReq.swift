@@ -7,6 +7,8 @@
 
 import Foundation
 
+import AuthInterface
+
 public struct UserFriendContactReq: Codable {
   public let contacts: [ContactType]
 

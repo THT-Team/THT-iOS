@@ -8,6 +8,8 @@
 import Foundation
 import Domain
 
+import AuthInterface
+
 public struct UserInfo: Codable {
   public var phoneNumber: String
   public var name: String?

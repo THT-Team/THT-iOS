@@ -13,6 +13,7 @@ import RxSwift
 import RxCocoa
 
 import SignUpInterface
+import AuthInterface
 
 final class UserContactViewModel: ViewModelType {
   private let useCase: SignUpUseCaseInterface

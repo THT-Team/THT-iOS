@@ -13,4 +13,5 @@ public protocol TokenProvider {
   func refresh(token: Token) -> Single<Token>
   func login(phoneNumber: String, deviceKey: String) -> Single<Token>
   func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
+  func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
 }

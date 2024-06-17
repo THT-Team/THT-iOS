@@ -15,20 +15,15 @@ import RxSwift
 import RxMoya
 import Moya
 
-import Core
-
 public final class SignUpRepository: ProviderProtocol {
 
   public typealias Target = SignUpTarget
   public var provider: MoyaProvider<Target>
+  private let authService: AuthServiceType
 
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((SignUpTarget) -> Moya.Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
-    TFLogger.dataLogger.log("SignUpRepository init")
-  }
-
-  public convenience init() {
-    self.init(isStub: false, sampleStatusCode: 200, customEndpointClosure: nil)
+  public init(authService: AuthServiceType) {
+    self.authService = authService
+    self.provider = Self.makeProvider(session: authService.createSession())
   }
 }
 
@@ -37,11 +32,12 @@ extension SignUpRepository: SignUpRepositoryInterface {
     .just(["test.jpg", "test2.jpg"])
   }
   
-  public func signUp(_ signUpRequest: SignUpInterface.SignUpReq) -> RxSwift.Single<AuthInterface.Token> {
-    request(type: Token.self, target: .signUp(signUpReq: signUpRequest))
+  public func signUp(_ signUpRequest: SignUpReq) -> Single<Void> {
+    authService.signUp(signUpRequest)
+      .map { _ in }
   }
   
-  public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
+  public func certificate(phoneNumber: String) -> Single<Int> {
     Single.just(PhoneValidationResponse(phoneNumber: "01012345678", authNumber: 123456))
       .map { $0.authNumber }
 

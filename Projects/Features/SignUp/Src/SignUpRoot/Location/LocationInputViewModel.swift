@@ -12,6 +12,7 @@ import Core
 import RxSwift
 import RxCocoa
 import SignUpInterface
+import AuthInterface
 
 final class LocationInputViewModel: ViewModelType {
   private var disposeBag = DisposeBag()

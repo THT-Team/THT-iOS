@@ -8,16 +8,18 @@
 import Foundation
 import AuthInterface
 import RxSwift
+
 import Core
 
 public final class AuthUseCase: AuthUseCaseInterface {
   private let repository: AuthRepositoryInterface
-  private let tokenStore: TokenStore
 
-  public init(authRepository: AuthRepositoryInterface, tokenStore: TokenStore) {
+  public init(authRepository: AuthRepositoryInterface) {
     self.repository = authRepository
-    self.tokenStore = tokenStore
-    TFLogger.domain.debug("AuthUseCase init")
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
   }
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
@@ -29,29 +31,17 @@ public final class AuthUseCase: AuthUseCaseInterface {
 
   public func login(phoneNumber: String, deviceKey: String) -> Single<Void> {
     return repository.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
-      .flatMap { [weak self] token in
-        self?.tokenStore.saveToken(token: token)
-        return .just(())
-      }
+      .map { _ in }
   }
 
   public func loginSNS(_ request: AuthInterface.UserSNSLoginRequest) -> Single<Void> {
     return repository.loginSNS(request)
-      .flatMap { [weak self] token in
-        self?.tokenStore.saveToken(token: token)
-        return .just(())
-      }
+      .map { _ in }
   }
 
   // TODO: token을 어디서 집어넣을 지 생각해볼 것 e,g Authenticator
   public func refresh() -> Single<Void> {
-    guard let token = try? tokenStore.getToken() else {
-      return .error(AuthError.invalidToken)
-    }
-    return repository.refresh(token)
-      .flatMap { [weak self] token in
-        self?.tokenStore.saveToken(token: token)
-        return .just(())
-      }
+    return repository.refresh()
+      .map { _ in }
   }
 }

@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import SignUpInterface
+import AuthInterface
 import Contacts
 
 enum ContactError: Error {
