@@ -31,6 +31,7 @@ public enum FallingHomeNavigationAction {
   case toReportBlockAlert(listener: BlockOrReportAlertListener)
   case toReportAlert(listener: ReportAlertListener)
   case toBlockAlert(listener: BlockAlertListener)
+  case toChatRoom(chatRoomIndex: Int)
 }
 
 public protocol FallingHomeActionDelegate: AnyObject {
