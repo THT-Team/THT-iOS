@@ -26,6 +26,12 @@ final class SignUpCompleteViewController: TFBaseViewController {
   override func loadView() {
     self.view = mainView
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    
+    mainView.startAnimation()
+  }
 
   override func bindViewModel() {
     let input = ViewModel.Input(

@@ -31,7 +31,7 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   }
 
   public func chatRoomFlow() {
-    //    TFLogger.dataLogger.info("ChatRoom!")
+        TFLogger.dataLogger.info("ChatRoom!")
   }
 }
 
@@ -63,6 +63,8 @@ extension FallingCoordinator: FallingHomeActionDelegate {
       userReportAlert(listener)
     case let .toBlockAlert(listener):
       blockAlertFlow(listener)
+    case let .toChatRoom(chatRoomIndex):
+      chatRoomFlow()
     }
   }
 }

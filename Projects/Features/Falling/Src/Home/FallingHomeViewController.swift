@@ -11,21 +11,10 @@ import Core
 import DSKit
 import FallingInterface
 
-enum FallingCellButtonAction {
-  case reject(IndexPath)
-  case like(IndexPath)
-}
-
-enum AnimationAction {
-  case scroll, delete
-}
-
 final class FallingHomeViewController: TFBaseViewController {
   private let viewModel: FallingHomeViewModel
   private var dataSource: DataSource!
   private lazy var homeView = FallingHomeView()
-  
-//  private lazy var alertContentView = TFAlertContentView()
   
   init(viewModel: FallingHomeViewModel) {
     self.viewModel = viewModel
@@ -52,66 +41,73 @@ final class FallingHomeViewController: TFBaseViewController {
     navigationItem.leftBarButtonItem = mindImageItem
     navigationItem.rightBarButtonItem = notificationButtonItem
   }
-  
+
+  private let deleteAnimationComplete = PublishRelay<Void>()
+
   override func bindViewModel() {
-    let timeOverSubject = PublishSubject<AnimationAction>()
-    
     let initialTrigger = Driver<Void>.just(())
-    let timerOverTrigger = timeOverSubject.asDriverOnErrorJustEmpty()
-    let fallingCellButtonAction = PublishSubject<FallingCellButtonAction>()
-    
-    let viewWillDisAppearTrigger = self.rx.viewWillDisAppear.map { _ in
-      return false
-    }.asDriverOnErrorJustEmpty()
-    
-    let timerActiveRelay = BehaviorRelay<Bool>(value: true)
-    
-    let profileDoubleTapTriggerObserver = PublishSubject<Void>()
-    let profileDoubleTapTrigger = profileDoubleTapTriggerObserver
-      .withLatestFrom(timerActiveRelay) {
-        return !$1
-      }
-      .asDriverOnErrorJustEmpty()
-    
-    let reportButtonTapTriggerObserver = PublishSubject<Void>()
-    
-    let reportButtonTapTrigger = reportButtonTapTriggerObserver
-      .withLatestFrom(timerActiveRelay) { _, _ in 
-        return false
-      }
-      .asDriverOnErrorJustEmpty()
-    
-    Driver.merge(reportButtonTapTrigger, profileDoubleTapTrigger, viewWillDisAppearTrigger)
-      .drive(timerActiveRelay)
-      .disposed(by: disposeBag)
-    
+    let fallingCellButtonAction = PublishSubject<CellType.Action>()
+    let viewWillDisAppear = self.rx.viewWillDisAppear.asDriver().map { _ in
+    }
+    let viewDidAppear = self.rx.viewDidAppear.asDriver().map { _ in }
+
     let input = FallingHomeViewModel.Input(
       initialTrigger: initialTrigger,
-      timeOverTrigger: timerOverTrigger,
+      viewDidAppear: viewDidAppear,
+      viewWillDisappear: viewWillDisAppear,
       cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty(),
-      reportButtonTapTrigger: reportButtonTapTriggerObserver.asSignal(onErrorSignalWith: .empty())
+      deleteAnimationComplete: deleteAnimationComplete.asSignal()
     )
     
     let output = viewModel.transform(input: input)
-    
-    let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { cell, indexPath, item in
-      let timerActiveTrigger = Driver.combineLatest(
-        output.nextCardIndexPath,
-        timerActiveRelay.asDriver()
-      )
-        .filter { itemIndexPath, _ in indexPath == itemIndexPath }
-        .map { _, timerActiveFlag in timerActiveFlag }
+
+    let currentIdentifier = output.state
+      .distinctUntilChanged(\.scrollAction)
+      .compactMap(\.user?.identifer)
+      .debug("state IndexPaht: ")
+
+    let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { [weak self] cell, indexPath, item in
+
+      TFLogger.dataLogger.debug("\(item.username)")
+
+      let timerActiveTrigger = currentIdentifier
+        .map { $0 == item.identifer }
+
+      // MARK: State Binding
+      timerActiveTrigger
+        .debug("\(indexPath) active")
+        .drive(cell.activateCardSubject)
+        .disposed(by: cell.disposeBag)
+
+      Driver.just(item)
+        .drive(cell.rx.user)
+        .disposed(by: cell.disposeBag)
+
+      self?.viewModel.pulse(\.$timeState)
+        .asDriverOnErrorJustEmpty()
+        .withLatestFrom(timerActiveTrigger) { ($0, $1) }
+        .filter { _, isActive in isActive }
+        .map { timeState, _ in timeState }
+        .drive(cell.rx.timeState)
+        .disposed(by: cell.disposeBag)
+
+      self?.viewModel.pulse(\.$shouldShowPause)
+        .withLatestFrom(timerActiveTrigger) { ($0, $1) }
+        .filter { _, isActive in isActive }
+        .map { shouldSHowPause, _ in !shouldSHowPause }
+        .bind(to: cell.pauseViewRelay)
+        .disposed(by: cell.disposeBag)
 
 
-      cell.bind(
-        FallingUserCollectionViewCellModel(userDomain: item),
-        timerActiveTrigger: timerActiveTrigger,
-        timeOverSubject: timeOverSubject,
-        profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
-        fallingCellButtonAction: fallingCellButtonAction,
-        reportButtonTapTriggerObserver: reportButtonTapTriggerObserver,
-        deleteCellTrigger: output.deleteCard.map { _ in }
+      // MARK: Action Forwarding
+      Driver.merge(cell.rx.likeBtnTap.asDriver(),
+                       cell.rx.reportBtnTap.asDriver(),
+                       cell.rx.rejectBtnTap.asDriver(),
+                       cell.rx.cardDoubleTap.asDriver(),
+                       cell.rx.pauseDoubleTap.asDriver()
       )
+      .drive(fallingCellButtonAction)
+      .disposed(by: cell.disposeBag)
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
@@ -127,65 +123,40 @@ final class FallingHomeViewController: TFBaseViewController {
         for: index
       )
     }
-    
-    var listCount = 0
-    
-    output.userList
+
+    initialSnapshot()
+
+    output.state.map(\.snapshot).distinctUntilChanged()
       .drive(with: self, onNext: { owner, list in
-        listCount = list.count
         var snapshot = Snapshot()
         snapshot.appendSections([.profile])
-        snapshot.appendItems(list)
+        snapshot.appendItems(list, toSection: .profile)
+//        owner.dataSource.applySnapshotUsingReloadData(snapshot)
         owner.dataSource.apply(snapshot, animatingDifferences: true)
       }).disposed(by: disposeBag)
-    
-    output.nextCardIndexPath
-      .drive(with: self, onNext: { owner, indexPath in
-        guard indexPath.row < listCount else { return }
-        owner.homeView.collectionView.scrollToItem(
-          at: indexPath,
-          at: .top,
-          animated: true
-        )
+
+    viewModel.pulse(\.$scrollAction)
+      .distinctUntilChanged()
+      .asDriverOnErrorJustEmpty()
+      .drive(with: self, onNext: { owner, action in
+        switch action {
+        case .scroll(let indexPath):
+          owner.homeView.collectionView.scrollToItem(
+            at: indexPath,
+            at: .top,
+            animated: true
+          )
+          TFLogger.ui.debug("scroll to Item at: \(indexPath)")
+        case let .scrollAfterDelete(user):
+          owner.deleteItem(user)
+        default: break
+        }
       })
       .disposed(by: self.disposeBag)
-    
-    output.likeButtonAction
-      .drive(with: self) { owner, _ in
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-          timeOverSubject.onNext(.scroll)
-        }
-      }
-      .disposed(by: disposeBag)
-    
-    output.rejectButtonAction
-      .drive(with: self) { owner, _ in
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-          timeOverSubject.onNext(.scroll)
-        }
-      }
-      .disposed(by: disposeBag)
-    
-    output.deleteCard
-      .drive(with: self, onNext: { owner, indexPath in
-        guard let _ = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
-        
-        owner.deleteItems(indexPath)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          timeOverSubject.onNext(.delete)
-          timerActiveRelay.accept(true)
-        }
-      })
-      .disposed(by: disposeBag)
 
-    output.activateTimer
-      .map { true }
-      .emit(to: timerActiveRelay)
-      .disposed(by: disposeBag)
-
-    output.toast
-      .emit(with: self, onNext: { owner, message in
+    viewModel.pulse(\.$toast)
+      .compactMap { $0 }
+      .bind(with: self, onNext: { owner, message in
         owner.homeView.makeToast(message, duration: 3.0, position: .bottom)
       })
       .disposed(by: disposeBag)
@@ -200,36 +171,23 @@ extension FallingHomeViewController {
   typealias SectionType = FallingProfileSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
   typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
-  
-  private func deleteItems(_ indexPath: IndexPath) {
-    guard
-      let item = self.dataSource.itemIdentifier(for: indexPath),
-      let cell = self.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
-    var snapshot = self.dataSource.snapshot()
-    snapshot.deleteItems([item])
-    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut) {
+
+  func initialSnapshot() {
+    var snapshot = Snapshot()
+    snapshot.appendSections([.profile])
+    self.dataSource.apply(snapshot, animatingDifferences: false)
+  }
+
+  private func deleteItem(_ user: FallingUser) {
+    guard 
+      let deleteIndexPath = self.dataSource.indexPath(for: user),
+      let cell = self.homeView.collectionView.cellForItem(at: deleteIndexPath) as? FallingUserCollectionViewCell else { return }
+
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
       cell.transform = cell.transform.rotated(by: -.pi / 6).concatenating(cell.transform.translatedBy(x: cell.frame.minX - self.homeView.collectionView.frame.width, y: 37.62))
     } completion: { [weak self] _ in
-      guard let self = self else { return }
-
-//      self.dataSource.apply(snapshot)
+      self?.deleteAnimationComplete.accept(())
+      TFLogger.ui.debug("delete animation did completed")
     }
   }
 }
-
-//#if DEBUG
-//import SwiftUI
-//import RxGesture
-//
-//struct MainViewControllerPreView: PreviewProvider {
-//  static var previews: some View {
-//    let service = FallingAPI(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil)
-//    let navigator = MainNavigator(controller: UINavigationController(), fallingService: service)
-//
-//    let viewModel = MainViewModel(navigator: navigator, service: service)
-//
-//    return FallingHomeViewController(viewModel: viewModel)
-//      .toPreView()
-//  }
-//}
-//#endif

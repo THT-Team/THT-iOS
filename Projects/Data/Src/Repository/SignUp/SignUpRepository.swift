@@ -15,6 +15,8 @@ import RxSwift
 import RxMoya
 import Moya
 
+import Core
+
 public final class SignUpRepository: ProviderProtocol {
 
   public typealias Target = SignUpTarget

@@ -12,6 +12,7 @@ import FallingInterface
 import RxSwift
 
 public final class FallingUseCase: FallingUseCaseInterface {
+
   private let repository: FallingRepositoryInterface
   
   public init(repository: FallingRepositoryInterface) {
@@ -25,5 +26,22 @@ public final class FallingUseCase: FallingUseCaseInterface {
       size: size
     )
   }
+
+  public func block(userUUID: String) -> Single<Void> {
+    .just(())
+  }
+
+  public func report(userUUID: String, reason: String) -> Single<Void> {
+    .just(())
+  }
+
+  public func like(userUUID: String, topicIndex: String) -> RxSwift.Single<Bool> {
+    return .just([true, false].randomElement() ?? false)
+  }
+
+  public func reject(userUUID: String, topicIndex: String) -> RxSwift.Single<Void> {
+    return .just(())
+  }
+
 }
 
