@@ -17,52 +17,33 @@ final class SignUpCompleteView: TFBaseView {
   lazy var titleLabel: UILabel = UILabel().then {
     $0.text = "환영해요! 💫\n모든 준비가 끝났어요"
     $0.textColor = DSKitAsset.Color.neutral50.color
-    $0.font = .thtH2B
+    $0.font = .thtH3B
     $0.numberOfLines = 0
     $0.textAlignment = .center
   }
-
-  private lazy var conicGradient: CAGradientLayer = {
-    let gradient = CAGradientLayer()
-    gradient.type = .conic
-    gradient.colors = [
-      DSKitAsset.Color.primary500.color.cgColor,
-      DSKitAsset.Color.thtOrange400.color.cgColor
-    ]
-    gradient.locations = [0]
-
-    // startPoint: 원의 중심, endPoint: 첫 번째 색상과 마지막 색상이 결합되는 지점
-    // (0,0)우측하단, (1,1)은 (0,0)에서 한바퀴 돌은 지점
-    gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
-    gradient.endPoint = CGPoint(x: 0.5, y: 1)
-    return gradient
-  }()
-
-  private lazy var gradientView = UIView().then {
-    $0.backgroundColor = .green
-    $0.layer.addSublayer(conicGradient)
-    $0.layer.cornerRadius = 32
-    $0.clipsToBounds = true
-  }
-
+  
   lazy var descLabel = UILabel().then {
     $0.text = "폴링에 한 번 빠져 보시겠어요"
-    $0.font = .thtSubTitle1R
+    $0.font = .thtH5R
     $0.textColor = DSKitAsset.Color.neutral400.color
     $0.textAlignment = .center
     $0.numberOfLines = 2
   }
+  private lazy var gradientView = TFShimmerGradientView()
 
   lazy var imageView = UIImageView().then {
     $0.image = DSKitAsset.Image.Test.test1.image
     $0.contentMode = .scaleAspectFill
     $0.clipsToBounds = true
-    $0.layer.cornerRadius = 20
-    $0.layer.borderColor = DSKitAsset.Color.neutral700.color.cgColor
-    $0.layer.borderWidth = 10
+    $0.layer.cornerRadius = 20 * Metric.wRatio
   }
 
   lazy var nextBtn = CTAButton(btnTitle: "네, 좋아요", initialStatus: true)
+  
+  private enum Metric {
+    static let wRatio: CGFloat = UIScreen.main.bounds.width / 390.0
+    static let hRatio: CGFloat = UIScreen.main.bounds.height / 844
+  }
 
   override func makeUI() {
     addSubview(containerView)
@@ -90,12 +71,12 @@ final class SignUpCompleteView: TFBaseView {
     }
     gradientView.snp.makeConstraints {
       $0.center.equalToSuperview()
-      $0.size.equalTo(250)
+      $0.size.equalTo(184).multipliedBy(Metric.wRatio)
     }
 
     imageView.snp.makeConstraints {
       $0.center.equalToSuperview()
-      $0.size.equalTo(235)
+      $0.size.equalTo(160).multipliedBy(Metric.wRatio)
     }
 
     nextBtn.snp.makeConstraints {
@@ -105,10 +86,9 @@ final class SignUpCompleteView: TFBaseView {
     }
 
   }
-
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    conicGradient.frame = gradientView.bounds
+  
+  func startAnimation() {
+    gradientView.animate(frame: gradientView.bounds)
   }
 }
 #if canImport(SwiftUI) && DEBUG
@@ -125,4 +105,3 @@ struct SignUpCompleteViewPreview: PreviewProvider {
   }
 }
 #endif
-
