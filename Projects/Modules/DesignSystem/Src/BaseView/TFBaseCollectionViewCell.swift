@@ -21,8 +21,8 @@ open class TFBaseCollectionViewCell: UICollectionViewCell {
   }
 
   open override func prepareForReuse() {
-    self.disposeBag = DisposeBag()
     super.prepareForReuse()
+    self.disposeBag = DisposeBag()
   }
 
   open func makeUI() { }
