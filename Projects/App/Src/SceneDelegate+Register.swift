@@ -22,6 +22,10 @@ extension AppDelegate {
     let tokenStore = UserDefaultTokenStore()
     let tokenProvider = DefaultTokenProvider()
 
+    let contactService = ContactService()
+    let kakaoService = KakaoAPIService()
+    let locationService = LocationService()
+
     container.register(
       interface: UserInfoUseCaseInterface.self,
       implement: { UserInfoUseCase(repository: UserDefaultUserInfoRepository()) })
@@ -34,9 +38,9 @@ extension AppDelegate {
       interface: SignUpUseCaseInterface.self,
       implement: { SignUpUseCase(
         repository: SignUpRepository(),
-        locationService: LocationService(),
-        kakaoAPIService: KakaoAPIService(),
-        contactService: ContactService(),
+        locationService: locationService,
+        kakaoAPIService: kakaoService,
+        contactService: contactService,
         tokenStore: tokenStore)
       })
     
@@ -87,9 +91,16 @@ extension AppDelegate {
             isStub: true,
             sampleStatusCode: 200,
             customEndpointClosure: nil
-          )
+          ), contactsService: contactService
         )
       }
+    )
+
+    container.register(
+      interface: LocationUseCaseInterface.self,
+      implement: { LocationUseCase(
+        locationService: locationService,
+        kakaoAPIService: kakaoService) }
     )
   }
 }

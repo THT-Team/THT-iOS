@@ -22,7 +22,7 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
   }
   public override func bindViewModel() {
     let input = LauncherViewModel.Input(
-      viewDidLoad: self.rx.viewDidAppear.asDriver().delay(.seconds(1)).map { _ in }
+      viewDidLoad: self.rx.viewDidAppear.asDriver().delay(.seconds(2)).map { _ in }
     )
     let output = viewModel.transform(input: input)
 

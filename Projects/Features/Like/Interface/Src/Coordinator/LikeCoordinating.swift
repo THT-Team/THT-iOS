@@ -10,7 +10,6 @@ import Foundation
 import Core
 
 public protocol LikeCoordinatorDelegate: AnyObject {
-  func test(_ coordinator: Coordinator)
 
 }
 

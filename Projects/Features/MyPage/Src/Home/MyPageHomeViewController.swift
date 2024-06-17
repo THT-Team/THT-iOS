@@ -7,12 +7,20 @@
 
 import UIKit
 
+import MyPageInterface
+
 import Core
 import DSKit
 
 final class MyPageHomeViewController: TFBaseViewController {
   let viewModel: MyPageHomeViewModel
-  
+  let mainView = MyPageView()
+  private let delegateAction = PublishRelay<MyPageHome.Action>()
+
+  override func loadView() {
+    self.view = mainView
+  }
+
   init(viewModel: MyPageHomeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -26,8 +34,71 @@ final class MyPageHomeViewController: TFBaseViewController {
     super.navigationSetting()
     
     navigationItem.title = "마이페이지"
-    let notificationButtonItem = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
     
-    navigationItem.rightBarButtonItem = notificationButtonItem
+    navigationItem.rightBarButtonItem = mainView.rightBarBtn
+  }
+
+  override func bindViewModel() {
+    self.mainView.delegate = self
+
+    mainView.settingButton.rx.tap
+      .debug("tap")
+      .map { _ in MyPageHome.Action.settingTap }
+      .bind(to: delegateAction)
+      .disposed(by: disposeBag)
+
+    let input = MyPageHomeViewModel.Input(
+      viewDidload: rx.viewDidAppear.asDriver().map { _ in },
+      delegateAction: delegateAction.asDriverOnErrorJustEmpty()
+      )
+
+    let output = viewModel.transform(input: input)
+
+    output.user
+      .drive(with: self, onNext: { owner, datasource in
+        owner.mainView.bind(dataSource: datasource)
+      })
+      .disposed(by: disposeBag)
+
+    output.photos
+      .drive(with: self) { owner, photos in
+        owner.mainView.photos = photos
+      }
+      .disposed(by: disposeBag)
   }
 }
+
+enum MyPageHome {
+  enum Action {
+    case photoEdit(Int)
+    case photoAdd(Int)
+    case nicknameEdit
+    case settingTap
+  }
+}
+
+extension MyPageHomeViewController: MyPageViewDelegate {
+  func didTapPhotoEditButton(_ index: Int) {
+    delegateAction.accept(.photoEdit(index))
+  }
+  
+  func didTapPhotoAddButton(_ index: Int) {
+    delegateAction.accept(.photoAdd(index))
+  }
+  
+  func didTapNicknameEditButton() {
+    delegateAction.accept(.nicknameEdit)
+  }
+}
+//
+//#if canImport(SwiftUI) && DEBUG
+//import SwiftUI
+//
+//struct MyPageViewController_Preview: PreviewProvider {
+//  static var previews: some View {
+//    let vm = MyPageHomeViewModel(myPageUseCase: MyPageUseCase(repository: MockMyPageRepository()))
+//    let vc = MyPageHomeViewController(viewModel: vm)
+//    return vc.showPreview()
+//  }
+//}
+//#endif

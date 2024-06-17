@@ -25,3 +25,12 @@ public enum Gender: String, Codable {
     }
   }
 }
+extension Gender {
+  public var title: String {
+    switch self {
+    case .male: return "남성"
+    case .female: return "여성"
+    case .both: return "모두"
+    }
+  }
+}

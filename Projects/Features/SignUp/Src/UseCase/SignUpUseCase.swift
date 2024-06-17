@@ -15,15 +15,12 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   private let repository: SignUpRepositoryInterface
   private let tokenStore: TokenStore
-  private let locationService: LocationServiceType
-  private let kakaoAPIService: KakaoAPIServiceType
+
   private let contactService: ContactServiceType
 
   public init(repository: SignUpRepositoryInterface, locationService: LocationServiceType, kakaoAPIService: KakaoAPIServiceType, contactService: ContactServiceType, tokenStore: TokenStore) {
     self.repository = repository
-    self.kakaoAPIService = kakaoAPIService
     self.contactService = contactService
-    self.locationService = locationService
     self.tokenStore = tokenStore
   }
 
@@ -45,12 +42,6 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func block() -> Single<[ContactType]> {
     self.contactService.fetchContact()
-      .map { contacts in
-        contacts.map { contact in
-          let phoneNumber = contact.phoneNumber.replacingOccurrences(of: "\\D", with: "", options: .regularExpression)
-          return ContactType(name: contact.name, phoneNumber: phoneNumber)
-        }
-      }
   }
 
   public func signUp(request: SignUpReq) -> Single<Void> {
@@ -67,40 +58,6 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func fetchAgreements() -> Single<Agreement> {
     repository.fetchAgreements()
-  }
-
-  @MainActor
-  public func fetchLocation() -> Single<LocationReq> { //
-    self.locationService.requestAuthorization()
-
-    self.locationService.handleAuthorization { [weak self] granted in
-      guard granted else {
-        return
-      }
-      self?.locationService.requestLocation()
-    }
-
-    return self.locationService.publisher
-      .take(1)
-      .asSingle()
-      .flatMap { [unowned self] locationReq in
-        self.kakaoAPIService.fetchLocationByCoordinate2d(longitude: locationReq.lon, latitude: locationReq.lat)
-      }.map { model in
-        guard let model else {
-          throw LocationError.invalidLocation
-        }
-        return model
-      }
-  }
-
-  public func fetchLocation(_ address: String) -> Single<LocationReq> {
-    self.kakaoAPIService.fetchLocationByAddress(address: address)
-      .map { model in
-        guard let model else {
-          throw LocationError.invalidLocation
-        }
-        return model
-      }
   }
 }
 

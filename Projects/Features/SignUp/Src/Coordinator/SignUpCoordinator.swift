@@ -20,6 +20,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   
   @Injected private var useCase: SignUpUseCaseInterface
   @Injected private var userInfoUseCase: UserInfoUseCaseInterface
+  @Injected private var locationUseCase: LocationUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
 
@@ -30,7 +31,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func locationFlow() {
-    let viewModel = LocationInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
+    let viewModel = LocationInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase, locationUseCase: locationUseCase)
     viewModel.delegate = self
     let viewController = LocationInputViewController(viewModel: viewModel)
     self.viewControllable.pushViewController(viewController, animated: true)

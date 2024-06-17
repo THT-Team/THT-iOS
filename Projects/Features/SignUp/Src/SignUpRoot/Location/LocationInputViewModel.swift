@@ -20,6 +20,7 @@ final class LocationInputViewModel: ViewModelType {
   private let locationTrigger = PublishSubject<String>()
   private let useCase: SignUpUseCaseInterface
   private let userInfoUseCase: UserInfoUseCaseInterface
+  private let locationUseCase: LocationUseCaseInterface
 
   struct Input {
     let locationBtnTap: Driver<Void>
@@ -31,9 +32,10 @@ final class LocationInputViewModel: ViewModelType {
     let currentLocation: Driver<String>
   }
 
-  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
+  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface, locationUseCase: LocationUseCaseInterface) {
     self.useCase = useCase
     self.userInfoUseCase = userInfoUseCase
+    self.locationUseCase = locationUseCase
   }
 
   // 필드 클릭하면 퍼미션 리퀘스트 후 -> granted: Bool
@@ -64,7 +66,7 @@ final class LocationInputViewModel: ViewModelType {
       .withUnretained(self)
       .flatMapLatest { owner, _ in
 
-        return owner.useCase.fetchLocation()
+        return owner.locationUseCase.fetchLocation()
           .debug("location usecase")
           .catch { error in
             print(error.localizedDescription)
@@ -80,7 +82,7 @@ final class LocationInputViewModel: ViewModelType {
     addressTrigger
       .asDriverOnErrorJustEmpty()
       .flatMap { [unowned self] address in
-        self.useCase.fetchLocation(address)
+        self.locationUseCase.fetchLocation(address: address)
           .asDriver(onErrorDriveWith: .empty())
       }
       .drive(currentLocation)

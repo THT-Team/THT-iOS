@@ -54,8 +54,36 @@ public final class LocationService: NSObject, LocationServiceType {
     }
   }
 
-  public func requestLocation() {
-    manager.requestLocation()
+  public func requestLocation() -> Single<LocationReq> {
+    request()
+      .flatMap { [unowned self] _ in
+        self.publisher
+          .take(1)
+          .asSingle()
+      }
+  }
+
+  private func request() -> Single<Void> {
+    .create { [weak self] observer in
+      self?.manager.requestWhenInUseAuthorization()
+      
+      if self?.manager.authorizationStatus == .notDetermined {
+        observer(.failure(LocationError.notDetermined))
+        return Disposables.create {
+        }
+      }
+
+      self?.handleAuthorization { granted in
+        guard granted else {
+          observer(.failure(LocationError.denied))
+          return
+        }
+        self?.manager.requestLocation()
+        observer(.success(()))
+      }
+
+      return Disposables.create()
+    }
   }
 }
 

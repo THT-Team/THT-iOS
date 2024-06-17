@@ -10,7 +10,7 @@ import Foundation
 import Core
 
 public protocol FallingCoordinatorDelegate: AnyObject {
-  func test(_ coordinator: Coordinator)
+  
 
 }
 public protocol FallingCoordinating: Coordinator {

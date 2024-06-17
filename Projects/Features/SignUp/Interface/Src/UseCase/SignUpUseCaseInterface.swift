@@ -15,8 +15,6 @@ public protocol SignUpUseCaseInterface {
   func idealTypes() -> Single<[Domain.EmojiType]>
   func interests() -> Single<[Domain.EmojiType]>
   func block() -> Single<[ContactType]>
-  func fetchLocation() -> Single<LocationReq>
-  func fetchLocation(_ address: String) -> Single<LocationReq>
   func signUp(request: SignUpReq) -> Single<Void>
   func uploadImage(data: [Data]) -> Single<[String]>
   func fetchAgreements() -> Single<Agreement>

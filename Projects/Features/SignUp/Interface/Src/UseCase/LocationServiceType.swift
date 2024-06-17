@@ -11,11 +11,12 @@ import RxSwift
 public protocol LocationServiceType {
   var publisher: PublishSubject<LocationReq> { get }
   func handleAuthorization(granted: @escaping (Bool) -> Void)
-  func requestLocation()
   func requestAuthorization()
+  func requestLocation() -> Single<LocationReq>
 }
 
 public enum LocationError: Error {
   case denied
   case invalidLocation
+  case notDetermined
 }

@@ -42,7 +42,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 }
 
 extension AppCoordinator: MyPageCoordinatorDelegate {
-  func test(_ coordinator: Core.Coordinator) {
+  func detachMyPage(_ coordinator: Core.Coordinator) {
     detachChild(coordinator)
 
     TFLogger.dataLogger.debug("test")
