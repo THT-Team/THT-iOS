@@ -45,4 +45,9 @@ open class TFLaunchViewController: TFBaseViewController {
     splashLottieView.play()
 
   }
+  
+  open override func navigationSetting() {
+    super.navigationSetting()
+    navigationController?.navigationBar.isHidden = true
+  }
 }
