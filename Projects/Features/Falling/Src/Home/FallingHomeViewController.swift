@@ -25,7 +25,7 @@ final class FallingHomeViewController: TFBaseViewController {
   private var dataSource: DataSource!
   private lazy var homeView = FallingHomeView()
   
-  private lazy var alertContentView = TFAlertContentView()
+//  private lazy var alertContentView = TFAlertContentView()
   
   init(viewModel: FallingHomeViewModel) {
     self.viewModel = viewModel
@@ -85,17 +85,11 @@ final class FallingHomeViewController: TFBaseViewController {
       .drive(timerActiveRelay)
       .disposed(by: disposeBag)
     
-    let complaintsButtonTapTrigger = PublishRelay<Void>()
-    let blockButtonTapTrigger = PublishRelay<Void>()
-    
-    let deleteCellTrigger = Driver.merge(complaintsButtonTapTrigger.asDriverOnErrorJustEmpty(), blockButtonTapTrigger.asDriverOnErrorJustEmpty())
-    
     let input = FallingHomeViewModel.Input(
       initialTrigger: initialTrigger,
       timeOverTrigger: timerOverTrigger,
       cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty(),
-      complaintsButtonTapTrigger: complaintsButtonTapTrigger.asDriverOnErrorJustEmpty(),
-      blockButtonTapTrigger: blockButtonTapTrigger.asDriverOnErrorJustEmpty()
+      reportButtonTapTrigger: reportButtonTapTriggerObserver.asSignal(onErrorSignalWith: .empty())
     )
     
     let output = viewModel.transform(input: input)
@@ -107,7 +101,8 @@ final class FallingHomeViewController: TFBaseViewController {
       )
         .filter { itemIndexPath, _ in indexPath == itemIndexPath }
         .map { _, timerActiveFlag in timerActiveFlag }
-      
+
+
       cell.bind(
         FallingUserCollectionViewCellModel(userDomain: item),
         timerActiveTrigger: timerActiveTrigger,
@@ -115,7 +110,7 @@ final class FallingHomeViewController: TFBaseViewController {
         profileDoubleTapTriggerObserver: profileDoubleTapTriggerObserver,
         fallingCellButtonAction: fallingCellButtonAction,
         reportButtonTapTriggerObserver: reportButtonTapTriggerObserver,
-        deleteCellTrigger: deleteCellTrigger
+        deleteCellTrigger: output.deleteCard.map { _ in }
       )
     }
     
@@ -171,53 +166,7 @@ final class FallingHomeViewController: TFBaseViewController {
       }
       .disposed(by: disposeBag)
     
-    Driver.merge(
-      alertContentView.unpleasantPhotoButton.rx.tap.asDriver(),
-      alertContentView.fakeProfileButton.rx.tap.asDriver(),
-      alertContentView.photoTheftButton.rx.tap.asDriver(),
-      alertContentView.profanityButton.rx.tap.asDriver(),
-      alertContentView.sharingIllegalFootageButton.rx.tap.asDriver())
-    .drive(with: self, onNext: { owner, _ in
-      complaintsButtonTapTrigger.accept(())
-      owner.homeView.makeToast("신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며, 신고 사유는 검토 후 처리됩니다.", duration: 3.0, position: .bottom)
-      
-      UIWindow.keyWindow?.rootViewController?.dismiss(animated: false)
-    })
-    .disposed(by: disposeBag)
-    
-    reportButtonTapTriggerObserver.asDriverOnErrorJustEmpty()
-      .drive(with: self) { owner, _ in
-        owner.showAlert(
-          topActionTitle: "신고하기",
-          bottomActionTitle: "차단하기",
-          dimColor: DSKitAsset.Color.clear.color,
-          topActionCompletion: {
-            owner.showAlert(
-              contentView: owner.alertContentView,
-              topActionTitle: nil,
-              dimColor: DSKitAsset.Color.clear.color,
-              bottomActionCompletion: { timerActiveRelay.accept(true) },
-              dimActionCompletion: { timerActiveRelay.accept(true) }
-            )
-          },
-          bottomActionCompletion: {
-            owner.showAlert(
-              action: .block,
-              dimColor: DSKitAsset.Color.clear.color,
-              topActionCompletion: {
-                blockButtonTapTrigger.accept(())
-                owner.homeView.makeToast("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.", duration: 3.0, position: .bottom)
-              },
-              bottomActionCompletion: { timerActiveRelay.accept(true) },
-              dimActionCompletion: { timerActiveRelay.accept(true) }
-            )
-          },
-          dimActionCompletion: { timerActiveRelay.accept(true) }
-        )
-      }
-      .disposed(by: disposeBag)
-    
-    Driver.merge(output.complaintsAction, output.blockAction)
+    output.deleteCard
       .drive(with: self, onNext: { owner, indexPath in
         guard let _ = owner.homeView.collectionView.cellForItem(at: indexPath) as? FallingUserCollectionViewCell else { return }
         
@@ -227,6 +176,17 @@ final class FallingHomeViewController: TFBaseViewController {
           timeOverSubject.onNext(.delete)
           timerActiveRelay.accept(true)
         }
+      })
+      .disposed(by: disposeBag)
+
+    output.activateTimer
+      .map { true }
+      .emit(to: timerActiveRelay)
+      .disposed(by: disposeBag)
+
+    output.toast
+      .emit(with: self, onNext: { owner, message in
+        owner.homeView.makeToast(message, duration: 3.0, position: .bottom)
       })
       .disposed(by: disposeBag)
   }
