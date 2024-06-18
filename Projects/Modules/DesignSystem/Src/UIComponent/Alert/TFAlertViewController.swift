@@ -143,7 +143,11 @@ public final class TFAlertViewController: TFBaseViewController {
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     
