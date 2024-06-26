@@ -7,9 +7,13 @@
 
 import Foundation
 import RxSwift
+import SignUpInterface
 
 public protocol MyPageUseCaseInterface {
   func fetchUser() -> Single<User>
   func fetchUserContacts() -> Single<Int>
   func updateUserContact() -> Single<Int>
+  func fetchAlarmSetting() -> AlarmSetting
+  func saveAlarmSetting(_ alarmSetting: AlarmSetting) -> Completable
+  func updateLocation(_ location: LocationReq) -> Single<Void>
 }

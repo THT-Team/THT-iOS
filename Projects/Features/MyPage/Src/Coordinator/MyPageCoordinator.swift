@@ -10,24 +10,28 @@ import Foundation
 import MyPageInterface
 import SignUpInterface
 import Core
+import DSKit
 
 public final class MyPageCoordinator: BaseCoordinator {
 
   @Injected var myPageUseCase: MyPageUseCaseInterface
-  @Injected var locationUseCase: LocationUseCaseInterface
+
+  private let mySettingBuildable: MySettingBuildable
+  private var mySettingCoordinator: MySettingCoordinating?
 
   public weak var delegate: MyPageCoordinatorDelegate?
-  
+
+  init(viewControllable: ViewControllable, mySettingBuildable: MySettingBuildable) {
+    self.mySettingBuildable = mySettingBuildable
+    super.init(viewControllable: viewControllable)
+  }
+
   public override func start() {
     homeFlow()
   }
 }
 
 extension MyPageCoordinator: MyPageCoordinating {
-  public func testFlow() {
-    let vc = TagsPickerViewController(nibName: nil, bundle: nil)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
 
   public func homeFlow() {
     let viewModel = MyPageHomeViewModel(myPageUseCase: myPageUseCase)
@@ -53,53 +57,52 @@ extension MyPageCoordinator: MyPageCoordinating {
   public func editHeightBottomSheetFlow(height: Int) {
 
   }
-
-  public func editUserContactsFlow() {
-    let vm = UserContactSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = UserContactSettingViewController(viewModel: vm)
-
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func settingFlow(_ user: User) {
-    let vm = MySettingViewModel(useCase: self.myPageUseCase, locationUseCase: locationUseCase, user: user)
-    let vc = MySettingsViewController(viewModel: vm)
-    vm.delegate = self
-
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
 }
+
+// MARK: Navigate Action
 
 extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
   public func invoke(_ action: MyPageCoordinatingAction) {
     switch action {
     case let .setting(user):
-      settingFlow(user)
-    case .editUserContacts:
-      editUserContactsFlow()
+      attachMySetting(user)
+
+    // Cell 누르면 Section casting해서 넘겨줌
+    case let .edit(section):
+      sectionFlow(section)
+
     default: break
-      
-//    case .editNickname(let string):
-//      <#code#>
-//    case .editPhoto:
-//      <#code#>
-//    case .introduction(let string):
-//      <#code#>
-//    case .preferGender(let gender):
-//      <#code#>
-//    case .editHeight(let int):
-//      <#code#>
-//    case .editSmoke(let frequency):
-//      <#code#>
-//    case .editDrink(let frequency):
-//      <#code#>
-//    case .editReligion(let religion):
-//      <#code#>
-//    case .editInterest(let array):
-//      <#code#>
-//    case .editIdealType(let array):
-//      <#code#>
     }
+  }
+
+  private func sectionFlow(_ section: MyPageSection) {
+    switch section {
+    case .birthday(let string):
+      let vc = TFBaseViewController(nibName: nil, bundle: nil)
+      self.viewControllable.presentBottomSheet(vc, animated: true)
+    default: break
+    }
+  }
+}
+
+// MARK: MySetting
+
+extension MyPageCoordinator: MySettingCoordinatorDelegate {
+  public func detachMySetting() {
+    guard let coordinator = self.mySettingCoordinator else {
+      return
+    }
+
+    self.viewControllable.popViewController(animated: true)
+    self.detachChild(coordinator)
+    self.mySettingCoordinator = nil
+  }
+
+  public func attachMySetting(_ user: User) {
+    let coordinator = self.mySettingBuildable.build(rootViewControllable: self.viewControllable, user: user)
+    coordinator.delegate = self
+    self.attachChild(coordinator)
+    self.mySettingCoordinator = coordinator
+    coordinator.settingHomeFlow(user)
   }
 }

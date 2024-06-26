@@ -15,6 +15,7 @@ import RxSwift
 import RxMoya
 import Moya
 import Alamofire
+import Core
 
 public final class AuthRepository: ProviderProtocol {
 
@@ -34,7 +35,8 @@ public final class AuthRepository: ProviderProtocol {
     let intercepter = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
     let session = Session(interceptor: intercepter)
 
-    self.provider = MoyaProvider(session: session)
+    self.provider = Self.makeProvider()
+    TFLogger.dataLogger.log("AuthRepository init")
   }
 }
 

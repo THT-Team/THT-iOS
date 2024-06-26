@@ -20,7 +20,9 @@ final class PhotoCell: TFBaseCollectionViewCell {
     $0.contentMode = .scaleAspectFill
   }
 
-  lazy var addButton = UIButton.plusButton
+  lazy var addButton = UIButton.plusButton.then {
+    $0.isUserInteractionEnabled = false
+  }
 
   override func makeUI() {
     contentView.addSubview(addButton)

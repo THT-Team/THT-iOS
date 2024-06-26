@@ -33,6 +33,23 @@ extension DateFormatter {
 
     return formatter
   }
+
+  static var koreanDateFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy년 MM월 dd일 HH:mm"
+    formatter.locale = Locale(identifier: "ko-KR")
+
+    return formatter
+  }
+  static var korean2DateFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .long
+    formatter.timeStyle = .short
+//    formatter.dateFormat = "yyyy년 MM월 dd일 HH:mm"
+    formatter.locale = Locale(identifier: "ko-KR")
+
+    return formatter
+  }
 }
 
 public extension String {
@@ -42,6 +59,10 @@ public extension String {
 }
 
 public extension Date {
+  func toString(_ dateFormatter: DateFormatter) -> String {
+    dateFormatter.string(from: self)
+  }
+  
   func toTimeString() -> String {
     DateFormatter.timeFormatter.string(from: self)
   }
@@ -50,6 +71,10 @@ public extension Date {
   }
   func toYMDDotDateString() -> String {
     DateFormatter.normalDateFormatter.string(from: self)
+  }
+
+  func toKoreanDateString() -> String {
+    DateFormatter.korean2DateFormatter.string(from: self)
   }
 
   // From GPT

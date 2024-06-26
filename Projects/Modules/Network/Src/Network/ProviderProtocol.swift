@@ -16,6 +16,27 @@ public protocol ProviderProtocol: AnyObject, Networkable {
 }
 
 public extension ProviderProtocol {
+  static func makeStubProvider(sampleStatusCode: Int = 200) -> MoyaProvider<Target> {
+    let endPointClosure = { (target: Target) -> Endpoint in
+      let sampleResponseClosure: () -> EndpointSampleResponse = {
+        EndpointSampleResponse.networkResponse(sampleStatusCode, target.sampleData)
+      }
+
+      return Endpoint(
+        url: URL(target: target).absoluteString,
+        sampleResponseClosure: sampleResponseClosure,
+        method: target.method,
+        task: target.task,
+        httpHeaderFields: target.headers
+      )
+    }
+
+    return MoyaProvider<Target>(
+      endpointClosure: endPointClosure,
+      stubClosure: MoyaProvider.immediatelyStub(_:)
+    )
+  }
+
   static func consProvider(
     _ isStub: Bool = false,
     _ sampleStatusCode: Int = 200,
@@ -77,8 +98,9 @@ public extension ProviderProtocol {
     }
   }
 
-  func requestWithNoContent(target: Target) -> Single<Void> {
+  func requestWithNoContent(target: Target) -> Completable {
     provider.rx.request(target)
       .map { _ in }
+      .asCompletable()
   }
 }

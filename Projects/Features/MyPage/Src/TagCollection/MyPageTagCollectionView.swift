@@ -8,6 +8,7 @@
 import UIKit
 
 class MyPageTagCollectionView: UICollectionView {
+
   override var contentSize: CGSize {
     didSet {
       if oldValue.height != contentSize.height {

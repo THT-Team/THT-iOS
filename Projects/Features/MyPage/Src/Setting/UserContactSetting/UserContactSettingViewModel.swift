@@ -17,38 +17,37 @@ import MyPageInterface
 final class UserContactSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
-  weak var delegate: MyPageCoordinatingActionDelegate?
+  weak var delegate: MySettingCoordinatingActionDelegate?
 
   init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase
   }
 
   struct Input {
+    let viewDidAppear: Driver<Void>
     let tap: Driver<Void>
   }
 
   struct Output {
     let toast: Driver<String>
+    let fetchedContactCount: Driver<Int>
   }
 
   func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
+    let fetchedContactCount = PublishSubject<Int>()
 
-    Observable.just(())
-      .delay(.seconds(1), scheduler: MainScheduler.instance)
-      .withUnretained(self)
-      .flatMap { owner, _ in
+    input.viewDidAppear
+      .flatMapLatest(with: self) { owner, _ in
         owner.useCase.fetchUserContacts()
-          .catchAndReturn(0)
-          .asObservable()
+          .asDriver(onErrorRecover: { error in
+            toast.onNext(error.localizedDescription)
+            return .empty()
+          })
       }
-      .asDriverOnErrorJustEmpty()
-      .drive(onNext: { count in
-        toast.onNext("\(count)")
-      })
+      .drive(fetchedContactCount)
       .disposed(by: disposeBag)
-//
-//
+
     input.tap
       .asObservable()
       .observe(on: ConcurrentDispatchQueueScheduler(qos: .background))
@@ -57,14 +56,19 @@ final class UserContactSettingViewModel: ViewModelType {
         owner.useCase.updateUserContact()
           .catchAndReturn(0)
       }
+      .flatMap({ count -> Observable<Int> in
+        fetchedContactCount.onNext(count)
+        return .just(count)
+      })
       .map { "\($0)개의 연락처를 차단했습니다." }
-      .debug("toast")
-      .asDriverOnErrorJustEmpty()
-      .drive(toast)
+      .bind(to: toast)
       .disposed(by: disposeBag)
 
 
 
-    return Output(toast: toast.asDriverOnErrorJustEmpty())
+    return Output(
+      toast: toast.asDriverOnErrorJustEmpty(),
+      fetchedContactCount: fetchedContactCount.asDriverOnErrorJustEmpty()
+    )
   }
 }
