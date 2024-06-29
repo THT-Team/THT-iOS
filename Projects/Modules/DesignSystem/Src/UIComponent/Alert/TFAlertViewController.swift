@@ -86,7 +86,6 @@ public final class TFAlertViewController: TFBaseViewController {
   private lazy var buttonStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
-    stackView.spacing = 3 //16.0
     stackView.alignment = .center
     return stackView
   }()
@@ -144,7 +143,11 @@ public final class TFAlertViewController: TFBaseViewController {
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     
@@ -244,7 +247,7 @@ public final class TFAlertViewController: TFBaseViewController {
     buttonStackView.addArrangedSubview(button)
     button.snp.makeConstraints {
       $0.width.equalToSuperview()
-      $0.height.equalTo(60)
+      $0.height.equalTo(52.25)
     }
   }
   
