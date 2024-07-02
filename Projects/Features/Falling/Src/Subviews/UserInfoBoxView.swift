@@ -11,12 +11,12 @@ import DSKit
 import FallingInterface
 
 final class UserInfoBoxView: TFBaseView {
-  lazy var pageControl: UIPageControl = {
-    let pageControl = UIPageControl()
-    pageControl.pageIndicatorTintColor = DSKitAsset.Color.neutral50.color
-    pageControl.currentPageIndicatorTintColor = DSKitAsset.Color.neutral300.color
-    return pageControl
-  }()
+//  lazy var pageControl: UIPageControl = {
+//    let pageControl = UIPageControl()
+//    pageControl.pageIndicatorTintColor = DSKitAsset.Color.neutral50.color
+//    pageControl.currentPageIndicatorTintColor = DSKitAsset.Color.neutral300.color
+//    return pageControl
+//  }()
   
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
@@ -78,8 +78,8 @@ final class UserInfoBoxView: TFBaseView {
     
     labelStackView.addArrangedSubviews([titleLabel, adressStackView])
     
-    addSubviews([labelStackView, buttonStackView, pageControl])
-    
+    addSubviews([labelStackView, buttonStackView])// , pageControl])
+
     labelStackView.snp.makeConstraints {
       $0.top.leading.trailing.equalToSuperview()
     }
@@ -101,12 +101,12 @@ final class UserInfoBoxView: TFBaseView {
       $0.width.equalTo(92).priority(.low)
     }
     
-    pageControl.snp.makeConstraints {
-      $0.top.equalTo(buttonStackView.snp.bottom).offset(14)
-      $0.centerX.equalToSuperview()
-      $0.height.equalTo(6)
-      $0.width.greaterThanOrEqualTo(38)
-    }
+//    pageControl.snp.makeConstraints {
+//      $0.top.equalTo(buttonStackView.snp.bottom).offset(14)
+//      $0.centerX.equalToSuperview()
+//      $0.height.equalTo(6)
+//      $0.width.greaterThanOrEqualTo(38)
+//    }
   }
   
   func bind(_ viewModel: FallingUser) {
