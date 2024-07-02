@@ -14,6 +14,6 @@ public protocol AuthRepositoryInterface {
   func checkUserExist(phoneNumber: String) -> Single<UserSignUpInfoRes>
   func login(phoneNumber: String, deviceKey: String) -> Single<Token>
   func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
-  func refresh(_ token: Token, completion: @escaping (Result<Token, Error>) -> Void)
-  func refresh(_ token: Token) -> Single<Token>
+  func refresh(completion: @escaping (Result<Token, Error>) -> Void)
+  func refresh() -> Single<Token>
 }

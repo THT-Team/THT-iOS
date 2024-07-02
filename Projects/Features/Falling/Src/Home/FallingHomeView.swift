@@ -52,7 +52,7 @@ extension NSCollectionLayoutSection {
     
     let layoutGroupSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .estimated(estimatedHeight)
+      heightDimension: .fractionalHeight(586/(844 - 180))
     )
     
     let layoutGroup = NSCollectionLayoutGroup.vertical(
@@ -78,6 +78,10 @@ extension NSCollectionLayoutSection {
     )
     section.interGroupSpacing = 14
     section.boundarySupplementaryItems = [sectionFooter]
+    
+    section.visibleItemsInvalidationHandler = { item, offset, environment in
+      
+    }
     return section
   }
   
@@ -100,7 +104,11 @@ extension NSCollectionLayoutSection {
     
     let section = NSCollectionLayoutSection(group: layoutGroup)
     section.orthogonalScrollingBehavior = .paging
-    
+
+    section.visibleItemsInvalidationHandler = { items, offset, environment in
+
+    }
+
     return section
   }
 }

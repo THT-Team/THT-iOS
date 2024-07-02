@@ -7,6 +7,7 @@
 
 import Foundation
 import SignUpInterface
+import AuthInterface
 import Core
 
 protocol Signing {

@@ -7,6 +7,7 @@
 
 import Foundation
 import SignUpInterface
+import AuthInterface
 
 struct KakaoCoordinateRes: Codable {
   let documents: [Document]

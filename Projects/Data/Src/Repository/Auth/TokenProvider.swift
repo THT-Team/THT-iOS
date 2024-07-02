@@ -21,11 +21,15 @@ public final class DefaultTokenProvider: ProviderProtocol {
   public var provider: MoyaProvider<Target>
 
   public init() {
-    provider = MoyaProvider()
+    provider = Self.makeProvider()
   }
 }
 
 extension DefaultTokenProvider: TokenProvider {
+  public func signUp(_ signUpRequest: SignUpReq) -> Single<Token> {
+    request(type: Token.self, target: .signUp(signUpRequest))
+  }
+  
   public func refresh(token: AuthInterface.Token) -> RxSwift.Single<AuthInterface.Token> {
     request(type: Token.self, target: .refresh(token))
   }

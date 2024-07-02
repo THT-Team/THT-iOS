@@ -8,6 +8,7 @@
 import Foundation
 
 import SignUpInterface
+import AuthInterface
 import Networks
 
 import Moya

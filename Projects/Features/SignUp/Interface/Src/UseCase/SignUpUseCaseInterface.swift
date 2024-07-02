@@ -10,6 +10,8 @@ import Foundation
 import RxSwift
 import Domain
 
+import AuthInterface
+
 public protocol SignUpUseCaseInterface {
   func checkNickname(nickname: String) -> Single<Bool>
   func idealTypes() -> Single<[Domain.EmojiType]>

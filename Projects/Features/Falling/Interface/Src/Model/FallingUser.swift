@@ -56,7 +56,7 @@ public struct FallingUserInfo {
 }
 
 public struct FallingUser {
-  public let identifer = UUID()
+  public var identifer: String { return userUUID }
   public let username, userUUID: String
   public let age: Int
   public let address: String
