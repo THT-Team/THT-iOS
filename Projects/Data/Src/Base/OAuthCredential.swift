@@ -13,7 +13,7 @@ import Alamofire
 struct OAuthCredential: AuthenticationCredential {
   let accessToken: String
   let accessTokenExpiresIn: Double
-  var requiresRefresh: Bool { Date().timeIntervalSince1970 - 60 * 5 > accessTokenExpiresIn }
+  var requiresRefresh: Bool { false }
 }
 
 extension Token {

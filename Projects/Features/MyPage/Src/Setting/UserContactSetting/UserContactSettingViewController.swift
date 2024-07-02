@@ -17,6 +17,14 @@ final class UserContactSettingViewController: TFBaseViewController {
   static let reuseIdentifier = "cell"
   private let updateContactTap = PublishRelay<Void>()
 
+  var fetchedContactNumber: Int = 0 {
+    didSet {
+      DispatchQueue.main.async {
+        self.mainView.tableView.reloadData()
+      }
+    }
+  }
+
   init(viewModel: UserContactSettingViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
@@ -32,6 +40,7 @@ final class UserContactSettingViewController: TFBaseViewController {
 
   override func bindViewModel() {
     mainView.tableView.dataSource = self
+    mainView.tableView.delegate = self
 
     mainView.tableView.rx.itemSelected
       .asDriver()
@@ -42,26 +51,52 @@ final class UserContactSettingViewController: TFBaseViewController {
     
     let tap = updateContactTap.asDriverOnErrorJustEmpty()
 
-    let input = UserContactSettingViewModel.Input(tap: tap)
+    let input = UserContactSettingViewModel.Input(
+      viewDidAppear: self.rx.viewDidAppear.asDriver().mapToVoid(),
+      tap: tap
+    )
 
     let output = viewModel.transform(input: input)
 
     output.toast
       .debug("vc toast")
       .drive(with: self) { owner, message in
-        let alert = UIAlertController(title: message, message: nil, preferredStyle: .alert)
-
-        owner.present(alert, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-          owner.dismiss(animated: true)
-        }
+        owner.mainView.makeToast(message)
       }
       .disposed(by: disposeBag)
+
+    output.fetchedContactCount
+      .drive(with: self) {
+        $0.fetchedContactNumber = $1
+      }.disposed(by: disposeBag)
   }
 
   override func navigationSetting() {
     super.navigationSetting()
     self.title = "저장된 연락처 차단하기"
+  }
+}
+
+// TODO: 공통 된 거 처리할 수 있는 Adapter 만들기
+extension UserContactSettingViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+    let header = UIView()
+
+    let label = UILabel().then {
+      $0.text = "연락처 차단"
+      $0.font = UIFont.thtP1R
+      $0.textColor = DSKitAsset.Color.neutral50.color
+    }
+
+    header.addSubview(label)
+    label.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(16)
+      $0.top.equalToSuperview().offset(20)
+      $0.bottom.equalToSuperview().offset(-5)
+    }
+
+    return header
   }
 }
 
@@ -78,7 +113,7 @@ extension UserContactSettingViewController: UITableViewDataSource {
     content.text = "연락처에 저장된 지인 만나기 않기"
     content.textProperties.font = .thtSubTitle1R
 
-    content.secondaryText = "0개의 연락처 차단 완료"
+    content.secondaryText = "\(self.fetchedContactNumber)개의 연락처 차단 완료"
     content.secondaryTextProperties.color = DSKitAsset.Color.event.color
     content.secondaryTextProperties.font = .thtP2R
 
@@ -103,19 +138,8 @@ extension UserContactSettingViewController: UITableViewDataSource {
     return cell
   }
 
-  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    let text = "연락처 차단"
-    let range = NSRange(location: 0, length: text.count)
-    let attributedString = NSMutableAttributedString(string: text)
-    attributedString.addAttributes([
-      .foregroundColor: DSKitAsset.Color.neutral50.color,
-      .font: UIFont.thtH1B
-    ], range: range)
-    return attributedString.string
-  }
-
   func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
 
-    return "모든 정보는 암호화되어 안전하게 보호되며, 어떠한 경우에도 제3자에게\n공개되지 않습니다."
+    return "모든 정보는 암호화되어 안전하게 보호되며, 어떠한 경우에도 제3자에게 공개되지 않습니다."
   }
 }

@@ -55,7 +55,7 @@ final class MyPageView: TFBaseView {
     collectionView.register(cellType: MyPageInfoCollectionViewCell.self)
     collectionView.register(cellType: MyPageTagCollectionViewCell.self)
     collectionView.register(viewType: PhotoHeaderView.self, kind: UICollectionView.elementKindSectionHeader)
-    collectionView.backgroundColor = DSKitAsset.Color.neutral600.color
+    collectionView.backgroundColor = .red//DSKitAsset.Color.neutral700.color
     collectionView.dataSource = self
     collectionView.allowsSelection = true
     collectionView.showsVerticalScrollIndicator = false
@@ -67,7 +67,6 @@ final class MyPageView: TFBaseView {
 
     infoCollectionView.snp.makeConstraints {
       $0.top.equalToSuperview()
-      $0.height.equalTo(400).priority(.low)
       $0.leading.trailing.bottom.equalToSuperview()
     }
   }
@@ -75,11 +74,13 @@ final class MyPageView: TFBaseView {
   private func createLayout() -> UICollectionViewLayout {
       var config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
     config.headerMode = .supplementary
+    config.backgroundColor = DSKitAsset.Color.neutral700.color
 
     let layout = UICollectionViewCompositionalLayout { section, layoutEnvironment in
 
       var config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
       config.headerMode = .supplementary
+      config.backgroundColor = DSKitAsset.Color.neutral700.color
       let layoutSection =  NSCollectionLayoutSection.list(using: config, layoutEnvironment: layoutEnvironment)
       layoutSection.interGroupSpacing = 5
       return layoutSection

@@ -19,9 +19,13 @@ public protocol Networkable {
 public extension Networkable {
 
   static func makeProvider() -> MoyaProvider<Target> {
-
     let loggerPlugin = NetworkLoggerPlugin()
     return MoyaProvider<Target>(plugins: [loggerPlugin])
+  }
+
+  static func makeProvider(session: Session) -> MoyaProvider<Target> {
+    let loggerPlugin = NetworkLoggerPlugin()
+    return MoyaProvider<Target>(session: session, plugins: [loggerPlugin])
   }
 
   static var provider: MoyaProvider<Target> {
