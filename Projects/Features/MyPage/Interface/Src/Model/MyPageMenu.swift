@@ -7,18 +7,20 @@
 
 import Foundation
 import SignUpInterface
+import Core
+import Domain
 
 public enum MyPageSection {
   case birthday(String)
   case gender(Gender)
   case introduction(String)
-  case preferGender(Gender)
-  case height(Int)
-  case smoking(Frequency)
-  case drinking(Frequency)
-  case religion(Religion)
-  case interest([EmojiType])
-  case idealType([EmojiType])
+  case preferGender(Gender, BottomSheetListener)
+  case height(Int, BottomSheetListener)
+  case smoking(Frequency, BottomSheetListener)
+  case drinking(Frequency, BottomSheetListener)
+  case religion(Religion, BottomSheetListener)
+  case interest([EmojiType], BottomSheetListener)
+  case idealType([EmojiType], BottomSheetListener)
 }
 
 extension MyPageSection {

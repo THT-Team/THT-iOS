@@ -9,7 +9,7 @@ import UIKit
 
 import DSKit
 
-class EmailInputViewController: TFBaseViewController {
+final class EmailInputViewController: BaseSignUpVC<EmailInputViewModel> {
 
   private lazy var titleLable: UILabel = UILabel().then {
     $0.text = "이메일 입력"
@@ -17,38 +17,11 @@ class EmailInputViewController: TFBaseViewController {
     $0.textColor = DSKitAsset.Color.neutral50.color
   }
 
-  private lazy var emailTextField: UITextField = UITextField().then {
-    $0.placeholder = "welcome@falling.com"
-    $0.textColor = DSKitAsset.Color.primary500.color
-    $0.font = .thtH2B
-    $0.autocapitalizationType = .none
+  private lazy var emailTextField = TFBaseField(placeholder: "welcome@falling.com").then {
+    $0.textField.keyboardType = .emailAddress
   }
 
-  private lazy var clearBtn: UIButton = UIButton().then {
-    $0.setImage(DSKitAsset.Image.Icons.closeCircle.image, for: .normal)
-    $0.setTitle(nil, for: .normal)
-    $0.backgroundColor = .clear
-  }
-
-  private lazy var divider: UIView = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral300.color
-  }
-
-  private lazy var descView = UIView().then {
-    $0.backgroundColor = .clear
-  }
-
-  private lazy var descImageView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.Icons.explain.image.withRenderingMode(.alwaysTemplate)
-    $0.tintColor = DSKitAsset.Color.neutral400.color
-  }
-
-  private lazy var warningLabel: UILabel = UILabel().then {
-    $0.text = "올바른 이메일 주소를 입력해주세요."
-    $0.font = .thtCaption1R
-    $0.textColor = DSKitAsset.Color.error.color
-    $0.isHidden = true
-  }
+  private lazy var descriptionView = TFMultiLineDescriptionView(description: "이메일 계정 인증으로 로그인 문제가 생길 시 이메일로\n계정 복구를 진행합니다. 따로 프로필에 표시 되지 않습니다.")
 
   private lazy var autoDomainListView: UIStackView = UIStackView().then {
     $0.axis = .vertical
@@ -60,95 +33,46 @@ class EmailInputViewController: TFBaseViewController {
   private lazy var gmailDomainBtn = EmailDomainBtn(emailDomain: .gmail)
   private lazy var kakaoDomainBtn = EmailDomainBtn(emailDomain: .kakao)
 
-  private lazy var descLabel: UILabel = UILabel().then {
-    $0.font = .thtCaption1M
-    $0.textColor = DSKitAsset.Color.neutral400.color
-    $0.text = "이메일 계정 인증으로 로그인 문제가 생길 시 이메일로\n계정 복구를 진행합니다. 따로 프로필에 표시 되지 않습니다."
-    $0.numberOfLines = 2
-  }
-
   private lazy var nextButton = CTAButton(btnTitle: "다음",
                                           initialStatus: false)
-
-  init(viewModel: EmailInputViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  private let viewModel: EmailInputViewModel
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     emailTextField.becomeFirstResponder()
   }
-  
 
   override func makeUI() {
     [
       titleLable,
       emailTextField,
-      clearBtn,
-      divider,
-      warningLabel,
       autoDomainListView,
-      descView,
+      descriptionView,
       nextButton
     ].forEach { view.addSubview($0) }
 
-    [descImageView, descLabel]
-      .forEach { descView.addSubview($0) }
-
     [naverDomainBtn, gmailDomainBtn, kakaoDomainBtn]
-      .forEach { autoDomainListView.addArrangedSubview($0) }
+      .forEach { autoDomainListView.addArrangedSubview($0)
+        $0.isHidden = true
+      }
 
     titleLable.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(38)
-      $0.top.equalTo(view.safeAreaLayoutGuide).inset(76)
+      $0.leading.trailing.equalToSuperview().inset(38.adjusted)
+      $0.top.equalToSuperview().inset(184.adjustedH)
     }
 
     emailTextField.snp.makeConstraints {
-      $0.leading.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.trailing.equalTo(clearBtn.snp.leading).offset(2)
+      $0.leading.trailing.equalTo(titleLable)
       $0.top.equalTo(titleLable.snp.bottom).offset(32)
     }
 
-    clearBtn.snp.makeConstraints {
-      $0.width.height.equalTo(24)
-      $0.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.centerY.equalTo(emailTextField)
-    }
-
-    divider.snp.makeConstraints {
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.top.equalTo(emailTextField.snp.bottom).offset(2)
-      $0.height.equalTo(2)
-    }
-
-    warningLabel.snp.makeConstraints {
-      $0.leading.equalTo(divider.snp.leading)
-      $0.top.equalTo(divider.snp.bottom).offset(6)
-      $0.height.equalTo(15)
-    }
-
     autoDomainListView.snp.makeConstraints {
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.top.equalTo(divider.snp.bottom).offset(25)
+      $0.leading.trailing.equalTo(titleLable).offset(4)
+      $0.top.equalTo(emailTextField.snp.bottom)
     }
 
-    descView.snp.makeConstraints {
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38)
-      $0.top.equalTo(divider.snp.bottom).offset(16)
-      $0.height.equalTo(descLabel.snp.height)
-    }
-
-    descImageView.snp.makeConstraints {
-      $0.leading.top.equalToSuperview()
-      $0.width.height.equalTo(16)
-    }
-
-    descLabel.snp.makeConstraints {
-      $0.top.equalToSuperview()
-      $0.leading.equalTo(descImageView.snp.trailing).offset(6)
+    descriptionView.snp.makeConstraints {
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(38.adjusted)
+      $0.top.equalTo(autoDomainListView.snp.bottom)
     }
 
     nextButton.snp.makeConstraints {
@@ -168,11 +92,11 @@ class EmailInputViewController: TFBaseViewController {
     let input = EmailInputViewModel.Input(
       viewDidAppear: rx.viewDidAppear.asDriver().map { _ in },
       emailText: emailTFStrDriver,
-      clearBtnTapped: clearBtn.rx.tap.asDriver(),
       nextBtnTap: nextButton.rx.tap.asDriver(),
       naverBtnTapped: naverDomainBtn.rx.tap.asDriver(),
       kakaoBtnTapped: kakaoDomainBtn.rx.tap.asDriver(),
-      gmailBtnTapped: gmailDomainBtn.rx.tap.asDriver()
+      gmailBtnTapped: gmailDomainBtn.rx.tap.asDriver(),
+      backButtonTap: backButton.rx.tap.asSignal()
     )
 
     let output = viewModel.transform(input: input)
@@ -185,45 +109,16 @@ class EmailInputViewController: TFBaseViewController {
       .drive(with: self, onNext: { vc, state in
         switch state {
         case .empty, .valid:
-          vc.warningLabel.isHidden = true
-          vc.autoDomainListView.isHidden = true
-          vc.descView.snp.remakeConstraints {
-            $0.top.equalTo(vc.divider.snp.bottom).offset(16)
-            $0.leading.equalTo(vc.divider.snp.leading)
-            $0.trailing.equalTo(vc.divider.snp.trailing)
-          }
+          vc.autoDomainListView.arrangedSubviews.forEach { $0.isHidden = true }
         case .invalid:
-          vc.warningLabel.isHidden = false
-          vc.autoDomainListView.isHidden = false
-
-          vc.warningLabel.snp.remakeConstraints {
-            $0.top.equalTo(vc.divider.snp.bottom).offset(6)
-            $0.leading.equalTo(vc.divider.snp.leading)
-            $0.height.equalTo(15)
-          }
-
-          vc.autoDomainListView.snp.remakeConstraints {
-            $0.top.equalTo(vc.warningLabel.snp.bottom).offset(4)
-            $0.leading.trailing.equalTo(vc.divider)
-          }
-
-          vc.descView.snp.remakeConstraints {
-            $0.top.equalTo(vc.autoDomainListView.snp.bottom).offset(16)
-            $0.leading.trailing.equalTo(vc.divider)
-          }
+          vc.emailTextField.send(action: TFBaseField.Action.error(message: "올바른 이메일 주소를 입력해주세요."))
+          vc.autoDomainListView.arrangedSubviews.forEach { $0.isHidden = false }
         }
       })
       .disposed(by: disposeBag)
 
     output.emailText
-      .drive(with: self, onNext: { owner, text in
-        owner.emailTextField.text = text
-        owner.emailTextField.sendActions(for: .valueChanged)
-      })
+      .drive(emailTextField.rx.text)
       .disposed(by: disposeBag)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
 }

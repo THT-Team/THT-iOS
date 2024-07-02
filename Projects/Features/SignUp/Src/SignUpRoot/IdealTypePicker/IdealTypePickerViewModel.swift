@@ -12,16 +12,19 @@ import SignUpInterface
 
 import RxSwift
 import RxCocoa
+import DSKit
+import Domain
 
-final class IdealTypeTagPickerViewModel: ViewModelType {
-  private let useCase: SignUpUseCaseInterface
-  private let userInfoUseCase: UserInfoUseCaseInterface
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  
-  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
-    self.useCase = useCase
-    self.userInfoUseCase = userInfoUseCase
+open class BaseTagPickerViewModel: BasePenddingViewModel {
+  let userDomainUseCase: UserDomainUseCaseInterface
+
+  init(useCase: SignUpUseCaseInterface, pendingUser: PendingUser, userDomainUseCase: UserDomainUseCaseInterface) {
+    self.userDomainUseCase = userDomainUseCase
+    super.init(useCase: useCase, pendingUser: pendingUser)
   }
+}
+
+final class IdealTypeTagPickerViewModel: BaseTagPickerViewModel, ViewModelType {
 
   struct Input {
     var chipTap: Driver<IndexPath>
@@ -33,43 +36,14 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
     var isNextBtnEnabled: Driver<Bool>
   }
 
-  private var disposeBag = DisposeBag()
-
   func transform(input: Input) -> Output {
 
     let chips = BehaviorRelay<[InputTagItemViewModel]>(value: [])
 
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-
-    let local = userinfo.map { $0.idealTypeList }
-
-    let remote = Driver.just(())
-      .flatMapLatest { [unowned self] _ in
-        self.useCase.idealTypes()
-          .asDriver(onErrorJustReturn: [])
-      }
-      .map { $0.map { InputTagItemViewModel(item: $0, isSelected: false) } }
-
-    Driver.zip(local, remote) { local, remote in
-      var mutable = remote
-
-      local.forEach { selectedIndex in
-        if let index = mutable.firstIndex(where: { $0.emojiType.idx == selectedIndex }) {
-          mutable[index].isSelected = true
-        }
-      }
-      return mutable
-    }
-    .drive(chips)
-    .disposed(by: disposeBag)
+    userDomainUseCase.fetchEmoji(initial: pendingUser.idealTypeList, type: .idealType)
+      .asDriver(onErrorJustReturn: [])
+      .drive(chips)
+      .disposed(by: disposeBag)
 
     input.chipTap.map { $0.item }
       .withLatestFrom(chips.asDriver()) { index, chips in
@@ -103,14 +77,10 @@ final class IdealTypeTagPickerViewModel: ViewModelType {
       .withLatestFrom(chips.asDriver()) { _, chips in
         chips.filter { $0.isSelected }.map { $0.emojiType.idx }
       }
-      .withLatestFrom(userinfo) { items, userinfo in
-        var mutable = userinfo
-        mutable.idealTypeList = items
-        return mutable
-      }
-      .drive(with: self, onNext: { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtIdealType)
+      .drive(with: self, onNext: { owner, chips in
+        owner.pendingUser.idealTypeList = chips
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtIdealType, owner.pendingUser)
       })
       .disposed(by: disposeBag)
 

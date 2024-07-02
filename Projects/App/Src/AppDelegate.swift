@@ -6,13 +6,18 @@
 //
 
 import UIKit
-//import FirebaseCore
+import Data
+import Core
+import Auth
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 	
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 		registerDependencies()
+    registerForRemoteNotifications()
+    registerFirebase()
+    registerKakaoSDK()
 		return true
 	}
 	
@@ -22,4 +27,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		// Use this method to select a configuration to create the new scene with.
 		return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
 	}
+  
+  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    let token = deviceToken.reduce("") { $0 + String(format: "%02x", $1) }
+    TFLogger.dataLogger.notice("\(token)")
+    UserDefaultRepository.shared.save(token, key: .deviceKey)
+  }
+
+  private func registerForRemoteNotifications() {
+    let center = UNUserNotificationCenter.current()
+    center.delegate = self
+    let options: UNAuthorizationOptions = [.alert, .badge, .sound]
+    center.requestAuthorization(options: options) { granted, error in
+
+      guard granted else { return }
+
+      DispatchQueue.main.async {
+        UIApplication.shared.registerForRemoteNotifications()
+      }
+    }
+  }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+  func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    completionHandler([.alert, .badge, .sound])
+  }
+  
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    completionHandler()
+  }
 }

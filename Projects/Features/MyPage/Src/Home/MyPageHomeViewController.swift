@@ -52,22 +52,30 @@ final class MyPageHomeViewController: TFBaseViewController {
       .bind(to: delegateAction)
 
     let input = MyPageHomeViewModel.Input(
-      viewDidload: rx.viewDidAppear.asDriver().map { _ in },
       delegateAction: delegateAction.asDriverOnErrorJustEmpty()
       )
 
     let output = viewModel.transform(input: input)
 
     output.user
-      .drive(with: self, onNext: { owner, datasource in
-        owner.mainView.bind(dataSource: datasource)
-      })
+      .drive(mainView.rx.dataSource)
       .disposed(by: disposeBag)
 
-    output.photos
-      .drive(with: self) { owner, photos in
-        owner.mainView.photos = photos
-      }
+    output.headerModel
+      .drive(mainView.rx.headerModel)
+      .disposed(by: disposeBag)
+
+    output.toast
+      .emit(with: self) { owner, toast in
+        owner.view.makeToast(toast)
+      }.disposed(by: disposeBag)
+    
+    output.isDimHidden
+      .emit(with: self, onNext: { owner, isHidden in
+        UIView.animate(withDuration: 0.3) {
+          owner.mainView.blurView.alpha = isHidden ? 0 : 1
+        }
+      })
       .disposed(by: disposeBag)
   }
 }
@@ -76,7 +84,7 @@ enum MyPageHome {
   enum Action {
     case photoEdit(Int)
     case photoAdd(Int)
-    case nicknameEdit
+    case nicknameEdit(String)
     case settingTap
     case sectionTap(Int)
   }
@@ -91,19 +99,7 @@ extension MyPageHomeViewController: MyPageViewDelegate {
     delegateAction.accept(.photoAdd(index))
   }
   
-  func didTapNicknameEditButton() {
-    delegateAction.accept(.nicknameEdit)
+  func didTapNicknameEditButton(_ nickname: String) {
+    delegateAction.accept(.nicknameEdit(nickname))
   }
 }
-//
-//#if canImport(SwiftUI) && DEBUG
-//import SwiftUI
-//
-//struct MyPageViewController_Preview: PreviewProvider {
-//  static var previews: some View {
-//    let vm = MyPageHomeViewModel(myPageUseCase: MyPageUseCase(repository: MockMyPageRepository()))
-//    let vc = MyPageHomeViewController(viewModel: vm)
-//    return vc.showPreview()
-//  }
-//}
-//#endif

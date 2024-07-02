@@ -18,13 +18,17 @@ final class AuthRootViewController: TFBaseViewController {
     $0.spacing = 16
   }
 
-  private lazy var startPhoneBtn = TFLoginButton(btnType: .phone)
+  private lazy var startPhoneBtn = TFSNSLoginButton(btnType: .phone)
 
-  private lazy var startKakaoButton = TFLoginButton(btnType: .kakao)
+  private lazy var startKakaoButton = TFSNSLoginButton(btnType: .kakao)
 
-  private lazy var startGoogleBtn = TFLoginButton(btnType: .google)
+  private lazy var startGoogleBtn = TFSNSLoginButton(btnType: .google)
 
-  private lazy var startNaverBtn = TFLoginButton(btnType: .naver)
+  private lazy var startAppleBtn = TFSNSLoginButton(btnType: .apple)
+
+  private lazy var startNaverBtn = TFSNSLoginButton(btnType: .naver)
+
+  private lazy var feedbackBtn = DSKit.TFTextButton(title: "계정에 문제가 있나요?")
 
   private lazy var signitureImageView: UIImageView = UIImageView(image: DSKitAsset.Bx.signitureVertical.image).then {
     $0.contentMode = .scaleAspectFit
@@ -38,7 +42,7 @@ final class AuthRootViewController: TFBaseViewController {
     signitureImageView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(view.safeAreaLayoutGuide)
-        .inset(view.bounds.height * 0.162)
+        .inset(view.bounds.height * 0.09)
       $0.height.equalTo(180)
     }
     
@@ -51,17 +55,22 @@ final class AuthRootViewController: TFBaseViewController {
     self.buttonStackView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.leading.trailing.equalToSuperview().inset(40)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide)
-        .inset(16)
+      $0.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-20)
     }
 
-    [startPhoneBtn, startKakaoButton, startGoogleBtn, startNaverBtn]
+    [startPhoneBtn, startKakaoButton, startGoogleBtn, startAppleBtn, startNaverBtn]
       .forEach {
         buttonStackView.addArrangedSubview($0)
         $0.snp.makeConstraints { make in
           make.height.equalTo(52)
         }
       }
+    feedbackBtn.makeView(title: "계정에 문제가 있나요?", color: DSKitAsset.Color.neutral50.color)
+    buttonStackView.addArrangedSubview(feedbackBtn)
+    
+    feedbackBtn.snp.makeConstraints {
+      $0.height.equalTo(30)
+    }
   }
 
   override func bindViewModel() {
@@ -69,13 +78,15 @@ final class AuthRootViewController: TFBaseViewController {
       startPhoneBtn.rx.tap.asDriver().map { return SNSType.normal },
       startKakaoButton.rx.tap.asDriver().map { return SNSType.kakao },
       startGoogleBtn.rx.tap.asDriver().map { SNSType.google },
-      startNaverBtn.rx.tap.asDriver().map { SNSType.naver }
+      startNaverBtn.rx.tap.asDriver().map { SNSType.naver },
+      startAppleBtn.rx.tap.asDriver().map { SNSType.apple }
     )
 
     let input = AuthRootViewModel.Input(
-      buttonTap: buttonTap
+      buttonTap: buttonTap,
+      inquiryTap: feedbackBtn.rx.tap.asSignal().debug()
     )
 
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
 }

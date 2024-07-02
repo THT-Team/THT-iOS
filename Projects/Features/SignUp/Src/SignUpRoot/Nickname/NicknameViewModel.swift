@@ -13,21 +13,9 @@ import Core
 import RxCocoa
 import RxSwift
 
-final class NicknameInputViewModel: ViewModelType {
-  private let useCase: SignUpUseCaseInterface
-  private let userInfoUseCase: UserInfoUseCaseInterface
-
-  weak var delegate: SignUpCoordinatingActionDelegate?
-
-  private var disposeBag = DisposeBag()
-
-  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
-    self.useCase = useCase
-    self.userInfoUseCase = userInfoUseCase
-  }
+final class NicknameInputViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
-    let viewWillAppear: Driver<Void>
     let nickname: Driver<String>
     let nextBtn: Driver<Void>
   }
@@ -42,13 +30,8 @@ final class NicknameInputViewModel: ViewModelType {
     let text = input.nickname
     let errorTracker = PublishSubject<Error>()
     let outputText = BehaviorRelay<String?>(value: nil)
-    let userinfo = input.viewWillAppear
-      .flatMapLatest(with: self) { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .asDriver(onErrorJustReturn: .init(phoneNumber: ""))
-      }
 
-    let initialNickname = userinfo.map { $0.name }
+    let initialNickname = Driver.just(pendingUser.name)
 
     let isDuplicate = text
       .debounce(.milliseconds(500))
@@ -71,18 +54,14 @@ final class NicknameInputViewModel: ViewModelType {
       .drive(errorTracker)
       .disposed(by: disposeBag)
 
-    let updatedUserInfo = Driver.combineLatest(text, userinfo) {
-      var mutable = $1
-      mutable.name = $0
-      return mutable
-    }
-
     input.nextBtn
       .throttle(.milliseconds(500), latest: false)
-      .withLatestFrom(updatedUserInfo)
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtNickname)
+      .withLatestFrom(isAvailableNickname).filter { $0 }
+      .withLatestFrom(text)
+      .drive(with: self) { owner, text in
+        owner.pendingUser.name = text
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtNickname, owner.pendingUser)
       }
       .disposed(by: disposeBag)
     

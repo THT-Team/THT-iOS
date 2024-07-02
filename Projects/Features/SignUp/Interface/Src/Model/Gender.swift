@@ -10,7 +10,7 @@ import Foundation
 public enum Gender: String, Codable {
   case male = "MALE"
   case female = "FEMALE"
-  case both = "BOTH"
+  case bisexual = "BISEXUAL"
 
   public init?(number: Int) {
     switch number {
@@ -19,18 +19,20 @@ public enum Gender: String, Codable {
     case 0:
       self = .female
     case 2:
-      self = .both
+      self = .bisexual
     default:
       return nil
     }
   }
 }
-extension Gender {
+extension Gender: TFTitlePropertyType {
   public var title: String {
     switch self {
     case .male: return "남성"
     case .female: return "여성"
-    case .both: return "모두"
+    case .bisexual: return "모두"
     }
   }
 }
+
+extension Gender: CaseIterable { }

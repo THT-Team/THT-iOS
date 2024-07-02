@@ -8,9 +8,9 @@
 import Foundation
 import AuthInterface
 
-extension UserInfo {
-  public func toRequest(contacts: [ContactType]) -> SignUpReq? {
-    guard 
+extension PendingUser {
+  public func toRequest(contacts: [ContactType], deviceKey: String) -> SignUpReq? {
+    guard
       let username = self.name,
       let email = self.email,
       let gender = self.gender?.rawValue,
@@ -34,7 +34,7 @@ extension UserInfo {
       gender: gender,
       preferGender: preferGender,
       introduction: introduction,
-      deviceKey: "device-key",
+      deviceKey: deviceKey,
       agreement: self.userAgreements,
       locationRequest: location,
       photoList: photos,

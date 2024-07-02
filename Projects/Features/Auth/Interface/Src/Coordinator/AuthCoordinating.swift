@@ -22,5 +22,5 @@ public protocol AuthCoordinating: Coordinator {
 
   func phoneNumberFlow()
 
-  func snsFlow(type: SNSType)
+  func snsFlow(type: AuthType)
 }

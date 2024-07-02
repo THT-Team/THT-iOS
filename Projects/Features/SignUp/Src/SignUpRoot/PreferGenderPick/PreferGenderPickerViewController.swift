@@ -13,18 +13,9 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 
-final class PreferGenderPickerViewController: TFBaseViewController {
+final class PreferGenderPickerViewController: BaseSignUpVC<PreferGenderPickerViewModel>, StageProgressable {
   private let mainView = PreferGenderPickerView()
-  private let viewModel: PreferGenderPickerViewModel
-
-  init(viewModel: PreferGenderPickerViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
+  var stage: Float = 3
 
   override func loadView() {
     self.view = mainView
@@ -37,7 +28,7 @@ final class PreferGenderPickerViewController: TFBaseViewController {
       .compactMap { $0 }
       .compactMap { GenderMapper.toGender($0) }
 
-    let input = PreferGenderPickerViewModel.Input(
+    let input = ViewModel.Input(
       viewWillAppear: rx.viewWillAppear.mapToVoid().asDriverOnErrorJustEmpty(),
       genderTap: genderTap,
       nextBtnTap: self.mainView.nextBtn.rx.tap.asDriver()

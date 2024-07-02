@@ -9,92 +9,92 @@ import UIKit
 
 import DSKit
 
+//https://stackoverflow.com/questions/28140781/how-to-edit-the-uiblureffect-intensity
+class BlurEffectView: UIVisualEffectView {
+
+    var animator = UIViewPropertyAnimator(duration: 1, curve: .linear)
+
+    override func didMoveToSuperview() {
+        guard let superview = superview else { return }
+        backgroundColor = .clear
+        frame = superview.bounds //Or setup constraints instead
+        setupBlur()
+    }
+
+    private func setupBlur() {
+        animator.stopAnimation(true)
+        effect = nil
+
+        animator.addAnimations { [weak self] in
+            self?.effect = UIBlurEffect(style: .dark)
+        }
+        animator.fractionComplete = 0.1   //This is your blur intensity in range 0 - 1
+    }
+
+    deinit {
+        animator.stopAnimation(true)
+    }
+}
 
 final class PhotoInputView: TFBaseView {
-  
-  lazy var container = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
-  lazy var titleLabel: UILabel = UILabel().then {
-    $0.text = "사진을 추가해주세요"
-    $0.textColor = DSKitAsset.Color.neutral300.color
-    $0.font = .thtH1B
-    $0.asColor(targetString: "사진", color: DSKitAsset.Color.neutral50.color)
-  }
 
-  lazy var photoCollectionView = UICollectionView(frame: .zero, collectionViewLayout: .photoPickLayout())
+  private(set) lazy var blurView: UIVisualEffectView = {
+    let effect = UIBlurEffect(style: .dark)
+    let visualEffectView = UIVisualEffectView(effect: effect)
+    visualEffectView.alpha = 0
+    return visualEffectView
+  }()
 
-  lazy var contentVStackView = UIStackView().then {
-    $0.axis = .vertical
-    $0.distribution = .fill
-  }
+  lazy var titleLabel = UILabel.setTargetBold(text: "사진을 추가해주세요.", target: "사진", font: .thtH1B, targetFont: .thtH1B)
 
-  lazy var infoImageView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.Icons.explain.image.withRenderingMode(.alwaysTemplate)
-    $0.tintColor = DSKitAsset.Color.neutral400.color
-  }
+  lazy var photoCollectionView = UICollectionView(frame: .zero, collectionViewLayout: .photoPickLayout(edge: 5))
 
-  lazy var descLabel: UILabel = UILabel().then {
-    $0.text = "얼굴이 잘 나온 사진 2장을 필수로 넣어주세요."
-    $0.font = .thtCaption1M
-    $0.textColor = DSKitAsset.Color.neutral400.color
-    $0.textAlignment = .left
-    $0.numberOfLines = 1
-  }
+  lazy var descriptionView = TFOneLineDescriptionView(description: "얼굴이 잘 나온 사진 2장을 필수로 넣어주세요.")
 
-  lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
+  lazy var nextBtn = TFButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubview(container)
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
 
     photoCollectionView.backgroundColor = .clear
 
-    container.addSubviews(
+    addSubviews(
       titleLabel,
-      contentVStackView,
-      infoImageView, descLabel,
+      photoCollectionView,
+      descriptionView,
       nextBtn
     )
 
-    contentVStackView.addArrangedSubview(photoCollectionView)
-    
-    container.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
-    }
+    addSubviews(blurView)
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(76)
-      $0.leading.trailing.equalToSuperview().inset(30)
-    }
-
-    contentVStackView.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(30)
-      $0.leading.trailing.equalTo(titleLabel)
+      $0.top.equalToSuperview().offset(180.adjustedH)
+      $0.leading.trailing.equalToSuperview().inset(38.adjusted)
     }
 
     photoCollectionView.snp.makeConstraints {
-      $0.height.equalTo(contentVStackView.snp.width)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(30.adjustedH)
+      $0.leading.trailing.equalTo(titleLabel)
+      $0.height.equalTo(294.adjustedH)
     }
 
-    infoImageView.snp.makeConstraints {
-      $0.leading.equalTo(titleLabel.snp.leading)
-      $0.width.height.equalTo(16)
-      $0.top.equalTo(contentVStackView.snp.bottom).offset(10)
-    }
-
-    descLabel.snp.makeConstraints {
-      $0.leading.equalTo(infoImageView.snp.trailing).offset(6)
-      $0.top.equalTo(infoImageView)
-      $0.trailing.equalTo(titleLabel)
+    descriptionView.snp.makeConstraints {
+      $0.top.equalTo(photoCollectionView.snp.bottom).offset(10)
+      $0.leading.trailing.equalTo(titleLabel)
     }
 
     nextBtn.snp.makeConstraints {
-      $0.top.equalTo(descLabel.snp.bottom).offset(30)
-      $0.trailing.equalTo(descLabel)
-      $0.height.equalTo(50)
-      $0.width.equalTo(88)
+      $0.trailing.equalTo(descriptionView)
+      $0.height.equalTo(54.adjustedH)
+      $0.width.equalTo(88.adjusted)
+      $0.bottom.equalToSuperview().offset(-133.adjustedH)
     }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+
+    blurView.frame = bounds
   }
 }
 

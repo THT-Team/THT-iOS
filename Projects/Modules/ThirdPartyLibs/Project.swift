@@ -9,22 +9,14 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 import MyPlugin
 
-let project = Project.dynamicFramework(
-	name: Feature.ThirdPartyLibs.rawValue,
-	dependencies: [
-//		.external(.SnapKit),
-		.external(.Moya),
-		.external(.RxMoya),
-//		.external(.Then),
-		//		.external(.Starscream),
-		.external(.RxSwift),
-		.external(.RxCocoa),
-//		.external(.RxKeyboard),
-//		.external(.Kingfisher),
-//		.external(.Lottie),
-		//		.external(.Fierbase),
-//		.external(.RxGesture),
-		.external(.RxDataSources)
-	]
-)
+let project = Project.makeModule(
+  name: Feature.ThirdPartyLibs.rawValue,
+  dependencies: [
+    .SPM.RxSwfit,
+    .SPM.RxCocoa,
 
+    .SPM.FirebaseMessaging,
+  ],
+
+  product: .staticLibrary
+  )

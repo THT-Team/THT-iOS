@@ -14,18 +14,14 @@ import RxCocoa
 import SignUpInterface
 import AuthInterface
 
-final class LocationInputViewModel: ViewModelType {
-  private var disposeBag = DisposeBag()
-  weak var delegate: SignUpCoordinatingActionDelegate?
+final class LocationInputViewModel: BasePenddingViewModel, ViewModelType {
 
   private let locationTrigger = PublishSubject<String>()
-  private let useCase: SignUpUseCaseInterface
-  private let userInfoUseCase: UserInfoUseCaseInterface
   private let locationUseCase: LocationUseCaseInterface
 
   struct Input {
-    let locationBtnTap: Driver<Void>
-    let nextBtn: Driver<Void>
+    let locationBtnTap: Signal<Void>
+    let nextBtn: Signal<Void>
   }
 
   struct Output {
@@ -33,51 +29,59 @@ final class LocationInputViewModel: ViewModelType {
     let currentLocation: Driver<String>
   }
 
-  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface, locationUseCase: LocationUseCaseInterface) {
-    self.useCase = useCase
-    self.userInfoUseCase = userInfoUseCase
+  required init(useCase: SignUpUseCaseInterface, locationUseCase: LocationUseCaseInterface, pendingUser: PendingUser) {
     self.locationUseCase = locationUseCase
+    super.init(useCase: useCase, pendingUser: pendingUser)
   }
 
   // 필드 클릭하면 퍼미션 리퀘스트 후 -> granted: Bool
   // granted 면 시작, 아니면,
 
   func transform(input: Input) -> Output {
-
+    let errorTracker = PublishSubject<Error>()
+    let toast = PublishSubject<String>()
     let addressTrigger = self.locationTrigger
-    let currentLocation = BehaviorRelay<LocationReq?>(value: nil)
+    let inivialValue = useCase.fetchPendingUser()?.address
 
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-
-    userinfo.map { $0.address }
-      .drive(currentLocation)
-      .disposed(by: disposeBag)
+    let currentLocation = BehaviorRelay<LocationReq?>(value: inivialValue)
+    let currentLocationShare = currentLocation.asDriver()
 
     input.locationBtnTap
       .throttle(.milliseconds(500), latest: false)
       .asObservable()
       .withUnretained(self)
+      .debug("fetch btn tap!")
+      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
       .flatMapLatest { owner, _ in
-
         return owner.locationUseCase.fetchLocation()
           .debug("location usecase")
+          .asObservable()
           .catch { error in
-            print(error.localizedDescription)
-            owner.delegate?.invoke(.webViewTap(listner: self))
-            return .error(error)
+            errorTracker.onNext(error)
+            return .empty()
           }
-          .asDriver(onErrorDriveWith: .empty())
       }
-      .asDriverOnErrorJustEmpty()
-      .drive(currentLocation)
+      .bind(to: currentLocation)
+      .disposed(by: disposeBag)
+
+    errorTracker
+      .compactMap { [weak self] error -> String? in
+        guard let self else { return nil }
+        if let error = error as? LocationError {
+          switch error {
+          case .denied:
+            self.delegate?.invoke(.webViewTap(listner: self), self.pendingUser)
+            return "위치 권한을 허용해주세요."
+          case .invalidLocation:
+            return "올바르지 않은 위치입니다."
+          case .notDetermined:
+            return nil
+          }
+        } else {
+          return "알 수 없는 에러."
+        }
+      }.asSignal(onErrorSignalWith: .empty())
+      .emit(to: toast)
       .disposed(by: disposeBag)
 
     addressTrigger
@@ -92,34 +96,23 @@ final class LocationInputViewModel: ViewModelType {
     input.nextBtn
       .throttle(.milliseconds(300), latest: false)
       .withLatestFrom(currentLocation.asDriver())
-      .withLatestFrom(userinfo) { location, userinfo in
-        var mutable = userinfo
-        mutable.address = location
-        return mutable
-      }
-      .drive(with: self, onNext: { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtLocation)
+      .emit(with: self, onNext: { owner, location in
+        owner.pendingUser.address = location
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtLocation, owner.pendingUser)
       })
       .disposed(by: disposeBag)
 
-    let isNextBtnEnabled = currentLocation
-      .map(validator)
-      .asDriver(onErrorJustReturn: false)
+    let isNextBtnEnabled = currentLocationShare
+      .flatMapLatest(with: self) { owner, location in
+        owner.locationUseCase.isValid(location)
+          .asDriver(onErrorJustReturn: false)
+      }
 
     return Output(
       isNextBtnEnabled: isNextBtnEnabled,
-      currentLocation: currentLocation.compactMap { $0?.address }.asDriverOnErrorJustEmpty()
+      currentLocation: currentLocationShare.compactMap { $0?.address }
     )
-  }
-
-  func validator(_ location: LocationReq?) -> Bool {
-    guard
-      let location,
-      location.address.isEmpty == false,
-      location.lat != 0, location.lon != 0
-    else { return false }
-    return true
   }
 }
 

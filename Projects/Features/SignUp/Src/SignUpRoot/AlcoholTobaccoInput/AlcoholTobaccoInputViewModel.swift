@@ -13,9 +13,7 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 
-final class AlcoholTobaccoPickerViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  private let userInfoUseCase: UserInfoUseCaseInterface
+final class AlcoholTobaccoPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     var tobaccoTap: Driver<Frequency>
@@ -33,52 +31,31 @@ final class AlcoholTobaccoPickerViewModel: ViewModelType {
     case drinking(Frequency)
   }
 
-  private var disposeBag = DisposeBag()
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
-
   func transform(input: Input) -> Output {
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-      .debug("userinfo")
 
-    let smoke = userinfo.compactMap { $0.smoking }.map { FrequencyType.smoking($0) }
-    let drink = userinfo.compactMap { $0.drinking }.map { FrequencyType.drinking($0) }
+    let smoke = Driver.just(pendingUser).compactMap(\.smoking).map { FrequencyType.smoking($0) }
+    let drink = Driver.just(pendingUser).compactMap { $0.drinking }.map { FrequencyType.drinking($0) }
 
     let initialFrequency = Driver.concat([smoke, drink])
 
     let selectedTobacco = input.tobaccoTap
     let selectedAlcohol = input.alcoholTap
 
-    let nextBtnisEnabled = Driver.combineLatest(selectedAlcohol, selectedTobacco).map { _ in true }
+    let alcoholAndTobacco = Driver.combineLatest(selectedAlcohol, selectedTobacco)
 
-    let updatedUserInfo = Driver.combineLatest(selectedAlcohol, selectedTobacco) { ($0, $1) }
-      .withLatestFrom(userinfo) { component, userinfo in
-        let (drink, smoke) = component
-        var mutable = userinfo
-        mutable.smoking = smoke
-        mutable.drinking = drink
-        return mutable
-      }
+    let nextBtnisEnabled = alcoholAndTobacco.map { _ in true }.startWith(false)
 
     input.nextBtnTap
       .withLatestFrom(nextBtnisEnabled)
       .filter { $0 }
-      .map { _ in }
       .throttle(.milliseconds(500), latest: false)
-      .withLatestFrom(updatedUserInfo)
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtAlcoholTobacco)
+      .withLatestFrom(alcoholAndTobacco)
+      .drive(with: self) { owner, frequencies in
+        let (drink, smoke) = frequencies
+        owner.pendingUser.smoking = smoke
+        owner.pendingUser.drinking = drink
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtAlcoholTobacco, owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(

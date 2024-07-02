@@ -68,6 +68,8 @@ Derived/
 
 ### Tuist managed dependencies ###
 Tuist/Dependencies
+Tuist/.build
+Tuist/.package.resolved
 
 ### Fastlane ###
 fastlane/report.xml
@@ -81,3 +83,5 @@ fastlane/*.env
 *.ipa
 *.dSYM.zip
 *.dSYM
+.package.resolved
+Tuist/Package.resolved

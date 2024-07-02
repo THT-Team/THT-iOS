@@ -14,10 +14,8 @@ import Moya
 extension MyPageTarget {
   public var sampleData: Data {
     switch self {
-    case .updateAlarmSetting:
-      return Data("""
-""".utf8)
-    case .updateUserContacts:
+
+    case .updateUserContacts, .fetchUserContacts:
       return Data("""
       {
         "count": 1
@@ -92,6 +90,10 @@ extension MyPageTarget {
         }
       }
       """.utf8)
+    case .updateAlarmSetting: return Data("".utf8)
+    case .location(_): return Data("".utf8)
+    case .withdrawal: return Data("".utf8)
+    default: return Data("".utf8)
     }
   }
 }

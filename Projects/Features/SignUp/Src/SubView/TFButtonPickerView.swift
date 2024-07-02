@@ -60,7 +60,7 @@ class TFButtonPickerView: UIControl {
     $0.axis = .horizontal
     $0.distribution = .fillEqually
     $0.alignment = .fill
-    $0.spacing = 10
+    $0.spacing = 16.adjustedH
   }
 
   func makeUI() {
@@ -72,14 +72,14 @@ class TFButtonPickerView: UIControl {
 
     titleLabel.snp.makeConstraints {
       $0.top.equalToSuperview().inset(frame.height * 0.09)
-      $0.leading.trailing.equalToSuperview().inset(38)
+      $0.leading.trailing.equalToSuperview()
     }
 
     buttonHStackView.snp.makeConstraints {
       $0.leading.trailing.equalTo(titleLabel)
       $0.top.equalTo(titleLabel.snp.bottom).offset(30)
       $0.height.equalTo(50)
-      $0.bottom.equalToSuperview().offset(-10)
+      $0.bottom.equalToSuperview()
     }
   }
 
@@ -89,6 +89,7 @@ class TFButtonPickerView: UIControl {
       button.addAction(UIAction { [weak self] _ in
         self?.handleSelectedState(Option(key: index, value: value))
       }, for: .touchUpInside)
+      button.layer.cornerRadius = 10
       self.buttonHStackView.addArrangedSubview(button)
       self.options.append(button)
     }

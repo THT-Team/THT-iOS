@@ -8,21 +8,11 @@
 import UIKit
 import DSKit
 
-final class UserContactViewController: TFBaseViewController {
-  typealias ViewModel = UserContactViewModel
+final class UserContactViewController: BaseSignUpVC<UserContactViewModel>, StageProgressable {
+  var stage: Float = 12
   typealias Action = ViewModel.Action
   
   private let mainView = UserContactView()
-  private let viewModel: UserContactViewModel
-  
-  init(viewModel: UserContactViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
   
   override func loadView() {
     self.view = mainView
@@ -37,7 +27,7 @@ final class UserContactViewController: TFBaseViewController {
       .asDriver()
       .map { Action.skip }
     let actiontrigger = Driver.merge(block, skip)
-    let input = UserContactViewModel.Input(actionTrigger: actiontrigger)
+    let input = ViewModel.Input(actionTrigger: actiontrigger)
     let output = viewModel.transform(input: input)
     
     output.toast

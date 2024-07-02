@@ -11,14 +11,24 @@ import RxSwift
 import AuthInterface
 
 public protocol LocationServiceType {
-  var publisher: PublishSubject<LocationReq> { get }
+  var publisher: PublishSubject<LocationCoordinate2D> { get }
   func handleAuthorization(granted: @escaping (Bool) -> Void)
   func requestAuthorization()
-  func requestLocation() -> Single<LocationReq>
+  func requestLocation() -> Single<LocationCoordinate2D>
 }
 
 public enum LocationError: Error {
   case denied
   case invalidLocation
   case notDetermined
+}
+
+public struct LocationCoordinate2D {
+  public let latitude: Double
+  public let longitude: Double
+
+  public init(latitude: Double, longitude: Double) {
+    self.latitude = latitude
+    self.longitude = longitude
+  }
 }

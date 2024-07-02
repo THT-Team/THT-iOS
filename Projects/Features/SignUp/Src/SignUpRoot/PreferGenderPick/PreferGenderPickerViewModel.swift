@@ -13,9 +13,7 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 
-final class PreferGenderPickerViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  private let userInfoUseCase: UserInfoUseCaseInterface
+final class PreferGenderPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     let viewWillAppear: Driver<Void>
@@ -28,51 +26,20 @@ final class PreferGenderPickerViewModel: ViewModelType {
     var initialGender: Driver<Gender>
   }
 
-  private var disposeBag = DisposeBag()
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
-
-  deinit {
-    print("deinit: PreferGenderPickerViewModel")
-  }
-
   func transform(input: Input) -> Output {
 
-    let userinfo = input.viewWillAppear
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-      .debug("fetched UserInfo")
-
-    let initialGender = userinfo.map { $0.preferGender }
-      .compactMap { $0 }
-      .debug("fetched preferGender")
-
+    let initialGender = Driver.just(self.pendingUser.preferGender).compactMap { $0 }
     let selectedGender = input.genderTap
-      .debug("tapped Gender")
 
     let nextBtnisEnabled = selectedGender.map { _ in true }
 
     input.nextBtnTap
       .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(selectedGender)
-      .debug("toSave preferGender")
-      .withLatestFrom(userinfo) { preferGender, info in
-        var mutable = info
-        mutable.preferGender = preferGender
-        print("mutable - preferGender: \(preferGender)")
-        return mutable
-      }
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtPreferGender)
+      .drive(with: self) { owner, selectedGender in
+        owner.pendingUser.preferGender = selectedGender
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtPreferGender, owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(

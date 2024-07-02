@@ -12,9 +12,6 @@ import RxSwift
 import SignUpInterface
 
 class GenderPickerView: TFBaseView {
-  lazy var container = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
 
   lazy var genderPickerView = ButtonPickerView(
     title: "성별, 생일을 입력해주세요.", targetString: "성별, 생일",
@@ -27,62 +24,40 @@ class GenderPickerView: TFBaseView {
     $0.textColor = DSKitAsset.Color.neutral400.color
   }
 
-  lazy var infoImageView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.Icons.explain.image.withRenderingMode(.alwaysTemplate)
-    $0.tintColor = DSKitAsset.Color.neutral400.color
-  }
+  lazy var descriptionView = TFOneLineDescriptionView(description: "입력하신 나이와 성별은 추후 변경할 수 없습니다.")
 
-  lazy var descLabel: UILabel = UILabel().then {
-    $0.text = "입력하신 나이와 성별은 추후 변경할 수 없습니다."
-    $0.font = .thtCaption1M
-    $0.textColor = DSKitAsset.Color.neutral400.color
-    $0.textAlignment = .left
-    $0.numberOfLines = 1
-  }
-
-  lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
+  lazy var nextBtn = TFButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubview(container)
-
-    container.addSubviews(
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
+    addSubviews(
       genderPickerView,
       birthdayLabel,
-      infoImageView, descLabel,
+      descriptionView,
       nextBtn
     )
-    container.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
-    }
 
     genderPickerView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(76)
-      $0.leading.trailing.equalToSuperview()
+      $0.top.equalToSuperview().offset(180.adjustedH)
+      $0.leading.trailing.equalToSuperview().inset(38.adjustedH)
     }
 
     birthdayLabel.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(30)
-      $0.top.equalTo(genderPickerView.snp.bottom).offset(10)
-      $0.height.equalTo(50)
+      $0.leading.trailing.equalTo(genderPickerView)
+      $0.top.equalTo(genderPickerView.snp.bottom).offset(64.adjustedH)
+      $0.height.lessThanOrEqualTo(50)
     }
 
-    infoImageView.snp.makeConstraints {
-      $0.leading.equalTo(birthdayLabel.snp.leading)
-      $0.width.height.equalTo(16)
-      $0.top.equalTo(birthdayLabel.snp.bottom).offset(16)
+    descriptionView.snp.makeConstraints {
+      $0.leading.trailing.equalTo(genderPickerView)
+      $0.top.equalTo(birthdayLabel.snp.bottom).offset(16.adjustedH)
     }
 
-    descLabel.snp.makeConstraints {
-      $0.leading.equalTo(infoImageView.snp.trailing).offset(6)
-      $0.top.equalTo(birthdayLabel.snp.bottom).offset(16)
-      $0.trailing.equalToSuperview().inset(38)
-    }
     nextBtn.snp.makeConstraints {
-      $0.top.equalTo(descLabel.snp.bottom).offset(30)
-      $0.trailing.equalTo(birthdayLabel)
-      $0.height.equalTo(50)
-      $0.width.equalTo(88)
+      $0.trailing.equalTo(descriptionView)
+      $0.height.equalTo(54.adjustedH)
+      $0.width.equalTo(88.adjusted)
+      $0.bottom.equalToSuperview().offset(-133.adjustedH)
     }
   }
 }

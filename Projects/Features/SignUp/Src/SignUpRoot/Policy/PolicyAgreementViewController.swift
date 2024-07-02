@@ -9,26 +9,12 @@ import UIKit
 
 import DSKit
 
-final class PolicyAgreementViewController: TFBaseViewController {
-  private let viewModel: PolicyAgreementViewModel
+final class PolicyAgreementViewController: BaseSignUpVC<PolicyAgreementViewModel> {
 
   private lazy var customView = PolicyAgreementView()
 
-  init(viewModel: PolicyAgreementViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
-  override func makeUI() {
-    view.addSubview(customView)
-
-    customView.snp.makeConstraints {
-      $0.edges.equalTo(view.safeAreaLayoutGuide)
-    }
+  override func loadView() {
+    self.view = customView
   }
 
   override func bindViewModel() {

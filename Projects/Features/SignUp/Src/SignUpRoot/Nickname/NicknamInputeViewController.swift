@@ -9,45 +9,22 @@ import UIKit
 
 import DSKit
 
-final class NicknameInputViewController: TFBaseViewController {
-
+final class  NicknameInputViewController: BaseSignUpVC<NicknameInputViewModel>, StageProgressable {
   fileprivate let mainView = NicknameView()
+  var stage: Float = 1
 
-  private let viewModel: NicknameInputViewModel
-
-  init(viewModel: NicknameInputViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+  override func loadView() {
+    self.view = mainView
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-
-    mainView.nicknameInputField.textField.becomeFirstResponder()
-  }
-
-  override func makeUI() {
-    view.addSubview(mainView)
-    mainView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
+    mainView.nicknameInputField.becomeFirstResponder()
   }
 
   override func bindViewModel() {
-    let viewWillAppear =  rx.sentMessage(#selector(UIViewController.viewWillAppear(_:)))
-      .do(onNext: { [weak self] _ in
-        self?.mainView.nicknameInputField.textField.becomeFirstResponder()
-      })
-      .map { _ in }
-      .asDriver(onErrorDriveWith: .empty())
-
     let input = NicknameInputViewModel.Input(
-      viewWillAppear: viewWillAppear,
-      nickname: mainView.nicknameInputField.textField.rx.text.orEmpty.asDriver(),
+      nickname: mainView.nicknameInputField.rx.text.asDriver(),
       nextBtn: mainView.nextBtn.rx.tap.asDriver()
     )
 
@@ -56,7 +33,7 @@ final class NicknameInputViewController: TFBaseViewController {
     output.errorField
       .debug("errorField")
       .drive(with: self, onNext: { owner, message in
-        owner.mainView.nicknameInputField.render(state: .error(error: .validate(text: message)))
+        owner.mainView.nicknameInputField.send(action: TFCounterTextField.Action.error(inputError: InputError.validate(text: message)))
       })
       .disposed(by: disposeBag)
     
@@ -65,7 +42,6 @@ final class NicknameInputViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.initialValue
-      .debug("initial")
       .drive(mainView.nicknameInputField.rx.text)
       .disposed(by: disposeBag)
   }

@@ -11,6 +11,7 @@ import DSKit
 
 import RxCocoa
 import RxSwift
+import Kingfisher
 
 final class PhotoHeaderViewCollectionViewCell: TFBaseCollectionViewCell {
   private var image: UIImage?
@@ -25,11 +26,13 @@ final class PhotoHeaderViewCollectionViewCell: TFBaseCollectionViewCell {
   lazy var addButton = UIButton().then {
     $0.setImage(DSKitAsset.Image.Icons.addWhite.image, for: .normal)
     $0.isUserInteractionEnabled = false
+    $0.addAction(.init { [weak self] _ in self?.addButtonTap?() }, for: .touchUpInside)
   }
 
   lazy var editButton = UIButton().then {
     $0.setImage(DSKitAsset.Image.Icons.editCircle.image, for: .normal)
     $0.isHidden = true
+    $0.addAction(.init { [weak self] _ in self?.editButtonTap?() }, for: .touchUpInside)
   }
 
   override func makeUI() {
@@ -56,13 +59,13 @@ final class PhotoHeaderViewCollectionViewCell: TFBaseCollectionViewCell {
   }
 
   func bind(_ viewModel: PhotoHeaderCellViewModel) {
-    if let data = viewModel.data {
-      self.imageView.image = UIImage(data: data)
+    if let url = viewModel.url {
+      self.imageView.setImage(url: url, downsample: self.imageView.frame.height)
+      self.editButton.isHidden = false
     } else {
       self.imageView.image = nil
+      self.editButton.isHidden = true
     }
-
-    self.editButton.isHidden = self.imageView.image == nil
 
     contentView.layer.borderWidth = viewModel.cellType == .required
     ? 1
@@ -78,20 +81,3 @@ final class PhotoHeaderViewCollectionViewCell: TFBaseCollectionViewCell {
     self.editButtonTap = nil
   }
 }
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct PhotoHeaderViewCellPreview: PreviewProvider {
-
-  static var previews: some View {
-    UIViewPreview {
-      let comp =  PhotoHeaderViewCollectionViewCell()
-      comp.bind(.init(data: DSKitAsset.Image.Test.test1.image.pngData()!, cellType: .required))
-      return comp
-    }
-    .frame(width: 106, height: 140)
-    .previewLayout(.sizeThatFits)
-  }
-}
-#endif

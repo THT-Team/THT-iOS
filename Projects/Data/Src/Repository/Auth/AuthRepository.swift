@@ -21,11 +21,10 @@ public final class AuthRepository: ProviderProtocol {
 
   public typealias Target = AuthTarget
   public var provider: MoyaProvider<Target>
-  private let authService: AuthServiceType
+  var authService: AuthServiceType
 
   public init(authService: AuthServiceType) {
     self.authService = authService
-
     self.provider = Self.makeProvider(session: authService.createSession())
     TFLogger.dataLogger.debug("init AuthRepo")
   }
@@ -51,7 +50,7 @@ extension AuthRepository: AuthRepositoryInterface {
   public func certificate(phoneNumber: String) -> Single<Int> {
     Single.just(PhoneValidationResponse(phoneNumber: "01012345678", authNumber: 123456))
       .map { $0.authNumber }
-    //    request(type: PhoneValidationResponse.self, target: .certificate(phoneNumber: phoneNumber))
+//    request(type: PhoneValidationResponse.self, target: .certificate(phoneNumber: phoneNumber)).map(\.authNumber)
   }
 
   public func login(phoneNumber: String, deviceKey: String) -> Single<AuthInterface.Token> {
@@ -60,6 +59,10 @@ extension AuthRepository: AuthRepositoryInterface {
 
   public func loginSNS(_ userSNSLoginRequest: AuthInterface.UserSNSLoginRequest) -> Single<AuthInterface.Token> {
     authService.loginSNS(userSNSLoginRequest)
+  }
+
+  public func needAuth() -> Bool {
+    authService.needAuth()
   }
 }
 

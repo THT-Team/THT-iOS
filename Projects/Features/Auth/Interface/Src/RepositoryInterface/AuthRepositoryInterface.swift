@@ -16,4 +16,5 @@ public protocol AuthRepositoryInterface {
   func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
   func refresh(completion: @escaping (Result<Token, Error>) -> Void)
   func refresh() -> Single<Token>
+  func needAuth() -> Bool
 }

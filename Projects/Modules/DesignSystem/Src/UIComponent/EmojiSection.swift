@@ -13,16 +13,6 @@ enum ProfileDetailSection {
   case introduce
 }
 
-extension EmojiType: Hashable {
-  public static func == (lhs: EmojiType, rhs: EmojiType) -> Bool {
-    lhs.identifier == rhs.identifier
-  }
-
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(identifier)
-  }
-}
-
 public struct ProfileInfoSection {
   public typealias Item = EmojiType
 

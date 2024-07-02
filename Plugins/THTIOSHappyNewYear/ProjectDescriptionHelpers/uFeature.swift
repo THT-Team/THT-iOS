@@ -67,14 +67,72 @@ public enum External: String {
   case SnapKit
 	case Then
 	case Starscream
-	case RxKeyboard
 	case Kingfisher
 	case Lottie
 	case Moya
 	case RxMoya
 	case Fierbase
 	case RxGesture
-	case RxDataSources
+  case FirebaseMessaging
+  case FirebaseStorage
+
+  // MARK: OAuth
+  case KakaoSDKAuth
+  case KakaoSDKUser
+  case KakaoSDKCommon
+
+//  case GoogleSignIn
+}
+
+public extension TargetDependency {
+  enum SPM {
+    public static let RxSwfit = TargetDependency.external(name: "RxSwift")
+    public static let RxCocoa = TargetDependency.external(name: "RxCocoa")
+
+    public static let KingFisher = TargetDependency.external(name: External.Kingfisher.rawValue)
+    public static let Moya  = TargetDependency.external(name: External.Moya.rawValue)
+    public static let RxMoya  = TargetDependency.external(name: External.RxMoya.rawValue)
+    public static let Then  = TargetDependency.external(name: External.Then.rawValue)
+    public static let SnapKit  = TargetDependency.external(name: External.SnapKit.rawValue)
+    public static let Lottie = TargetDependency.external(name: External.Lottie.rawValue)
+
+    public static let KakaoSDKAuth = TargetDependency.external(name: External.KakaoSDKAuth.rawValue)
+    public static let KakaoSDKUser = TargetDependency.external(name: External.KakaoSDKUser.rawValue)
+    public static let KakaoSDKCommon = TargetDependency.external(name: External.KakaoSDKCommon.rawValue)
+    public static let RxGesture = TargetDependency.external(name: External.RxGesture.rawValue)
+
+    public static let FirebaseMessaging = TargetDependency.external(name: External.FirebaseMessaging.rawValue)
+    public static let FirebaseStorage = TargetDependency.external(name: External.FirebaseStorage.rawValue)
+  }
+
+  enum XCFramework {
+    public static let NaverThirdPartyLogin = TargetDependency.xcframework(path: .relativeToRoot("Framework/NaverThirdPartyLogin.xcframework"))
+    public static let Lottie = TargetDependency.xcframework(path: .relativeToRoot("Framework/Lottie.xcframework"))
+    public static let FirebaseStorage = TargetDependency.xcframework(path: .relativeToRoot("Framework/Firebase/FirebaseStorage.xcframework"))
+  }
+
+  enum Firebase {
+    public static var storage: [TargetDependency] {
+      [
+        .firebase(name: "FirebaseStorage"),
+        .firebase(name: "FirebaseAppCheckInterop"),
+        .firebase(name: "FirebaseAuthInterop"),
+        .firebase(name: "FirebaseCoreExtension"),
+        .firebase(name: "GTMSessionFetcher"),
+      ]
+    }
+
+    public static var message: [TargetDependency] {
+      [
+        .firebase(name: "GoogleDataTransport"),
+        .firebase(name: "FirebaseMessaging")
+      ]
+    }
+  }
+
+  private static func firebase(name: String) -> TargetDependency {
+    .xcframework(path: .relativeToRoot("Framework/Firebase/\(name).xcframework"))
+  }
 }
 
 public extension TargetDependency {

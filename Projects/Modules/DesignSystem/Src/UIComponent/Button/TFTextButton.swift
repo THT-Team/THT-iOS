@@ -7,33 +7,31 @@
 
 import UIKit
 
-import DSKit
-
 public final class TFTextButton: UIButton {
   public let title: String
 
   public init(title: String) {
     self.title = title
     super.init(frame: .zero)
-    makeView()
+    makeView(title: title)
   }
 
-  func makeView() {
+  public func makeView(title: String, font: UIFont = .thtP2M, color: UIColor = DSKitAsset.Color.neutral400.color) {
     let attributedString = NSMutableAttributedString(string: title)
     attributedString.addAttribute(.underlineStyle,
                                   value: NSUnderlineStyle.single.rawValue,
                                   range: NSRange(location: 0, length: title.count))
 
     attributedString.addAttribute(.font,
-                                  value: UIFont.thtP2M,
+                                  value: font,
                                   range: NSRange(location: 0, length: title.count))
 
     attributedString.addAttribute(.underlineColor,
-                                  value: DSKitAsset.Color.neutral400.color,
+                                  value: color,
                                   range: NSRange(location: 0, length: title.count))
 
     attributedString.addAttribute(.foregroundColor,
-                                  value: DSKitAsset.Color.neutral400.color,
+                                  value: color,
                                   range: NSRange(location: 0, length: title.count))
 
     setAttributedTitle(attributedString, for: .normal)

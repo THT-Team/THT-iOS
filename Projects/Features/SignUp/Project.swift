@@ -15,15 +15,13 @@ let project = Project(
 				.feature(
 					interface: .SignUp,
 						dependencies: [
-							.core,
-              .feature(interface: .Auth)
+              .feature(interface: .Auth),
 						]
 				),
 				.feature(
 						implementation: .SignUp,
 						dependencies: [
 							.feature(interface: .SignUp),
-							.feature(interface: .Auth),
               .dsKit
 						]
 				),

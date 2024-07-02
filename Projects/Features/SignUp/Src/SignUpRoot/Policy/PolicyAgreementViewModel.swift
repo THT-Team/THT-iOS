@@ -8,11 +8,27 @@
 import Foundation
 import SignUpInterface
 import DSKit
+import Core
 
-final class PolicyAgreementViewModel: ViewModelType {
+open class BasePenddingViewModel {
+  var disposeBag = DisposeBag()
 
   weak var delegate: SignUpCoordinatingActionDelegate?
+  var pendingUser: PendingUser
+  let useCase: SignUpUseCaseInterface
 
+  init(useCase: SignUpUseCaseInterface, pendingUser: PendingUser) {
+    self.useCase = useCase
+    self.pendingUser = pendingUser
+    TFLogger.cycle(name: self)
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+}
+
+final class PolicyAgreementViewModel: BasePenddingViewModel, ViewModelType {
   enum CellAction {
     case Agree
     case WebView
@@ -31,85 +47,25 @@ final class PolicyAgreementViewModel: ViewModelType {
     let nextBtnStatus: Driver<Bool>
   }
 
-  struct AgreeStatus {
-    var tos: Bool
-    var privacy: Bool
-    var location: Bool
-    var marketing: Bool
-
-    var total: Bool {
-      return isValid && marketing
-    }
-    var isValid: Bool {
-      return tos && privacy && location
-    }
-    func reverse() -> AgreeStatus {
-      AgreeStatus(tos: !total, privacy: !total, location: !total, marketing: !total)
-    }
-  }
-
-  private let useCase: SignUpUseCaseInterface
-  private let userInfoUseCase: UserInfoUseCaseInterface
-  private var disposeBag = DisposeBag()
-
-  init(useCase: SignUpUseCaseInterface, userInfoUseCase: UserInfoUseCaseInterface) {
-    self.useCase = useCase
-    self.userInfoUseCase = userInfoUseCase
-  }
-
   func transform(input: Input) -> Output {
     let agreeStates = BehaviorRelay<[ServiceAgreementRowViewModel]>(value: [])
     let webViewTrigger = PublishRelay<String?>()
+    let agreeStateShare = agreeStates.asDriver()
 
-    let userinfo = input.viewWillAppear
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-
-    let localAgreements = userinfo.map { $0.userAgreements }
-
-    let remoteAgreements = input.viewWillAppear
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.useCase.fetchAgreements()
-          .catchAndReturn([])
-          .asObservable()
-      }
+    useCase.fetchPolicy()
       .asDriver(onErrorJustReturn: [])
-      .map { array in
-        array.map {
-          ServiceAgreementRowViewModel.init(model: $0, checkImage: DSKitAsset.Image.Component.check)
-        }
-      }
-    Driver.zip(localAgreements, remoteAgreements) { local, remote in
-      guard local.isEmpty else { return remote }
-      var mutableRemoteArray = remote
-
-      local.forEach { key, value in
-        if let index = mutableRemoteArray.firstIndex (where: { $0.model.name == key }) {
-          mutableRemoteArray[index].checkImage = value ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check
-        }
-      }
-      return mutableRemoteArray
-    }.drive(agreeStates)
+      .drive(agreeStates)
       .disposed(by: disposeBag)
 
     input.cellTap
-      .withLatestFrom(agreeStates.asDriver()) { cellAction, rows in
+      .withLatestFrom(agreeStateShare) { cellAction, rows in
         let (indexPath, action) = cellAction
         var rows = rows
         var row = rows[indexPath.row]
 
         switch action {
         case .Agree:
-          print(row.checkImage.name)
-          row.checkImage = row.checkImage.name == DSKitAsset.Image.Component.check.name ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check
+          row.isSelected.toggle()
           rows[indexPath.row] = row
           agreeStates.accept(rows)
           break
@@ -125,67 +81,43 @@ final class PolicyAgreementViewModel: ViewModelType {
       .compactMap { $0 }
       .compactMap { URL(string: $0) }
       .drive(with: self) { owner, url in
-        owner.delegate?.invoke(.agreementWebView(url))
+        owner.delegate?.invoke(.agreementWebView(url), owner.pendingUser)
       }.disposed(by: disposeBag)
 
-    let agreeAllBtnStatus = agreeStates
-      .asDriver()
-      .map { $0.allSatisfy { row in
-        row.checkImage.name == DSKitAsset.Image.Component.checkSelect.name
-      } }
+    let isAllSatisfy = agreeStateShare
+      .map { $0.allSatisfy { $0.isSelected } }
 
     input.agreeAllBtn
-      .withLatestFrom(agreeAllBtnStatus)
-      .withLatestFrom(agreeStates.asDriver()) { buttonStatus, models in
-        models.map {
-          var row = $0
-          row.checkImage = !buttonStatus ? DSKitAsset.Image.Component.checkSelect : DSKitAsset.Image.Component.check
-          return row
-        }
-      }
+      .withLatestFrom(agreeStateShare) { _, rows  in
+        rows.map {
+          var mutable = $0
+          mutable.isSelected = true
+          return mutable } }
       .drive(agreeStates)
       .disposed(by: disposeBag)
 
-    let nextBtnStatus = agreeStates
-      .asDriver()
-      .map { $0.filter { row in row.model.isRequired }
-          .allSatisfy { row in
-            row.checkImage.name == DSKitAsset.Image.Component.checkSelect.name
-          }
-      }
+    let nextBtnStatus = agreeStateShare
+      .map { $0.filter { $0.model.isRequired }
+        .allSatisfy { $0.isSelected } }
 
     input.nextBtn
       .throttle(.milliseconds(500), latest: false)
-      .withLatestFrom(agreeStates.asDriver())
-      .filter { $0
-        .filter { row in
-          row.model.isRequired
-        }
-        .allSatisfy { row in
-          row.checkImage.name == DSKitAsset.Image.Component.checkSelect.name
-        }
-      }
-      .map { $0.map {
-        let key = $0.model.name
-        let value = $0.checkImage.name == DSKitAsset.Image.Component.checkSelect.name ? true : false
-        return (key, value)
-      } }
-      .map { Dictionary(uniqueKeysWithValues: $0) }
-      .withLatestFrom(userinfo) { agreements, userinfo -> UserInfo in
-        var mutableUserInfo = userinfo
-        mutableUserInfo.userAgreements = agreements
-        return mutableUserInfo
-      }
-      .drive(with: self, onNext: { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.userInfoUseCase.updateMarketingAgreement(isAgree: userinfo.userAgreements["marketingAgree", default: false])
-        owner.delegate?.invoke(.nextAtPolicy)
+      .withLatestFrom(nextBtnStatus)
+      .filter { $0 }
+      .withLatestFrom(agreeStateShare)
+      .map { $0.reduce(into: [String: Bool]()) { $0[$1.model.name] = $1.isSelected }
+      }.drive(with: self, onNext: { owner, agreements in
+        owner.pendingUser.userAgreements = agreements
+        owner.useCase.savePendingUser(owner.pendingUser)
+        let isAgree = owner.pendingUser.userAgreements["marketingAgree", default: false]
+        owner.useCase.updateMarketingAgreement(isAgree: isAgree)
+        owner.delegate?.invoke(.nextAtPolicy, owner.pendingUser)
       })
       .disposed(by: disposeBag)
 
     return Output(
-      agreeAllBtnStatus: agreeAllBtnStatus,
-      cellViewModels: agreeStates.asDriver(),
+      agreeAllBtnStatus: isAllSatisfy,
+      cellViewModels: agreeStateShare,
       nextBtnStatus: nextBtnStatus
     )
   }

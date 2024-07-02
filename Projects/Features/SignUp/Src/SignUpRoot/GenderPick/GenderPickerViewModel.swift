@@ -12,9 +12,9 @@ import SignUpInterface
 
 import RxSwift
 import RxCocoa
+import DSKit
 
-final class GenderPickerViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
+final class GenderPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     var genderTap: Driver<Gender>
@@ -28,28 +28,13 @@ final class GenderPickerViewModel: ViewModelType {
     var isNextBtnEnabled: Driver<Bool>
   }
 
-  private var disposeBag = DisposeBag()
-
   private var selectedBirthday = PublishRelay<Date?>()
-  private let userInfoUseCase: UserInfoUseCaseInterface
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
 
   func transform(input: Input) -> Output {
+    let penddingUserShare = Driver.just(self.pendingUser)
 
-    let userInfo = Observable.just(())
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-
-    let initialGender = userInfo.map { $0.gender }
-    let initialBirthday = userInfo.map { $0.birthday?.toDate() }
+    let initialGender = penddingUserShare.map { $0.gender }
+    let initialBirthday = penddingUserShare.map { $0.birthday?.toDate() }
 
     let selectedGender = Driver.merge(input.genderTap, initialGender.compactMap { $0 })
     let birthday = Driver.merge(self.selectedBirthday.asDriverOnErrorJustEmpty(), initialBirthday)
@@ -61,22 +46,19 @@ final class GenderPickerViewModel: ViewModelType {
       .withLatestFrom(birthday)
       .debug("tapped")
       .drive(with: self) { owner, birthday in
-        owner.delegate?.invoke(.birthdayTap(birthday, listener: owner))
+        owner.delegate?.invoke(.birthdayTap(birthday, listener: owner), owner.pendingUser)
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
       .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(birthday)
       .withLatestFrom(selectedGender) { (date: $0, gender: $1) }
-      .withLatestFrom(userInfo) { info, userInfo in
-        var mutable = userInfo
-        mutable.birthday = info.date.toYMDDotDateString()
-        mutable.gender = info.gender
-        return mutable
-      }
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtGender)
+      .drive(with: self) { owner, component in
+        let (date, gender) = component
+        owner.pendingUser.birthday = date.toYMDDotDateString()
+        owner.pendingUser.gender = gender
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtGender, owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(

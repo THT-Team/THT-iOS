@@ -12,11 +12,17 @@ import SignUpInterface
 import AuthInterface
 
 import RxSwift
+import Core
+
+extension CLLocationCoordinate2D {
+  func toDTO() -> LocationCoordinate2D {
+    LocationCoordinate2D(latitude: latitude, longitude: longitude)
+  }
+}
 
 public final class LocationService: NSObject, LocationServiceType {
   private let manager = CLLocationManager()
-  private let geoCoder = CLGeocoder()
-  public let publisher = PublishSubject<LocationReq>()
+  public let publisher = PublishSubject<LocationCoordinate2D>()
   private let location = PublishSubject<CLLocation>()
 
   private var disposeBag = DisposeBag()
@@ -31,9 +37,9 @@ public final class LocationService: NSObject, LocationServiceType {
     manager.delegate = self
 
     location
-      .map { location in
-        LocationReq(address: "", regionCode: 0, lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-      }.bind(to: publisher)
+      .map(\.coordinate)
+      .map { $0.toDTO() }
+      .bind(to: publisher)
       .disposed(by: disposeBag)
   }
 
@@ -56,7 +62,7 @@ public final class LocationService: NSObject, LocationServiceType {
     }
   }
 
-  public func requestLocation() -> Single<LocationReq> {
+  public func requestLocation() -> Single<LocationCoordinate2D> {
     request()
       .flatMap { [unowned self] _ in
         self.publisher
@@ -80,7 +86,8 @@ public final class LocationService: NSObject, LocationServiceType {
           observer(.failure(LocationError.denied))
           return
         }
-        self?.manager.requestLocation()
+//        self?.manager.requestLocation()
+        self?.manager.startUpdatingLocation()
         observer(.success(()))
       }
 
@@ -91,12 +98,13 @@ public final class LocationService: NSObject, LocationServiceType {
 
 extension LocationService: CLLocationManagerDelegate {
   public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-
+//    TFLogger.dataLogger.log("Location Authorization Changed: \(dump(manager.authorizationStatus.rawValue))")
   }
 
   public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     if let location = locations.last {
       self.location.onNext(location)
+      self.manager.stopUpdatingLocation()
     }
   }
 

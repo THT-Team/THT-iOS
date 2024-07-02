@@ -12,19 +12,33 @@ import RxSwift
 import AuthInterface
 import Core
 
+// TODO: interests와 idealtype 수정 API는 적용해야함
+fileprivate let withoutTokenPathArray = ["/users/join", "/users/login", "/interests", "/ideal-types"]
+
 final class OAuthAuthenticator: Authenticator {
   private var token: OAuthCredential?
-  private let authService: AuthServiceType
+  private let tokenProvider: TokenProvider
 
-  init(authService: AuthServiceType) {
-    self.authService = authService
+  init(tokenProvider: TokenProvider) {
+    self.tokenProvider = tokenProvider
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
 
     // SignUp 관련 API는 토큰 없이 호출해야함
+    var credential = credential
     if let url = urlRequest.url {
-      if !(url.path().contains("users/join") || url.path().contains("users/login/normal") || url.path().contains("users/login/sns")) {
+      var needToken = true
+      for filtered in withoutTokenPathArray {
+        if url.path().hasPrefix(filtered) {
+          needToken = false
+          return
+        }
+      }
+      if needToken {
+//        if credential.accessToken.isEmpty {
+//          credential = authService.cachedToken?.toAuthOCredential() ?? credential
+//        }
         urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
       }
     }
@@ -42,7 +56,7 @@ final class OAuthAuthenticator: Authenticator {
     
     TFLogger.dataLogger.notice("try refresing token!!")
 
-    authService.refreshToken() { result in
+    tokenProvider.refreshToken(token: credential.toToken()) { result in
       switch result {
       case .success(let refreshedToken):
         completion(.success(refreshedToken.toAuthOCredential()))

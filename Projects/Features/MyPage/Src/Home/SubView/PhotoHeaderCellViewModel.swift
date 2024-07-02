@@ -12,6 +12,6 @@ struct PhotoHeaderCellViewModel {
     case required
     case optional
   }
-  var data: Data?
+  var url: URL?
   let cellType: CellType
 }

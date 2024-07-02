@@ -15,10 +15,7 @@ import RxCocoa
 import SignUpInterface
 import AuthInterface
 
-final class UserContactViewModel: ViewModelType {
-  private let useCase: SignUpUseCaseInterface
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  private let disposeBag = DisposeBag()
+final class UserContactViewModel: BasePenddingViewModel, ViewModelType {
 
   enum Action {
     case block
@@ -31,10 +28,6 @@ final class UserContactViewModel: ViewModelType {
   
   struct Output {
     let toast: Signal<String>
-  }
-  
-  init(useCase: SignUpUseCaseInterface) {
-    self.useCase = useCase
   }
   
   func transform(input: Input) -> Output {
@@ -74,13 +67,12 @@ final class UserContactViewModel: ViewModelType {
       .delay(.seconds(2))
       .drive(nextTrigger)
       .disposed(by: disposeBag)
-    // TODO: Block 성공하면 toast 띄우고, 2초 뒤 next, 실패하면 toast 띄우고, next 안함
     
     nextTrigger
       .withLatestFrom(fetchedContacts)
       .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, contacts in
-        owner.delegate?.invoke(.nextAtHideFriends(contacts))
+        owner.delegate?.invoke(.nextAtHideFriends(contacts), owner.pendingUser)
       }
       .disposed(by: disposeBag)
     

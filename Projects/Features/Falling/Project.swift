@@ -15,7 +15,6 @@ let project = Project(
 		.feature(
 			interface: .Falling,
 			dependencies: [
-				.core,
         .domain
 			]
 		),

@@ -13,71 +13,54 @@ import Core
 import RxSwift
 import RxCocoa
 import SignUpInterface
+import Domain
 
 enum PhotoAlertAction {
   case edit(IndexPath)
   case delete(IndexPath)
 }
 
-public protocol PhotoPickerListener: AnyObject {
-  func picker(didFinishPicking results: [PHPickerResult])
-}
-
-final class PhotoInputViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
+final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
   var pickerDelegate: PhotoPickerDelegate?
-  var service: PHPickerHandler = PhotoService()
+
+  private let alertSignal = PublishRelay<TopBottomAction>()
 
   struct Input {
-    let cellTap: Driver<IndexPath>
-    let alertTap: Driver<PhotoAlertAction>
+    let cellTap: Signal<Int>
     let nextBtnTap: Driver<Void>
   }
 
   struct Output {
     let images: Driver<[PhotoCellViewModel]>
     let nextBtn: Driver<Bool>
-  }
-
-  private let userInfoUseCase: UserInfoUseCaseInterface
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
-
-  deinit {
-    print("deinit: PhotoInputViewModel")
+    let isDimHidden: Signal<Bool>
   }
 
   private let selectedPHResult =  PublishSubject<PHPickerResult>()
-  private var disposeBag = DisposeBag()
 
   func transform(input: Input) -> Output {
+    let user = Driver.just(self.pendingUser)
+    let isDimHidden = PublishRelay<Bool>()
+    let editTrigger = PublishRelay<Int>()
+
     let imageDataArray = BehaviorRelay<[PhotoCellViewModel]>(value: [
       PhotoCellViewModel(data: nil, cellType: .required),
       PhotoCellViewModel(data: nil, cellType: .required),
       PhotoCellViewModel(data: nil, cellType: .optional)
     ])
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
 
-    userinfo.map { (key: $0.phoneNumber,fileNames: $0.photos) }
+    let fetchedData = user
       .asObservable()
       .withUnretained(self)
       .observe(on: ConcurrentDispatchQueueScheduler.init(qos: .userInitiated))
-      .flatMapLatest { owner, components in
-        owner.userInfoUseCase.fetchUserPhotos(key: components.key, fileNames: components.fileNames)
+      .flatMapLatest { owner, user in
+        owner.useCase.fetchUserPhotos(key: user.phoneNumber, fileNames: user.photos)
           .catchAndReturn([])
           .asObservable()
       }
       .debug("fetched photo fileURLs")
+
+    fetchedData
       .withLatestFrom(imageDataArray) { dataArray, models in
         var mutable = models
         for (index, data) in dataArray.enumerated() {
@@ -89,65 +72,69 @@ final class PhotoInputViewModel: ViewModelType {
       .drive(imageDataArray)
       .disposed(by: disposeBag)
 
-    let alertEditAction = input.alertTap
-      .compactMap { action -> IndexPath? in
+    input.cellTap.filter { $0 < 2 }
+      .emit(to: editTrigger)
+      .disposed(by: disposeBag)
+
+    input.cellTap.filter { $0 == 2 }.asObservable()
+      .withLatestFrom(imageDataArray) { $1[$0].data }
+      .subscribe(with: self) { owner, dataOrNil in
+        if dataOrNil == nil {
+          editTrigger.accept(2)
+          return
+        }
+        isDimHidden.accept(false)
+        owner.delegate?.invoke(.photoEditOrDeleteAlert(owner), owner.pendingUser)
+      }.disposed(by: disposeBag)
+
+    alertSignal.asSignal()
+      .compactMap { action -> Int? in
+        isDimHidden.accept(true)
         switch action {
-        case let .edit(indexPath):
-          return indexPath
-        case .delete:
+        case .top:
+          editTrigger.accept(2)
+          return nil
+        case .bottom:
+          return 2
+        case .cancel:
           return nil
         }
-      }
-
-    input.alertTap
-      .compactMap { action in
-        if case let .delete(indexPath) = action {
-          return indexPath.item
-        }
-        return nil
-      }.drive(onNext: { item in
+      }.emit(onNext: { item in
         var mutable = imageDataArray.value
         mutable[item].data = nil
         imageDataArray.accept(mutable)
       }).disposed(by: disposeBag)
 
-    let index = Driver.merge(input.cellTap, alertEditAction)
-      .map {
-        $0.item
-      }
-      .do(onNext: { [weak self] index in
-        guard let self = self else { return }
+
+    editTrigger.asSignal()
+      .emit(with: self) { owner, index in
         let pickerDelegate = PhotoPickerDelegator()
-        pickerDelegate.listener = self
-        self.pickerDelegate = pickerDelegate
-        self.delegate?.invoke(.photoCellTap(index: index, listener: pickerDelegate))
-      })
+        pickerDelegate.listener = owner
+        owner.pickerDelegate = pickerDelegate
+        owner.delegate?.invoke(.photoCellTap(index: index, listener: pickerDelegate), owner.pendingUser)
+      }.disposed(by: disposeBag)
 
     let data = self.selectedPHResult
       .withUnretained(self)
       .flatMapLatest { owner, asset -> Driver<Data> in
-        owner.service.bind(asset)
+        owner.useCase.processImage(asset)
           .debug("image")
           .asDriver(onErrorDriveWith: .empty())
       }
-      .asDriverOnErrorJustEmpty()
+      .asSignal(onErrorSignalWith: .empty())
 
-    Driver.zip(index, data) { index, data in
+    Signal.zip(editTrigger.asSignal(), data) { index, data in
       var mutable = imageDataArray.value
       mutable[index].data = data
       return mutable
-    }.drive(imageDataArray)
+    }.emit(to: imageDataArray)
       .disposed(by: disposeBag)
 
     let nextBtnStatus = imageDataArray
-      .map { $0.prefix(2) }
-      .map { cells in
-        for cell in cells {
-          if cell.data == nil {
-            return false
-          }
-        }
-        return true
+      .map { array in
+        array
+          .filter { $0.cellType == .required }
+          .compactMap(\.data).count > 1
       }
       .asDriver(onErrorJustReturn: false)
 
@@ -156,30 +143,26 @@ final class PhotoInputViewModel: ViewModelType {
       .filter { $0 }
       .throttle(.milliseconds(400), latest: false)
       .asObservable()
-      .withLatestFrom(imageDataArray)
-      .map { $0.compactMap { $0.data } }
-      .withLatestFrom(userinfo) { (key: $1.phoneNumber, datas: $0) }
+      .withLatestFrom(imageDataArray.map { $0.compactMap { $0.data }})
       .withUnretained(self)
-      .flatMapLatest { owner, components  in
-        owner.userInfoUseCase.saveUserPhotos(key: components.key, datas: components.datas)
+      .observe(on: ConcurrentDispatchQueueScheduler.init(qos: .userInitiated))
+      .flatMapLatest { owner, datas in
+        owner.useCase.saveUserPhotos(key: owner.pendingUser.phoneNumber, datas: datas)
           .catchAndReturn([])
           .asObservable()
       }
       .debug("saved filed URLS:")
-      .withLatestFrom(userinfo) { urls, userinfo in
-        var mutable = userinfo
-        mutable.photos = urls
-        return mutable
-      }
       .asDriverOnErrorJustEmpty()
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtPhoto)
+      .drive(with: self) { owner, urls in
+        owner.pendingUser.photos = urls
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtPhoto, owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(
       images: imageDataArray.asDriver(),
-      nextBtn: nextBtnStatus
+      nextBtn: nextBtnStatus,
+      isDimHidden: isDimHidden.asSignal()
     )
   }
 }
@@ -189,5 +172,11 @@ extension PhotoInputViewModel: PhotoPickerListener {
     if let item = results.first {
       self.selectedPHResult.onNext(item)
     }
+  }
+}
+
+extension PhotoInputViewModel: TopBottomAlertListener {
+  func didTapAction(_ action: Core.TopBottomAction) {
+    self.alertSignal.accept(action)
   }
 }

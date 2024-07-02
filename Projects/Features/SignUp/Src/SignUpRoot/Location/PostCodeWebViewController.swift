@@ -10,10 +10,7 @@ import WebKit
 
 import Core
 import DSKit
-
-public protocol WebViewDelegate: AnyObject {
-  func didReceiveAddress(_ address: String)
-}
+import SignUpInterface
 
 public class PostCodeWebViewController: TFBaseViewController {
   

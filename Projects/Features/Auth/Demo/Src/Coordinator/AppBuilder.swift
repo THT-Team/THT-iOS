@@ -26,7 +26,7 @@ public final class AppRootBuilder: AppRootBuildable {
   }()
 
   private lazy var authBuildable: AuthBuildable = {
-    AuthBuilder(signUpBuilable: signUpBuildable)
+    AuthBuilder(signUpBuilable: signUpBuildable, inquiryBuildable: InquiryBuilder())
   }()
 
   private lazy var launchBuildable: LaunchBuildable = {

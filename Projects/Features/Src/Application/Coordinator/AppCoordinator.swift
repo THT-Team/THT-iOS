@@ -11,6 +11,9 @@ import Foundation
 import Core
 import SignUpInterface
 import AuthInterface
+import Auth
+import KakaoSDKAuth
+import KakaoSDKUser
 import DSKit
 
 protocol AppCoordinating {
@@ -92,5 +95,14 @@ extension AppCoordinator: LaunchCoordinatingDelegate {
       mainFlow()
     }
     detachChild(coordinator)
+  }
+}
+
+extension AppCoordinator: URLHandling {
+  func handle(_ url: URL) {
+    if (AuthApi.isKakaoTalkLoginUrl(url)) {
+      _ = AuthController.handleOpenUrl(url: url)
+
+    }
   }
 }

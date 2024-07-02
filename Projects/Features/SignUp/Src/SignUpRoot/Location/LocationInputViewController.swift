@@ -10,35 +10,20 @@ import UIKit
 import DSKit
 import RxGesture
 
-final class LocationInputViewController: TFBaseViewController {
-  typealias ViewModel = LocationInputViewModel
-  private let mainView = LocationInputView()
-  private let viewModel: LocationInputViewModel
+final class LocationInputViewController: BaseSignUpVC<LocationInputViewModel>, StageProgressable {
+  var stage: Float = 11
 
-  init(viewModel: ViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
+  private let mainView = LocationInputView()
+
   override func loadView() {
     self.view = mainView
   }
 
   override func bindViewModel() {
-    
-    let fieldTap = mainView.locationField.rx
-      .tapGesture()
-      .when(.recognized)
-      .map { _ in }
-      .asDriverOnErrorJustEmpty()
-    
+
     let input = ViewModel.Input(
-      locationBtnTap: fieldTap,
-      nextBtn: self.mainView.nextBtn.rx.tap.asDriver()
+      locationBtnTap: mainView.locationField.rx.tap.asSignal(),
+      nextBtn: mainView.nextBtn.rx.tap.asSignal()
     )
 
     let output = viewModel.transform(input: input)

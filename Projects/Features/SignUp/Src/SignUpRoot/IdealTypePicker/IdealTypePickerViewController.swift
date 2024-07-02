@@ -12,22 +12,13 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class IdealTypePickerViewController: TFBaseViewController {
-  typealias VMType = IdealTypeTagPickerViewModel
+final class IdealTypePickerViewController: BaseSignUpVC<IdealTypePickerVM>, StageProgressable {
+  var stage: Float = 9
+
   private(set) var mainView = TagPickerView(
     titleInfo: .init(title: "이상형을 알려주세요.", targetText: "이상형"),
     subTitleInfo: .init(title: "내 이상형 3개를 선택해주세요.", targetText: "내 이상형")
   )
-  private let viewModel: VMType
-
-  init(viewModel: VMType) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView
@@ -37,7 +28,7 @@ final class IdealTypePickerViewController: TFBaseViewController {
 
     let nextBtnTap = mainView.nextBtn.rx.tap.asDriver()
 
-    let input = VMType.Input(
+    let input = ViewModel.Input(
       chipTap: mainView.collectionView.rx.itemSelected.asDriver(),
       nextBtnTap: nextBtnTap
     )

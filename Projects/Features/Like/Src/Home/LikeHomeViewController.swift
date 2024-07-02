@@ -43,9 +43,8 @@ public final class LikeHomeViewController: TFBaseViewController {
 
       let cellButtonSubject = PublishSubject<LikeCellButtonAction>()
       self.setupDataSource(observer: cellButtonSubject.asObserver())
-    
 
-      let initialTrigger = self.rx.viewWillAppear
+      let initialTrigger = self.rx.viewDidLoad
         .map { _ in }
         .asDriverOnErrorJustEmpty()
       let refreshControl = self.mainView.refreshControl.rx.controlEvent(.valueChanged)

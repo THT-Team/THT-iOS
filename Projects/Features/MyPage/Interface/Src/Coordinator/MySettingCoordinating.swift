@@ -10,8 +10,13 @@ import SignUpInterface
 
 import Core
 
+public enum MySettingCoordinatorOption {
+  case logout
+  case toRoot
+}
+
 public protocol MySettingCoordinatorDelegate: AnyObject {
-  func detachMySetting()
+  func detachMySetting(option: MySettingCoordinatorOption?)
   func attachMySetting(_ user: User)
 }
 
@@ -37,9 +42,11 @@ public protocol MySettingCoordinatingActionDelegate: AnyObject {
 
 public enum MySettingCoordinatingAction {
   case finish
-  
-  case editPhoneNumber
-  case editEmail
+  case logout
+  case toRoot
+
+  case editPhoneNumber(phoneNumber: String)
+  case editEmail(email: String)
   case editUserContacts
 
   case alarmSetting
@@ -51,6 +58,10 @@ public enum MySettingCoordinatingAction {
 
   case showLogoutAlert(LogoutListenr)
   case showDeactivateAlert(DeactivateListener)
+
+  case selectWithdrawal
+  case WithdrawalDetail(WithdrawalReason)
+  case withdrawalComplete
 }
 
 public struct WebViewInfo {

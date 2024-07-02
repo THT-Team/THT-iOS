@@ -16,38 +16,45 @@ protocol AuthCoordinatingActionDelegate: AnyObject {
 }
 
 public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
+
   @Injected private var authUseCase: AuthUseCaseInterface
-  @Injected private var userInfoUseCase: UserInfoUseCaseInterface
-  
+
   private let signUpBuildable: SignUpBuildable
+  private let authViewFactory: AuthViewFactoryType
   private var signUpCoordinator: SignUpCoordinating?
+
+  private let inquiryBuildable: InquiryBuildable
+  private var inquiryCoordinator: InquiryCoordinating?
+
   public weak var delegate: AuthCoordinatingDelegate?
 
-  public init(signUpBuildable: SignUpBuildable, viewControllable: ViewControllable) {
+  public init(
+    signUpBuildable: SignUpBuildable,
+    inquiryBuildable: InquiryBuildable,
+    authViewFactory: AuthViewFactoryType,
+    viewControllable: ViewControllable
+  ) {
     self.signUpBuildable = signUpBuildable
+    self.inquiryBuildable = inquiryBuildable
+    self.authViewFactory = authViewFactory
     super.init(viewControllable: viewControllable)
   }
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
 
-    launchFlow()
+    rootFlow()
   }
 
-  
+
   // MARK: Launch Screen
   public func launchFlow() {
-    // TODO: Launch Screen 에서 가입/인증/메인 분기 처리
 
-    var needAuth = true
-    if needAuth {
-      rootFlow()
-    }
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
   public func rootFlow() {
-    let viewModel = AuthRootViewModel()
+    let viewModel = AuthRootViewModel(useCase: authUseCase)
     viewModel.delegate = self
 
     let viewController = AuthRootViewController()
@@ -57,26 +64,32 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   }
 
   public func phoneNumberFlow() {
-    let viewModel = PhoneCertificationViewModel(useCase: authUseCase, userInfoUseCase: self.userInfoUseCase)
-    viewModel.delegate = self
-
-    let viewController = PhoneCertificationViewController(viewModel: viewModel)
-
-    self.viewControllable.pushViewController(viewController, animated: true)
+    let vc = authViewFactory.makePhoneNumberScene(delegate: self)
+    self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func snsFlow(type: SNSType) {
+  public func phoneAuthFlow(phoneNumber: String) {
+    let vc = authViewFactory.makePhoneAuthScene(viewModel: PhoneAuthVM(phoneNumber: phoneNumber, delegate: self, useCase: authUseCase))
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func snsFlow(type: AuthType) {
     switch type {
-    case .normal:
+    case .phoneNumber:
       phoneNumberFlow()
-    case .kakao:
-      print(type.rawValue)
-    case .naver:
-      print(type.rawValue)
-    case .google:
-      print(type.rawValue)
-    case .apple:
-      print(type.rawValue)
+    case .sns(let userInfo):
+      switch type.snsType {
+      case .kakao, .naver:
+        attachSignUp(.startPolicy(userInfo))
+      case .google:
+        phoneNumberFlow()
+        break
+      case .apple:
+        phoneNumberFlow()
+        break
+      case .normal:
+        break
+      }
     }
   }
 }
@@ -84,28 +97,65 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 extension AuthCoordinator: AuthCoordinatingActionDelegate {
   func invoke(_ action: AuthCoordinatingAction) {
     switch action {
+    case .inquiry:
+      attachInquiryCoordinator()
     case let .tologinType(snsType):
       snsFlow(type: snsType)
-    case let .toSignUp(phoneNum):
-      attachSignUpCoordiantor()
     case .toMain:
       self.delegate?.detachAuth(self)
     }
   }
 }
 
-// MARK: SignUpCoordinator
+// MARK: InquiryCoordinator
 
-extension AuthCoordinator {
-  func attachSignUpCoordiantor() {
-    if self.signUpCoordinator != nil { return }
-    let coordinator = self.signUpBuildable.build()
+extension AuthCoordinator: InquiryCoordinatingDelegate {
+  public func attachInquiry() {
+    attachInquiryCoordinator()
+  }
+
+  public func detachInquiry(_ coordinator: Core.Coordinator) {
+    detachInquiryCoordinator()
+
+  }
+  func attachInquiryCoordinator() {
+    if self.inquiryCoordinator != nil { return }
+    let coordinator = self.inquiryBuildable.build(rootViewControllable: self.viewControllable)
     coordinator.delegate = self
     self.attachChild(coordinator)
-    self.signUpCoordinator = coordinator
+    self.inquiryCoordinator = coordinator
 
     coordinator.start()
   }
+
+  func detachInquiryCoordinator() {
+    guard let inquiryCoordinator else { return }
+    self.detachChild(inquiryCoordinator)
+    self.inquiryCoordinator = nil
+  }
+}
+
+// MARK: SignUpCoordinator
+
+extension AuthCoordinator: SignUpCoordinatorDelegate {
+  public func detachSignUp(_ coordinator: Coordinator, _ option: FinishSignUpOption) {
+    self.detachSignUpCoordinator()
+    switch option {
+    case .back: break
+    case .complete:
+      self.delegate?.detachAuth(self)
+    }
+  }
+
+  public func attachSignUp(_ option: SignUpOption) {
+    if self.signUpCoordinator != nil { return }
+    let coordinator = self.signUpBuildable.build(rootViewControllable: self.viewControllable)
+    coordinator.delegate = self
+    self.attachChild(coordinator)
+    self.signUpCoordinator = coordinator
+    coordinator.start(option)
+  }
+
   func detachSignUpCoordinator() {
     guard let coordinator = self.signUpCoordinator else { return }
     self.detachChild(coordinator)
@@ -113,11 +163,20 @@ extension AuthCoordinator {
   }
 }
 
-extension AuthCoordinator: SignUpCoordinatorDelegate {
-  public func detachSignUp(_ coordinator: Coordinator) {
-    self.detachSignUpCoordinator()
+extension AuthCoordinator: PhoneInputVCDelegate, PhoneAuthViewDelegate {
+  public func didTapPhoneInputBtn(_ phoneNumber: String) {
+    phoneAuthFlow(phoneNumber: phoneNumber)
+  }
 
-    self.delegate?.detachAuth(self)
+  public func didAuthComplete(option: PhoneAuthOption) {
+    viewControllable.dismiss()
+    switch option {
+    case .signUp(let phoneNumber):
+      attachSignUp(.start(phoneNumber: phoneNumber))
+    case .signIn:
+      self.delegate?.detachAuth(self)
+    case .none:
+      break
+    }
   }
 }
-

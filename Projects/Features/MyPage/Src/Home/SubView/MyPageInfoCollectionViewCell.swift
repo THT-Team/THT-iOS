@@ -52,20 +52,23 @@ final class MyPageInfoCollectionViewCell: TFBaseCollectionViewCell {
     containerView.addSubviews(titleLabel, contentLabel)
 
     containerView.snp.makeConstraints {
-      $0.bottom.equalToSuperview().inset(10)
+      $0.bottom.equalToSuperview().inset(5).priority(.high)
       $0.top.equalToSuperview().inset(5)
       $0.leading.trailing.equalToSuperview()
     }
 
+    titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+    titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     titleLabel.snp.makeConstraints {
-      $0.top.leading.equalToSuperview().offset(15)
-      $0.bottom.equalToSuperview().offset(-15)
+      $0.top.equalToSuperview().offset(15.adjustedH)
+      $0.leading.equalToSuperview().offset(21.adjusted)
+      $0.bottom.equalToSuperview().offset(-15.adjustedH)
     }
 
     contentLabel.snp.makeConstraints {
       $0.top.bottom.equalTo(titleLabel)
-      $0.leading.equalTo(titleLabel.snp.trailing).offset(10)
-      $0.trailing.equalToSuperview().offset(-10)
+      $0.leading.equalTo(titleLabel.snp.trailing).offset(15)
+      $0.trailing.equalToSuperview().offset(-21.adjusted)
     }
   }
 

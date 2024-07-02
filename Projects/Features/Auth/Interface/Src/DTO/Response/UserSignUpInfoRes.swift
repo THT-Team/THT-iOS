@@ -10,4 +10,9 @@ import Foundation
 public struct UserSignUpInfoRes: Codable {
   public let isSignUp: Bool
   public let typeList: [SNSType]
+
+  public init(isSignUp: Bool, typeList: [SNSType]) {
+    self.isSignUp = isSignUp
+    self.typeList = typeList
+  }
 }

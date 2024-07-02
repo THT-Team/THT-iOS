@@ -22,7 +22,21 @@ final class TFCheckButton: UIButton {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
+  override var isHighlighted: Bool {
+    didSet {
+      if isHighlighted {
+        UIView.animate(withDuration: 0.1) {
+          self.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
+      } else {
+        UIView.animate(withDuration: 0.1) {
+          self.transform = .identity
+        }
+      }
+    }
+  }
+
   func makeUI(title: String) {
     setTitleColor(DSKitAsset.Color.neutral50.color, for: .normal)
     self.setTitle(title, for: .normal)

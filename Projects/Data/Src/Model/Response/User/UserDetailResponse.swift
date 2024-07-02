@@ -8,6 +8,7 @@
 import Foundation
 import MyPageInterface
 import SignUpInterface
+import Domain
 
 // MARK: - UserDetailRes
 struct UserDetailRes: Codable {
@@ -17,22 +18,24 @@ struct UserDetailRes: Codable {
   let gender: String
   let tall: Int
   let smoking, drinking, religion: String
-  let idealTypeList, interestsList: [SignUpInterface.EmojiType]
+  let idealTypeList, interestsList: [EmojiTypeRes]
   let userProfilePhotos: [UserProfilePhotoRes]
   let userAgreements: [String: Bool]
+  let birthDay: String
 
   enum CodingKeys: String, CodingKey {
     case preferGender = "prefer_gender"
     case username
     case userUUID = "userUuid"
     case age, introduction, address, phoneNumber, email, gender, tall, smoking, drinking, religion, idealTypeList, interestsList, userProfilePhotos, userAgreements
+    case birthDay
   }
 }
 
 extension UserDetailRes {
   func toDomain() -> User {
 
-    User(
+    User(birthday: self.birthDay,
       preferGender: Gender(rawValue: self.preferGender)!,
       username: self.username,
       userUUID: self.userUUID,
@@ -46,8 +49,8 @@ extension UserDetailRes {
       smoking: Frequency(rawValue: self.smoking)!,
       drinking: Frequency(rawValue: self.drinking)!,
       religion: Religion(rawValue: self.religion)!,
-      idealTypeList: self.idealTypeList,
-      interestsList: self.interestsList,
+      idealTypeList: self.idealTypeList.map { $0.toDomain() },
+      interestsList: self.interestsList.map { $0.toDomain() },
       userProfilePhotos: self.userProfilePhotos.map { $0.toDomain() },
       userAgreements: self.userAgreements)
   }

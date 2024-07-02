@@ -9,9 +9,6 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 import MyPlugin
 
-let project = Project.dynamicFramework(
-	name: Feature.Network.rawValue,
-	dependencies: [
-		.core
-	]
-)
+let project = Project.makeModule(
+  name: Feature.Network.rawValue,
+  dependencies: [.core])

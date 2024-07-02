@@ -8,7 +8,17 @@
 import Foundation
 
 public enum AuthCoordinatingAction {
-  case tologinType(_ type: SNSType)
-  case toSignUp(phoneNumber: String)
+  case tologinType(_ type: AuthType)
   case toMain
+  case inquiry
+}
+
+
+public enum PhoneAuthOption {
+  case signUp(phoneNumber: String)
+  case signIn
+  case none
+}
+public protocol PhoneAuthViewDelegate: AnyObject {
+  func didAuthComplete(option: PhoneAuthOption)
 }

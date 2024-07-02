@@ -32,8 +32,11 @@ extension AppDelegate {
       interface: SignUpUseCaseInterface.self,
       implement: {
         SignUpUseCase(
-          repository: SignUpRepository(authService: authService),
-          contactService: contactService
+          repository: SignUpRepository(),
+          contactService: contactService,
+          authService: authService,
+          fileRepository: FileRepository(),
+          imageService: ImageService()
         )
       }
     )
@@ -47,20 +50,13 @@ extension AppDelegate {
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil),
-          contactsService: contactService
+          repository: MyPageRepository(session: authService.createSession()),
+          contactsService: contactService,
+          authService: authService,
+          imageService: ImageService()
         )
       }
     )
-
-    container.register(
-      interface: UserInfoUseCaseInterface.self,
-      implement: {
-        UserInfoUseCase(repository: UserDefaultUserInfoRepository())
-      })
   }
 }
 

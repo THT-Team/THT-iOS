@@ -11,39 +11,52 @@ import Core
 import DSKit
 import Auth
 import SignUp
+import MyPage
+
+public protocol AppRootDependency { }
+
+final class AppRootComponent: AppRootDependency, MyPageDependency {
+  lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
+    InquiryBuilder()
+  }()
+
+  lazy var authViewFactory: AuthInterface.AuthViewFactoryType = {
+    AuthViewFactory()
+  }()
+
+  private let dependency: AppRootDependency
+
+  init(dependency: AppRootDependency) {
+    self.dependency = dependency
+  }
+}
 
 public protocol AppRootBuildable {
-  func build() -> LaunchCoordinating
+  func build() -> (LaunchCoordinating & URLHandling)
 }
 
 public final class AppRootBuilder: AppRootBuildable {
-  public init() { }
+  private let dependency: AppRootDependency
 
-  private lazy var mainBuildable: MainBuildable = {
-    MainBuilder()
-  }()
+  public init(dependency: AppRootDependency) {
+    self.dependency = dependency
+  }
 
-  private lazy var signUpBuildable: SignUpBuildable = {
-    SignUpBuilder()
-  }()
-
-  private lazy var authBuildable: AuthBuildable = {
-    AuthBuilder(signUpBuilable: signUpBuildable)
-  }()
-
-  private lazy var launchBuildable: LaunchBuildable = {
-    LaunchBuilder()
-  }()
-
-  public func build() -> LaunchCoordinating {
+  public func build() -> (LaunchCoordinating & URLHandling) {
 
     let viewController = NavigationViewControllable()
 
+    let component = AppRootComponent(dependency: dependency)
+    let mainBuilder = MainBuilder(dependency: component)
+    let signUpBuilder = SignUpBuilder()
+    let authBuilder = AuthBuilder(signUpBuilable: signUpBuilder, inquiryBuildable: component.inquiryBuildable)
+    let launcher = LaunchBuilder()
+
     let coordinator = AppCoordinator(
       viewControllable: viewController,
-      mainBuildable: self.mainBuildable,
-      authBuildable: self.authBuildable,
-      launchBUidlable: self.launchBuildable
+      mainBuildable: mainBuilder,
+      authBuildable: authBuilder,
+      launchBUidlable: launcher
     )
     return coordinator
   }

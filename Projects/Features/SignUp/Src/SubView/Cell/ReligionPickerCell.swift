@@ -29,6 +29,19 @@ final class ReligionPickerCell: TFBaseCollectionViewCell {
     }
   }
 
+  public override var isHighlighted: Bool {
+    didSet {
+
+      guard isHighlighted else { return }
+      UIView.animate(
+        withDuration: 0.1,
+        animations: { self.transform = CGAffineTransform(scaleX: 0.90, y: 0.90)},
+        completion: { finished in
+          UIView.animate(withDuration: 0.1) { self.transform = .identity }
+        })
+    }
+  }
+
   func bind(_ model: Religion) {
     let text: String
 

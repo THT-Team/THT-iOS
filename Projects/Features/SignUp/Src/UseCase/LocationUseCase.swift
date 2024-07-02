@@ -23,11 +23,11 @@ public final class LocationUseCase: LocationUseCaseInterface {
     self.kakaoAPIService = kakaoAPIService
   }
 
-  @MainActor
   public func fetchLocation() -> Single<LocationReq> { //
     self.locationService.requestLocation()
+      .debug("fetched from GPS")
       .flatMap { [unowned self] location in
-        self.kakaoAPIService.fetchLocationByCoordinate2d(longitude: location.lon, latitude: location.lat)
+        self.kakaoAPIService.fetchLocationByCoordinate2d(longitude: location.longitude, latitude: location.latitude)
       }.map { location in
         guard let location else {
           throw LocationError.invalidLocation
@@ -44,5 +44,14 @@ public final class LocationUseCase: LocationUseCaseInterface {
         }
         return model
       }
+  }
+
+  public func isValid(_ location: LocationReq?) -> Single<Bool> {
+    guard
+      let location,
+      location.address.isEmpty == false,
+      location.lat != 0, location.lon != 0
+    else { return .just(false) }
+    return .just(true)
   }
 }
