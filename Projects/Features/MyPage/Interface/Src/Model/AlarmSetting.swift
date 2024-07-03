@@ -6,6 +6,23 @@
 //
 
 import Foundation
+import SignUpInterface
+
+import Core
+
+public struct AlarmSettingFactory {
+  public static func createDefaultAlarmSetting() -> AlarmSetting {
+    var defaultAlarmSetting = AlarmSetting.defaultSetting
+    let timestamp = Date()
+    let markettingAlarm = UserDefaultRepository.shared.fetchModel(for: .marketAgreement, type: MarketingInfoAgreement.self) ?? .init(isAgree: false, timeStamp: timestamp.toDateString())
+
+    defaultAlarmSetting.settings.merge(["marketingAlarm": markettingAlarm.isAgree]) { last, new in
+      new
+    }
+    defaultAlarmSetting.lastUpdated = timestamp
+    return defaultAlarmSetting
+  }
+}
 
 public struct AlarmSetting: Codable {
   public var settings: [String: Bool]

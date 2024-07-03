@@ -27,9 +27,9 @@ public struct UserInfo: Codable {
   public var idealTypeList: [Int]
   public var interestsList: [Int]
   public var photos: [String]
-  public var userAgreements: [String: Bool]?
+  public var userAgreements: [String: Bool]
 
-  public init(phoneNumber: String, name: String? = nil, userUUID: String? = nil, birthday: String? = nil, introduction: String? = nil, address: LocationReq? = nil, email: String? = nil, gender: Gender? = nil, preferGender: Gender? = nil, tall: Int? = nil, smoking: Frequency? = nil, drinking: Frequency? = nil, religion: Religion? = nil, idealTypeList: [Int] = [], interestsList: [Int] = [], photos: [String] = [], userAgreements: [String: Bool]? = nil) {
+  public init(phoneNumber: String, name: String? = nil, userUUID: String? = nil, birthday: String? = nil, introduction: String? = nil, address: LocationReq? = nil, email: String? = nil, gender: Gender? = nil, preferGender: Gender? = nil, tall: Int? = nil, smoking: Frequency? = nil, drinking: Frequency? = nil, religion: Religion? = nil, idealTypeList: [Int] = [], interestsList: [Int] = [], photos: [String] = [], userAgreements: [String: Bool] = [:]) {
     self.phoneNumber = phoneNumber
     self.name = name
     self.userUUID = userUUID

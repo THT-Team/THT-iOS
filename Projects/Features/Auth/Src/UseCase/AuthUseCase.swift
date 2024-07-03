@@ -44,4 +44,13 @@ public final class AuthUseCase: AuthUseCaseInterface {
     return repository.refresh()
       .map { _ in }
   }
+
+  public func saveSNSType(type snsTYpe: SNSType, snsUUID: String?) {
+    UserDefaultRepository.shared.save(snsTYpe.rawValue, key: .snsType)
+    UserDefaultRepository.shared.save(snsUUID, key: .snsUUID)
+  }
+
+  public func saveDeviceKey(_ deviceKey: String) {
+    UserDefaultRepository.shared.save(deviceKey, key: .deviceKey)
+  }
 }

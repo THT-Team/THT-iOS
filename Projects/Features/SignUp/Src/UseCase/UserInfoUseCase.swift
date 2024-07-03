@@ -1,47 +1,91 @@
 //
-//  UserInfoUseCase.swift
-//  SignUpInterface
+//  UserInfoUseCase2.swift
+//  SignUp
 //
-//  Created by Kanghos on 5/29/24.
+//  Created by Kanghos on 7/3/24.
 //
 
 import Foundation
+
+import Core
 import SignUpInterface
 import RxSwift
 
+public enum StorageError: Error {
+  case notExisted
+}
+
 public class UserInfoUseCase: UserInfoUseCaseInterface {
-  private let repository: UserInfoRepositoryInterface
-  
-  public init(repository: UserInfoRepositoryInterface) {
-    self.repository = repository
+  private let fileRepository: FileRepositoryInterface
+
+  public init(fileRepository: FileRepositoryInterface) {
+    self.fileRepository = fileRepository
   }
 
   public func savePhoneNumber(_ phoneNumber: String) {
-    repository.savePhoneNumber(phoneNumber)
-    repository.deleteUserInfo()
+    UserDefaultRepository.shared.save(phoneNumber, key: .phoneNumber)
+    deleteUserInfo()
   }
 
   public func fetchPhoneNumber() -> Single<String> {
-    repository.fetchPhoneNumber()
+    Single<String>.create { observer in
+      if let phoneNumber = UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self) {
+        observer(.success(phoneNumber))
+      } else {
+        observer(.failure(StorageError.notExisted))
+      }
+      return Disposables.create { }
+    }
   }
 
   public func fetchUserInfo() -> Single<UserInfo> {
-    repository.fetchUserInfo()
+    .create { observer in
+      if let userInfo = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: UserInfo.self) {
+        observer(.success(userInfo))
+      } else {
+        observer(.failure(StorageError.notExisted))
+      }
+      return Disposables.create()
+    }
   }
-  
+
   public func updateUserInfo(userInfo: UserInfo) {
-    return repository.updateUserInfo(userInfo: userInfo)
+    UserDefaultRepository.shared.saveModel(userInfo, key: .pendingUser)
   }
-  
+
   public func deleteUserInfo() {
-    return repository.deleteUserInfo()
+    UserDefaultRepository.shared.remove(key: .pendingUser)
   }
 
   public func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]> {
-    return repository.fetchUserPhotos(key: key, fileNames: fileNames)
+    .create { [weak self] observer in
+      if let imageDatas = self?.fileRepository.fetch(fileNames: fileNames.map { key + "/" + $0 }) {
+        observer(.success(imageDatas))
+      } else {
+        observer(.failure(StorageError.notExisted))
+      }
+      return Disposables.create()
+    }
   }
 
   public func saveUserPhotos(key: String, datas: [Data]) -> Single<[String]> {
-    repository.saveUserPhotos(key: key, datas: datas)
+    .create { [weak self] observer in
+      if let urls = self?.fileRepository.save(
+        datas.enumerated()
+          .map { (fileName: key + "/\($0).jpeg", data: $1) }) {
+        observer(.success(urls))
+      } else {
+        observer(.failure(StorageError.notExisted))
+      }
+      return Disposables.create()
+    }
+  }
+
+  public func updateMarketingAgreement(isAgree: Bool) {
+    UserDefaultRepository.shared.saveModel(
+      MarketingInfoAgreement(
+        isAgree: isAgree,
+        timeStamp: Date().toDateString()),
+      key: .marketAgreement)
   }
 }

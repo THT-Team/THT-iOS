@@ -18,6 +18,7 @@ final class PreferGenderPickerViewModel: ViewModelType {
   private let userInfoUseCase: UserInfoUseCaseInterface
 
   struct Input {
+    let viewWillAppear: Driver<Void>
     var genderTap: Driver<Gender>
     var nextBtnTap: Driver<Void>
   }
@@ -39,7 +40,7 @@ final class PreferGenderPickerViewModel: ViewModelType {
 
   func transform(input: Input) -> Output {
 
-    let userinfo = Driver.just(())
+    let userinfo = input.viewWillAppear
       .asObservable()
       .withUnretained(self)
       .flatMap { owner, _ in

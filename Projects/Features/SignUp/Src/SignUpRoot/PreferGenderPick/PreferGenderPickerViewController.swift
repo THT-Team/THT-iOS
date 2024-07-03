@@ -38,6 +38,7 @@ final class PreferGenderPickerViewController: TFBaseViewController {
       .compactMap { GenderMapper.toGender($0) }
 
     let input = PreferGenderPickerViewModel.Input(
+      viewWillAppear: rx.viewWillAppear.mapToVoid().asDriverOnErrorJustEmpty(),
       genderTap: genderTap,
       nextBtnTap: self.mainView.nextBtn.rx.tap.asDriver()
     )
