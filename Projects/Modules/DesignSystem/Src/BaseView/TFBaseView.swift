@@ -17,7 +17,8 @@ open class TFBaseView: UIView {
     super.init(frame: frame)
     makeUI()
   }
-  
+	
+	@available(*, unavailable)
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
