@@ -41,6 +41,7 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     label.textColor = DSKitAsset.Color.neutral50.color
     return label
   }()
+	
   private lazy var locationIconImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = DSKitAsset.Image.Icons.pinSmall.image.withTintColor(DSKitAsset.Color.neutral400.color, renderingMode: .alwaysOriginal)
@@ -125,17 +126,22 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     fatalError("init(coder:) has not been implemented")
   }
 
-
-
   func makeUI() {
+		self.backgroundView = UIView().then {
+			$0.backgroundColor = DSKitAsset.Color.neutral700.color
+		}
+		
     self.contentView.backgroundColor = DSKitAsset.Color.neutral600.color
     self.contentView.layer.cornerRadius = 12
-
-    [profileImageView, nickNameLabel, locationIconImageView, locationLabel,
-     newArriavalView, stackView
-    ].forEach {
-      self.contentView.addSubview($0)
-    }
+		
+		contentView.addSubviews(
+			profileImageView, 
+			nickNameLabel,
+			locationIconImageView,
+			locationLabel,
+			newArriavalView,
+			stackView
+		)
 
     [nextTimeButton, chatButton].forEach {
       stackView.addArrangedSubview($0)
@@ -152,10 +158,12 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
       $0.top.equalTo(profileImageView)
       $0.leading.equalTo(profileImageView.snp.trailing).offset(14)
     }
+		
     locationIconImageView.snp.makeConstraints {
       $0.leading.equalTo(nickNameLabel)
       $0.top.equalTo(nickNameLabel.snp.bottom).offset(3)
     }
+		
     locationLabel.snp.makeConstraints {
       $0.centerY.equalTo(locationIconImageView)
       $0.leading.equalTo(locationIconImageView.snp.trailing)

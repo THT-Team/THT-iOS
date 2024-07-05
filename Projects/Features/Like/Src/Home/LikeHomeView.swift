@@ -40,9 +40,8 @@ final class HeartListView: TFBaseView {
   )
 
   override func makeUI() {
-    self.addSubview(collectionView)
-    self.addSubview(visualEffectView)
-
+		self.addSubviews(collectionView, visualEffectView)
+    
     visualEffectView.isHidden = true
     visualEffectView.snp.makeConstraints {
       $0.edges.equalToSuperview()
