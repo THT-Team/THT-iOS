@@ -16,6 +16,9 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
     super.init(nibName: nil, bundle: nil)
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
 
   public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -28,6 +31,12 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
 
     output.state
       .drive()
+      .disposed(by: disposeBag)
+
+    output.toast
+      .emit(with: self, onNext: { owner, message in
+        owner.view.makeToast(message)
+      })
       .disposed(by: disposeBag)
   }
 }

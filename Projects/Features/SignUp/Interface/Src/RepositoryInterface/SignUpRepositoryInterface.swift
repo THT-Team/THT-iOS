@@ -14,7 +14,7 @@ public protocol SignUpRepositoryInterface {
   func checkNickname(nickname: String) -> Single<Bool>
   func idealTypes() -> Single<[EmojiType]>
   func interests() -> Single<[EmojiType]>
-  func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
+  func signUp(_ signUpRequest: SignUpReq) -> Single<Void>
   func uploadImage(data: [Data]) -> Single<[String]>
   func fetchAgreements() -> Single<Agreement>
 }

@@ -31,6 +31,7 @@ public final class LauncherViewModel: ViewModelType {
 
   public struct Output {
     let state: Driver<Void>
+    let toast: Signal<String>
   }
 
   public init(userInfoUseCase: UserInfoUseCaseInterface, useCase: AuthUseCaseInterface) {
@@ -38,10 +39,14 @@ public final class LauncherViewModel: ViewModelType {
     self.useCase = useCase
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public func transform(input: Input) -> Output {
+    let toast = PublishRelay<String>()
 
     let phoneNumber = userInfoUseCase.fetchPhoneNumber()
-      .catchAndReturn("")
       .asDriver(onErrorJustReturn: "")
 
     let needAuth = input.viewDidLoad
@@ -56,20 +61,22 @@ public final class LauncherViewModel: ViewModelType {
 
     needAuth
       .filter { !$0 }
-      .asObservable()
       .withLatestFrom(phoneNumber)
-      .withUnretained(self)
-      .flatMap { owner, phoneNum in
+      .flatMapLatest(with: self) { owner, phoneNum in
         owner.useCase.login(phoneNumber: phoneNum, deviceKey: "device")
-          .asObservable()
-          .catch { error in
+          .debug("login")
+          .asDriver(onErrorRecover: { error in
             TFLogger.dataLogger.error("\(error.localizedDescription)")
+            toast.accept("로그인에 실패하였습니다. 다시 시도해주시기 바랍니다.\n\(error.localizedDescription)")
             return .empty()
-          }
-      }.subscribe(with: self) { owner, _ in
+          })
+      }.drive(with: self) { owner, _ in
         owner.delegate?.toMain()
       }.disposed(by: disposeBag)
 
-    return Output(state: Driver.just(()))
+    return Output(
+      state: Driver.just(()),
+      toast: toast.asSignal()
+    )
   }
 }

@@ -21,18 +21,14 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-    let tokenStore = UserDefaultTokenStore()
-    let tokenProvider = DefaultTokenProvider()
+    let authService = DefaultAuthService()
 
     container.register(
       interface: SignUpUseCaseInterface.self,
       implement: {
         SignUpUseCase(
-          repository: SignUpRepository(),
-          locationService: LocationService(),
-          kakaoAPIService: KakaoAPIService(),
-          contactService: ContactService(),
-          tokenStore: tokenStore
+          repository: SignUpRepository(authService: authService),
+          contactService: ContactService()
         )
       }
     )
@@ -40,10 +36,7 @@ extension AppDelegate {
     container.register(
       interface: AuthUseCaseInterface.self,
       implement: {
-        AuthUseCase(
-          authRepository: AuthRepository(tokenStore: tokenStore, tokenProvider: tokenProvider),
-          tokenStore: tokenStore
-        )
+        AuthUseCase(authRepository: AuthRepository(authService: authService))
       })
 
     container.register(

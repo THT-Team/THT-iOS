@@ -14,14 +14,12 @@ import Domain
 public final class SignUpUseCase: SignUpUseCaseInterface {
 
   private let repository: SignUpRepositoryInterface
-  private let tokenStore: TokenStore
 
   private let contactService: ContactServiceType
 
-  public init(repository: SignUpRepositoryInterface, locationService: LocationServiceType, kakaoAPIService: KakaoAPIServiceType, contactService: ContactServiceType, tokenStore: TokenStore) {
+  public init(repository: SignUpRepositoryInterface, contactService: ContactServiceType) {
     self.repository = repository
     self.contactService = contactService
-    self.tokenStore = tokenStore
   }
 
   public func checkNickname(nickname: String) -> Single<Bool> {
@@ -46,10 +44,6 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func signUp(request: SignUpReq) -> Single<Void> {
     return repository.signUp(request)
-      .flatMap { [weak self] token in
-        self?.tokenStore.saveToken(token: token)
-        return .just(())
-      }
   }
 
   public func uploadImage(data: [Data]) -> Single<[String]> {

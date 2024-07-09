@@ -11,11 +11,13 @@ import Networks
 
 import Moya
 import AuthInterface
+import SignUpInterface
 
 public enum TokenProviderTarget {
   case login(phoneNumber: String, deviceKey: String)
   case loginSNS(request: UserSNSLoginRequest)
   case refresh(Token)
+  case signUp(SignUpReq)
 }
 
 extension TokenProviderTarget: BaseTargetType {
@@ -28,6 +30,8 @@ extension TokenProviderTarget: BaseTargetType {
       return "users/login/sns"
     case .refresh:
       return "users/login/refresh"
+    case .signUp:
+      return "users/join/signup"
     }
   }
 
@@ -47,6 +51,8 @@ extension TokenProviderTarget: BaseTargetType {
       return .requestParameters(parameters: snsDTO.toDictionary(), encoding: JSONEncoding.default)
     case let .refresh(token):
       return .requestParameters(parameters: token.toDictionary(), encoding: JSONEncoding.default)
+    case let .signUp(request):
+      return .requestJSONEncodable(request)
     }
   }
 }

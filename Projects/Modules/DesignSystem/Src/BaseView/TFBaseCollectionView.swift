@@ -25,6 +25,8 @@ open class TFBaseCollectionView: UICollectionView {
     }
   }
   
+  open func makeUI() {}
+  
   public func hiddenDimView() {
     DispatchQueue.main.async {
       UIView.animate(withDuration: 0.0) { [weak self] in
