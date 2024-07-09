@@ -25,7 +25,6 @@ final class AlarmSettingViewModel: ViewModelType {
 
   func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
-    let updateMarketingSection = PublishRelay<AlarmSection>()
     let initialState = myPageUseCase.fetchAlarmSetting()
     let state = BehaviorRelay<[String: Bool]>(value: initialState.settings)
     let marketAlarmDidChange = PublishRelay<Bool>()
@@ -54,7 +53,7 @@ final class AlarmSettingViewModel: ViewModelType {
       .asDriver()
       .skip(1)
       .debounce(.milliseconds(500))
-      .scan(initialState.settings) { last, new in // TODO: initialState를 어떻게 가져가야할지도 고민
+      .scan(initialState.settings) { last, new in
         let key = AlarmModel.marketingAlarm.rawValue
         if last[key] != new[key] {
           let isAgree = new[key] ?? false

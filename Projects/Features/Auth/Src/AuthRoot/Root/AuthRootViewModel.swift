@@ -29,6 +29,7 @@ final class AuthRootViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     input.buttonTap
       .drive(with: self, onNext: { owner, sns in
+        UserDefaultRepository.shared.saveModel(sns, key: .snsType)
         owner.delegate?.invoke(.tologinType(sns))
       })
       .disposed(by: disposeBag)

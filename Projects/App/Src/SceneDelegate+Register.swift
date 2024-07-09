@@ -24,10 +24,11 @@ extension AppDelegate {
     let contactService = ContactService()
     let kakaoService = KakaoAPIService()
     let locationService = LocationService()
+    let fileRepository = FileRepository()
 
     container.register(
       interface: UserInfoUseCaseInterface.self,
-      implement: { UserInfoUseCase(repository: UserDefaultUserInfoRepository()) })
+      implement: { UserInfoUseCase(fileRepository: fileRepository) })
 
     container.register(
       interface: AuthUseCaseInterface.self,

@@ -35,15 +35,12 @@ final class PolicyAgreementViewController: TFBaseViewController {
     let cellAction = PublishRelay<(IndexPath, PolicyAgreementViewModel.CellAction)>()
 
     customView.tableView.rx.itemSelected.asDriver()
-      .do(onNext: { [weak self] IndexPath in
-//        self?.customView.tableView.deselectRow(at: IndexPath, animated: true)
-      })
       .drive(onNext: { indexPath in
         cellAction.accept((indexPath, .Agree))
       }).disposed(by: disposeBag)
 
     let input = PolicyAgreementViewModel.Input(
-      viewDidAppear: rx.viewDidAppear.asDriver().map { _ in },
+      viewWillAppear: rx.viewWillAppear.asDriver().map { _ in },
       agreeAllBtn: customView.selectAllBtn.rx.tap.asDriver(),
       cellTap: cellAction.asDriverOnErrorJustEmpty(),
       nextBtn: customView.nextBtn.rx.tap.asDriver()

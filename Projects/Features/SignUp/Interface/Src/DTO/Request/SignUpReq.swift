@@ -17,12 +17,12 @@ extension UserInfo {
       let preferGender = self.preferGender?.rawValue,
       let birthday = self.birthday,
       let introduction = self.introduction,
-      let agreement = self.userAgreements,
       let location = self.address,
       let tall = self.tall,
       let drinking = self.drinking?.rawValue,
       let smoking = self.smoking?.rawValue,
-      let religion = self.religion?.rawValue
+      let religion = self.religion?.rawValue,
+      self.userAgreements.isEmpty == false
 
     else { return nil }
 
@@ -35,7 +35,7 @@ extension UserInfo {
       preferGender: preferGender,
       introduction: introduction,
       deviceKey: "device-key",
-      agreement: agreement,
+      agreement: self.userAgreements,
       locationRequest: location,
       photoList: photos,
       interestList: interestsList,

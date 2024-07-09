@@ -15,4 +15,6 @@ public protocol AuthUseCaseInterface {
   func login(phoneNumber: String, deviceKey: String) -> Single<Void>
   func loginSNS(_ request: UserSNSLoginRequest) -> Single<Void>
   func refresh() -> Single<Void>
+  func saveSNSType(type snsTYpe: SNSType, snsUUID: String?)
+  func saveDeviceKey(_ deviceKey: String)
 }

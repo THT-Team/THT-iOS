@@ -14,12 +14,8 @@ import RxSwift
 import Core
 
 public final class MyPageUseCase: MyPageUseCaseInterface {
-  enum Key: String {
-    case alarmSetting
-  }
 
   private let repository: MyPageRepositoryInterface
-  @CodableStorage<AlarmSetting>(key: Key.alarmSetting.rawValue, defaultValue: nil) private var _alarmSetting
   private let contactsService: ContactServiceType
 
   public init(repository: MyPageRepositoryInterface, contactsService: ContactServiceType) {
@@ -28,13 +24,16 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
   }
 
   public func fetchAlarmSetting() -> AlarmSetting {
-    _alarmSetting ?? .defaultSetting
+    guard let alarmSetting = UserDefaultRepository.shared.fetchModel(for: .alarmSetting, type: AlarmSetting.self) else {
+      return AlarmSettingFactory.createDefaultAlarmSetting()
+    }
+    return alarmSetting
   }
 
   public func saveAlarmSetting(_ alarmSetting: AlarmSetting) -> Completable {
     repository.updateAlarmSetting(alarmSetting.settings)
-      .andThen(.create { [weak self] observer in
-        self?._alarmSetting = alarmSetting
+      .andThen(.create { observer in
+        UserDefaultRepository.shared.saveModel(alarmSetting, key: .alarmSetting)
         observer(.completed)
         return Disposables.create()
       })

@@ -19,7 +19,7 @@ final class PolicyAgreementViewModel: ViewModelType {
   }
 
   struct Input {
-    let viewDidAppear: Driver<Void>
+    let viewWillAppear: Driver<Void>
     let agreeAllBtn: Driver<Void>
     let cellTap: Driver<(IndexPath, CellAction)>
     let nextBtn: Driver<Void>
@@ -61,7 +61,7 @@ final class PolicyAgreementViewModel: ViewModelType {
     let agreeStates = BehaviorRelay<[ServiceAgreementRowViewModel]>(value: [])
     let webViewTrigger = PublishRelay<String?>()
 
-    let userinfo = input.viewDidAppear
+    let userinfo = input.viewWillAppear
       .asObservable()
       .withUnretained(self)
       .flatMap { owner, _ in
@@ -73,7 +73,7 @@ final class PolicyAgreementViewModel: ViewModelType {
 
     let localAgreements = userinfo.map { $0.userAgreements }
 
-    let remoteAgreements = input.viewDidAppear
+    let remoteAgreements = input.viewWillAppear
       .asObservable()
       .withUnretained(self)
       .flatMap { owner, _ in
@@ -88,7 +88,7 @@ final class PolicyAgreementViewModel: ViewModelType {
         }
       }
     Driver.zip(localAgreements, remoteAgreements) { local, remote in
-      guard let local else { return remote }
+      guard local.isEmpty else { return remote }
       var mutableRemoteArray = remote
 
       local.forEach { key, value in
@@ -114,7 +114,7 @@ final class PolicyAgreementViewModel: ViewModelType {
           agreeStates.accept(rows)
           break
         case .WebView:
-          print(row.model.detailLink)
+          print(row.model.detailLink ?? "링크 없음")
           webViewTrigger.accept(row.model.detailLink)
           break
         }
@@ -171,13 +171,14 @@ final class PolicyAgreementViewModel: ViewModelType {
         return (key, value)
       } }
       .map { Dictionary(uniqueKeysWithValues: $0) }
-      .withLatestFrom(userinfo) { agreements, userinfo in
+      .withLatestFrom(userinfo) { agreements, userinfo -> UserInfo in
         var mutableUserInfo = userinfo
         mutableUserInfo.userAgreements = agreements
         return mutableUserInfo
       }
       .drive(with: self, onNext: { owner, userinfo in
         owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
+        owner.userInfoUseCase.updateMarketingAgreement(isAgree: userinfo.userAgreements["marketingAgree", default: false])
         owner.delegate?.invoke(.nextAtPolicy)
       })
       .disposed(by: disposeBag)

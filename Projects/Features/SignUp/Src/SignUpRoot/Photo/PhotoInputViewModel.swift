@@ -71,6 +71,7 @@ final class PhotoInputViewModel: ViewModelType {
     userinfo.map { (key: $0.phoneNumber,fileNames: $0.photos) }
       .asObservable()
       .withUnretained(self)
+      .observe(on: ConcurrentDispatchQueueScheduler.init(qos: .userInitiated))
       .flatMapLatest { owner, components in
         owner.userInfoUseCase.fetchUserPhotos(key: components.key, fileNames: components.fileNames)
           .catchAndReturn([])

@@ -13,6 +13,7 @@ public protocol UserInfoUseCaseInterface {
   func fetchPhoneNumber() -> Single<String>
   func fetchUserInfo() -> Single<UserInfo>
   func updateUserInfo(userInfo: UserInfo)
+  func updateMarketingAgreement(isAgree: Bool)
   func deleteUserInfo()
   func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]>
   func saveUserPhotos(key: String, datas: [Data]) -> Single<[String]>
