@@ -7,24 +7,26 @@
 
 import ProjectDescription
 
-public let infoPlistExtension: [String: InfoPlist.Value] = [
+public let infoPlistExtension = InfoPlist.dictionary([
   "CFBundleShortVersionString": "1.0",
   "CFBundleVersion": "1",
-  "UILaunchStoryboardName": "LaunchScreen",
-  "CFBundleName": "THT",
-  "UIApplicationSceneManifest": [
-    "UIApplicationSupportsMultipleScenes": false,
-    "UISceneConfigurations": [
-      "UIWindowSceneSessionRoleApplication": [
-        [
-          "UISceneConfigurationName": "Default Configuration",
-          "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
-        ],
-      ]
-    ]
-  ],
+  "CFBundleExecutable": "$(EXECUTABLE_NAME)",
+  "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
+  "CFBundleName": "$(PRODUCT_NAME)",
+
+  "NSAppTransportSecurity": ["NSAllowsArbitraryLoads": true],
 
   // MARK: Privacy
+  "NSContactsUsageDescription": "연락처 사용",
+  "NSLocationWhenInUseUsageDescription": "위치 정보 사용",
+
+  // MARK: OAuth
+  "LSApplicationQueriesSchemes": [
+    "Item 0": "kakaokompassauth", // kakao auth
+  ],
+
+  // MARK: 수출 규청 알고리즘 통과
+  "ITSAppUsesNonExemptEncryption": false,
 
   "UIAppFonts": [
     "Item 0": "Pretendard-Medium.otf",
@@ -33,15 +35,15 @@ public let infoPlistExtension: [String: InfoPlist.Value] = [
     "Item 3": "Pretendard-Bold.otf",
     "Item 4": "Pretendard-ExtraBold.otf"
   ],
+
   "UIUserInterfaceStyle": "Dark"
 ]
+  .merging(appTargetAttribute(), uniquingKeysWith: { $1 })
+)
 
-public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
+public func appTargetAttribute() -> [String: Plist.Value] {
   [
-    "CFBundleShortVersionString": "1.0",
-    "CFBundleVersion": "1",
     "UILaunchStoryboardName": "LaunchScreen",
-    "CFBundleName": "\(name)",
     "UIApplicationSceneManifest": [
       "UIApplicationSupportsMultipleScenes": false,
       "UISceneConfigurations": [
@@ -53,11 +55,27 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
         ]
       ]
     ],
+  ]
+}
+
+public func infoPlistExtension(name: String) -> InfoPlist {
+  .dictionary([
+    "CFBundleShortVersionString": "1.0",
+    "CFBundleVersion": "1",
+    "CFBundleExecutable": "$(EXECUTABLE_NAME)",
+    "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
+    "CFBundleName": "$(PRODUCT_NAME)",
+
     "NSAppTransportSecurity": ["NSAllowsArbitraryLoads": true],
 
     // MARK: Privacy
     "NSContactsUsageDescription": "연락처 사용",
     "NSLocationWhenInUseUsageDescription": "위치 정보 사용",
+
+    // MARK: OAuth
+    "LSApplicationQueriesSchemes": [
+      "Item 0": "kakaokompassauth", // kakao auth
+    ],
 
     // MARK: 수출 규청 알고리즘 통과
     "ITSAppUsesNonExemptEncryption": false,
@@ -70,5 +88,5 @@ public func infoPlistExtension(name: String) -> [String: InfoPlist.Value] {
       "Item 4": "Pretendard-ExtraBold.otf"
     ],
     "UIUserInterfaceStyle": "Dark"
-  ]
+  ])
 }

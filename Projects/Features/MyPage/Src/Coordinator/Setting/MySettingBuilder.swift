@@ -7,17 +7,25 @@
 
 import Foundation
 import MyPageInterface
+import AuthInterface
 
 import Core
 
-public final class MySettingBuilder: MySettingBuildable {
-  private let myPageAlertBuildable: MyPageAlertBuildable
+public protocol MySettingDependency: MySettingCoordinatorDependency {
 
-  public init(myPageAlertBuildable: MyPageAlertBuildable) {
-    self.myPageAlertBuildable = myPageAlertBuildable
+}
+
+public final class MySettingBuilder: MySettingBuildable {
+  private let dependency: MySettingDependency
+
+  public init(dependency: MySettingDependency) {
+    self.dependency = dependency
   }
 
   public func build(rootViewControllable: ViewControllable, user: User) -> MySettingCoordinating {
-    MySettingCoordinator(viewControllable: rootViewControllable, user: user, myPageAlertBuildable: self.myPageAlertBuildable)
+    MySettingCoordinator(
+      viewControllable: rootViewControllable, user: user,
+      dependency: dependency
+    )
   }
 }

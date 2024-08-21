@@ -14,33 +14,27 @@ import AuthInterface
 
 import RxSwift
 import RxCocoa
+import Domain
 
 public protocol MyPageRepositoryInterface {
   func fetchUser() -> Single<User>
   func fetchUserContacts() -> Single<Int>
   func updateUserContacts(contacts: [ContactType]) -> Single<Int>
-  func updateAlarmSetting(_ settings: [String: Bool]) -> Completable
-}
+  func updateAlarmSetting(_ settings: [String: Bool]) -> Single<Void>
+  func logout() -> Single<Void>
+  func withdrawal(reason: String, feedback: String) -> Single<Void>
+  func updateLocation(_ location: LocationReq) -> Single<Void>
 
-public class MockMyPageRepository: MyPageRepositoryInterface {
-  public init() { }
-
-  public func fetchUser() -> Single<User> {
-    .just(User(preferGender: .male, username: "test", userUUID: "", age: 99, introduction: "self introduce", address: "seoul sungbuk", phoneNumber: "01089191234", email: "teset@tht.com", gender: .female, tall: 170, smoking: .none, drinking: .none, religion: .buddhism, idealTypeList: [.init(index: 1, name: "멋진", emojiCode: "#2425fa")], interestsList: [], userProfilePhotos: [], userAgreements: [:]))
-  }
-
-  public func fetchUserContacts() -> Single<Int> {
-    return .just(100)
-  }
-
-  public func updateUserContacts(contacts: [ContactType]) -> Single<Int> {
-    .just(100)
-  }
-
-  public func updateAlarmSetting(_ settings: [String : Bool]) -> Completable {
-    return Completable.create { completable in
-      completable(.completed)
-      return Disposables.create()
-    }.delay(.seconds(1), scheduler: MainScheduler.instance)
-  }
+  func updateReligion(_ religion: Religion) -> Single<Void>
+  func updateSmoking(_ smoking: Frequency) -> Single<Void>
+  func updateDrinking(_ drinking: Frequency) -> Single<Void>
+  func updatePreferGender(_ gender: Gender) -> Single<Void>
+  func updateNickname(_ nickname: String) -> Single<Void>
+  func updateIntroduction(_ introduction: String) -> Single<Void>
+  func updateHeight(_ height: Int) -> Single<Void>
+  func updateIdealType(_ emojies: [EmojiType]) -> Single<Void>
+  func updateInterests(_ emojies: [EmojiType]) -> Single<Void>
+  func updateProfilePhotos(_ photos: [UserProfilePhoto]) -> Single<Void>
+  func updatePhoneNumber(_ phoneNumber: String) -> Single<Void>
+  func updateEmail(_ email: String) -> Single<Void>
 }

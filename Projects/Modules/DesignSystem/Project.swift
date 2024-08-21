@@ -9,18 +9,38 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 import MyPlugin
 
-let project = Project.designSystem(
-  name: Feature.DesignSystem.rawValue,
+
+let name = Feature.DesignSystem.rawValue
+
+let target = Target.target(
+  name: name,
+  destinations: .iOS,
+  product: .staticFramework,
+  bundleId: rootPackagesName + name,
+  deploymentTargets: basicDeployment,
+  infoPlist: infoPlistExtension(name: Feature.DesignSystem.rawValue),
+  sources: ["Src/**"],
+  resources: ["Resources/**"],
   dependencies: [
-    .core,
-    .external(.RxSwift),
-    .external(.RxCocoa),
-    .external(.SnapKit),
-    .external(.Then),
-    .external(.RxGesture),
-    .external(.RxKeyboard),
-    .external(.Kingfisher),
-    .external(.Lottie),
-  ],
-  infoPlist: .extendingDefault(with: infoPlistExtension(name: Feature.DesignSystem.rawValue))
+    .domain,
+    .SPM.SnapKit,
+    .SPM.Then,
+    .SPM.RxGesture,
+    .SPM.KingFisher,
+    .SPM.Lottie,
+  ]
+)
+
+let project = Project(
+  name: Feature.DesignSystem.rawValue,
+  targets: [target],
+  resourceSynthesizers: [
+    .custom(
+      name: "Lottie",
+      parser: .json,
+      extensions: ["lottie"]
+    ),
+    .assets(),
+    .fonts(),
+  ]
 )

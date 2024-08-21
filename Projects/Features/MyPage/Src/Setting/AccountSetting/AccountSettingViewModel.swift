@@ -18,6 +18,7 @@ import MyPageInterface
 final class AccountSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
+  private let accountAlertSignal = PublishRelay<Void>()
   weak var delegate: MySettingCoordinatingActionDelegate?
 
   init(useCase: MyPageUseCaseInterface) {
@@ -36,7 +37,6 @@ final class AccountSettingViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
 
-
     input.tap
       .drive(with: self) { owner, _ in
         owner.delegate?.invoke(.showLogoutAlert(self))
@@ -47,18 +47,31 @@ final class AccountSettingViewModel: ViewModelType {
       .drive(with: self) { owner, _ in
         owner.delegate?.invoke(.showDeactivateAlert(self))
       }.disposed(by: disposeBag)
+
+    self.accountAlertSignal.asSignal()
+      .flatMap({ [weak self] _ -> Signal<Void> in
+        guard let self else { return Signal.empty() }
+        return self.useCase.logout()
+          .asSignal { error -> Signal<Void> in
+            return .just(())
+          }
+      })
+      .emit(with: self) { owner, _ in
+        owner.delegate?.invoke(.logout)
+      }.disposed(by: disposeBag)
+
     return Output(toast: toast.asDriverOnErrorJustEmpty())
   }
 }
 
 extension AccountSettingViewModel: LogoutListenr {
   func logoutTap() {
-
+    self.accountAlertSignal.accept(())
   }
 }
 
 extension AccountSettingViewModel: DeactivateListener {
   func deactivateTap() {
-
+    self.delegate?.invoke(.selectWithdrawal)
   }
 }

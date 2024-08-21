@@ -13,8 +13,7 @@ import RxCocoa
 import RxSwift
 import SignUpInterface
 
-final class IntroduceInputViewModel: ViewModelType {
-  private let userInfoUseCase: UserInfoUseCaseInterface
+final class IntroduceInputViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     let nextBtn: Driver<Void>
@@ -26,47 +25,26 @@ final class IntroduceInputViewModel: ViewModelType {
     let isEnableNextBtn: Driver<Bool>
   }
 
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  private let disposeBag = DisposeBag()
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
-
   func transform(input: Input) -> Output {
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
 
-    let local = userinfo.map { $0.introduction }
+    let initialValue = Driver.just(self.pendingUser.introduction).filter { $0 != nil }
 
     let isEnableNextBtn = input.introduceText
-      .map { !$0.isEmpty && $0.count < 201 }
-    
+      .map { _ in true }
+
     input.nextBtn
       .withLatestFrom(isEnableNextBtn)
       .filter{ $0 }
       .withLatestFrom(input.introduceText)
-      .withLatestFrom(userinfo) { text, userinfo in
-        var mutable = userinfo
-        mutable.introduction = text
-        return mutable
-      }
-      .drive(with: self, onNext: { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtIntroduce)
+      .drive(with: self, onNext: { owner, introduce in
+        owner.pendingUser.introduction = introduce
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtIntroduce, owner.pendingUser)
       })
       .disposed(by: disposeBag)
 
-
     return Output(
-      initialValue: local,
+      initialValue: initialValue,
       isEnableNextBtn: isEnableNextBtn
     )
   }

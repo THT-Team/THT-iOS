@@ -7,13 +7,14 @@
 
 import UIKit
 
+public protocol URLHandling {
+  func handle(_ url: URL)
+}
+
 public protocol LaunchCoordinating: Coordinator {
   func launch(window: UIWindow)
 }
 
-public protocol URLHandling {
-  func handle(_ url: URL)
-}
 
 open class LaunchCoordinator: BaseCoordinator, LaunchCoordinating {
 

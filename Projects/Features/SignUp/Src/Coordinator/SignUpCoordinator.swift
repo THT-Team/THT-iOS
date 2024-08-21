@@ -11,55 +11,73 @@ import Core
 import SignUpInterface
 import AuthInterface
 import DSKit
+import Domain
 
 protocol SignUpCoordinatingActionDelegate: AnyObject {
-  func invoke(_ action: SignUpCoordinatingAction)
+  func invoke(_ action: SignUpCoordinatingAction, _ pendingUser: PendingUser)
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
-  
+
   @Injected private var useCase: SignUpUseCaseInterface
-  @Injected private var userInfoUseCase: UserInfoUseCaseInterface
   @Injected private var locationUseCase: LocationUseCaseInterface
+  @Injected private var userDomainUseCase: UserDomainUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
 
   // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
-  public override func start() {
+  public func start(_ option: SignUpOption) {
     replaceWindowRootViewController(rootViewController: viewControllable)
-    emailFlow()
+
+    switch option {
+    case .start(let phoneNumber):
+      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
+    case .startPolicy(let snsUser):
+      policyFlow(user: initPendingUser(with: snsUser))
+    }
   }
 
-  public func locationFlow() {
-    let viewModel = LocationInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase, locationUseCase: locationUseCase)
+  private func initPendingUser(phoneNumber: String) -> PendingUser {
+    var pendingUser = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self) ?? PendingUser(phoneNumber: phoneNumber)
+    pendingUser.phoneNumber = phoneNumber
+    return pendingUser
+  }
+
+  private func initPendingUser(with snsUser: SNSUserInfo) -> PendingUser {
+    var pendingUser = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self) ?? PendingUser(snsUser)
+    return pendingUser
+  }
+
+  public func locationFlow(user: PendingUser) {
+    let viewModel = LocationInputViewModel(useCase: useCase, locationUseCase: locationUseCase, pendingUser: user)
     viewModel.delegate = self
     let viewController = LocationInputViewController(viewModel: viewModel)
     self.viewControllable.pushViewController(viewController, animated: true)
   }
 
-  public func finishFlow() {
-    self.delegate?.detachSignUp(self)
+  public func finishFlow(_ option: FinishSignUpOption) {
+    self.delegate?.detachSignUp(self, option)
   }
 
-  public func emailFlow() {
-    let viewModel = EmailInputViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func emailFlow(user: PendingUser) {
+    let viewModel = EmailInputViewModel(useCase: useCase, pendingUser: user)
     viewModel.delegate = self
 
-    let viewController = EmailInputViewController(viewModel: viewModel)
+    let viewController = EmailInputViewController (viewModel: viewModel)
 
     self.viewControllable.pushViewController(viewController, animated: true)
   }
 
-  public func nicknameFlow() {
-    let viewModel = NicknameInputViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
+  public func nicknameFlow(user: PendingUser) {
+    let viewModel = NicknameInputViewModel(useCase: useCase, pendingUser: user)
     viewModel.delegate = self
 
     let viewController = NicknameInputViewController(viewModel: viewModel)
     self.viewControllable.pushViewController(viewController, animated: true)
   }
 
-  public func policyFlow() {
-    let viewModel = PolicyAgreementViewModel(useCase: self.useCase, userInfoUseCase: self.userInfoUseCase)
+  public func policyFlow(user: PendingUser) {
+    let viewModel = PolicyAgreementViewModel(useCase: useCase, pendingUser: user)
     viewModel.delegate = self
 
     let viewController = PolicyAgreementViewController(viewModel: viewModel)
@@ -67,71 +85,84 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(viewController, animated: true)
   }
 
-  public func genderPickerFlow() {
-    let vm = GenderPickerViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func genderPickerFlow(user: PendingUser) {
+    let vm = GenderPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = GenderPickerViewController(viewModel: vm)
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func preferGenderPickerFlow() {
-    let vm = PreferGenderPickerViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func preferGenderPickerFlow(user: PendingUser) {
+    let vm = PreferGenderPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = PreferGenderPickerViewController(viewModel: vm)
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func photoFlow() {
-    let vm = PhotoInputViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func photoFlow(user: PendingUser) {
+    let vm = PhotoInputViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = PhotoInputViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func heightPickerFlow() {
-    let vm = HeightPickerViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func heightFlow(user: PendingUser) {
+    let vm = HeightPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = HeightPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func InterestTagPickerFlow() {
-    let vm = TagPickerViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
+  public func interestFlow(user: PendingUser) {
+    let vm = InterestPickerVM(useCase: useCase, pendingUser: user, userDomainUseCase: userDomainUseCase)
     vm.delegate = self
     let vc = InterestPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func IdealTypeTagPickerFlow() {
-    let vm = IdealTypeTagPickerViewModel(useCase: useCase, userInfoUseCase: self.userInfoUseCase)
-    vm.delegate = self
-
-    let vc = IdealTypePickerViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func IntroductFlow() {
-    let vm = IntroduceInputViewModel(userInfoUseCase: self.userInfoUseCase)
-    vm.delegate = self
-
-    let vc = IntroduceInputViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func alcoholTobaccoFlow() {
-    let vm = AlcoholTobaccoPickerViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func drinkAndSmokeFlow(user: SignUpInterface.PendingUser) {
+    let vm = AlcoholTobaccoPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
 
     let vc = AlcoholTobaccoPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func religionFlow() {
-    let vm = ReligionPickerViewModel(userInfoUseCase: self.userInfoUseCase)
+  public func religionFlow(user: SignUpInterface.PendingUser) {
+    let vm = ReligionPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = ReligionPickerViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func introduceFlow(user: SignUpInterface.PendingUser) {
+    let vm = IntroduceInputViewModel(useCase: useCase, pendingUser: user)
+    vm.delegate = self
+
+    let vc = IntroduceInputViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func blockUserFlow(user: SignUpInterface.PendingUser) {
+    let vm = UserContactViewModel(useCase: useCase, pendingUser: user)
+    vm.delegate = self
+    let vc = UserContactViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func signUpCompleteFlow(user: SignUpInterface.PendingUser, contacts: [ContactType]) {
+    let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user, contacts: contacts)
+    vm.delegate = self
+    let vc = SignUpCompleteViewController(viewModel: vm)
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func idealTypeFlow(user: PendingUser) {
+    let vm = IdealTypePickerVM(useCase: useCase, pendingUser: user, userDomainUseCase: userDomainUseCase)
+    vm.delegate = self
+    let vc = IdealTypePickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
@@ -140,20 +171,6 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     vc.delegate = listener
     vc.modalPresentationStyle = .overFullScreen
     self.viewControllable.present(vc, animated: true)
-  }
-  
-  func blockUserFriendContactFlow() {
-    let vm = UserContactViewModel(useCase: self.useCase)
-    vm.delegate = self
-    let vc = UserContactViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  func signUpCompleteFlow(_ contacts: [ContactType]) {
-    let vm = SignUpCompleteViewModel(useCase: self.useCase, userInfoUseCase: userInfoUseCase, contacts: contacts)
-    vm.delegate = self
-    let vc = SignUpCompleteViewController(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
   }
 
   private func agreementWebViewFlow(url: URL) {
@@ -165,60 +182,69 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 
 
 extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
-  func invoke(_ action: SignUpCoordinatingAction) {
+  func invoke(_ action: SignUpCoordinatingAction, _ pendingUser: PendingUser) {
     switch action {
     case let .loginType(snsType):
       print(snsType)
-    case .nextAtPhoneNumber:
-      emailFlow()
+    case .backAtEmail:
+      finishFlow(.back)
     case .nextAtEmail:
-      policyFlow()
+      policyFlow(user: pendingUser)
     case .nextAtPolicy:
-      nicknameFlow()
+      nicknameFlow(user: pendingUser)
     case .nextAtNickname:
-      genderPickerFlow()
+      genderPickerFlow(user: pendingUser)
     case let .birthdayTap(birthDay, listener):
       pickerBottomSheetFlow(.date(date: birthDay), listener: listener)
     case .nextAtGender:
-      preferGenderPickerFlow()
+      preferGenderPickerFlow(user: pendingUser)
     case .nextAtPreferGender:
-      photoFlow()
-
+      photoFlow(user: pendingUser)
     case let .photoCellTap(_, listener):
       photoPickerFlow(delegate: listener)
     case .nextAtPhoto:
-      heightPickerFlow()
+      heightFlow(user: pendingUser)
 
     case let .heightLabelTap(height, listener):
       singlePickerBottomSheetFlow(.text(text: String(height)), listener: listener)
 
     case .nextAtHeight:
-      alcoholTobaccoFlow()
+      drinkAndSmokeFlow(user: pendingUser)
 
     case .nextAtAlcoholTobacco:
-      religionFlow()
+      religionFlow(user: pendingUser)
 
     case .nextAtReligion:
-      InterestTagPickerFlow()
+      interestFlow(user: pendingUser)
     case .nextAtInterest:
-      IdealTypeTagPickerFlow()
+      idealTypeFlow(user: pendingUser)
 
     case .nextAtIdealType:
-      IntroductFlow()
+      introduceFlow(user: pendingUser)
     case .nextAtIntroduce:
-      locationFlow()
+      locationFlow(user: pendingUser)
     case let .webViewTap(listener):
       webViewFlow(listener: listener)
     case .nextAtLocation:
-      blockUserFriendContactFlow()
+      blockUserFlow(user: pendingUser)
     case let .nextAtHideFriends(contacts):
-      signUpCompleteFlow(contacts)
+      signUpCompleteFlow(user: pendingUser, contacts: contacts)
     case .nextAtSignUpComplete:
-      finishFlow()
+      finishFlow(.complete)
     case let .agreementWebView(url):
       agreementWebViewFlow(url: url)
-    default: break
+
+    case let .photoEditOrDeleteAlert(listener):
+      showTopBottomAlert(listener)
     }
+  }
+}
+
+extension SignUpCoordinator {
+  public func showTopBottomAlert(_ listener: TopBottomAlertListener) {
+    let alert = TFAlertBuilder.makePhotoEditOrDeleteAlert(listener: listener)
+    alert.modalTransitionStyle = .crossDissolve
+    self.viewControllable.present(alert, animated: true)
   }
 }
 

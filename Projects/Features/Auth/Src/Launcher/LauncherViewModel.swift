@@ -21,7 +21,6 @@ protocol LauncherDelegate: AnyObject {
 
 public final class LauncherViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
-  private let userInfoUseCase: UserInfoUseCaseInterface
   private let useCase: AuthUseCaseInterface
   weak var delegate: LauncherDelegate?
 
@@ -30,12 +29,10 @@ public final class LauncherViewModel: ViewModelType {
   }
 
   public struct Output {
-    let state: Driver<Void>
     let toast: Signal<String>
   }
 
-  public init(userInfoUseCase: UserInfoUseCaseInterface, useCase: AuthUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
+  public init(useCase: AuthUseCaseInterface) {
     self.useCase = useCase
   }
 
@@ -46,24 +43,20 @@ public final class LauncherViewModel: ViewModelType {
   public func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
 
-    let phoneNumber = userInfoUseCase.fetchPhoneNumber()
-      .asDriver(onErrorJustReturn: "")
+    let needAuth = Driver.just(useCase.needAuth())
 
-    let needAuth = input.viewDidLoad
-      .withLatestFrom(phoneNumber)
-      .map { $0.isEmpty }
+    let load = Driver.zip(needAuth, input.viewDidLoad) { needAuth, _ in needAuth }
 
-      needAuth
+    load
       .filter { $0 }
       .drive(with: self) { owner, needAuth in
         owner.delegate?.needAuth()
       }.disposed(by: disposeBag)
 
-    needAuth
+    load
       .filter { !$0 }
-      .withLatestFrom(phoneNumber)
-      .flatMapLatest(with: self) { owner, phoneNum in
-        owner.useCase.login(phoneNumber: phoneNum, deviceKey: "device")
+      .flatMapLatest(with: self) { owner, _ in
+        owner.useCase.login()
           .debug("login")
           .asDriver(onErrorRecover: { error in
             TFLogger.dataLogger.error("\(error.localizedDescription)")
@@ -75,7 +68,6 @@ public final class LauncherViewModel: ViewModelType {
       }.disposed(by: disposeBag)
 
     return Output(
-      state: Driver.just(()),
       toast: toast.asSignal()
     )
   }

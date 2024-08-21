@@ -12,18 +12,9 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class AlcoholTobaccoPickerViewController: TFBaseViewController {
+final class AlcoholTobaccoPickerViewController: BaseSignUpVC<AlcoholTobaccoPickerViewModel>, StageProgressable {
+  var stage: Float = 6
   private let mainView = AlcoholTobaccoPickerView()
-  private let viewModel: AlcoholTobaccoPickerViewModel
-
-  init(viewModel: AlcoholTobaccoPickerViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView

@@ -10,6 +10,8 @@ import UIKit
 import Core
 import DSKit
 
+import MyPageInterface
+
 final class MySettingsViewController: TFBaseViewController {
   typealias CellType = MyPageDefaultTableViewCell
 
@@ -17,8 +19,6 @@ final class MySettingsViewController: TFBaseViewController {
   private let viewModel: MySettingViewModel
 
   fileprivate var dataSource: MySettingsDataSource!
-
-  private let backButton: UIBarButtonItem = .backButton
 
   init(viewModel: MySettingViewModel) {
     self.viewModel = viewModel
@@ -36,8 +36,8 @@ final class MySettingsViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
 
-    self.title = "설정 관리"
-    self.navigationItem.leftBarButtonItem = self.backButton
+//    self.title = "설정 관리"
+//    self.navigationItem.leftBarButtonItem = self.backButton
   }
 
   override func bindViewModel() {

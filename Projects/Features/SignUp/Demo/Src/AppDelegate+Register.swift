@@ -13,6 +13,7 @@ import SignUp
 import SignUpInterface
 import AuthInterface
 import Data
+import Domain
 
 extension AppDelegate {
   var container: DIContainer {
@@ -28,23 +29,26 @@ extension AppDelegate {
       interface: SignUpUseCaseInterface.self,
       implement: {
         SignUpUseCase(
-          repository: SignUpRepository(authService: authService),
-          contactService: ContactService()
+          repository: SignUpRepository(),
+          contactService: ContactService(),
+          authService: authService,
+          fileRepository: FileRepository(),
+          imageService: ImageService()
         )
       }
     )
+
+    container.register(
+      interface: UserDomainUseCaseInterface.self,
+      implement: {
+        DefaultUserDomainUseCase(repository: DefaultUserDomainRepository())
+      })
 
     container.register(
       interface: LocationUseCaseInterface.self,
       implement: {
         LocationUseCase(locationService: locationService,
                         kakaoAPIService: kakoService)})
-
-    container.register(
-      interface: UserInfoUseCaseInterface.self,
-      implement: {
-        UserInfoUseCase(repository: UserDefaultUserInfoRepository())
-      })
   }
 }
 

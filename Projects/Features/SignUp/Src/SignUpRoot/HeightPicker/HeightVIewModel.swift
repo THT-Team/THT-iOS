@@ -8,13 +8,13 @@
 import Foundation
 
 import Core
+import DSKit
 import SignUpInterface
 
 import RxSwift
 import RxCocoa
 
-final class HeightPickerViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
+final class HeightPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     var pickerLabelTap: Driver<Void>
@@ -26,33 +26,17 @@ final class HeightPickerViewModel: ViewModelType {
     var isNextBtnEnabled: Driver<Bool>
   }
 
-  private var disposeBag = DisposeBag()
-  private let userInfoUseCase: UserInfoUseCaseInterface
-
-  private var selectedHeight = BehaviorRelay<Int>(value: 145)
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
+  private let defaultHeight = 145
+  private lazy var selectedHeight = BehaviorRelay<Int>(value: defaultHeight)
 
   func transform(input: Input) -> Output {
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
-
-    userinfo
-      .compactMap { $0.tall }
+    
+    Driver.just(pendingUser)
+      .compactMap(\.tall)
       .drive(selectedHeight)
       .disposed(by: disposeBag)
 
-    let height = self.selectedHeight
-      .asDriver()
+    let height = self.selectedHeight.asDriver()
 
     let nextBtnisEnabled = height
       .map { _ in return true }
@@ -60,7 +44,7 @@ final class HeightPickerViewModel: ViewModelType {
     input.pickerLabelTap
       .withLatestFrom(height)
       .drive(with: self) { owner, height in
-        owner.delegate?.invoke(.heightLabelTap(height, listener: owner))
+        owner.delegate?.invoke(.heightLabelTap(height, listener: owner), owner.pendingUser)
       }.disposed(by: disposeBag)
 
     input.nextBtnTap
@@ -68,14 +52,10 @@ final class HeightPickerViewModel: ViewModelType {
       .filter { $0 }
       .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(height)
-      .withLatestFrom(userinfo) { height, userinfo in
-        var mutable = userinfo
-        mutable.tall = height
-        return mutable
-      }
-      .drive(with: self) { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtHeight)
+      .drive(with: self) { owner, height in
+        owner.pendingUser.tall = height
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtHeight, owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(
@@ -88,7 +68,7 @@ final class HeightPickerViewModel: ViewModelType {
 extension HeightPickerViewModel: BottomSheetListener {
   func sendData(item: BottomSheetValueType) {
     if case let .text(text) = item {
-      self.selectedHeight.accept(Int(text) ?? 145)
+      self.selectedHeight.accept(Int(text) ?? defaultHeight)
     }
   }
 }

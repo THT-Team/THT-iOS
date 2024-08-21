@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum PersistentKey: String {
+public enum PersistentKey: String, CaseIterable {
   case marketAgreement = "marketing_agreement"
   case alarmSetting = "alarm_setting"
   case accessToken = "access_token"
@@ -17,6 +17,7 @@ public enum PersistentKey: String {
   case snsType = "sns_type"
   case deviceKey = "device_key"
   case snsUUID = "sns_uuid"
+  case sign_up_info
 }
 
 public protocol KeyValueStorageInterface {
@@ -26,7 +27,7 @@ public protocol KeyValueStorageInterface {
 }
 
 public protocol ModelStorageInterface {
-  func removeModel<T>(key: PersistentKey, model: T.Type)
+  func remove(key: PersistentKey)
   @discardableResult
   func saveModel<T: Encodable>(_ model: T, key: PersistentKey) -> Bool
   func fetchModel<T: Decodable>(for key: PersistentKey, type: T.Type) -> T?

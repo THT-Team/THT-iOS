@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct EmojiType: Codable {
+public struct EmojiTypeRes: Codable {
   public let index: Int
   public let name: String
   public let emojiCode: String

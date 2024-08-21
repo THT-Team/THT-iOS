@@ -7,6 +7,10 @@
 
 import Foundation
 
+public protocol TFTitlePropertyType {
+  var title: String { get }
+}
+
 public enum Frequency: String, Codable {
   case sometimes = "SOMETIMES"
   case frequently = "FREQUENTLY"
@@ -26,7 +30,7 @@ public enum Frequency: String, Codable {
   }
 }
 
-extension Frequency {
+extension Frequency: TFTitlePropertyType {
   public var title: String {
     switch self {
     case .sometimes:
@@ -38,3 +42,5 @@ extension Frequency {
     }
   }
 }
+
+extension Frequency: CaseIterable { }

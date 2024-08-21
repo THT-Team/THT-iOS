@@ -14,9 +14,7 @@ import RxCocoa
 import Domain
 import SignUpInterface
 
-final class ReligionPickerViewModel: ViewModelType {
-  weak var delegate: SignUpCoordinatingActionDelegate?
-  private let userInfoUseCase: UserInfoUseCaseInterface
+final class ReligionPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     var chipTap: Driver<IndexPath>
@@ -28,24 +26,9 @@ final class ReligionPickerViewModel: ViewModelType {
     var isNextBtnEnabled: Driver<Bool>
   }
 
-  private var disposeBag = DisposeBag()
-
-  init(userInfoUseCase: UserInfoUseCaseInterface) {
-    self.userInfoUseCase = userInfoUseCase
-  }
-
   func transform(input: Input) -> Output {
-    let userinfo = Driver.just(())
-      .asObservable()
-      .withUnretained(self)
-      .flatMap { owner, _ in
-        owner.userInfoUseCase.fetchUserInfo()
-          .catchAndReturn(UserInfo(phoneNumber: ""))
-          .asObservable()
-      }
-      .asDriverOnErrorJustEmpty()
 
-    let initialReligion = userinfo.compactMap { $0.religion }
+    let initialReligion = Driver.just(self.pendingUser.religion).compactMap { $0 }
 
     let chips = BehaviorRelay<[(Religion, Bool)]>(value: Religion.allCases.map { ($0, false) })
 
@@ -90,14 +73,10 @@ final class ReligionPickerViewModel: ViewModelType {
       .withLatestFrom(isNextBtnEnabled)
       .filter { $0 }
       .withLatestFrom(selectedChip)
-      .withLatestFrom(userinfo) { item, userinfo in
-        var mutable = userinfo
-        mutable.religion = item
-        return mutable
-      }
-      .drive(with: self, onNext: { owner, userinfo in
-        owner.userInfoUseCase.updateUserInfo(userInfo: userinfo)
-        owner.delegate?.invoke(.nextAtReligion)
+      .drive(with: self, onNext: { owner, selected in
+        owner.pendingUser.religion = selected
+        owner.useCase.savePendingUser(owner.pendingUser)
+        owner.delegate?.invoke(.nextAtReligion, owner.pendingUser)
         })
       .disposed(by: disposeBag)
 
@@ -108,7 +87,7 @@ final class ReligionPickerViewModel: ViewModelType {
   }
 }
 
-extension Religion: CaseIterable {
+extension Religion {
   public static var allCases: [Religion] = [
     .none, .christian, .buddhism,
     .catholic, .wonBuddhism, .other

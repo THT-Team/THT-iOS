@@ -13,18 +13,9 @@ import RxSwift
 import RxCocoa
 import RxGesture
 
-final class HeightPickerViewController: TFBaseViewController {
+final class HeightPickerViewController: BaseSignUpVC<HeightPickerViewModel>, StageProgressable {
+  var stage: Float = 5
   private let mainView = HeightPickerView()
-  private let viewModel: HeightPickerViewModel
-
-  init(viewModel: HeightPickerViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView
@@ -38,7 +29,7 @@ final class HeightPickerViewController: TFBaseViewController {
       .map { _ in }
       .asDriverOnErrorJustEmpty()
 
-    let input = HeightPickerViewModel.Input(
+    let input = ViewModel.Input(
       pickerLabelTap: pickerLabelTap,
       nextBtnTap: self.mainView.nextBtn.rx.tap.asDriver()
     )

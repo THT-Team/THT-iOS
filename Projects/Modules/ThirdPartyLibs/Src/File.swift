@@ -6,3 +6,7 @@
 //
 
 import Foundation
+
+@_exported import RxSwift
+@_exported import RxCocoa
+

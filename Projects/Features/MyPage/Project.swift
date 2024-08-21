@@ -15,7 +15,6 @@ let project = Project(
 		.feature(
 			interface: .MyPage,
 			dependencies: [
-				.core,
         .feature(interface: .SignUp),
 			]
 		),
@@ -23,8 +22,6 @@ let project = Project(
 			implementation: .MyPage,
 			dependencies: [
 				.feature(interface: .MyPage),
-				.feature(interface: .Auth),
-        .feature(interface: .SignUp),
         .dsKit
 			]
 		),
@@ -33,7 +30,8 @@ let project = Project(
       dependencies: [
         .data,
         .feature(implementation: .SignUp),
-        .feature(implementation: .MyPage)
+        .feature(implementation: .MyPage),
+        .feature(implementation: .Auth),
       ]
     )
 	]

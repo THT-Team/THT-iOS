@@ -11,54 +11,39 @@ import DSKit
 
 final class IntroduceInputView: TFBaseView {
 
-  lazy var introduceInputView = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
-
-  lazy var titleLabel: UILabel = UILabel().then {
-    $0.text = "나를 알려주세요"
-    $0.textColor = DSKitAsset.Color.neutral400.color
-    $0.asColor(targetString: "나를 알려", color: DSKitAsset.Color.neutral50.color)
-    $0.font = .thtH1B
-  }
+  lazy var titleLabel = UILabel.setTargetBold(text: "나를 알려주세요.", target: "나를 알려", font: .thtH1B, targetFont: .thtH1B)
 
   lazy var introduceInputField = TFResizableTextView(
     description: "자유롭게 소개해주세요",
-    totalCount: 200
-  ).then {
-    $0.placeholder = "저의 MBTI는요"
-  }
+    totalCount: 200,
+    placeholder: "저의 MBTI는요"
+  )
 
-  lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
+  lazy var nextBtn = TFButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubview(introduceInputView)
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
 
-    introduceInputView.addSubviews(
+    addSubviews(
       titleLabel,
       introduceInputField,
       nextBtn
     )
-
-    introduceInputView.snp.makeConstraints {
-      $0.edges.equalTo(safeAreaLayoutGuide)
-    }
-
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(76)
-      $0.leading.equalToSuperview().inset(38)
+      $0.top.equalToSuperview().inset(180.adjustedH)
+      $0.leading.trailing.equalToSuperview().inset(38.adjusted)
     }
 
     introduceInputField.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(32)
-      $0.leading.trailing.equalToSuperview().inset(38)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(30)
+      $0.leading.trailing.equalTo(titleLabel)
     }
 
     nextBtn.snp.makeConstraints {
-      $0.trailing.equalToSuperview().inset(38)
-      $0.height.equalTo(54)
-      $0.width.equalTo(88)
-      $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-16)
+      $0.trailing.equalTo(titleLabel)
+      $0.height.equalTo(54.adjustedH)
+      $0.width.equalTo(88.adjusted)
+      $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-16.adjustedH)
     }
   }
 }

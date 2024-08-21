@@ -12,6 +12,7 @@ import Data
 
 import Feature
 import Networks
+import Domain
 
 extension AppDelegate {
   var container: DIContainer {
@@ -22,26 +23,25 @@ extension AppDelegate {
 
     let authService = DefaultAuthService()
     let contactService = ContactService()
-    let kakaoService = KakaoAPIService()
-    let locationService = LocationService()
+    let kakaoService = KakaoAPIService() // TODO: SNS Login 때 사용됨
     let fileRepository = FileRepository()
-
-    container.register(
-      interface: UserInfoUseCaseInterface.self,
-      implement: { UserInfoUseCase(fileRepository: fileRepository) })
-
-    container.register(
-      interface: AuthUseCaseInterface.self,
-      implement: { AuthUseCase(authRepository: AuthRepository(authService: authService)) })
+    let imageService: ImageServiceType = ImageService()
 
     container.register(
       interface: SignUpUseCaseInterface.self,
       implement: { SignUpUseCase(
-        repository: SignUpRepository(
-          authService: authService),
-        contactService: contactService)
+        repository: SignUpRepository(),
+        contactService: contactService,
+        authService: authService,
+        fileRepository: fileRepository, imageService: imageService
+      )})
+
+    container.register(
+      interface: UserDomainUseCaseInterface.self,
+      implement: { DefaultUserDomainUseCase(
+        repository: DefaultUserDomainRepository())
       })
-    
+
     container.register(
       interface: FallingUseCaseInterface.self,
       implement: {
@@ -54,7 +54,14 @@ extension AppDelegate {
         )
       }
     )
-    
+
+    container.register(
+      interface: AuthUseCaseInterface.self
+      , implement: {
+        AuthUseCase(authRepository: AuthRepository(authService: authService))
+      }
+    )
+
     container.register(
       interface: LikeUseCaseInterface.self,
       implement: {
@@ -85,11 +92,10 @@ extension AppDelegate {
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          ), contactsService: contactService
+          repository: MyPageRepository(session: authService.createSession()),
+          contactsService: contactService,
+          authService: authService,
+          imageService: imageService
         )
       }
     )
@@ -97,7 +103,7 @@ extension AppDelegate {
     container.register(
       interface: LocationUseCaseInterface.self,
       implement: { LocationUseCase(
-        locationService: locationService,
+        locationService: LocationService(),
         kakaoAPIService: kakaoService) }
     )
   }

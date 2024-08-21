@@ -23,8 +23,6 @@ final class MockChatRoomViewController: TFBaseViewController {
     return label
   }()
 
-  private let backButton: UIBarButtonItem = .backButton
-
   override func makeUI() {
     self.view.addSubview(label)
 
@@ -34,7 +32,6 @@ final class MockChatRoomViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
 
-    self.navigationItem.leftBarButtonItem = backButton
   }
 
   override func bindViewModel() {

@@ -128,6 +128,7 @@ public extension UIFont {
 
   // MARK: - Exception
   static let thtEx1 = DSKitFontFamily.Pretendard.semiBold.font(size: 13)
+  static let thtEx1M = DSKitFontFamily.Pretendard.medium.font(size: 13)
 
   static let thtEx4R  = DSKitFontFamily.Pretendard.regular.font(size: 22)
   static let thtEx4M  = DSKitFontFamily.Pretendard.medium.font(size: 22)

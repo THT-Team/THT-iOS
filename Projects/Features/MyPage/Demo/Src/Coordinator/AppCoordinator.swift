@@ -32,7 +32,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   // MARK: - public
   func myPageFlow() {
-    let myPageCoordinator = self.myPageBuildable.build(rootViewControllable: self.viewControllable)
+    let myPageCoordinator = self.myPageBuildable.build()
 
     attachChild(myPageCoordinator)
     myPageCoordinator.delegate = self

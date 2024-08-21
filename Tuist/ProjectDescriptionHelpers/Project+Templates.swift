@@ -1,96 +1,122 @@
+import Foundation
 import ProjectDescription
 
 
-private let rootPackagesName = "com.tht."
-private let basicDeployment: DeploymentTarget = .iOS(targetVersion: "16.0", devices: .iphone)
-
-//private let projectSettings: Settings = .settings(
-//	base: [
-//		"OTHER_LDFLAGS": "-ObjC",
-//		"HEADER_SEARCH_PATHS": [
-//			"$(inherited)",
-//			"$(SRCROOT)/Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
-//		]
-//	]
-//)
+public let rootPackagesName = "com.tht."
+public let basicDeployment: DeploymentTargets = .iOS("17.0")
 
 public extension Project {
-
-	static func dynamicFramework(
-		name: String,
-		dependencies: [TargetDependency],
-    resources: ResourceFileElements = [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
-    infoPlist: InfoPlist = .default
-	) -> Project {
-
-		let target = Target(
-			name: name,
-			platform: .iOS,
-			product: .framework,
-			bundleId: rootPackagesName + name,
-			deploymentTarget: basicDeployment,
-			infoPlist: infoPlist,
-			sources: "Src/**",
-			resources:  resources,
-			dependencies: dependencies
-			//				settings: projectSettings
-		)
-		
-		return Project(
-			name: name,
-			//			settings: projectSettings,
-			targets: [target]
-		)
-	}
-	
-	static func library(
-		name: String,
-		dependencies: [TargetDependency],
-		product: Product = .dynamicLibrary
-	) -> Project {
-		let target = Target(
-			name: name,
-			platform: .iOS,
-			product: product,
-			bundleId: rootPackagesName + name,
-			deploymentTarget: basicDeployment,
-			infoPlist: .default,
-			sources: ["Src/"],
-			resources:  [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
-			dependencies: dependencies
-			//			 settings: projectSettings
-		)
-		
-		return Project(
-			name: name,
-			//		 settings: projectSettings,
-			targets: [target]
-		)
-	}
-	
-  static func designSystem(
+  static func staticFramework(
     name: String,
-    dependencies: [TargetDependency],
-//    resources: ResourceFileElements = [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
-    infoPlist: InfoPlist
+    packages: [Package],
+    dependencies: [TargetDependency]
+  ) -> Project {
+    makeProject(
+      name: name,
+      packages: packages,
+      product: .staticFramework,
+      dependencies: dependencies)}
+
+  static func dynamicFramework(
+    name: String,
+    packages: [Package],
+    dependencies: [TargetDependency]
+  ) -> Project {
+    makeProject(
+      name: name,
+      packages: packages,
+      product: .framework,
+      dependencies: dependencies)}
+}
+
+public extension Project {
+  static func makeProject(
+    name: String,
+    packages: [Package] = [],
+    product: Product,
+    dependencies: [TargetDependency]
   ) -> Project {
 
-    let target = Target(
+    let target = Target.target(
       name: name,
-      platform: .iOS,
-      product: .framework,
+      destinations: .iOS,
+      product: product,
       bundleId: rootPackagesName + name,
-      deploymentTarget: basicDeployment,
-      infoPlist: infoPlist,
-      sources: "Src/**",
-      resources: "Resources/**",
+      deploymentTargets: basicDeployment,
+      sources: ["Src/**"],
       dependencies: dependencies
-      //        settings: projectSettings
+    )
+
+    let settings: Settings = .settings(
+      base: .init()
+        .manualCodeSigning()
+        .bitcodeEnabled(false)
+        .otherLinkerFlags(["-ObjC"])
+      ,
+      configurations: [
+        .debug,
+        .release
+      ],
+      defaultSettings: .recommended)
+
+    let schemes: [Scheme] = [
+      .makeScheme(target: .debug, name: name),
+      .makeScheme(target: .release, name: name)
+    ]
+
+    return Project(
+      name: name,
+      organizationName: "THT",
+      packages: packages,
+      settings: settings,
+      targets: [target],
+      schemes: schemes
+    )
+  }
+
+  static func makeModule(
+    name: String,
+    dependencies: [TargetDependency],
+    product: Product = .staticLibrary
+  ) -> Project {
+
+    let target = Target.target(
+      name: name,
+      destinations: .iOS,
+      product: product,
+      bundleId: rootPackagesName + name,
+      deploymentTargets: basicDeployment,
+      sources: ["Src/**"],
+      dependencies: dependencies
     )
 
     return Project(
       name: name,
-      //      settings: projectSettings,
+      organizationName: "THT",
+      targets: [target]
+    )
+  }
+
+  static func designSystem(
+    name: String,
+    dependencies: [TargetDependency],
+    infoPlist: InfoPlist
+  ) -> Project {
+
+    let target = Target.target(
+      name: name,
+      destinations: .iOS,
+      product: .staticLibrary,
+      bundleId: rootPackagesName + name,
+      deploymentTargets: basicDeployment,
+      infoPlist: infoPlist,
+      sources: ["Src/**"],
+      resources: ["Resources/**"],
+      dependencies: dependencies
+    )
+
+    return Project(
+      name: name,
       targets: [target],
       resourceSynthesizers: [
         .custom(
@@ -104,3 +130,34 @@ public extension Project {
     )
   }
 }
+
+
+//
+//      .adding(
+//      "CODE_SIGN_STYLE", value: "Manual"
+//    ).adding(
+//      "CODE_SIGN_IDENTITY", value: "iPhone Developer"
+//    ).adding(
+//      "DEVELOPMENT_TEAM", value: "THT"
+//    ).adding(
+//      "PRODUCT_BUNDLE_IDENTIFIER", value: rootPackagesName + name
+//    ).adding(
+//      "PROVISIONING_PROFILE_SPECIFIER", value: "Automatic"
+//    ).adding(
+//      "SWIFT_VERSION", value: "5"
+//    ).adding(
+//      "SDKROOT", value: "iphoneos"
+//    ).adding(
+//      "SUPPORTED_PLATFORMS", value: "iphonesimulator iphoneos"
+//    ).adding(
+//      "IPHONEOS_DEPLOYMENT_TARGET", value: "12.0"
+//    ).adding(
+//      "ENABLE_BITCODE", value: "NO"
+//    ).adding(
+//      "OTHER_LDFLAGS", value: "-ObjC"
+//    ).adding(
+//      "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", value: "YES"
+//    ).adding(
+//      "LD_RUNPATH_SEARCH_PATHS", value: "$(inherited) @executable_path/Frameworks"
+//    ).adding(
+//      "LD_DYLIB_INSTALL_NAME_BASE", value: "@rpath"

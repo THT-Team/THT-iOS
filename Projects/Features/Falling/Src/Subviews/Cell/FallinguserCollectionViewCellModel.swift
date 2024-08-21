@@ -115,7 +115,6 @@ final private class Timer {
       guard let self = self else { return 0.0 }
       return round((self.startTime * 100 - Double(value))) / 100
     }
-    .debug()
     .bind(to: currentTime)
   }
   

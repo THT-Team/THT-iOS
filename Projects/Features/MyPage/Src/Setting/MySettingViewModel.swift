@@ -39,11 +39,13 @@ final class MySettingViewModel: ViewModelType {
   }
 
   func transform(input: Input) -> Output {
+    let section = useCase.createSettingMenu(user: user)
     let user = Driver.just(self.user)
     let toast = PublishRelay<String>()
     let errorTracker = PublishSubject<Error>()
+    
 
-    let sections = user.map(makeStaticSettingMenus(user:))
+    let sections = Driver.just(section)
 
     input.indexPath
       .compactMap { MySetting.Section(rawValue: $0.section) }
@@ -94,10 +96,9 @@ final class MySettingViewModel: ViewModelType {
       .withLatestFrom(sections) { indexPath, sections in
         let section = sections[indexPath.section].type
         let menu = sections[indexPath.section].items[indexPath.item]
-
         return (section: section, item: menu)
       }
-      .drive(with: self) { owner, component in
+      .drive(with: self) { owner, component -> Void in
         owner.navigate(section: component.section, item: component.item)
       }.disposed(by: disposeBag)
 
@@ -116,6 +117,9 @@ extension MySettingViewModel {
   func navigate(section: MySetting.Section, item: MySetting.MenuItem) {
     switch section {
     case .account:
+      item.title == "핸드폰 번호"
+      ? self.delegate?.invoke(.editPhoneNumber(phoneNumber: self.user.phoneNumber))
+      : self.delegate?.invoke(.editEmail(email: self.user.email))
       break
     case .activity:
       self.delegate?.invoke(.editUserContacts)
@@ -134,43 +138,5 @@ extension MySettingViewModel {
     }
   }
 
-  func makeStaticSettingMenus(user: User) -> [SectionModel<MySetting.MenuItem>] {
-    return [
-      SectionModel(
-        type: .account,
-        items: [
-          .item(MySetting.Item(title: "연동된 SNS", content: "Google")),
-        ]),
-      SectionModel(
-        type: .activity,
-        items: [.item(MySetting.Item(title: "저장된 연락처 차단하기"))]),
-      SectionModel(
-        type: .location,
-        items: [.item(MySetting.Item(title: "위치 설정", content: user.address))]),
-      SectionModel(
-        type: .notification,
-        items: [.item(MySetting.Item(title: "알림 설정"))]),
-      SectionModel(
-        type: .support,
-        items: [
-          .linkItem(MySetting.LinkItem(title: "자주 묻는 질문", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .item(MySetting.Item(title: "문의 및 피드백 보내기"))]),
-      SectionModel(
-        type: .law,
-        items: [
-          .linkItem(MySetting.LinkItem(title: "서비스 이용약관", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "개인정보 처리방침", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "위치정보 이용약관", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "라이센스", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "사업자 정보", url: URL(string: "http://www.ftc.go.kr/bizCommPop.do?wrkr_no=6806400545")!))]),
-      SectionModel(
-        type: .accoutSetting,
-        items: [.item(MySetting.Item(title: "계정 설정"))]),
-    ]
-  }
-}
-
-struct SectionModel<ItemType> where ItemType: MenuType {
-  let type: MySetting.Section
-  let items: [ItemType]
+  
 }

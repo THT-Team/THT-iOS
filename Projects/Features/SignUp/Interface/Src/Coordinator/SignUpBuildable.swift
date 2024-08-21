@@ -10,5 +10,5 @@ import Foundation
 import Core
 
 public protocol SignUpBuildable {
-  func build() -> SignUpCoordinating
+  func build(rootViewControllable: ViewControllable) -> SignUpCoordinating
 }

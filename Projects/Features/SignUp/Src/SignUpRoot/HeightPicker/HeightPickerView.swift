@@ -10,16 +10,7 @@ import UIKit
 import DSKit
 
 class HeightPickerView: TFBaseView {
-  lazy var container = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
-
-  lazy var titleLabel: UILabel = UILabel().then {
-    $0.text = "키을 입력해주세요"
-    $0.textColor = DSKitAsset.Color.neutral300.color
-    $0.font = .thtH1B
-    $0.asColor(targetString: "키", color: DSKitAsset.Color.neutral50.color)
-  }
+  lazy var titleLabel = UILabel.setTargetBold(text: "키를 입력해주세요.", target: "키", font: .thtH1B, targetFont: .thtH1B)
 
   lazy var heightLabel: UILabel = UILabel().then {
     $0.textAlignment = .left
@@ -28,62 +19,41 @@ class HeightPickerView: TFBaseView {
     $0.textColor = DSKitAsset.Color.neutral400.color
   }
 
-  lazy var infoImageView: UIImageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.Icons.explain.image.withRenderingMode(.alwaysTemplate)
-    $0.tintColor = DSKitAsset.Color.neutral400.color
-  }
+  lazy var descriptionView = TFOneLineDescriptionView(description: "마이페이지에서 변경가능합니다.")
 
-  lazy var descLabel: UILabel = UILabel().then {
-    $0.text = "마이페이지에서 변경가능합니다."
-    $0.font = .thtCaption1M
-    $0.textColor = DSKitAsset.Color.neutral400.color
-    $0.textAlignment = .left
-    $0.numberOfLines = 1
-  }
-
-  lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
+  lazy var nextBtn = TFButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubview(container)
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
 
-    container.addSubviews(
+    addSubviews(
       titleLabel,
       heightLabel,
-      infoImageView, descLabel,
+      descriptionView,
       nextBtn
     )
-    container.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
-    }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(76)
-      $0.leading.trailing.equalToSuperview().inset(30)
+      $0.top.equalToSuperview().offset(180.adjustedH)
+      $0.leading.trailing.equalToSuperview().inset(38.adjusted)
     }
 
     heightLabel.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(30)
+      $0.leading.trailing.equalTo(titleLabel)
       $0.top.equalTo(titleLabel.snp.bottom).offset(10)
       $0.height.equalTo(50)
     }
 
-    infoImageView.snp.makeConstraints {
-      $0.leading.equalTo(heightLabel.snp.leading)
-      $0.width.height.equalTo(16)
-      $0.top.equalTo(heightLabel.snp.bottom).offset(16)
+    descriptionView.snp.makeConstraints {
+      $0.leading.trailing.equalTo(titleLabel)
+      $0.top.equalTo(heightLabel.snp.bottom).offset(16.adjustedH)
     }
 
-    descLabel.snp.makeConstraints {
-      $0.leading.equalTo(infoImageView.snp.trailing).offset(6)
-      $0.top.equalTo(heightLabel.snp.bottom).offset(16)
-      $0.trailing.equalToSuperview().inset(38)
-    }
     nextBtn.snp.makeConstraints {
-      $0.top.equalTo(descLabel.snp.bottom).offset(30)
-      $0.trailing.equalTo(heightLabel)
-      $0.height.equalTo(50)
-      $0.width.equalTo(88)
+      $0.trailing.equalTo(descriptionView)
+      $0.height.equalTo(54.adjustedH)
+      $0.width.equalTo(88.adjusted)
+      $0.bottom.equalToSuperview().offset(-133.adjustedH)
     }
   }
 }

@@ -74,7 +74,7 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     chatCoordinator.delegate = self
     chatCoordinator.start()
     
-    let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
+    let myPageCoordinator = myPageBuildable.build() //rootViewControllable: NavigationViewControllable())
     attachChild(myPageCoordinator)
     myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
     myPageCoordinator.delegate = self
@@ -104,6 +104,6 @@ extension MainCoordinator: FallingCoordinatorDelegate, LikeCoordinatorDelegate, 
   
 
   func detachMyPage(_ coordinator: Core.Coordinator) {
-
+    detachTab()
   }
 }

@@ -24,7 +24,7 @@ public class LeftAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
   public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 
     self.minimumLineSpacing = 10.0
-        sectionInset = UIEdgeInsets(top: 0, left: sidePadding, bottom: 0, right: sidePadding)
+    sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
 
       let attributes = super.layoutAttributesForElements(in: rect)
 
@@ -33,13 +33,6 @@ public class LeftAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
 
       // lineCount해서 전체 레이아웃을 넘어가면 line 증가
       attributes?.forEach { attribute in
-        if attribute.representedElementKind == UICollectionView.elementKindSectionHeader {
-          attribute.frame.origin.x = sectionInset.left
-          return
-        }
-        if attribute.indexPath.section == 2 { // 자기소개 셀
-          return
-        }
         if attribute.frame.origin.y >= lineCount { // xPosition 초기화
           xPosition = sectionInset.left
         }

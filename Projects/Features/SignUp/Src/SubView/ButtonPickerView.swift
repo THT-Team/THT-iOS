@@ -51,6 +51,7 @@ class ButtonPickerView: UIControl {
     $0.text = title
     $0.textColor = DSKitAsset.Color.neutral300.color
     $0.font = .thtH1B
+    $0.setTextWithLetterSpacing(text: $0.text, letterSpacing: -3)
     $0.asColor(targetString: targetString, color: DSKitAsset.Color.neutral50.color)
   }
 
@@ -59,7 +60,7 @@ class ButtonPickerView: UIControl {
     $0.addArrangedSubviews([option1Btn, option2Btn])
     $0.distribution = .fillEqually
     $0.alignment = .fill
-    $0.spacing = 10
+    $0.spacing = 16
   }
 
   lazy var option1Btn = CTAButton(btnTitle: option1, initialStatus: false)
@@ -75,23 +76,27 @@ class ButtonPickerView: UIControl {
 
     titleLabel.snp.makeConstraints {
       $0.top.equalToSuperview().inset(frame.height * 0.09)
-      $0.leading.trailing.equalToSuperview().inset(38)
+      $0.leading.trailing.equalToSuperview()
     }
 
     buttonHStackView.snp.makeConstraints {
       $0.leading.trailing.equalTo(titleLabel)
       $0.top.equalTo(titleLabel.snp.bottom).offset(30)
       $0.height.equalTo(50)
-      $0.bottom.equalToSuperview().offset(-10)
+      $0.bottom.equalToSuperview()
     }
 
     option1Btn.addAction(UIAction { [weak self] _ in
       self?.selectedOption = .left
     }, for: .touchUpInside)
+    option1Btn.layer.cornerRadius = 10
+    option1Btn.titleLabel?.font = .thtH4Sb
 
     option2Btn.addAction(UIAction { [weak self] _ in
       self?.selectedOption = .right
     }, for: .touchUpInside)
+    option2Btn.layer.cornerRadius = 10
+    option2Btn.titleLabel?.font = .thtH4Sb
   }
 
   func handleSelectedState(_ option: ButtonOption) {

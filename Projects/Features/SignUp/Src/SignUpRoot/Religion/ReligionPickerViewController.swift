@@ -12,20 +12,9 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class ReligionPickerViewController: TFBaseViewController {
-  typealias VMType = ReligionPickerViewModel
+final class ReligionPickerViewController: BaseSignUpVC<ReligionPickerViewModel>, StageProgressable {
+  var stage: Float = 7
   private(set) var mainView = ReligionPickerView()
-
-  private let viewModel: VMType
-
-  init(viewModel: VMType) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView
@@ -35,7 +24,7 @@ final class ReligionPickerViewController: TFBaseViewController {
 
     let nextBtnTap = mainView.nextBtn.rx.tap.asDriver()
 
-    let input = VMType.Input(
+    let input = ViewModel.Input(
       chipTap: mainView.ReligionPickerView.rx.itemSelected.asDriver(),
       nextBtnTap: nextBtnTap
     )
@@ -55,5 +44,13 @@ final class ReligionPickerViewController: TFBaseViewController {
         owner.mainView.nextBtn.updateColors(status: status)
       }
       .disposed(by: disposeBag)
+
+    mainView.ReligionPickerView.rx.observe(\.contentSize)
+      .observe(on: MainScheduler.asyncInstance)
+      .subscribe(with: self) { owner, size in
+        owner.mainView.collectionViewHeightConstraint?.constant = size.height
+        owner.mainView.layoutIfNeeded()
+      }.disposed(by: disposeBag)
   }
 }
+

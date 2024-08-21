@@ -50,7 +50,7 @@ final class ServiceAgreementRowView: UITableViewCell {
   }
   
   lazy var descriptionText: UILabel = UILabel().then {
-    $0.font = .thtCaption1M
+    $0.font = .thtP2M
     $0.textColor = DSKitAsset.Color.neutral400.color
     $0.numberOfLines = 2
   }
@@ -84,13 +84,13 @@ final class ServiceAgreementRowView: UITableViewCell {
 
     checkmark.snp.makeConstraints {
       $0.size.equalTo(20)
-      $0.top.equalTo(titleLabel).offset(5)
+      $0.top.equalTo(titleLabel)
       $0.leading.equalToSuperview()
     }
 
     descriptionText.setContentHuggingPriority(.defaultHigh, for: .vertical)
     descriptionText.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+      $0.top.equalTo(titleLabel.snp.bottom)
       $0.leading.equalTo(titleLabel)
       $0.trailing.equalTo(titleLabel)
       $0.height.lessThanOrEqualTo(30)
@@ -102,14 +102,17 @@ final class ServiceAgreementRowView: UITableViewCell {
     self.model = viewModel.model
     self.titleLabel.text = viewModel.model.subject
     self.descriptionText.text = viewModel.model.description
-    self.checkmark.image = viewModel.checkImage.image
+    self.checkmark.image = viewModel.image.image
     goWebviewBtn.isHidden = (viewModel.model.detailLink ?? "").isEmpty
   }
 }
 
-struct ServiceAgreementRowViewModel {
-  let model: AgreementElement
-  var checkImage: DSKitImages
+extension ServiceAgreementRowViewModel {
+  var image: DSKitImages {
+    isSelected
+    ? DSKitAsset.Image.Component.checkSelect
+    : DSKitAsset.Image.Component.check
+  }
 }
 //
 //#if canImport(SwiftUI) && DEBUG

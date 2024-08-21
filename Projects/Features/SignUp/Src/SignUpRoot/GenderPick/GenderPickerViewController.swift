@@ -14,22 +14,14 @@ import RxSwift
 import RxCocoa
 import RxGesture
 
-final class GenderPickerViewController: TFBaseViewController {
+final class GenderPickerViewController: BaseSignUpVC<GenderPickerViewModel>, StageProgressable {
   private let mainView = GenderPickerView()
-  private let viewModel: GenderPickerViewModel
-
-  init(viewModel: GenderPickerViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView
   }
+
+  var stage: Float = 2
 
   override func bindViewModel() {
     let birthdayTap = self.mainView.birthdayLabel

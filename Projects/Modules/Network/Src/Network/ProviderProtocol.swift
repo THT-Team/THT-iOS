@@ -98,9 +98,8 @@ public extension ProviderProtocol {
     }
   }
 
-  func requestWithNoContent(target: Target) -> Completable {
+  func requestWithNoContent(target: Target) -> Single<Void> {
     provider.rx.request(target)
       .map { _ in }
-      .asCompletable()
   }
 }

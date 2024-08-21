@@ -10,11 +10,17 @@ import SignUpInterface
 
 import DSKit
 
-final class TagPickerView: TFBaseView {
-  struct AttributedTitleInfo {
-    let title: String
-    let targetText: String
+public struct AttributedTitleInfo {
+  public let title: String
+  public let targetText: String
+
+  public init(title: String, targetText: String) {
+    self.title = title
+    self.targetText = targetText
   }
+}
+
+final class TagPickerView: TFBaseView {
 
   private let titleInfo: AttributedTitleInfo
   private let subTitleInfo: AttributedTitleInfo
@@ -24,61 +30,28 @@ final class TagPickerView: TFBaseView {
     self.subTitleInfo = subTitleInfo
     super.init(frame: .zero)
   }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
-  lazy var container = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
-  lazy var titleLabel: UILabel = UILabel().then {
-    $0.text = self.titleInfo.title
-    $0.textColor = DSKitAsset.Color.neutral300.color
-    $0.font = .thtH1B
-    $0.asColor(targetString: self.titleInfo.targetText, color: DSKitAsset.Color.neutral50.color)
-  }
 
-  lazy var subTitleLabel: UILabel = UILabel().then {
-    $0.text = self.subTitleInfo.title
-    $0.textColor = DSKitAsset.Color.neutral300.color
-    $0.font = .thtH4B
-    $0.asColor(targetString: self.subTitleInfo.targetText, color: DSKitAsset.Color.neutral50.color)
-  }
+  lazy var titleLabel = UILabel.setTargetBold(text: self.titleInfo.title, target: self.titleInfo.targetText, font: .thtH1B, targetFont: .thtH1B)
 
-  lazy var collectionView: UICollectionView = {
-    let layout = LeftAlignCollectionViewFlowLayout(sidePadding: 0)
-    layout.scrollDirection = .vertical
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+  lazy var subTitleLabel = UILabel.setTargetBold(text: self.subTitleInfo.title, target: self.subTitleInfo.targetText, font: .thtH4B, targetFont: .thtH4B)
 
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.register(cellType: InputTagCollectionViewCell.self)
-    collectionView.isScrollEnabled = true
-    collectionView.showsVerticalScrollIndicator = false
-    collectionView.backgroundColor = .clear
-    return collectionView
-  }()
+  lazy var collectionView = TagPickerCollectionView()
 
-  lazy var nextBtn = CTAButton(btnTitle: "->", initialStatus: false)
+  lazy var nextBtn = TFButton(btnTitle: "->", initialStatus: false)
 
   override func makeUI() {
-    addSubview(container)
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
 
-    container.addSubviews(
+    addSubviews(
       titleLabel,
       subTitleLabel,
       collectionView,
       nextBtn
     )
 
-    container.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
-    }
-
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(76)
-      $0.leading.trailing.equalToSuperview().inset(30)
+      $0.top.equalToSuperview().offset(180.adjustedH)
+      $0.leading.trailing.equalToSuperview().inset(38.adjusted)
     }
 
     subTitleLabel.snp.makeConstraints {
@@ -94,10 +67,11 @@ final class TagPickerView: TFBaseView {
     }
 
     nextBtn.snp.makeConstraints {
-      $0.top.equalTo(collectionView.snp.bottom).offset(30)
-      $0.trailing.equalTo(titleLabel)
-      $0.height.equalTo(50)
-      $0.width.equalTo(88)
+      $0.top.equalTo(collectionView.snp.bottom).offset(40.adjustedH)
+      $0.trailing.equalTo(collectionView)
+      $0.height.equalTo(54.adjustedH)
+      $0.width.equalTo(88.adjusted)
+      $0.bottom.equalToSuperview().offset(-133.adjustedH)
     }
   }
 }

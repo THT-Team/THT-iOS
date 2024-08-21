@@ -15,7 +15,7 @@ let project = Project(
 		.feature(
 			interface: .Chat,
 			dependencies: [
-				.core,
+				.domain,
 			]
 		),
 		.feature(

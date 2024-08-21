@@ -40,6 +40,14 @@ public extension ViewControllable {
     }
   }
 
+  func popToRootViewController(animated: Bool) {
+    if let nav = self.uiController as? UINavigationController {
+      nav.popToRootViewController(animated: animated)
+    } else {
+      self.uiController.navigationController?.popToRootViewController(animated: animated)
+    }
+  }
+
   func present(_ viewControllable: ViewControllable, animated: Bool) {
     if let nav = self.uiController as? UINavigationController {
       nav.present(viewControllable.uiController, animated: animated)
@@ -55,13 +63,30 @@ public extension ViewControllable {
       self.uiController.dismiss(animated: true)
     }
   }
+  
+  func presentMediumBottomSheet(_ viewControllable: ViewControllable, height: CGFloat = 300, animated: Bool) {
+    let navigation = NavigationViewControllable(rootViewControllable: viewControllable)
+    if let sheet = navigation.uiController.sheetPresentationController {
+      sheet.prefersGrabberVisible = false
+      sheet.preferredCornerRadius = 20
+      sheet.detents = [
+        .custom(identifier: nil, resolver: { _ in height })
+      ]
+    }
+    if let nav = self.uiController as? UINavigationController {
+      nav.present(navigation.uiController, animated: animated)
+    } else {
+      self.uiController.navigationController?.present(navigation.uiController, animated: animated)
+    }
+  }
 
   func presentBottomSheet(_ viewControllable: ViewControllable, animated: Bool) {
     let navigation = NavigationViewControllable(rootViewControllable: viewControllable)
     if let sheet = navigation.uiController.sheetPresentationController {
       sheet.prefersGrabberVisible = false
-      sheet.preferredCornerRadius = 12
+      sheet.preferredCornerRadius = 20
       sheet.detents = [
+        .medium(),
         .small()
       ]
     }

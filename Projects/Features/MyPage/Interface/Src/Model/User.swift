@@ -10,20 +10,24 @@ import Domain
 import SignUpInterface
 
 public struct User {
-  public let preferGender: Gender
-  public let username, userUUID: String
   public let age: Int
-  public let introduction, address, phoneNumber, email: String
+  public let birthday: String
+  public let userUUID: String
   public let gender: Gender
-  public let tall: Int
-  public let smoking, drinking: Frequency
-  public let religion: Religion
-  public let idealTypeList, interestsList: [SignUpInterface.EmojiType]
-  public let userProfilePhotos: [Domain.UserProfilePhoto]
-  public let userAgreements: [String: Bool]
 
-  public init(preferGender: Gender, username: String, userUUID: String, age: Int, introduction: String, address: String, phoneNumber: String, email: String, gender: Gender, tall: Int, smoking: Frequency, drinking: Frequency, religion: Religion, idealTypeList: [SignUpInterface.EmojiType], interestsList: [SignUpInterface.EmojiType], userProfilePhotos: [Domain.UserProfilePhoto], userAgreements: [String : Bool]) {
+  public var preferGender: Gender
+  public var username: String
+  public var introduction, address, phoneNumber, email: String
+  public var tall: Int
+  public var smoking, drinking: Frequency
+  public var religion: Religion
+  public var idealTypeList, interestsList: [EmojiType]
+  public var userProfilePhotos: [Domain.UserProfilePhoto]
+  public var userAgreements: [String: Bool]
+
+  public init(birthday: String, preferGender: Gender, username: String, userUUID: String, age: Int, introduction: String, address: String, phoneNumber: String, email: String, gender: Gender, tall: Int, smoking: Frequency, drinking: Frequency, religion: Religion, idealTypeList: [EmojiType], interestsList: [EmojiType], userProfilePhotos: [Domain.UserProfilePhoto], userAgreements: [String : Bool]) {
     self.preferGender = preferGender
+    self.birthday = birthday
     self.username = username
     self.userUUID = userUUID
     self.age = age

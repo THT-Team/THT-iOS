@@ -12,12 +12,13 @@ import MyPlugin
 let project = Project(
 	name: Feature.Core.rawValue,
 	targets: [
-		.feature(
-			implementation: .Core,
-			dependencies: [
-				.module(implementation: .ThirdPartyLibs, pathName: .Modules(.ThirdPartyLibs)),
-        .domain,
-			]
-		),
+    .makeFramework(
+      name: Feature.Core.rawValue,
+      sources: ["src/**"],
+      dependencies: [
+        .module(implementation: .ThirdPartyLibs, pathName: .Modules(.ThirdPartyLibs)),
+      ],
+      product: .staticFramework
+    )
 	]
 )

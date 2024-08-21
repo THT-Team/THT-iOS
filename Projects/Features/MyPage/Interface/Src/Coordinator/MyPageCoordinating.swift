@@ -21,8 +21,8 @@ public protocol MyPageCoordinating: Coordinator {
 
   func editNicknameFlow(nickname: String)
   func editphotoFlow()
-  func editPreferGenderBottomSheetFlow(prefetGender: Gender)
-  func editHeightBottomSheetFlow(height: Int)
+  func editPreferGenderBottomSheetFlow(prefetGender: Gender, listener: BottomSheetListener)
+  func editHeightBottomSheetFlow(height: Int, listener: BottomSheetListener)
 }
 
 public protocol MyPageCoordinatingActionDelegate: AnyObject {
@@ -44,4 +44,9 @@ public enum MyPageCoordinatingAction {
   case editReligion(Religion)
   case editInterest([Int])
   case editIdealType([Int])
+  
+  case photoCellTap(index: Int, listener: PhotoPickerDelegate)
+  case photoEditOrDeleteAlert(_ listener: TopBottomAlertListener)
+
+  case popToRoot
 }

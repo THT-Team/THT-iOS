@@ -150,7 +150,7 @@ final class MyPageCellContainerView: TFBaseView {
 
   override func makeUI() {
     backgroundColor = DSKitAsset.Color.neutral600.color
-    layer.cornerRadius = 6
+    layer.cornerRadius = 10
     clipsToBounds = true
 
     addSubviews(titleStackView, contentStackView)
@@ -160,16 +160,16 @@ final class MyPageCellContainerView: TFBaseView {
 
     titleStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
     titleStackView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(13)
-      $0.leading.equalToSuperview().offset(14)
-      $0.height.equalTo(50).priority(.low)
-      $0.bottom.equalToSuperview().offset(-13)
+      $0.top.equalToSuperview().offset(15.adjustedH)
+      $0.leading.equalToSuperview().offset(21.adjusted)
+      $0.height.equalTo(52.adjustedH).priority(.low)
+      $0.bottom.equalToSuperview().offset(-15.adjustedH)
     }
 
     contentStackView.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.equalTo(titleLabel.snp.trailing)
-      $0.trailing.equalToSuperview().offset(-14)
+      $0.trailing.equalToSuperview().offset(-21.adjusted)
     }
 
     contentImage.snp.makeConstraints {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum Religion: String, Codable {
+public enum Religion: String, Codable, CaseIterable {
   case christian = "CHRISTIAN"
   case catholic = "CATHOLICISM"
   case buddhism = "BUDDHISM"
@@ -16,7 +16,7 @@ public enum Religion: String, Codable {
   case other = "OTHER"
 }
 
-extension Religion {
+extension Religion: TFTitlePropertyType {
   public var title: String {
     switch self {
     case .christian:

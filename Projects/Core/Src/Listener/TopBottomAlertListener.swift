@@ -15,6 +15,16 @@ public protocol MenuProtocol {
   var label: String { get }
 }
 
+public protocol TopBottomAlertListener {
+  func didTapAction(_ action: TopBottomAction)
+}
+
+public enum TopBottomAction {
+  case top
+  case bottom
+  case cancel
+}
+
 public protocol BlockOrReportAlertListener {
   func didTapAction(_ action: BlockOrReportAction)
 }

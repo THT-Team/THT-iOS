@@ -10,25 +10,48 @@ import UIKit
 import DSKit
 import MyPage
 import MyPageInterface
-
+import Auth
+import AuthInterface
 public protocol AppRootBuildable {
   func build() -> LaunchCoordinating
 }
 
-public final class AppRootBuilder: AppRootBuildable {
-  public init() { }
-
-  lazy var myPageBuildable: MyPageBuildable = {
-    MyPageBuilder()
+final class AppRootComponent: MyPageDependency, MySettingDependency {
+  var viewControllable: Core.ViewControllable
+  
+  lazy var mySettingBuildable: MyPageInterface.MySettingBuildable = {
+    MySettingBuilder(dependency: self)
   }()
+
+  lazy var myPageAlertBuildable: MyPageInterface.MyPageAlertBuildable = {
+    MyPageAlertBuilder()
+  }()
+
+  lazy var inquiryBuildable: InquiryBuildable = {
+    InquiryBuilder()
+  }()
+
+  lazy var authViewFactory: AuthInterface.AuthViewFactoryType = {
+    AuthViewFactory()
+  }()
+
+  init(viewControllable: ViewControllable) {
+    self.viewControllable = viewControllable
+  }
+}
+
+public final class AppRootBuilder: AppRootBuildable {
 
   public func build() -> LaunchCoordinating {
 
     let viewController = NavigationViewControllable(rootViewControllable: TFLaunchViewController())
 
+    let component = AppRootComponent(viewControllable: viewController)
+    let myPageBuilder = MyPageBuilder(dependency: component)
+
     let coordinator = AppCoordinator(
       viewControllable: viewController,
-      myPageBuildable: self.myPageBuildable
+      myPageBuildable: myPageBuilder
     )
     return coordinator
   }

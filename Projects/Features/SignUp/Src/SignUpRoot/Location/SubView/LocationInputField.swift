@@ -8,6 +8,7 @@
 import UIKit
 
 import DSKit
+import Core
 
 class LocationInputField: UIControl {
 
@@ -51,6 +52,7 @@ class LocationInputField: UIControl {
   init() {
     super.init(frame: .zero)
     makeUI()
+    self.addAction(.init { _ in HapticFeedbackManager.shared.triggerImpactFeedback(style: .heavy)}, for: .touchUpInside)
   }
   
   required init?(coder: NSCoder) {

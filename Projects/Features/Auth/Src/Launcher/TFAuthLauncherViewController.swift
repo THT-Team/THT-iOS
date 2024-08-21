@@ -29,10 +29,6 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
     )
     let output = viewModel.transform(input: input)
 
-    output.state
-      .drive()
-      .disposed(by: disposeBag)
-
     output.toast
       .emit(with: self, onNext: { owner, message in
         owner.view.makeToast(message)

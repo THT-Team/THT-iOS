@@ -10,11 +10,7 @@ import SignUpInterface
 import Core
 import DSKit
 
-protocol AppCoordinating {
-  func signUpFlow()
-}
-
-final class AppCoordinator: LaunchCoordinator, AppCoordinating {
+final class AppCoordinator: LaunchCoordinator {
 
   private let signUpBuildable: SignUpBuildable
 
@@ -30,25 +26,13 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     signUpFlow()
   }
 
-  // MARK: - public
   func signUpFlow() {
-    let signUpCoordinator = self.signUpBuildable.build()
+    let signUpCoordinator = self.signUpBuildable.build(phoneNumber: "01089192466")
 
     attachChild(signUpCoordinator)
     signUpCoordinator.delegate = self
 
     signUpCoordinator.start()
-  }
-
-  class MainViewController: TFBaseViewController {
-    override func viewDidLoad() {
-      super.viewDidLoad()
-
-      let label = UILabel()
-      label.center = self.view.center
-      label.text = "Main"
-      self.view.addSubview(label)
-    }
   }
 }
 

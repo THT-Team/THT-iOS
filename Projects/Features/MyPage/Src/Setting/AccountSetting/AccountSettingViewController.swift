@@ -23,10 +23,6 @@ final class AccountSettingViewController: TFBaseViewController {
     super.init(nibName: nil, bundle: nil)
   }
 
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
   override func loadView() {
     self.view = mainView
   }
@@ -77,12 +73,7 @@ extension AccountSettingViewController: UITableViewDataSource {
 
     cell.containerView.text = "로그아웃"
     cell.containerView.accessoryType = .rightArrow
-    var content = cell.defaultContentConfiguration()
 
-    content.text = "로그아웃"
-    content.textProperties.font = .thtSubTitle1R
-
-//    cell.contentConfiguration = content
     return cell
   }
 

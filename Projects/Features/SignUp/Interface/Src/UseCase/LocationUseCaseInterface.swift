@@ -14,4 +14,5 @@ import AuthInterface
 public protocol LocationUseCaseInterface {
   func fetchLocation() -> Single<LocationReq>
   func fetchLocation(address: String) -> Single<LocationReq>
+  func isValid(_ location: LocationReq?) -> Single<Bool>
 }

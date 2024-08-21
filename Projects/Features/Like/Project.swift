@@ -15,7 +15,7 @@ let project = Project(
 		.feature(
 			interface: .Like,
 			dependencies: [
-				.core,
+				.domain,
 			]
 		),
 		.feature(

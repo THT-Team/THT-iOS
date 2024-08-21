@@ -15,19 +15,32 @@ import SnapKit
 protocol PhotoHeaderViewDelegate: AnyObject {
   func didTapPhotoEditButton(_ index: Int)
   func didTapPhotoAddButton(_ index: Int)
-  func didTapNicknameEditButton()
+  func didTapNicknameEditButton(_ nickname: String)
+}
+
+struct PhotoHeaderModel {
+  var dataSource: [PhotoHeaderCellViewModel]
+  var nickname: String
 }
 
 final class PhotoHeaderView: UICollectionReusableView {
   weak var delegate: PhotoHeaderViewDelegate?
-  var dataSource: [PhotoHeaderCellViewModel] = [] {
+
+  var model: PhotoHeaderModel?
+
+  var dataSource: [PhotoHeaderCellViewModel] = [
+    .init(cellType: .required),
+    .init(cellType: .required),
+    .init(cellType: .optional)
+  ] {
     didSet {
       DispatchQueue.main.async {
         self.photoCollectionView.reloadData()
-        print("reload")
       }
     }
   }
+  
+  var photoUpdate: (() -> Void)?
 
   private(set) lazy var nicknameLabel = UILabel().then {
     $0.textColor = DSKitAsset.Color.neutral50.color
@@ -39,7 +52,7 @@ final class PhotoHeaderView: UICollectionReusableView {
     $0.setImage(DSKitAsset.Image.Icons.edit.image, for: .normal)
     $0.addAction(UIAction { [weak self] _ in
       TFLogger.dataLogger.debug("닉네임 수정 버튼 클릭")
-      self?.delegate?.didTapNicknameEditButton()
+      self?.delegate?.didTapNicknameEditButton("닉네임")
     }, for: .touchUpInside)
   }
 
@@ -108,9 +121,9 @@ final class PhotoHeaderView: UICollectionReusableView {
       $0.bottom.equalToSuperview().offset(-10)
     }
   }
-
-  func bind(dataSource: [PhotoHeaderCellViewModel]) {
-    self.dataSource = dataSource
+  func bind(model: PhotoHeaderModel) {
+    self.dataSource = model.dataSource
+    self.nicknameLabel.text = model.nickname
   }
 }
 
@@ -126,12 +139,8 @@ extension PhotoHeaderView: UICollectionViewDataSource {
     )
 
     let viewModel: PhotoHeaderCellViewModel
-    if dataSource.count > indexPath.item {
-      viewModel = dataSource[indexPath.item]
-    } else {
-      let cellType: PhotoHeaderCellViewModel.CellType = indexPath.item < 2 ? .required : .optional
-      viewModel = PhotoHeaderCellViewModel(data: nil, cellType: cellType)
-    }
+
+    viewModel = dataSource[indexPath.item]
     cell.bind(viewModel)
     cell.addButtonTap = { [weak self] in
       self?.delegate?.didTapPhotoAddButton(indexPath.item)
@@ -158,22 +167,3 @@ extension PhotoHeaderView: UICollectionViewDelegateFlowLayout {
     return CGSize(width: width, height: height)
   }
 }
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct PhotoHeaderViewPreview: PreviewProvider {
-
-  static var previews: some View {
-    UIViewPreview {
-      let comp =  PhotoHeaderView()
-      comp.bind(dataSource: [
-        .init(data: DSKitAsset.Image.Test.test1.image.pngData()!, cellType: .required),
-      ])
-      return comp
-    }
-    .frame(width: 375, height: 250)
-    .previewLayout(.sizeThatFits)
-  }
-}
-#endif

@@ -22,15 +22,10 @@ public final class UserDefaultRepository: PersistentRepositoryInterface {
 
   public func save<T>(_ value: T, key: PersistentKey) {
     userDefault.set(value, forKey: key.rawValue)
-    userDefault.synchronize()
   }
 
   public func fetch<T>(for key: PersistentKey, type: T.Type) -> T? {
     userDefault.object(forKey: key.rawValue) as? T
-  }
-
-  public func removeModel<T>(key: PersistentKey, model: T.Type) {
-    userDefault.removeObject(forKey: key.rawValue)
   }
 
   @discardableResult
@@ -46,5 +41,15 @@ public final class UserDefaultRepository: PersistentRepositoryInterface {
       return nil
     }
     return model
+  }
+}
+
+extension UserDefaultRepository {
+  public func removeUser() {
+    PersistentKey.allCases
+      .filter { $0 != .deviceKey }
+      .forEach { key in
+      remove(key: key)
+    }
   }
 }

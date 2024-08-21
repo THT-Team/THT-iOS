@@ -10,11 +10,7 @@ import UIKit
 import DSKit
 
 final class UserContactView: TFBaseView {
-  lazy var containerView = UIView().then {
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-  }
-  
-  lazy var titleLabel: UILabel = UILabel().then {
+  lazy var titleLabel = UILabel().then {
     $0.text = "혹시 폴링에서\n아는 사람을 만날까봐\n걱정되시나요?"
     $0.textColor = DSKitAsset.Color.neutral50.color
     $0.font = .thtH2B
@@ -30,42 +26,45 @@ final class UserContactView: TFBaseView {
   }
   
   lazy var blockBtn = CTAButton(btnTitle: "아는 사람 만나지 않기", initialStatus: true)
-  lazy var layterBtn = CTAButton(btnTitle: "나중에 하기", initialStatus: false)
-  
+  lazy var layterBtn = CTAButton(btnTitle: "나중에 하기", initialStatus: false).then {
+    $0.style = .init(
+      activeTitleColor: DSKitAsset.Color.neutral400.color,
+      activeBackgroundColor: DSKitAsset.Color.neutral600.color,
+      inactiveTitleColor: DSKitAsset.Color.neutral400.color,
+      inactiveBackgroundColor: DSKitAsset.Color.neutral600.color
+    )
+  }
+
   override func makeUI() {
-    addSubview(containerView)
-    containerView.addSubviews(
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
+
+    addSubviews(
       titleLabel,
       descLabel,
       blockBtn,
       layterBtn
     )
     
-    containerView.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
-    }
-    
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(76)
-      $0.leading.equalToSuperview().inset(38)
+      $0.top.equalToSuperview().inset(180.adjustedH)
+      $0.leading.equalToSuperview().inset(38.adjusted)
     }
     
     descLabel.snp.makeConstraints {
       $0.top.equalTo(titleLabel.snp.bottom).offset(20)
-      $0.leading.trailing.equalToSuperview().inset(38)
+      $0.leading.trailing.equalTo(titleLabel)
     }
     
     blockBtn.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.leading.trailing.equalToSuperview().inset(20.adjusted)
       $0.bottom.equalTo(layterBtn.snp.top).offset(-16)
-      $0.height.equalTo(54)
+      $0.height.equalTo(54.adjustedH)
     }
     
     layterBtn.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.leading.trailing.equalToSuperview().inset(20.adjusted)
       $0.bottom.equalToSuperview().offset(-60)
-      $0.height.equalTo(54)
+      $0.height.equalTo(54.adjustedH)
     }
   }
 }

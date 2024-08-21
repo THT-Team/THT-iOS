@@ -15,8 +15,8 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
   var uiController: UIViewController { self }
   let tabBarHeight: CGFloat = 56
   
-  override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-    super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+  init() {
+    super.init(nibName: nil, bundle: nil)
     TFLogger.ui.debug("\(#function) \(type(of: self))")
   }
   

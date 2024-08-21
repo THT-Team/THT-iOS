@@ -13,19 +13,11 @@ import DSKit
 import RxSwift
 import RxCocoa
 
-final class PhotoInputViewController: TFBaseViewController {
+final class PhotoInputViewController: BaseSignUpVC<PhotoInputViewModel>, StageProgressable {
+  var stage: Float = 4
+
   var dataSource: DataSource!
   private(set) var mainView = PhotoInputView()
-  private let viewModel: PhotoInputViewModel
-
-  init(viewModel: PhotoInputViewModel) {
-    self.viewModel = viewModel
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 
   override func loadView() {
     self.view = mainView
@@ -38,41 +30,11 @@ final class PhotoInputViewController: TFBaseViewController {
 
   override func bindViewModel() {
 
-    let requiredCell = mainView.photoCollectionView.rx.itemSelected
-      .asDriver()
-      .filter { $0.item < 2 }
-    let optionalCell = mainView.photoCollectionView.rx.itemSelected
-      .filter { $0.item == 2 }
-
-    let alertTrigger = optionalCell
-      .asObservable()
-      .withUnretained(self)
-      .flatMapLatest { owner, indexPath in
-        return Observable<PhotoAlertAction>.create { observer in
-          let alert = UIAlertController(title: "사진 수정하기",
-                                        message: "",
-                                        preferredStyle: .actionSheet
-          )
-          let editAction = UIAlertAction(title: "수정", style: .default, handler: { _ -> () in observer.onNext(.edit(indexPath)) })
-          let deleteAction = UIAlertAction(title: "제거", style: .destructive, handler: { _ -> () in observer.onNext(.delete(indexPath)) })
-          let noAction = UIAlertAction(title: "취소", style: .cancel, handler: { _ -> () in
-            observer.onCompleted()
-          })
-          alert.addAction(editAction)
-          alert.addAction(deleteAction)
-          alert.addAction(noAction)
-
-          owner.present(alert, animated: true, completion: nil)
-          return Disposables.create {
-            owner.dismiss()
-          }
-        }
-      }.asDriverOnErrorJustEmpty()
-
+    let cellSignal = mainView.photoCollectionView.rx.itemSelected.asSignal().map(\.item)
     let nextBtnTap = mainView.nextBtn.rx.tap.asDriver()
 
-    let input = PhotoInputViewModel.Input(
-      cellTap: requiredCell, alertTap: alertTrigger,
+    let input = ViewModel.Input(
+      cellTap: cellSignal,
       nextBtnTap: nextBtnTap
     )
 
@@ -86,6 +48,14 @@ final class PhotoInputViewController: TFBaseViewController {
       .drive(with: self) { owner, status in
         owner.mainView.nextBtn.updateColors(status: status)
       }
+      .disposed(by: disposeBag)
+
+    output.isDimHidden
+      .emit(with: self, onNext: { owner, isHidden in
+        UIView.animate(withDuration: 0.3) {
+          owner.mainView.blurView.alpha = isHidden ? 0 : 1
+        }
+      })
       .disposed(by: disposeBag)
   }
 }
