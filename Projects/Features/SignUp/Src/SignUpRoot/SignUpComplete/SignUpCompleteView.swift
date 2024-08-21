@@ -36,6 +36,11 @@ final class SignUpCompleteView: TFBaseView {
   }
 
   lazy var nextBtn = CTAButton(btnTitle: "네, 좋아요", initialStatus: true)
+  
+  private enum Metric {
+    static let wRatio: CGFloat = UIScreen.main.bounds.width / 390.0
+    static let hRatio: CGFloat = UIScreen.main.bounds.height / 844
+  }
 
   override func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral700.color
