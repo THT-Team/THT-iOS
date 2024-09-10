@@ -39,13 +39,16 @@ public final class LikeHomeViewController: TFBaseViewController {
 
       let cellButtonSubject = PublishSubject<LikeCellButtonAction>()
       self.setupDataSource(observer: cellButtonSubject.asObserver())
-    
-
+		
+		// FIXME: 프로필 닫을때 ViewWillAppear 호출됨
       let initialTrigger = self.rx.viewWillAppear
         .map { _ in }
         .asDriverOnErrorJustEmpty()
+		
+		
       let refreshControl = self.mainView.refreshControl.rx.controlEvent(.valueChanged)
         .asDriver()
+		
       let pagingTrigger = self.mainView.collectionView.rx.didEndDragging
         .asDriver()
         .filter { $0 }
@@ -60,32 +63,38 @@ public final class LikeHomeViewController: TFBaseViewController {
 
       let output = viewModel.transform(input: input)
 
-      output.heartList
-        .drive(onNext: { [weak self] list in
-          self?.mainView.emptyView.isHidden = !list.isEmpty
+		// likeList 와 pagingList가 분리되어 있을 필요가 없어 보임
+		// 토픽별로 모아서 보여줘야 하는데 서버에서 Response가 토픽별로 오지 않는다면 스크롤시 상위 토픽에 추가될 가능성이 있음.
+		// 토픽별로 모아서 Response 가 오는지 확인 필요 -> 위에 추가되어도 괜찮다고 확인함
+		// 레드닷: 1. 액션 존재할때 2. 페이지에서 나갈때
+		output.likeList
+			.drive(with: self) { owner, list in
+				owner.mainView.emptyView.isHidden = !list.isEmpty
+				if owner.mainView.refreshControl.isRefreshing {
+					owner.mainView.refreshControl.endRefreshing()
+				}
+				owner.applyItemsToDataSource(list)
+			}
+			.disposed(by: disposeBag)
 
-          if self?.mainView.refreshControl.isRefreshing == true {
-            self?.mainView.refreshControl.endRefreshing()
-          }
-          self?.refreshDataSource(list)
-        })
-        .disposed(by: disposeBag)
+		output.pagingList
+			.drive(with: self) { owner, likeItems in
+				owner.applyItemsToDataSource(likeItems)
+			}
+			.disposed(by: disposeBag)
 
-      output.pagingList
-        .drive(onNext: { [weak self] items in
-          self?.pagingDataSource(items)
-        }).disposed(by: disposeBag)
-
-      output.reject
-        .drive(onNext: { [weak self] item in
-          self?.deleteItems(item)
-        }).disposed(by: disposeBag)
+		output.reject
+			.drive(with: self) { owner, item in
+				owner.deleteItems(item)
+			}
+			.disposed(by: disposeBag)
+			
     }
 }
 
 extension LikeHomeViewController {
-  typealias DataSource = UICollectionViewDiffableDataSource<HeartListSection, Like>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<HeartListSection, Like>
+  typealias DataSource = UICollectionViewDiffableDataSource<String, Like>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<String, Like>
 
   private func setupDataSource<O: ObserverType>(observer: O) where O.Element == LikeCellButtonAction {
     let likeCellRegistration = UICollectionView.CellRegistration<HeartCollectionViewCell, Like> { cell, indexPath, item in
@@ -93,17 +102,27 @@ extension LikeHomeViewController {
       cell.bind(viewModel: item)
     }
 
-    let headerRegistration = UICollectionView.SupplementaryRegistration<TFCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { supplementaryView, elementKind, indexPath in
-      supplementaryView.title = "test"
+    let headerRegistration = UICollectionView.SupplementaryRegistration<TFCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { [unowned self] supplementaryView, elementKind, indexPath in
+			let sectionTitle = self.dataSource.snapshot().sectionIdentifiers[indexPath.section]
+      supplementaryView.title = sectionTitle
     }
-
-    dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
-      return collectionView.dequeueConfiguredReusableCell(using: likeCellRegistration, for: indexPath, item: itemIdentifier)
-    })
+		
+		dataSource = DataSource(
+			collectionView: mainView.collectionView,
+			cellProvider: { collectionView, indexPath, itemIdentifier in
+				return collectionView.dequeueConfiguredReusableCell(
+					using: likeCellRegistration,
+					for: indexPath,
+					item: itemIdentifier
+				)
+			}
+		)
+		
     dataSource.supplementaryViewProvider = { (view, kind, index) in
       return view.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: index)
     }
   }
+	
   private func deleteItems(_ item: Like) {
     guard
       let indexPath = self.dataSource.indexPath(for: item),
@@ -120,27 +139,23 @@ extension LikeHomeViewController {
     }
   }
 
-  private func refreshDataSource(_ items: [Like]) {
-    var snapshot = Snapshot()
-    var sections: [String: [Like]] = [:]
-    items.forEach { item in
-      sections[item.topic, default: []].append(item)
-    }
-    snapshot.appendSections([.main])
-    snapshot.appendItems(items)
-
-    self.dataSource.apply(snapshot, animatingDifferences: true)
-  }
-
-  private func pagingDataSource(_ items: [Like]) {
-    var snapshot = self.dataSource.snapshot()
-    snapshot.appendItems(items)
-    self.dataSource.apply(snapshot)
-  }
-
-  enum HeartListSection: Hashable {
-    case main
-  }
+	private func applyItemsToDataSource(_ items: [Like]) {
+		var snapshot = Snapshot()
+		var sections: [String: [Like]] = [:]
+		
+		items.forEach { item in
+			sections[item.topic, default: []].append(item)
+		}
+		
+		snapshot.appendSections(Array(sections.keys))
+		
+		for section in Array(sections.keys) {
+			guard let items = sections[section] else { continue }
+			snapshot.appendItems(items, toSection: section)
+		}
+		
+		dataSource.apply(snapshot, animatingDifferences: true)
+	}
 }
 
 extension LikeHomeViewController: UICollectionViewDelegate {

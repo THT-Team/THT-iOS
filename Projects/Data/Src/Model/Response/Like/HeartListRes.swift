@@ -43,9 +43,9 @@ struct LikeRes: Codable {
         case age, address, receivedTime
     }
 
-  static var mock: LikeRes {
-    LikeRes(dailyFallingIdx: 1, likeIdx: 1, topic: "등산하기", issue: "취미", userUUID: "1", username: "유저1", profileURL: "url", age: 20, address: "주소", receivedTime: "2023-09-05 17:15:52")
-  }
+//  static var mock: LikeRes {
+//    LikeRes(dailyFallingIdx: 1, likeIdx: 1, topic: "등산하기", issue: "취미", userUUID: "1", username: "유저1", profileURL: "url", age: 20, address: "주소", receivedTime: "2023-09-05 17:15:52")
+//  }
 }
 
 extension LikeRes {

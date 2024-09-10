@@ -49,7 +49,7 @@ extension LikeHomeViewModel {
   }
 
   struct Output {
-    let heartList: Driver<[Like]>
+    let likeList: Driver<[Like]>
     let reject: Driver<Like>
     let pagingList: Driver<[Like]>
   }
@@ -65,14 +65,16 @@ extension LikeHomeViewModel {
     let snapshot = BehaviorRelay<[Like]>(value: [])
     let navigateAction = PublishSubject<LikeCoordinatorAction>()
 
+		
     let refresh = input.trigger
       .flatMapLatest { [unowned self] _ in
+				// FIXME: Error Handling
         self.likeUseCase.fetchList(size: 100, lastTopicIndex: nil, lastLikeIndex: nil)
           .flatMap { info in
             currentCursor.accept(CursorInfo(info.lastLikeIdx, info.lastFallingTopicIdx))
-            let initial = info.likeList
-            snapshot.accept(initial)
-            return Observable.just(initial)
+						let likeList = info.likeList
+            snapshot.accept(likeList)
+            return Observable.just(likeList)
           }
           .asDriverOnErrorJustEmpty()
       }
@@ -162,7 +164,7 @@ extension LikeHomeViewModel {
       .disposed(by: disposeBag)
 
     return Output(
-      heartList: refresh,
+			likeList: refresh,
       reject: Driver.merge(reject, rejectFromSignal),
       pagingList: newPage
     )
