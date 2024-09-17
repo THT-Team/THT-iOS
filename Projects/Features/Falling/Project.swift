@@ -30,6 +30,7 @@ let project = Project(
       demo: .Falling,
       dependencies: [
         .feature(implementation: .Falling),
+        .feature(implementation: .Auth),
         .data,
       ]
     )
