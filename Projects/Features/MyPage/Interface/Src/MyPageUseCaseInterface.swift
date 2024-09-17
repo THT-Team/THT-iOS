@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import SignUpInterface
+import AuthInterface
 
 public protocol MyPageUseCaseInterface {
   func fetchUser() -> Single<User>

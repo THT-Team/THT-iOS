@@ -9,6 +9,7 @@ import Networks
 
 import Moya
 import SignUpInterface
+import AuthInterface
 
 public enum MyPageTarget {
   case user

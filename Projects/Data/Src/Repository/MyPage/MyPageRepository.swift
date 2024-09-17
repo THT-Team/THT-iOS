@@ -35,7 +35,7 @@ extension MyPageRepository: MyPageRepositoryInterface {
     .just(1)
   }
   
-  public func updateUserContacts(contacts: [SignUpInterface.ContactType]) -> RxSwift.Single<Int> {
+  public func updateUserContacts(contacts: [AuthInterface.ContactType]) -> RxSwift.Single<Int> {
     request(type: UserFriendContactRes.self, target: .updateUserContacts(contacts))
       .map { $0.count }
   }
