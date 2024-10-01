@@ -68,7 +68,11 @@ open class PauseView: TFBaseView {
       ImageContainerView,
       titleLabel
     ])
-    
+
+    blurView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
     ImageContainerView.addSubview(pauseImageView)
     
     ImageContainerView.snp.makeConstraints {
@@ -81,6 +85,34 @@ open class PauseView: TFBaseView {
       
     stackView.snp.makeConstraints {
       $0.centerX.centerY.equalToSuperview()
+    }
+  }
+
+  public func showBlurView() {
+    stackView.isHidden = true
+    self.isHidden = false
+  }
+
+  public func hide() {
+    self.isHidden = true
+  }
+
+  public func showPauseView() {
+    stackView.isHidden = false
+    self.isHidden = false
+  }
+}
+
+extension Reactive where Base: PauseView {
+  var isDimViewHidden: Binder<Bool> {
+    return Binder(self.base) { (base, isHidden) in
+      isHidden ? base.hide() : base.showBlurView()
+    }
+  }
+
+  var isPauseViewHidden: Binder<Bool> {
+    return Binder(self.base) { (base, isHidden) in
+      isHidden ? base.hide() : base.showPauseView()
     }
   }
 }

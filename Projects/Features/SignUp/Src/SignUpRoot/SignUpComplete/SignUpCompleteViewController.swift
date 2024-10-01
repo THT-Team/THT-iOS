@@ -8,22 +8,32 @@
 import UIKit
 import DSKit
 
-final class SignUpCompleteViewController: BaseSignUpVC<SignUpCompleteViewModel> {
+final class SignUpCompleteViewController: TFBaseViewController {
+  typealias ViewModel = SignUpCompleteViewModel
 
   private let mainView = SignUpCompleteView()
+  private let viewModel: ViewModel
+
+  init(viewModel: ViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
   override func loadView() {
     self.view = mainView
   }
   
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    
     mainView.startAnimation()
   }
 
   override func bindViewModel() {
-    self.backButton.isHidden = true
-    
     let input = ViewModel.Input(
       nextBtnTap: mainView.nextBtn.rx.tap.asDriver()
     )

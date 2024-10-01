@@ -11,6 +11,8 @@ import Core
 import DSKit
 
 final class CardCircleTimerView: TFBaseView {
+  private var gradientLayer: CAGradientLayer?
+
   lazy var timerLabel: UILabel = {
     let label = UILabel()
     label.font = .thtCaption1M
@@ -46,6 +48,7 @@ final class CardCircleTimerView: TFBaseView {
   private lazy var likeImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = DSKitAsset.Image.Icons.cardLike.image.withTintColor(DSKitAsset.Color.error.color)
+    imageView.isHidden = true
     return imageView
   }()
   
@@ -58,6 +61,14 @@ final class CardCircleTimerView: TFBaseView {
     timerLabel.snp.makeConstraints {
       $0.centerX.centerY.equalToSuperview()
       $0.width.height.equalTo(16)
+    }
+
+    self.addSubview(likeImageView)
+
+    likeImageView.snp.makeConstraints {
+      $0.centerX.centerY.equalToSuperview()
+      $0.width.equalTo(8)
+      $0.height.equalTo(7)
     }
   }
   
@@ -87,34 +98,45 @@ final class CardCircleTimerView: TFBaseView {
                                clockwise: true)
     dotLayer.path = dotPath.cgPath
   }
-  
-  func addGradientLayer() {
-    self.addSubview(likeImageView)
-    
-    likeImageView.snp.makeConstraints {
-      $0.centerX.centerY.equalToSuperview()
-      $0.width.equalTo(8)
-      $0.height.equalTo(7)
+
+  func toggleCircleLayer(_ isHidden: Bool) {
+    addGradientLayer()
+
+    self.gradientLayer?.isHidden = isHidden
+    self.likeImageView.isHidden = isHidden
+  }
+
+  private func addGradientLayer() {
+    if let layer = gradientLayer {
+      return
+    } else {
+      let circleLayer = createGradientLayer()
+      self.gradientLayer = circleLayer
+      layer.addSublayer(circleLayer)
     }
-    
+  }
+
+  private func createGradientLayer() -> CAGradientLayer {
+
+
     let gradientLayer = CAGradientLayer()
-    
+
     gradientLayer.frame = self.bounds
-    
+
     gradientLayer.colors = [
       DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor,
       DSKitAsset.Color.LikeGradient.gradientSecond.color.cgColor,
       DSKitAsset.Color.LikeGradient.gradientThird.color.cgColor
     ]
-    
+
     gradientLayer.locations = [0.0, 0.5, 1.0]
-    
+
     gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
     gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
-    
+
     gradientLayer.mask = trackLayer
-    
-    layer.addSublayer(gradientLayer)
+
+    return gradientLayer
   }
   
   func bind(_ timeState: TimeState) {

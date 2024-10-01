@@ -21,7 +21,11 @@ public final class TagPickerCollectionView: TFBaseCollectionView {
     configure()
     makeUI()
   }
-
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   public override func makeUI() {
     backgroundColor = .clear
   }

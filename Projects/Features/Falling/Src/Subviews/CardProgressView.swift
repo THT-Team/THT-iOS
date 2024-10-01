@@ -10,7 +10,9 @@ import UIKit
 import Core
 import DSKit
 
-final class CardProgressView: TFBaseView {
+final class CardProgressView: TFBaseView, Reusable {
+  private var likeLayer: CAGradientLayer?
+
   var progress: CGFloat = 0 {
     didSet {
       setNeedsDisplay()
@@ -44,23 +46,38 @@ final class CardProgressView: TFBaseView {
     self.layer.masksToBounds = true
     self.backgroundColor = DSKitAsset.Color.neutral600.color
   }
-  
-  func addGradientLayer() {
+
+  func toggleGradientLayer(_ isHidden: Bool) {
+    addGradientLayer()
+    self.likeLayer?.isHidden = isHidden
+  }
+
+  private func addGradientLayer() {
+    if let likeLayer {
+      return
+    }
+    let gradientLayer = createLikeLayer()
+    self.likeLayer = gradientLayer
+    layer.addSublayer(gradientLayer)
+  }
+
+  private func createLikeLayer() -> CAGradientLayer {
     let gradientLayer = CAGradientLayer()
-    
+    gradientLayer.name = Self.reuseIdentifier
+
     gradientLayer.frame = self.bounds
-    
+
     gradientLayer.colors = [
       DSKitAsset.Color.LikeGradient.gradientFirst.color.cgColor,
       DSKitAsset.Color.LikeGradient.gradientSecond.color.cgColor,
       DSKitAsset.Color.LikeGradient.gradientThird.color.cgColor
     ]
-    
+
     gradientLayer.locations = [0.0, 0.5, 1.0]
-    
+
     gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
     gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-    
-    layer.addSublayer(gradientLayer)
+
+    return gradientLayer
   }
 }
