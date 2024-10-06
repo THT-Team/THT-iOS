@@ -14,6 +14,7 @@ import SignUpInterface
 import MyPage
 import MyPageInterface
 
+import Domain
 import Data
 
 extension AppDelegate {
@@ -57,6 +58,12 @@ extension AppDelegate {
         )
       }
     )
+    
+    container.register(
+      interface: UserDomainUseCaseInterface.self,
+      implement: {
+        DefaultUserDomainUseCase(repository: DefaultUserDomainRepository())
+      })
   }
 }
 
