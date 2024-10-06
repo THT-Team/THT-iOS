@@ -8,11 +8,8 @@
 import UIKit
 
 open class TFBaseView: UIView {
-  private let dimView: UIView = {
-    let view = UIView()
-    view.backgroundColor = DSKitAsset.Color.DimColor.default.color
-    return view
-  }()
+  private var dimView: UIView?
+  
   override public init(frame: CGRect) {
     super.init(frame: frame)
     makeUI()
@@ -23,29 +20,35 @@ open class TFBaseView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
-  /// Set up configuration of view and add subviews
-  open func makeUI() { }
-  
-  public func showDimView(frame: CGRect = UIWindow.keyWindow?.frame ?? .zero) {
-    dimView.frame = frame
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
-      self.addSubview(self.dimView)
-      UIView.animate(withDuration: 0.0) {
-        self.dimView.backgroundColor = DSKitAsset.Color.DimColor.default.color
-      }
+  public func showDimView(
+    frame: CGRect = UIWindow.keyWindow?.frame ?? .zero,
+    dimColor: UIColor = DSKitAsset.Color.DimColor.default.color) {
+
+    if self.dimView == nil {
+      let dimView = createDimView(dimColor: dimColor)
+      self.addSubviews(dimView)
+      self.dimView = dimView
+      self.dimView?.frame = frame
+    }
+
+    UIView.animate(withDuration: 0.3) { [weak self] in
+      self?.dimView?.isHidden = false
     }
   }
   
+  open func makeUI() {}
+  
   public func hiddenDimView() {
     DispatchQueue.main.async {
-      UIView.animate(withDuration: 0.0) { [weak self] in
-        guard let self = self else { return }
-        self.dimView.backgroundColor = DSKitAsset.Color.clear.color
-      } completion: { [weak self] _ in
-        guard let self = self else { return }
-        self.dimView.removeFromSuperview()
+      UIView.animate(withDuration: 0.3) { [weak self] in
+        self?.dimView?.isHidden = true
       }
     }
+  }
+
+  private func createDimView(dimColor: UIColor) -> UIView {
+    let view = UIView()
+    view.backgroundColor = dimColor
+    return view
   }
 }

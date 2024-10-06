@@ -15,11 +15,9 @@ public final class TagPickerCollectionView: TFBaseCollectionView {
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
     self.init(layout: layout)
   }
-
+  
   public init(layout: UICollectionViewFlowLayout) {
     super.init(frame: .zero, collectionViewLayout: layout)
-    configure()
-    makeUI()
   }
   
   required init?(coder: NSCoder) {
@@ -30,7 +28,7 @@ public final class TagPickerCollectionView: TFBaseCollectionView {
     backgroundColor = .clear
   }
 
-  func configure() {
+  public override func configure() {
     register(cellType: InputTagCollectionViewCell.self)
     isScrollEnabled = true
     showsVerticalScrollIndicator = false
