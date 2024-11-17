@@ -11,7 +11,8 @@ import Domain
 
 public struct IdealTypeResponseList: Codable {
   let idx: Int
-  let name, emojiCode: String
+  let name: String
+  let emojiCode: String
 }
 
 public extension IdealTypeResponseList {

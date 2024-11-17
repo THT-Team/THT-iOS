@@ -45,28 +45,34 @@ public enum FallingUserInfoItem: Hashable {
 }
 
 public struct FallingUserInfo {
-  public let selectDailyFallingIdx, topicExpirationUnixTime: Int
+  public let selectDailyFallingIdx: Int
+  public let topicExpirationUnixTime: Int
+  public let isLast: Bool
   public let userInfos: [FallingUser]
   
-  public init(selectDailyFallingIdx: Int, topicExpirationUnixTime: Int, userInfos: [FallingUser]) {
+  public init(selectDailyFallingIdx: Int, topicExpirationUnixTime: Int, isLast: Bool, userInfos: [FallingUser]) {
     self.selectDailyFallingIdx = selectDailyFallingIdx
     self.topicExpirationUnixTime = topicExpirationUnixTime
+    self.isLast = isLast
     self.userInfos = userInfos
   }
 }
 
-public struct FallingUser {
-  public var identifer: String { return userUUID }
-  public let username, userUUID: String
+public struct FallingUser: Hashable, Equatable {
+  public var id: String { return userUUID }
+  public let username: String
+  public let userUUID: String
   public let age: Int
   public let address: String
   public let isBirthDay: Bool
-  public let idealTypeResponseList, interestResponses: [EmojiType]
+  public let idealTypeResponseList: [EmojiType]
+  public let interestResponses: [EmojiType]
   public let userProfilePhotos: [UserProfilePhoto]
   public let introduction: String
   public let userDailyFallingCourserIdx: Int
+  public let distance: Int
   
-  public init(username: String, userUUID: String, age: Int, address: String, isBirthDay: Bool, idealTypeResponseList: [EmojiType], interestResponses: [EmojiType], userProfilePhotos: [UserProfilePhoto], introduction: String, userDailyFallingCourserIdx: Int) {
+  public init(username: String, userUUID: String, age: Int, address: String, isBirthDay: Bool, idealTypeResponseList: [EmojiType], interestResponses: [EmojiType], userProfilePhotos: [UserProfilePhoto], introduction: String, userDailyFallingCourserIdx: Int, distance: Int) {
     self.username = username
     self.userUUID = userUUID
     self.age = age
@@ -77,14 +83,6 @@ public struct FallingUser {
     self.userProfilePhotos = userProfilePhotos
     self.introduction = introduction
     self.userDailyFallingCourserIdx = userDailyFallingCourserIdx
-  }
-}
-
-extension FallingUser: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(identifer)
-  }
-  public static func == (lhs: FallingUser, rhs: FallingUser) -> Bool {
-    lhs.identifer == rhs.identifer
+    self.distance = distance
   }
 }
