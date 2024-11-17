@@ -16,8 +16,12 @@ import Moya
 public final class FallingRepository: ProviderProtocol {
   public typealias Target = FallingTarget
   public var provider: MoyaProvider<Target>
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
+//  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
+//    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
+//  }
+  
+  public init(session: Session) {
+    self.provider = Self.makeProvider(session: session)
   }
 }
 

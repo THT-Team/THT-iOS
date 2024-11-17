@@ -63,7 +63,7 @@ final class FallingHomeViewController: TFBaseViewController {
 
     let currentIdentifier = output.state
       .distinctUntilChanged(\.scrollAction)
-      .compactMap(\.user?.identifer)
+      .compactMap(\.user?.id)
       .debug("state IndexPaht: ")
 
     let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { [weak self] cell, indexPath, item in
@@ -71,7 +71,7 @@ final class FallingHomeViewController: TFBaseViewController {
       TFLogger.dataLogger.debug("\(item.username)")
 
       let timerActiveTrigger = currentIdentifier
-        .map { $0 == item.identifer }
+        .map { $0 == item.id }
 
       // MARK: State Binding
       timerActiveTrigger

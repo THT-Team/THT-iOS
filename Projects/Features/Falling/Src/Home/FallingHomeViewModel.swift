@@ -212,7 +212,14 @@ extension FallingHomeViewModel {
         .flatMap { [unowned self] _ in
           self.fallingUseCase.user(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100)
             .asObservable()
-            .catchAndReturn(.init(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, userInfos: []))
+            .catchAndReturn(
+              .init(
+                selectDailyFallingIdx: 0,
+                topicExpirationUnixTime: 0,
+                isLast: false,
+                userInfos: []
+              )
+            )
         }
         .flatMap { snapshot -> Observable<Mutation> in
           return .concat(

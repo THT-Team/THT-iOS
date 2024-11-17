@@ -46,18 +46,15 @@ extension AppDelegate {
       interface: FallingUseCaseInterface.self,
       implement: {
         FallingUseCase(
-          repository: FallingRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          )
+          repository:
+            FallingRepository(session: authService.createSession())
         )
       }
     )
 
     container.register(
-      interface: AuthUseCaseInterface.self
-      , implement: {
+      interface: AuthUseCaseInterface.self,
+      implement: {
         AuthUseCase(authRepository: AuthRepository(authService: authService))
       }
     )
