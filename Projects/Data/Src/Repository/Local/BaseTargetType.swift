@@ -4,7 +4,7 @@
 //
 //  Created by Kanghos on 2023/07/10.
 //
-
+  
 import Foundation
 import Moya
 import Core
@@ -15,22 +15,20 @@ public extension BaseTargetType {
   var baseURL: URL {
     return URL(string: "http://tht-talk.co.kr/")!
   }
-
+  
   var headers: [String: String]? {
-    return [
-            "Content-Type": "application/json",
-          ]
+    if let accessToken =  UserDefaultTokenStore().getToken()?.accessToken {
+      return [
+        "Content-Type": "application/json",
+        "Authorization": "Bearer \(accessToken)"
+      ]
+    } else {
+      return [
+        "Content-Type": "application/json"
+      ]
+    }
   }
-//    return nil
 
-//    if let accessToken = Keychain.shared.get(.accessToken) {
-//      return [
-//        "Authorization": "Bearer \(accessToken)",
-//        "Content-Type": "application/json",
-//      ]
-//    } else {
-//      return nil
-//    }
   var validationType: ValidationType {
     return.customCodes(Array(200..<500).filter { $0 != 401 })
   }

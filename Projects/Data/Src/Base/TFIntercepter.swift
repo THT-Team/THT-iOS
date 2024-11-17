@@ -26,22 +26,6 @@ final class OAuthAuthenticator: Authenticator {
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
 
     // SignUp 관련 API는 토큰 없이 호출해야함
-    var credential = credential
-    if let url = urlRequest.url {
-      var needToken = true
-      for filtered in withoutTokenPathArray {
-        if url.path().hasPrefix(filtered) {
-          needToken = false
-          return
-        }
-      }
-      if needToken {
-//        if credential.accessToken.isEmpty {
-//          credential = authService.cachedToken?.toAuthOCredential() ?? credential
-//        }
-        urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
-      }
-    }
   }
 
   func refresh(_ credential: OAuthCredential,
