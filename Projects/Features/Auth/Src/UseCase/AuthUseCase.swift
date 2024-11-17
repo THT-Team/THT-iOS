@@ -40,7 +40,8 @@ public final class AuthUseCase: AuthUseCaseInterface {
     }
     let token = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? ""
     TFLogger.dataLogger.debug("\(token)")
-    return repository.login(phoneNumber: phoneNumber, deviceKey: UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "")
+    // TODO: deviceKey 변경 필요
+    return repository.login(phoneNumber: phoneNumber, deviceKey: UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "1")
       .map { _ in }
   }
 
