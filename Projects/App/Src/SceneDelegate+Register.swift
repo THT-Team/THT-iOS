@@ -20,8 +20,8 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-
-    let authService = DefaultAuthService()
+    let session = SessionProvider.create()
+    let authService: AuthServiceType = DefaultAuthService()
     let contactService = ContactService()
     let kakaoService = KakaoAPIService() // TODO: SNS Login 때 사용됨
     let fileRepository = FileRepository()
@@ -47,7 +47,7 @@ extension AppDelegate {
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(session: authService.createSession())
+            FallingRepository(session: session)
         )
       }
     )
@@ -89,7 +89,7 @@ extension AppDelegate {
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(session: authService.createSession()),
+          repository: MyPageRepository(session: session),
           contactsService: contactService,
           authService: authService,
           imageService: imageService

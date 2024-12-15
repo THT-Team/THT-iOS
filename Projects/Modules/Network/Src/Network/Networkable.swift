@@ -25,6 +25,7 @@ public extension Networkable {
 
   static func makeProvider(session: Session) -> MoyaProvider<Target> {
     let loggerPlugin = NetworkLoggerPlugin()
+
     return MoyaProvider<Target>(session: session, plugins: [loggerPlugin])
   }
 

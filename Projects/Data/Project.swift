@@ -25,8 +25,8 @@ let project = Project.makeModule(
     .feature(interface: .MyPage),
     .feature(interface: .Falling),
     .module(implementation: .Network, pathName: .Modules(.Network)),
-    .SPM.Moya,
-    .SPM.RxMoya,
+//    .SPM.Moya,
+//    .SPM.RxMoya,
     
     .SPM.KakaoSDKAuth,
     .SPM.KakaoSDKUser,

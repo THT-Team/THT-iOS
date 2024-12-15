@@ -25,7 +25,7 @@ public final class AuthRepository: ProviderProtocol {
 
   public init(authService: AuthServiceType) {
     self.authService = authService
-    self.provider = Self.makeProvider(session: authService.createSession())
+    self.provider = Self.makeProvider(session: SessionProvider.create())
     TFLogger.dataLogger.debug("init AuthRepo")
   }
 
@@ -37,14 +37,6 @@ public final class AuthRepository: ProviderProtocol {
 extension AuthRepository: AuthRepositoryInterface {
   public func checkUserExist(phoneNumber: String) -> RxSwift.Single<AuthInterface.UserSignUpInfoRes> {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
-  }
-  
-  public func refresh(completion: @escaping (Result<Token, Error>) -> Void) {
-    authService.refreshToken(completion: completion)
-  }
-
-  public func refresh() -> Single<Token> {
-    authService.refresh()
   }
 
   public func certificate(phoneNumber: String) -> Single<Int> {
@@ -63,6 +55,14 @@ extension AuthRepository: AuthRepositoryInterface {
 
   public func needAuth() -> Bool {
     authService.needAuth()
+  }
+
+  public func updateDeviceToken() -> Single<Void> {
+    guard let deviceToken = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
+    else {
+      return .error(AuthError.invalidDeviceKey)
+    }
+    return requestWithNoContent(target: .updateDeviceToken(deviceKey: deviceToken))
   }
 }
 

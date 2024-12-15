@@ -44,7 +44,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   private func initPendingUser(with snsUser: SNSUserInfo) -> PendingUser {
-    var pendingUser = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self) ?? PendingUser(snsUser)
+    var pendingUser = PendingUser(snsUser)
     return pendingUser
   }
 

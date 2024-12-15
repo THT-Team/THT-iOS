@@ -20,11 +20,6 @@ public let infoPlistExtension = InfoPlist.dictionary([
   "NSContactsUsageDescription": "연락처 사용",
   "NSLocationWhenInUseUsageDescription": "위치 정보 사용",
 
-  // MARK: OAuth
-  "LSApplicationQueriesSchemes": [
-    "Item 0": "kakaokompassauth", // kakao auth
-  ],
-
   // MARK: 수출 규청 알고리즘 통과
   "ITSAppUsesNonExemptEncryption": false,
 
@@ -34,6 +29,32 @@ public let infoPlistExtension = InfoPlist.dictionary([
     "Item 2": "Pretendard-SemiBold.otf",
     "Item 3": "Pretendard-Bold.otf",
     "Item 4": "Pretendard-ExtraBold.otf"
+  ],
+
+  // MARK: Background Mode
+  "UIBackgroundModes": [
+    "remote-notification"
+  ],
+
+  // MARK: Custom Key
+  // MARK: KAKAO
+  "BaseURL": "$(BASE_URL)",
+  "KakaoMapNativeKey": "$(KAKAO_MAP_NATIVE_KEY)",
+  "KakaoNativeAppKey": "$(KAKAO_NATIVE_APP_KEY)",
+
+  // MARK: AppScheme
+  "LSApplicationQueriesSchemes": [
+    "kakaokompassauth",
+    "kakaotalk",
+  ],
+
+  "CFBundleURLTypes": [
+    [
+      "CFBundleTypeRole": "Editor",
+      "CFBundleURLSchemes": [
+        "kakao$(KAKAO_NATIVE_APP_KEY)"
+      ],
+    ],
   ],
 
   "UIUserInterfaceStyle": "Dark"

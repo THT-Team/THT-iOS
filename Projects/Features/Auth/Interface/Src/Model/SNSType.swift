@@ -29,7 +29,7 @@ public enum AuthType {
   }
 }
 
-public struct SNSUserInfo {
+public struct SNSUserInfo: Codable {
   public let snsType: SNSType
   public let id: String
   public let email: String?

@@ -14,12 +14,12 @@ public protocol AuthUseCaseInterface {
   func checkUserExists(phoneNumber: String) -> Single<UserSignUpInfoRes>
   func login() -> Single<Void>
   func loginSNS(_ request: UserSNSLoginRequest) -> Single<Void>
-  func refresh() -> Single<Void>
   func saveSNSType(type snsTYpe: SNSType, snsUUID: String?)
   func saveDeviceKey(_ deviceKey: String)
   func savePhoneNumber(_ phoneNumber: String)
   func fetchPhoneNumber() -> String?
   func needAuth() -> Bool
+  func updateDeviceToken() -> Single<Void>
 
-  func auth(_ snsType: SNSType) -> Single<AuthType>
+  func auth(_ snsType: SNSType) -> Single<AuthNavigation>
 }
