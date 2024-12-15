@@ -1,5 +1,5 @@
 //
-//  FallingHomeViewController.swift
+//  FallingViewController.swift
 //  FallingInterface
 //
 //  Created by SeungMin on 1/11/24.
@@ -11,12 +11,12 @@ import Core
 import DSKit
 import FallingInterface
 
-final class FallingHomeViewController: TFBaseViewController {
-  private let viewModel: FallingHomeViewModel
+final class FallingViewController: TFBaseViewController {
+  private let viewModel: FallingViewModel
   private var dataSource: DataSource!
-  private lazy var homeView = FallingHomeView()
+  private lazy var homeView = FallingView()
   
-  init(viewModel: FallingHomeViewModel) {
+  init(viewModel: FallingViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -51,7 +51,7 @@ final class FallingHomeViewController: TFBaseViewController {
     }
     let viewDidAppear = self.rx.viewDidAppear.asDriver().map { _ in }
 
-    let input = FallingHomeViewModel.Input(
+    let input = FallingViewModel.Input(
       initialTrigger: initialTrigger,
       viewDidAppear: viewDidAppear,
       viewWillDisappear: viewWillDisAppear,
@@ -165,7 +165,7 @@ final class FallingHomeViewController: TFBaseViewController {
 
 // MARK: DiffableDataSource
 
-extension FallingHomeViewController {
+extension FallingViewController {
   typealias CellType = FallingUserCollectionViewCell
   typealias ModelType = FallingUser
   typealias SectionType = FallingProfileSection

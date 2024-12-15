@@ -1,5 +1,5 @@
 //
-//  FallingHomeView.swift
+//  FallingView.swift
 //  FallingInterface
 //
 //  Created by SeungMin on 1/11/24.
@@ -10,7 +10,7 @@ import UIKit
 import Core
 import DSKit
 
-final class FallingHomeView: TFBaseView {
+final class FallingView: TFBaseView {
   lazy var collectionView: UICollectionView = {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
     let collectionView = UICollectionView(frame: .zero,
