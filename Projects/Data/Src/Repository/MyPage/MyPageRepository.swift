@@ -89,7 +89,8 @@ extension MyPageRepository: MyPageRepositoryInterface {
   }
 
   public func fetchUser() -> Single<User> {
-    request(type: UserDetailRes.self, target: .user)
+    
+    return request(type: UserDetailRes.self, target: .user)
       .map { $0.toDomain() }
   }
 

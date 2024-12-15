@@ -56,11 +56,14 @@ public final class LauncherViewModel: ViewModelType {
     load
       .filter { !$0 }
       .flatMapLatest(with: self) { owner, _ in
-        owner.useCase.login()
+        owner.useCase.updateDeviceToken() // login()
           .debug("login")
           .asDriver(onErrorRecover: { error in
             TFLogger.dataLogger.error("\(error.localizedDescription)")
             toast.accept("로그인에 실패하였습니다. 다시 시도해주시기 바랍니다.\n\(error.localizedDescription)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+              owner.delegate?.needAuth()
+            }
             return .empty()
           })
       }.drive(with: self) { owner, _ in

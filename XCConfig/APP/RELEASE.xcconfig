@@ -7,3 +7,10 @@
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
+BASE_URL = http:/$()/tht-talk.co.kr/
+
+// KAKAO LOGIN
+KAKAO_NATIVE_KEY = 329afa8603ba3e4fc6d236fafac0004b
+
+// KAKAO MAP
+KAKAO_MAP_NATIVE_KEY = fd26fcdea335b93122163284d3fd4047

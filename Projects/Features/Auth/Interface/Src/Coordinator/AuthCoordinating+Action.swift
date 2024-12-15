@@ -8,7 +8,8 @@
 import Foundation
 
 public enum AuthCoordinatingAction {
-  case tologinType(_ type: AuthType)
+  case toPhoneNumber
+  case toPolicy
   case toMain
   case inquiry
 }

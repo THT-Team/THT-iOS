@@ -13,6 +13,7 @@ import KakaoSDKUser
 import Core
 
 public final class AuthUseCase: AuthUseCaseInterface {
+  
   private let repository: AuthRepositoryInterface
 
   public init(authRepository: AuthRepositoryInterface) {
@@ -22,6 +23,7 @@ public final class AuthUseCase: AuthUseCaseInterface {
   deinit {
     TFLogger.cycle(name: self)
   }
+
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
   }
@@ -38,10 +40,10 @@ public final class AuthUseCase: AuthUseCaseInterface {
     guard let phoneNumber = UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self) else {
       return .error(AuthError.tokenNotFound)
     }
-    let token = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? ""
+    let token = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "1"
     TFLogger.dataLogger.debug("\(token)")
     // TODO: deviceKey 변경 필요
-    return repository.login(phoneNumber: phoneNumber, deviceKey: UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "1")
+    return repository.login(phoneNumber: phoneNumber, deviceKey: token)
       .map { _ in }
   }
 
@@ -54,10 +56,8 @@ public final class AuthUseCase: AuthUseCaseInterface {
       .map { _ in }
   }
 
-  // TODO: token을 어디서 집어넣을 지 생각해볼 것 e,g Authenticator
-  public func refresh() -> Single<Void> {
-    return repository.refresh()
-      .map { _ in }
+  public func updateDeviceToken() -> Single<Void> {
+    return repository.updateDeviceToken()
   }
 
   public func saveSNSType(type snsTYpe: SNSType, snsUUID: String?) {
@@ -77,45 +77,54 @@ public final class AuthUseCase: AuthUseCaseInterface {
     UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self)
   }
 
-  public func auth(_ snsType: SNSType) -> Single<AuthType> {
+  public func auth(_ snsType: SNSType) -> Single<AuthNavigation> {
     UserDefaultRepository.shared.saveModel(snsType, key: .snsType)
+    var snsUserInfo = SNSUserInfo(snsType: snsType, id: "", email: nil, phoneNumber: nil)
     switch snsType {
+    case .normal:
+      return .just(.phoneNumber(snsUserInfo))
     case .kakao:
       return kakaoLogin()
-        .map { AuthType.sns($0) }
-    case .normal:
-      return .just(.phoneNumber)
-    case .naver:
-      return .just(.sns(.init(snsType: snsType, id: "", email: nil, phoneNumber: nil)))
-//    case .google:
-//      <#code#>
-//    case .apple:
-//      .
-    default: return .just(.phoneNumber)
+        .flatMap({ [weak self] info in
+          guard let self, let phoneNumber = snsUserInfo.phoneNumber else { return .error(AuthError.invalidSNSUser) }
+          return self.checkUserExists(phoneNumber: phoneNumber)
+            .map { result in
+              result.isSignUp ? .main : .policy(info)
+            }
+        })
+    case .naver, .apple, .google:
+      return .just(.phoneNumber(snsUserInfo))
     }
   }
+}
 
+extension AuthUseCase {
   private func kakaoLogin() -> Single<SNSUserInfo> {
     .create { observer in
-      if (UserApi.isKakaoTalkLoginAvailable()) {
-        UserApi.shared.loginWithKakaoTalk {(oauthToken, error) in
-          if let error = error {
-            print(error)
+      if true { // (UserApi.isKakaoTalkLoginAvailable()) {
+        UserApi.shared.loginWithKakaoTalk { token, error in
+          if let error {
+            print(error.localizedDescription)
             observer(.failure(error))
           }
-          else {
-            print("loginWithKakaoTalk() success.")
-            if let oauthToken {
-              print(oauthToken)
-              let info = SNSUserInfo(snsType: .kakao, id: "", email: nil, phoneNumber: nil)
-              observer(.success(info))
-            } else {
-              observer(.failure(AuthError.tokenNotFound))
+          if let token {
+            UserApi.shared.me { user, error in
+              if let error {
+                print(error.localizedDescription)
+                observer(.failure(error))
+              }
+              if let user, let id = user.id, let phoneNumber = user.kakaoAccount?.phoneNumber, let email = user.kakaoAccount?.email {
+                let snsUser = SNSUserInfo(snsType: .kakao, id: String(id), email: email, phoneNumber: phoneNumber)
+                observer(.success(snsUser))
+              } else {
+                print("user 값이 충분하지 않음. \(String(describing: user))")
+                observer(.failure(AuthError.invalidSNSUser))
+              }
             }
           }
         }
       } else {
-        observer(.failure(AuthError.tokenNotFound))
+        observer(.failure(AuthError.canNotOpenSNSURL))
       }
       return Disposables.create { }
     }

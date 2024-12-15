@@ -28,6 +28,8 @@ public struct PendingUser: Codable {
   public var photos: [String]
   public var userAgreements: [String: Bool]
 
+  public var snsUserInfo: SNSUserInfo? = nil
+
   public init(phoneNumber: String, name: String? = nil, birthday: String? = nil, introduction: String? = nil, address: LocationReq? = nil, email: String? = nil, gender: Gender? = nil, preferGender: Gender? = nil, tall: Int? = nil, smoking: Frequency? = nil, drinking: Frequency? = nil, religion: Religion? = nil, idealTypeList: [Int] = [], interestsList: [Int] = [], photos: [String] = [], userAgreements: [String: Bool] = [:]) {
     self.phoneNumber = phoneNumber
     self.name = name
@@ -64,6 +66,8 @@ public struct PendingUser: Codable {
     self.interestsList = []
     self.photos = []
     self.userAgreements = [:]
+
+    self.snsUserInfo = snsUser
   }
 }
 
@@ -86,5 +90,7 @@ extension PendingUser: CustomStringConvertible {
     interestsList: \(interestsList)
     photos: \(photos)
     userAgreements: \(userAgreements)
+    
+    snsUserInfo: \(String(describing: snsUserInfo))
     """}
 }

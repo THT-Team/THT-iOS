@@ -30,7 +30,7 @@ public extension BaseTargetType {
   }
 
   var validationType: ValidationType {
-    return.customCodes(Array(200..<500).filter { $0 != 401 })
+    return .customCodes(Array(200..<600).filter { $0 != 401 })
   }
 }
 

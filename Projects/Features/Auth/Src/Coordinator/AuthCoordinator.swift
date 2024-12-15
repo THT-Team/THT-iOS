@@ -12,7 +12,8 @@ import AuthInterface
 import SignUpInterface
 
 protocol AuthCoordinatingActionDelegate: AnyObject {
-  func invoke(_ action: AuthCoordinatingAction)
+//  func invoke(_ action: AuthCoordinatingAction)
+  func invoke(_ action: AuthNavigation)
 }
 
 public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
@@ -72,6 +73,34 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
     let vc = authViewFactory.makePhoneAuthScene(viewModel: PhoneAuthVM(phoneNumber: phoneNumber, delegate: self, useCase: authUseCase))
     self.viewControllable.pushViewController(vc, animated: true)
   }
+}
+
+extension AuthCoordinator: AuthCoordinatingActionDelegate {
+  func invoke(_ action: AuthCoordinatingAction) {
+//    switch action {
+//    case .inquiry:
+//      attachInquiryCoordinator()
+//    case .toPhoneNumber:
+//      phoneNumberFlow()
+//    case .toPolicy:
+//      attachSignUp(.startPolicy(<#SNSUserInfo#>))
+//    case .toMain:
+//      self.delegate?.detachAuth(self)
+//    }
+  }
+
+  func invoke(_ action: AuthNavigation) {
+    switch action {
+    case .phoneNumber(let snsUserInfo):
+      phoneNumberFlow()
+    case .policy(let snsUserInfo):
+      attachSignUp(.startPolicy(snsUserInfo))
+    case .main:
+      self.delegate?.detachAuth(self)
+    case .inquiry:
+      attachInquiryCoordinator()
+    }
+  }
 
   public func snsFlow(type: AuthType) {
     switch type {
@@ -90,19 +119,6 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
       case .normal:
         break
       }
-    }
-  }
-}
-
-extension AuthCoordinator: AuthCoordinatingActionDelegate {
-  func invoke(_ action: AuthCoordinatingAction) {
-    switch action {
-    case .inquiry:
-      attachInquiryCoordinator()
-    case let .tologinType(snsType):
-      snsFlow(type: snsType)
-    case .toMain:
-      self.delegate?.detachAuth(self)
     }
   }
 }

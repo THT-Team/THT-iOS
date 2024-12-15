@@ -24,7 +24,7 @@ final class AuthRootViewModel: ViewModelType {
   }
 
   struct Output {
-
+    let toast: Signal<String>
   }
 
   weak var delegate: AuthCoordinatingActionDelegate?
@@ -36,27 +36,30 @@ final class AuthRootViewModel: ViewModelType {
   }
 
   func transform(input: Input) -> Output {
-    input.buttonTap
+    let toastPublisher = PublishRelay<String>()
+    let buttonTap = input.buttonTap
       .throttle(.milliseconds(500), latest: false)
-      .debug("SNS tap")
-      .flatMapLatest(with: self) { owner, sns -> Driver<AuthType> in
-        return owner.useCase.auth(sns)
-          .asDriver(onErrorRecover: { error in
-            TFLogger.domain.error("\(error.localizedDescription)")
+
+    buttonTap
+      .flatMapLatest(with: self, selector: { owner, snsType -> Driver<AuthNavigation> in
+        owner.useCase.auth(snsType)
+          .asDriver { error in
+            toastPublisher.accept(error.localizedDescription)
             return .empty()
-          })
-      }
-      .drive(with: self, onNext: { owner, authType in
-        owner.delegate?.invoke(.tologinType(authType))
+          }
       })
+      .drive(with: self) { owner, navigation in
+        owner.delegate?.invoke(navigation)
+      }
       .disposed(by: disposeBag)
 
     input.inquiryTap
-      .debug()
       .emit(with: self) { owner, _ in
         owner.delegate?.invoke(.inquiry)
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
 
-    return Output()
+
+    return Output(toast: toastPublisher.asSignal(onErrorSignalWith: .empty()))
   }
 }

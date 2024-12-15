@@ -9,6 +9,7 @@ import Networks
 
 import Moya
 import AuthInterface
+import Foundation
 
 public enum MyPageTarget {
   case fetchUserContacts
