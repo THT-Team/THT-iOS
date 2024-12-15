@@ -17,13 +17,6 @@ struct FallingUserCollectionViewCellObserver {
 }
 
 final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
-  enum Action {
-    case likeTap
-    case rejectTap
-    case reportTap
-    case pause(Bool)
-  }
-
   private var dataSource: DataSource!
 
   lazy var carouselView = TFCarouselView().then {
@@ -184,6 +177,15 @@ extension FallingUserCollectionViewCell {
     self.dataSource = UICollectionViewDiffableDataSource(collectionView: carouselView.carouselView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
+  }
+}
+
+extension FallingUserCollectionViewCell {
+  enum Action {
+    case likeTap
+    case rejectTap
+    case reportTap
+    case pause(Bool)
   }
 }
 
