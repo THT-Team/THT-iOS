@@ -22,10 +22,10 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   }
 
   public func homeFlow() {
-    let viewModel = FallingHomeViewModel(fallingUseCase: fallingUseCase)
+    let viewModel = FallingViewModel(fallingUseCase: fallingUseCase)
     viewModel.delegate = self
 
-    let viewController = FallingHomeViewController(viewModel: viewModel)
+    let viewController = FallingViewController(viewModel: viewModel)
 
     self.viewControllable.setViewControllers([viewController])
   }
@@ -54,8 +54,8 @@ extension FallingCoordinator: FallingAlertCoordinating {
   }
 }
 
-extension FallingCoordinator: FallingHomeActionDelegate {
-  public func invoke(_ action: FallingHomeNavigationAction) {
+extension FallingCoordinator: FallingActionDelegate {
+  public func invoke(_ action: FallingNavigationAction) {
     switch action {
     case let .toReportBlockAlert(listener):
       reportOrBlockAlert(listener)

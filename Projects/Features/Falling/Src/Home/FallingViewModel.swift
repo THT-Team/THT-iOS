@@ -1,5 +1,5 @@
 //
-//  FallingHomeViewModel.swift
+//  FallingViewModel.swift
 //  FallingInterface
 //
 //  Created by SeungMin on 1/11/24.
@@ -12,18 +12,18 @@ import RxSwift
 import RxCocoa
 import Foundation
 
-final class FallingHomeViewModel: ViewModelType {
+final class FallingViewModel: ViewModelType {
   typealias CellType = FallingUserCollectionViewCell
 
   private let fallingUseCase: FallingUseCaseInterface
 
-  weak var delegate: FallingHomeActionDelegate?
+  weak var delegate: FallingActionDelegate?
 
   var disposeBag: DisposeBag = DisposeBag()
 
   private let timer = TFTimer(startTime: 15.0)
 
-  private let alertActionSignal = PublishRelay<FallingHomeAlertAction>()
+  private let alertActionSignal = PublishRelay<FallingAlertAction>()
 
   struct Input {
     let initialTrigger: Driver<Void>
@@ -146,7 +146,7 @@ final class FallingHomeViewModel: ViewModelType {
   }
 }
 
-extension FallingHomeViewModel {
+extension FallingViewModel {
   private func transform(action input: Input) -> Observable<Mutation> {
     Observable.merge(
       input.viewWillDisappear
@@ -363,8 +363,8 @@ extension FallingHomeViewModel {
   }
 }
 
-extension FallingHomeViewModel: BlockOrReportAlertListener {
-  enum FallingHomeAlertAction: Equatable {
+extension FallingViewModel: BlockOrReportAlertListener {
+  enum FallingAlertAction: Equatable {
     case cancel
     case block
     case report(reason: String)
@@ -382,7 +382,7 @@ extension FallingHomeViewModel: BlockOrReportAlertListener {
   }
 }
 
-extension FallingHomeViewModel: BlockAlertListener {
+extension FallingViewModel: BlockAlertListener {
   func didTapAction(_ action: BlockAlertAction) {
     switch action {
     case .block:
@@ -393,7 +393,7 @@ extension FallingHomeViewModel: BlockAlertListener {
   }
 }
 
-extension FallingHomeViewModel: ReportAlertListener {
+extension FallingViewModel: ReportAlertListener {
   func didTapAction(_ action: ReportAlertAction) {
     switch action {
     case let .didTap(menu):

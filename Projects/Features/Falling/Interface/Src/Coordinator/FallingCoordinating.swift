@@ -27,13 +27,13 @@ public protocol FallingAlertCoordinating {
   func userReportAlert(_ listener: ReportAlertListener)
 }
 
-public enum FallingHomeNavigationAction {
+public enum FallingNavigationAction {
   case toReportBlockAlert(listener: BlockOrReportAlertListener)
   case toReportAlert(listener: ReportAlertListener)
   case toBlockAlert(listener: BlockAlertListener)
   case toChatRoom(chatRoomIndex: Int)
 }
 
-public protocol FallingHomeActionDelegate: AnyObject {
-  func invoke(_ action: FallingHomeNavigationAction)
+public protocol FallingActionDelegate: AnyObject {
+  func invoke(_ action: FallingNavigationAction)
 }
