@@ -43,6 +43,7 @@ final class AuthRootViewModel: ViewModelType {
     buttonTap
       .flatMapLatest(with: self, selector: { owner, snsType -> Driver<AuthNavigation> in
         owner.useCase.auth(snsType)
+          .debug()
           .asDriver { error in
             toastPublisher.accept(error.localizedDescription)
             return .empty()

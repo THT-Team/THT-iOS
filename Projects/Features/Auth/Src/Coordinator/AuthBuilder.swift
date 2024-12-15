@@ -38,7 +38,7 @@ public final class AuthBuilder: AuthBuildable {
 
 public extension UIApplicationDelegate {
   // TODO: Configuation에 등록하기
-  func registerKakaoSDK() {
-    KakaoSDK.shared.initialize(appKey: Core.Configuration.kakaoNativeAppKey, sdkType: .Swift)
+  func registerKakaoSDK(key: String) {
+    KakaoSDK.initSDK(appKey: key, loggingEnable: true)
   }
 }

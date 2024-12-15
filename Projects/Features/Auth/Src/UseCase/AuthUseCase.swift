@@ -10,6 +10,8 @@ import Foundation
 import AuthInterface
 import RxSwift
 import KakaoSDKUser
+import KakaoSDKCommon
+import KakaoSDKAuth
 import Core
 
 public final class AuthUseCase: AuthUseCaseInterface {
@@ -86,10 +88,18 @@ public final class AuthUseCase: AuthUseCaseInterface {
     case .kakao:
       return kakaoLogin()
         .flatMap({ [weak self] info in
-          guard let self, let phoneNumber = snsUserInfo.phoneNumber else { return .error(AuthError.invalidSNSUser) }
+          guard let self, let phoneNumber = info.phoneNumber else {
+            return .just(.phoneNumber(info))
+          }
           return self.checkUserExists(phoneNumber: phoneNumber)
-            .map { result in
-              result.isSignUp ? .main : .policy(info)
+            .flatMap { [weak self] result -> Single<AuthNavigation> in
+              guard let self else {
+                return .just(.phoneNumber(info))
+              }
+              return result.isSignUp
+              ? self.login()
+                .map { _ in .main }
+              : .just(.policy(info))
             }
         })
     case .naver, .apple, .google:
@@ -101,7 +111,7 @@ public final class AuthUseCase: AuthUseCaseInterface {
 extension AuthUseCase {
   private func kakaoLogin() -> Single<SNSUserInfo> {
     .create { observer in
-      if true { // (UserApi.isKakaoTalkLoginAvailable()) {
+      if (UserApi.isKakaoTalkLoginAvailable()) {
         UserApi.shared.loginWithKakaoTalk { token, error in
           if let error {
             print(error.localizedDescription)
@@ -113,11 +123,14 @@ extension AuthUseCase {
                 print(error.localizedDescription)
                 observer(.failure(error))
               }
-              if let user, let id = user.id, let phoneNumber = user.kakaoAccount?.phoneNumber, let email = user.kakaoAccount?.email {
-                let snsUser = SNSUserInfo(snsType: .kakao, id: String(id), email: email, phoneNumber: phoneNumber)
-                observer(.success(snsUser))
+              if let user, let id = user.id {
+                if let phoneNumber = user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber() {
+                  UserDefaultRepository.shared.save(phoneNumber, key: .phoneNumber)
+                }
+                observer(.success(
+                  SNSUserInfo(snsType: .kakao, id: String(id), email: user.kakaoAccount?.email, phoneNumber: user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber()))
+                )
               } else {
-                print("user 값이 충분하지 않음. \(String(describing: user))")
                 observer(.failure(AuthError.invalidSNSUser))
               }
             }
@@ -130,3 +143,5 @@ extension AuthUseCase {
     }
   }
 }
+
+

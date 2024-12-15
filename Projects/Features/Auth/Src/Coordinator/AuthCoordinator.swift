@@ -76,18 +76,6 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 }
 
 extension AuthCoordinator: AuthCoordinatingActionDelegate {
-  func invoke(_ action: AuthCoordinatingAction) {
-//    switch action {
-//    case .inquiry:
-//      attachInquiryCoordinator()
-//    case .toPhoneNumber:
-//      phoneNumberFlow()
-//    case .toPolicy:
-//      attachSignUp(.startPolicy(<#SNSUserInfo#>))
-//    case .toMain:
-//      self.delegate?.detachAuth(self)
-//    }
-  }
 
   func invoke(_ action: AuthNavigation) {
     switch action {

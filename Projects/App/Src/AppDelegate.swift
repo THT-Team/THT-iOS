@@ -9,15 +9,20 @@ import UIKit
 import Data
 import Core
 import Auth
+import KakaoSDKCommon
+import KakaoSDKUser
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 	
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-		registerDependencies()
+    print(Configuration.kakaoNativeAppKey)
+//    registerKakaoSDK(key: Configuration.kakaoNativeAppKey)
+    KakaoSDK.initSDK(appKey: Configuration.kakaoNativeAppKey)
+    print("isAvailable: \(UserApi.isKakaoTalkLoginAvailable())")
+    registerDependencies()
     registerForRemoteNotifications()
     registerFirebase()
-    registerKakaoSDK()
 		return true
 	}
 	
