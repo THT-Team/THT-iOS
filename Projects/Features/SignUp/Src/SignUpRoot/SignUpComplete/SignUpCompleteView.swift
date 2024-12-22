@@ -32,7 +32,7 @@ final class SignUpCompleteView: TFBaseView {
   private lazy var gradientView = TFShimmerGradientView()
 
   lazy var imageView = UIImageView().then {
-    $0.image = DSKitAsset.Image.Test.test1.image
+//    $0.image = DSKitAsset.Image.Test.test1.image
     $0.contentMode = .scaleAspectFill
     $0.clipsToBounds = true
     $0.layer.cornerRadius = 20 * Metric.wRatio
