@@ -15,14 +15,14 @@ final class DummyFooterView: UICollectionReusableView {
   private let maskLayer = CAShapeLayer()
   
   private lazy var cardTimeView = CardTimeView()
-  
+    
   override init(frame: CGRect) {
     super.init(frame: .zero)
     layer.cornerRadius = 20
     clipsToBounds = true
     
-    makeUI()
     setupLayers()
+    makeUI()
   }
   
   override func layoutSubviews() {

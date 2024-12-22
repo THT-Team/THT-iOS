@@ -46,7 +46,7 @@ final class FallingViewController: TFBaseViewController {
 
   override func bindViewModel() {
     let initialTrigger = Driver<Void>.just(())
-    let fallingCellButtonAction = PublishSubject<CellType.Action>()
+    let fallingCellButtonAction = PublishSubject<FallingUserCollectionViewCell.Action>()
     let viewWillDisAppear = self.rx.viewWillDisAppear.asDriver().map { _ in
     }
     let viewDidAppear = self.rx.viewDidAppear.asDriver().map { _ in }
@@ -66,55 +66,69 @@ final class FallingViewController: TFBaseViewController {
       .compactMap(\.user?.id)
       .debug("state IndexPaht: ")
 
-    let profileCellRegistration = UICollectionView.CellRegistration<CellType, ModelType> { [weak self] cell, indexPath, item in
-
-      TFLogger.dataLogger.debug("\(item.username)")
-
-      let timerActiveTrigger = currentIdentifier
-        .map { $0 == item.id }
-
-      // MARK: State Binding
-      timerActiveTrigger
-        .debug("\(indexPath) active")
-        .drive(cell.activateCardSubject)
+    let userProfileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser> { [weak self] cell, indexPath, item in
+        let timerActiveTrigger = currentIdentifier
+          .map { $0 == item.id }
+        
+        // MARK: State Binding
+        timerActiveTrigger
+          .debug("\(indexPath) active")
+          .drive(cell.activateCardSubject)
+          .disposed(by: cell.disposeBag)
+        
+        Driver.just(item)
+          .drive(cell.rx.user)
+          .disposed(by: cell.disposeBag)
+        
+        self?.viewModel.pulse(\.$timeState)
+          .asDriverOnErrorJustEmpty()
+          .withLatestFrom(timerActiveTrigger) { ($0, $1) }
+          .filter { _, isActive in isActive }
+          .map { timeState, _ in timeState }
+          .drive(cell.rx.timeState)
+          .disposed(by: cell.disposeBag)
+        
+        self?.viewModel.pulse(\.$shouldShowPause)
+          .withLatestFrom(timerActiveTrigger) { ($0, $1) }
+          .filter { _, isActive in isActive }
+          .map { shouldSHowPause, _ in !shouldSHowPause }
+          .bind(to: cell.pauseViewRelay)
+          .disposed(by: cell.disposeBag)
+        
+        // MARK: Action Forwarding
+        Driver.merge(
+          cell.rx.likeBtnTap.asDriver(),
+          cell.rx.reportBtnTap.asDriver(),
+          cell.rx.rejectBtnTap.asDriver(),
+          cell.rx.cardDoubleTap.asDriver(),
+          cell.rx.pauseDoubleTap.asDriver()
+        )
+        .drive(fallingCellButtonAction)
         .disposed(by: cell.disposeBag)
-
-      Driver.just(item)
-        .drive(cell.rx.user)
-        .disposed(by: cell.disposeBag)
-
-      self?.viewModel.pulse(\.$timeState)
-        .asDriverOnErrorJustEmpty()
-        .withLatestFrom(timerActiveTrigger) { ($0, $1) }
-        .filter { _, isActive in isActive }
-        .map { timeState, _ in timeState }
-        .drive(cell.rx.timeState)
-        .disposed(by: cell.disposeBag)
-
-      self?.viewModel.pulse(\.$shouldShowPause)
-        .withLatestFrom(timerActiveTrigger) { ($0, $1) }
-        .filter { _, isActive in isActive }
-        .map { shouldSHowPause, _ in !shouldSHowPause }
-        .bind(to: cell.pauseViewRelay)
-        .disposed(by: cell.disposeBag)
-
-
-      // MARK: Action Forwarding
-      Driver.merge(cell.rx.likeBtnTap.asDriver(),
-                       cell.rx.reportBtnTap.asDriver(),
-                       cell.rx.rejectBtnTap.asDriver(),
-                       cell.rx.cardDoubleTap.asDriver(),
-                       cell.rx.pauseDoubleTap.asDriver()
-      )
-      .drive(fallingCellButtonAction)
-      .disposed(by: cell.disposeBag)
+    }
+    
+    let noticeRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.NoticeType> { cell, indexPath, item in
+      cell.configure(type: item)
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
     <DummyFooterView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
     
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
-      return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
+      switch itemIdentifier {
+      case .fallingUser(let user):
+        return collectionView.dequeueConfiguredReusableCell(
+          using: userProfileCellRegistration,
+          for: indexPath,
+          item: user
+        )
+      case .notice(let type):
+        return collectionView.dequeueConfiguredReusableCell(
+          using: noticeRegistration,
+          for: indexPath,
+          item: type
+        )
+      }
     })
     
     dataSource.supplementaryViewProvider = { (view, kind, index) in
@@ -166,8 +180,7 @@ final class FallingViewController: TFBaseViewController {
 // MARK: DiffableDataSource
 
 extension FallingViewController {
-  typealias CellType = FallingUserCollectionViewCell
-  typealias ModelType = FallingUser
+  typealias ModelType = FallingDataModel
   typealias SectionType = FallingProfileSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
   typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
@@ -177,11 +190,10 @@ extension FallingViewController {
     snapshot.appendSections([.profile])
     self.dataSource.apply(snapshot, animatingDifferences: false)
   }
-
+  
   private func deleteItem(_ user: FallingUser) {
-    guard 
-      let deleteIndexPath = self.dataSource.indexPath(for: user),
-      let cell = self.homeView.collectionView.cellForItem(at: deleteIndexPath) as? FallingUserCollectionViewCell else { return }
+    guard let deleteIndexPath = self.dataSource.indexPath(for: .fallingUser(user)),
+          let cell = self.homeView.collectionView.cellForItem(at: deleteIndexPath) as? FallingUserCollectionViewCell else { return }
 
     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
       cell.transform = cell.transform.rotated(by: -.pi / 6).concatenating(cell.transform.translatedBy(x: cell.frame.minX - self.homeView.collectionView.frame.width, y: 37.62))
@@ -189,5 +201,12 @@ extension FallingViewController {
       self?.deleteAnimationComplete.accept(())
       TFLogger.ui.debug("delete animation did completed")
     }
+  }
+}
+
+extension FallingViewController {
+  enum FallingDataModel: Hashable {
+    case fallingUser(FallingUser)
+    case notice(NoticeViewCell.NoticeType)
   }
 }
