@@ -43,15 +43,12 @@ final class CardButton: UIButton {
       switch self {
       case .info:
         return DSKitAsset.Image.Icons.cardInfo.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.neutral50.color)
       case .reject:
         return DSKitAsset.Image.Icons.cardReject.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.neutral50.color)
       case .like:
         return DSKitAsset.Image.Icons.cardLike.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.error.color)
       }
     }
@@ -60,15 +57,12 @@ final class CardButton: UIButton {
       switch self {
       case .info:
         return DSKitAsset.Image.Icons.cardInfo.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.neutral50.color)
       case .reject:
         return DSKitAsset.Image.Icons.cardReject.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.neutral50.color)
       case .like:
         return DSKitAsset.Image.Icons.cardLike.image
-        //          .resize(targetSize: .card)?
           .withTintColor(DSKitAsset.Color.neutral50.color)
       }
     }

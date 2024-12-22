@@ -14,17 +14,17 @@ import Foundation
 
 final class FallingViewModel: ViewModelType {
   typealias CellType = FallingUserCollectionViewCell
-
+  
   private let fallingUseCase: FallingUseCaseInterface
-
+  
   weak var delegate: FallingActionDelegate?
-
+  
   var disposeBag: DisposeBag = DisposeBag()
-
+  
   private let timer = TFTimer(startTime: 15.0)
-
+  
   private let alertActionSignal = PublishRelay<FallingAlertAction>()
-
+  
   struct Input {
     let initialTrigger: Driver<Void>
     let viewDidAppear: Driver<Void>
@@ -32,16 +32,16 @@ final class FallingViewModel: ViewModelType {
     let cellButtonAction: Driver<CellType.Action>
     let deleteAnimationComplete: Signal<Void>
   }
-
+  
   struct Output {
     let state: Driver<State>
   }
-
+  
   enum ScrollAction: Equatable {
     case scrollAfterDelete(FallingUser)
     case scroll(IndexPath)
     case pause
-
+    
     static func == (lhs: Self, rhs: Self) -> Bool {
       switch(lhs, rhs) {
       case let (.scroll(lhsValue), .scroll(rhsValue)):
@@ -53,62 +53,65 @@ final class FallingViewModel: ViewModelType {
       }
     }
   }
-
+  
   private enum ScrollActionType {
     case scroll
     case pause
     case scrollAfterDelete(FallingUser)
   }
-
+  
   struct State: Equatable {
     var index: Int = 0
-    var snapshot: [FallingUser] = []
+    var snapshot: [FallingViewController.FallingDataModel] = []
     var topicIndex: String = ""
     @Pulse var scrollAction: ScrollAction = .pause
     @Pulse var toast: String? = nil
     @Pulse var timeState: TimeState = .none
     @Pulse var shouldShowPause: Bool = false
-
+    
     var indexPath: IndexPath {
       IndexPath(row: index, section: 0)
     }
-
+    
     var user: FallingUser? {
-      snapshot[safe: index]
+      switch snapshot[safe: index] {
+      case .fallingUser(let user): return user
+      default: return nil
+      }
     }
-
+    
     static func == (lhs: Self, rhs: Self) -> Bool {
       lhs.index == rhs.index &&
       lhs.snapshot == rhs.snapshot &&
       lhs.scrollAction == rhs.scrollAction
     }
   }
-
+  
   private enum Mutation {
     case setScrollEvent(ScrollActionType)
     case updateIndexPath(Int)
     case removeSnapshot(FallingUser)
     case fetchUser([FallingUser])
-
+    
     case selectAlert
     case toChatRoom(String)
     case toast(String)
-
+    
     // MARK: Timer
     case stopTimer
     case startTimer
     case resetTimer
     case setTimeState(TimeState)
-
+    
     // MARK: Cell
     case hidePause
     case showPause
   }
-
+  
   init(fallingUseCase: FallingUseCaseInterface) {
     self.fallingUseCase = fallingUseCase
   }
-
+  
   let initialState = State()
   var currentState: State {
     get { (try? state.value()) ?? initialState }
@@ -118,28 +121,28 @@ final class FallingViewModel: ViewModelType {
   var shareState: Observable<State> {
     state.share()
   }
-
+  
   let scrollCommand = PublishRelay<ScrollAction>()
-
+  
   func transform(input: Input) -> Output {
     let mutation = transform(action: input)
     let transfromMutation = transform(mutation: mutation)
-
+    
     let state = transfromMutation
       .scan(initialState) { [weak self] state, mutation -> State in
         guard let self else { return state }
         return self.reduce(state: state, mutation: mutation)
       }
       .startWith(initialState)
-
+    
     let transfromState = transform(state: state)
       .do(onNext: { [weak self] in self?.currentState = $0 })
       .asDriverOnErrorJustEmpty()
-
+    
     transfromState
       .drive(self.state)
       .disposed(by: disposeBag)
-
+    
     return Output(
       state: transfromState
     )
@@ -160,10 +163,7 @@ extension FallingViewModel {
       input.viewDidAppear
         .asObservable()
         .flatMap({ _ -> Observable<Mutation> in
-          return .concat(
-
-            .empty()
-            )
+          return .concat(.empty())
         }),
       input.cellButtonAction
         .asObservable()
@@ -206,7 +206,7 @@ extension FallingViewModel {
             return shouldPause ? .just(.stopTimer) : .just(.startTimer)
           }
         }),
-
+      
       input.initialTrigger
         .asObservable()
         .flatMap { [unowned self] _ in
@@ -227,7 +227,7 @@ extension FallingViewModel {
             .just(.startTimer)
           )
         },
-
+      
       input.deleteAnimationComplete
         .asObservable()
         .withLatestFrom(shareState.map(\.user))
@@ -239,9 +239,9 @@ extension FallingViewModel {
         }
     )
   }
-
+  
   private func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
-
+    
     let signalMutation = self.alertActionSignal
       .withLatestFrom(state.compactMap(\.user)) { action, user in
         return (action, user)
@@ -273,10 +273,10 @@ extension FallingViewModel {
           )
         }
       }
-
+    
     let timerShare = timer.currentTime
       .share()
-
+    
     let timeOut = timerShare
       .filter { $0 == .zero }
       .flatMap { _ -> Observable<Mutation> in
@@ -284,19 +284,28 @@ extension FallingViewModel {
             .just(.updateIndexPath(1))
           )
       }
-
+    
     let timeStateMutation = timerShare
       .map { TimeState(rawValue: $0) }
       .map { Mutation.setTimeState($0) }
-
+    
     return Observable.merge(mutation, signalMutation, timeStateMutation, timeOut)
   }
-
+  
   private func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
     case let .fetchUser(users):
-      newState.snapshot = users
+      if users.isEmpty {
+        newState.snapshot = [
+          .notice(.selectedFirst)
+        ]
+      } else {
+        newState.snapshot = users.map {
+          FallingViewController.FallingDataModel.fallingUser($0)
+        }
+        newState.snapshot.append(.notice(.allMet))
+      }
       return newState
     case let .updateIndexPath(offset):
       if newState.snapshot.count - 1 > newState.index {
@@ -315,7 +324,13 @@ extension FallingViewModel {
       self.delegate?.invoke(.toChatRoom(chatRoomIndex: Int(chatRoomIndex) ?? 0))
       return newState
     case let .removeSnapshot(user):
-      newState.snapshot.removeAll(where: { $0 == user })
+      newState.snapshot.removeAll(where: {
+        switch $0 {
+        case .fallingUser(let userData):
+          user == userData
+        default: false
+        }
+      })
       return newState
     case let .toast(message):
       newState.toast = message
@@ -353,11 +368,11 @@ extension FallingViewModel {
       return newState
     }
   }
-
+  
   public func transform(state: Observable<State>) -> Observable<State> {
     state
   }
-
+  
   public func pulse<Result>(_ transformToPulse: @escaping (State) throws -> Pulse<Result>) -> Observable<Result> {
     state.map(transformToPulse).distinctUntilChanged(\.valueUpdatedCount).map(\.value)
   }
@@ -369,7 +384,7 @@ extension FallingViewModel: BlockOrReportAlertListener {
     case block
     case report(reason: String)
   }
-
+  
   func didTapAction(_ action: BlockOrReportAction) {
     switch action {
     case .block:
@@ -411,7 +426,7 @@ extension Array {
     guard self.count > index else { return nil }
     return remove(at: index)
   }
-
+  
   subscript(safe index: Index) -> Element? {
     guard self.count > index else { return nil }
     return self[index]
