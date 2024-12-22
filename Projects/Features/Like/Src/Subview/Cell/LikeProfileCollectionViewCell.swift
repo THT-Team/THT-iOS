@@ -46,9 +46,9 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
     guard let url = URL(string: imageURL) else {
       return
     }
-    let random: [DSKitImages] = [DSKitAsset.Image.Test.test1, DSKitAsset.Image.Test.test2]
+//    let random: [DSKitImages] = [DSKitAsset.Image.Test.test1, DSKitAsset.Image.Test.test2]
     
-    self.imageView.image = random.randomElement()?.image
+    self.imageView.kf.setImage(with: url)
 
 //    self.imageView.setResource(url) { [weak self] in
 //      self?.imageView.sizeToFit()
