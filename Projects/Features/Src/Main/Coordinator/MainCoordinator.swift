@@ -26,6 +26,7 @@ protocol MainViewControllable: ViewControllable {
 }
 
 final class MainCoordinator: BaseCoordinator, MainCoordinating {
+  var finishFlow: (() -> Void)?
   
   public weak var delegate: MainCoordinatorDelegate?
   private let mainViewControllable: MainViewControllable
@@ -77,7 +78,9 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     let myPageCoordinator = myPageBuildable.build() //rootViewControllable: NavigationViewControllable())
     attachChild(myPageCoordinator)
     myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
-    myPageCoordinator.delegate = self
+    myPageCoordinator.finishFlow = { [weak self, weak myPageCoordinator] in
+      self?.detachTab()
+    }
     myPageCoordinator.start()
     
     let viewControllables = [
@@ -95,15 +98,9 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
       child.viewControllable.setViewControllers([])
       detachChild(child)
     }
-    delegate?.detachTab(self)
+    finishFlow?()
   }
 }
 
-extension MainCoordinator: FallingCoordinatorDelegate, LikeCoordinatorDelegate, ChatCoordinatorDelegate, MyPageCoordinatorDelegate {
-
-  
-
-  func detachMyPage(_ coordinator: Core.Coordinator) {
-    detachTab()
-  }
+extension MainCoordinator: FallingCoordinatorDelegate, LikeCoordinatorDelegate, ChatCoordinatorDelegate {
 }

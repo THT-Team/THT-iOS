@@ -33,7 +33,7 @@ public struct SNSUserInfo: Codable {
   public let snsType: SNSType
   public let id: String
   public let email: String?
-  public let phoneNumber: String?
+  public var phoneNumber: String?
 
   public init(snsType: SNSType, id: String, email: String?, phoneNumber: String?) {
     self.snsType = snsType

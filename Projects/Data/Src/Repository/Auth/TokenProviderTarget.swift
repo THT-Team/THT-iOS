@@ -18,6 +18,7 @@ public enum TokenProviderTarget {
   case loginSNS(request: UserSNSLoginRequest)
   case refresh(Token)
   case signUp(SignUpReq)
+  case signUpSNS(UserSNSSignUpRequest)
 }
 
 extension TokenProviderTarget: BaseTargetType {
@@ -32,6 +33,8 @@ extension TokenProviderTarget: BaseTargetType {
       return "users/login/refresh"
     case .signUp:
       return "users/join/signup"
+    case .signUpSNS:
+      return "users/join/signup/sns"
     }
   }
 
@@ -52,6 +55,8 @@ extension TokenProviderTarget: BaseTargetType {
     case let .refresh(token):
       return .requestParameters(parameters: token.toDictionary(), encoding: JSONEncoding.default)
     case let .signUp(request):
+      return .requestJSONEncodable(request)
+    case let .signUpSNS(request):
       return .requestJSONEncodable(request)
     }
   }

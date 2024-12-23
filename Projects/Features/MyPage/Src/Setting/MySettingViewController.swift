@@ -25,16 +25,14 @@ final class MySettingsViewController: TFBaseViewController {
     super.init(nibName: nil, bundle: nil)
   }
   
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
   override func loadView() {
     self.view = mainView
   }
 
   override func navigationSetting() {
     super.navigationSetting()
+
+    self.navigationController?.setNavigationBarHidden(true, animated: false)
 
 //    self.title = "설정 관리"
 //    self.navigationItem.leftBarButtonItem = self.backButton
@@ -54,7 +52,7 @@ final class MySettingsViewController: TFBaseViewController {
     let input = MySettingViewModel.Input(
       viewDidLoad: self.rx.viewDidAppear.asDriver().map { _ in },
       indexPath: itemSelected, 
-      backBtnTap: self.backButton.rx.tap.asSignal()
+      backBtnTap: self.mainView.backButton.rx.tap.asSignal()
     )
 
     let output = viewModel.transform(input: input)

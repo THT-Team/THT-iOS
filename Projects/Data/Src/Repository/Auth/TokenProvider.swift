@@ -26,6 +26,10 @@ public final class DefaultTokenProvider: ProviderProtocol {
 }
 
 extension DefaultTokenProvider: TokenProvider {
+  public func signUpSNS(_ userSNSSignUpRequest: AuthInterface.UserSNSSignUpRequest) -> RxSwift.Single<AuthInterface.Token> {
+    request(type: Token.self, target: .signUpSNS(userSNSSignUpRequest))
+  }
+  
   public func signUp(_ signUpRequest: SignUpReq) -> Single<Token> {
     request(type: Token.self, target: .signUp(signUpRequest))
   }

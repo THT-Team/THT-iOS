@@ -15,22 +15,12 @@ import DSKit
 import Core
 
 public final class AuthBuilder: AuthBuildable {
-  private let signUpBuilable: SignUpBuildable
-  private let inquiryBuildable: InquiryBuildable
-  private lazy var authViewFactory: AuthViewFactoryType =
-    AuthViewFactory()
 
-  public init(signUpBuilable: SignUpBuildable, inquiryBuildable: InquiryBuildable) {
-    self.signUpBuilable = signUpBuilable
-    self.inquiryBuildable = inquiryBuildable
-  }
+  public init() { }
 
   public func build() -> AuthCoordinating {
     let rootViewController = ProgressNavigationViewControllable()
-    let coordinator = AuthCoordinator(signUpBuildable: signUpBuilable,
-                                      inquiryBuildable: inquiryBuildable,
-                                      authViewFactory: authViewFactory,
-                                      viewControllable: rootViewController)
+    let coordinator = AuthCoordinator(viewControllable: rootViewController)
 
     return coordinator
   }

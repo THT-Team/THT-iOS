@@ -9,34 +9,45 @@ import Foundation
 
 import Core
 
+public typealias AlertHandler = (() -> Void)?
+
 public protocol MyPageAlertCoordinating: Coordinator {
-  var delegate: MyPageAlertCoordinatorDelegate? { get set }
-
-  func showLogoutAlert(listener: LogoutListenr)
-  func showDeactivateAlert(listener: DeactivateListener)
+  var finishFlow: (() -> Void)? { get set }
+  func showAlert(_ handler: AlertHandler, alertType: MyPageAlertType)
 }
 
-public protocol MyPageAlertCoordinatorDelegate: AnyObject {
-  func detachMyPageAlert()
-  func attachMyPageAlert()
+public enum MyPageAlertType {
+  case logout
+  case deactivate
+
+  public var title: String {
+    switch self {
+    case .logout:
+      "로그아웃하시겠어요?"
+    case .deactivate:
+      "계정 탈퇴하기"
+    }
+  }
+
+  public var message: String? {
+    switch self {
+    case .logout:
+      return nil
+    case .deactivate:
+      return "정말 탈퇴하시겠어요? 회원님의 모든 정보 및\n사용 내역은 복구 불가합니다. 관련 문의는\nteamtht23@gmail.com 으로 부탁드립니다."
+    }
+  }
+
+  public var topActionTitle: String {
+    switch self {
+    case .logout:
+      "확인"
+    case .deactivate:
+      "탈퇴하기"
+    }
+  }
+
+  public var bottomActonTitle: String {
+    return "취소"
+  }
 }
-
-public protocol MyPageAlertCoordinatingActionDelegate: AnyObject {
-  func invoke(_ action: MyPageAlertCoordinatingAction)
-}
-
-public enum MyPageAlertCoordinatingAction {
-  case showLogoutAlert(LogoutListenr)
-  case showDeactivateAlert(DeactivateListener)
-}
-
-public protocol MyPageAlertListener { }
-
-public protocol LogoutListenr: MyPageAlertListener, AnyObject {
-  func logoutTap()
-}
-
-public protocol DeactivateListener: MyPageAlertListener, AnyObject {
-  func deactivateTap()
-}
-

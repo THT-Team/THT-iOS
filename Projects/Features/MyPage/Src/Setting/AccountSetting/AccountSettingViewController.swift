@@ -23,6 +23,10 @@ final class AccountSettingViewController: TFBaseViewController {
     super.init(nibName: nil, bundle: nil)
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   override func loadView() {
     self.view = mainView
   }

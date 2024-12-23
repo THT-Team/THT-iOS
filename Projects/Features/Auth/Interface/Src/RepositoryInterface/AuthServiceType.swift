@@ -19,5 +19,6 @@ public protocol AuthServiceType {
   func login(phoneNumber: String, deviceKey: String) -> Single<Token>
   func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
   func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
+  func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Token>
   func needAuth() -> Bool
 }

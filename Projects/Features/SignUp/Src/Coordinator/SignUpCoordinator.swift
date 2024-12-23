@@ -18,12 +18,17 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
+  public func start(_ userInfo: AuthInterface.SNSUserInfo) {
+
+  }
+  
 
   @Injected private var useCase: SignUpUseCaseInterface
   @Injected private var locationUseCase: LocationUseCaseInterface
   @Injected private var userDomainUseCase: UserDomainUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
+  public var finishFlow: (() -> Void)?
 
   // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
   public func start(_ option: SignUpOption) {
@@ -56,6 +61,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func finishFlow(_ option: FinishSignUpOption) {
+
     self.delegate?.detachSignUp(self, option)
   }
 
@@ -187,7 +193,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case let .loginType(snsType):
       print(snsType)
     case .backAtEmail:
-      finishFlow(.back)
+      finishFlow?()
+//      finishFlow(.back)
     case .nextAtEmail:
       policyFlow(user: pendingUser)
     case .nextAtPolicy:
@@ -230,7 +237,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case let .nextAtHideFriends(contacts):
       signUpCompleteFlow(user: pendingUser, contacts: contacts)
     case .nextAtSignUpComplete:
-      finishFlow(.complete)
+      finishFlow?()
+//      finishFlow(.complete)
     case let .agreementWebView(url):
       agreementWebViewFlow(url: url)
 

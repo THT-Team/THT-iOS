@@ -8,6 +8,7 @@
 import UIKit
 import AuthInterface
 import DSKit
+import Core
 
 public final class AuthViewFactory {
   @Injected private var useCase: AuthUseCaseInterface
@@ -16,6 +17,8 @@ public final class AuthViewFactory {
 }
 
 extension AuthViewFactory: AuthViewFactoryType {
+
+
   public func makePhoneAuthScene(viewModel: some AuthViewModelType) -> any AuthVCType {
     PhoneAuthVC(viewModel: viewModel)
   }

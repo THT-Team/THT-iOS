@@ -26,16 +26,18 @@ final class MyPageHomeViewController: TFBaseViewController {
     super.init(nibName: nil, bundle: nil)
   }
   
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
   override func navigationSetting() {
     super.navigationSetting()
     
     navigationItem.title = "마이페이지"
     
     navigationItem.rightBarButtonItem = mainView.rightBarBtn
+  }
+
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+
+    navigationController?.setNavigationBarHidden(false, animated: true)
   }
 
   override func bindViewModel() {

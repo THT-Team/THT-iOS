@@ -33,20 +33,23 @@ public final class MySettingCoordinator: BaseCoordinator {
 
   public weak var delegate: MySettingCoordinatorDelegate?
 
+  public var finishFlow: ((MySettingCoordinatorOption) -> Void)?
+
   private let user: User
 
   public init(
     viewControllable: ViewControllable, user: User,
     dependency: MySettingCoordinatorDependency
-//    myPageAlertBuildable: MyPageAlertBuildable,
-//    inquiryBuildable: InquiryBuildable,
-//    authViewFactory: AuthViewFactoryType
   ) {
     self.user = user
     self.myPageAlertBuildable = dependency.myPageAlertBuildable
     self.inquiryBuildable = dependency.inquiryBuildable
     self.authViewFactory = dependency.authViewFactory
     super.init(viewControllable: viewControllable)
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
   }
 }
 
@@ -117,11 +120,38 @@ extension MySettingCoordinator: MySettingCoordinating {
   
   public func accountSettingFlow() {
     let vm = AccountSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
+    vm.onRoot = { [weak self] in
+      self?.finishFlow?(.toRoot)
+    }
+
+    vm.onWithDrawal = { [weak self] in
+      self?.viewControllable.popViewController(animated: true)
+      self?.withdrawalFlow()
+    }
+
+    vm.showDeactivateAlert = { [weak self] handler in
+      self?.runAlert(handler, type: .deactivate)
+    }
+
+    vm.showLogOutAlert = { [weak self] handler in
+      self?.runAlert(handler, type: .logout)
+    }
+
     let vc = AccountSettingViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
-  
+
+  public func runAlert(_ handler: AlertHandler, type: MyPageAlertType) {
+    let coordinator = self.myPageAlertBuildable.build(rootViewControllable: self.viewControllable)
+
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.showAlert(handler, alertType: type)
+  }
+
   public func feedBackFlow() {
     attachInquiry()
   }
@@ -157,13 +187,14 @@ extension MySettingCoordinator: MySettingCoordinating {
 extension MySettingCoordinator: MySettingCoordinatingActionDelegate {
   public func invoke(_ action: MySettingCoordinatingAction) {
     switch action {
-    case .toRoot:
-      delegate?.detachMySetting(option: .toRoot)
-    case .logout:
-      delegate?.detachMySetting(option: .logout)
+    case .toRoot, .logout:
+      viewControllable.popViewController(animated: true)
+      viewControllable.popViewController(animated: true)
+      finishFlow?(.finish)
     case .finish:
       if (self.viewControllable.uiController as? UINavigationController)?.topViewController is MySettingsViewController {
-        delegate?.detachMySetting(option: nil)
+        viewControllable.popViewController(animated: true)
+        finishFlow?(.finish)
       }
     case let .editPhoneNumber(phoneNumber):
       editPhoneNumberRootFlow(phoneNumber: phoneNumber)
@@ -179,12 +210,6 @@ extension MySettingCoordinator: MySettingCoordinatingActionDelegate {
       webViewFlow(webviewInfo.title, webviewInfo.url)
     case .accountSetting:
       accountSettingFlow()
-    case let .showLogoutAlert(listener):
-      attachMyPageAlert()
-      self.myPageAlertCoordinator?.showLogoutAlert(listener: listener)
-    case let .showDeactivateAlert(listener):
-      attachMyPageAlert()
-      self.myPageAlertCoordinator?.showDeactivateAlert(listener: listener)
     case .selectWithdrawal:
       self.viewControllable.popViewController(animated: true)
       withdrawalFlow()
@@ -193,23 +218,6 @@ extension MySettingCoordinator: MySettingCoordinatingActionDelegate {
     case .withdrawalComplete:
       compleflow()
     }
-  }
-}
-
-extension MySettingCoordinator: MyPageAlertCoordinatorDelegate {
-  public func detachMyPageAlert() {
-    guard let coordinator = self.myPageAlertCoordinator else {
-      return
-    }
-    detachChild(coordinator)
-    self.myPageAlertCoordinator = nil
-  }
-
-  public func attachMyPageAlert() {
-    let coordinator = self.myPageAlertBuildable.build(rootViewControllable: self.viewControllable)
-    attachChild(coordinator)
-    coordinator.delegate = self
-    self.myPageAlertCoordinator = coordinator
   }
 }
 

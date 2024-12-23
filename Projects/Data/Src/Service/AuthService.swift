@@ -46,6 +46,10 @@ public final class DefaultAuthService: AuthServiceType {
       }
   }
 
+  public func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Token> {
+    tokenProvider.signUpSNS(request)
+  }
+
   public func needAuth() -> Bool {
     return tokenStore.getToken() == nil
   }

@@ -16,4 +16,6 @@ public protocol AuthRepositoryInterface {
   func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
   func needAuth() -> Bool
   func updateDeviceToken() -> Single<Void>
+  func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Token>
+  func kakaoLogin() -> Single<SNSUserInfo>
 }

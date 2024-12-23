@@ -19,7 +19,12 @@ final class AccountSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
   private let accountAlertSignal = PublishRelay<Void>()
-  weak var delegate: MySettingCoordinatingActionDelegate?
+
+  // MARK: Coordinator
+  var showLogOutAlert: ((AlertHandler) -> Void)?
+  var showDeactivateAlert: ((AlertHandler) -> Void)?
+  var onRoot: (() -> Void)?
+  var onWithDrawal: (() -> Void)?
 
   init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase
@@ -39,13 +44,19 @@ final class AccountSettingViewModel: ViewModelType {
 
     input.tap
       .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.showLogoutAlert(self))
+        owner.showLogOutAlert? {
+          owner.accountAlertSignal.accept(())
+        }
+//        owner.delegate?.invoke(.showLogoutAlert(self))
       }
       .disposed(by: disposeBag)
 
     input.deactivateTap
       .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.showDeactivateAlert(self))
+        owner.showDeactivateAlert? {
+          owner.onWithDrawal?()
+        }
+//        owner.delegate?.invoke(.showDeactivateAlert(self))
       }.disposed(by: disposeBag)
 
     self.accountAlertSignal.asSignal()
@@ -57,21 +68,10 @@ final class AccountSettingViewModel: ViewModelType {
           }
       })
       .emit(with: self) { owner, _ in
-        owner.delegate?.invoke(.logout)
+        owner.onRoot?()
+//        owner.delegate?.invoke(.toRoot)
       }.disposed(by: disposeBag)
 
     return Output(toast: toast.asDriverOnErrorJustEmpty())
-  }
-}
-
-extension AccountSettingViewModel: LogoutListenr {
-  func logoutTap() {
-    self.accountAlertSignal.accept(())
-  }
-}
-
-extension AccountSettingViewModel: DeactivateListener {
-  func deactivateTap() {
-    self.delegate?.invoke(.selectWithdrawal)
   }
 }

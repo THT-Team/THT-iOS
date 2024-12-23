@@ -27,16 +27,19 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   private let mainBuildable: MainBuildable
   private let authBuildable: AuthBuildable
   private let launchBuildable: LaunchBuildable
+  private let signUpBuildable: SignUpBuildable
 
   init(
     viewControllable: ViewControllable,
     mainBuildable: MainBuildable,
     authBuildable: AuthBuildable,
-    launchBUidlable: LaunchBuildable
+    launchBUidlable: LaunchBuildable,
+    signUpBuildable: SignUpBuildable
   ) {
     self.mainBuildable = mainBuildable
     self.authBuildable = authBuildable
     self.launchBuildable = launchBUidlable
+    self.signUpBuildable = signUpBuildable
     super.init(viewControllable: viewControllable)
   }
 
@@ -55,34 +58,42 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   func authFlow() {
     let coordinator = self.authBuildable.build()
 
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+      self?.mainFlow()
+    }
+
+    coordinator.signUpFlow = { [weak self] userInfo in
+      self?.runSignUpFlow(userInfo)
+    }
+
     attachChild(coordinator)
-    coordinator.delegate = self
     coordinator.start()
   }
 
+  func runSignUpFlow(_ userInfo: SNSUserInfo) {
+    let coordinator = self.signUpBuildable.build(rootViewControllable: self.viewControllable)
+
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+      self?.start()
+    }
+
+    attachChild(coordinator)
+    coordinator.start(userInfo)
+  }
+
   func mainFlow() {
-    let mainCoordinator = mainBuildable.build()
-
-    attachChild(mainCoordinator)
-    mainCoordinator.delegate = self
-
-    mainCoordinator.start()
-  }
-}
-
-extension AppCoordinator: MainCoordinatorDelegate {
-  func detachTab(_ coordinator: Coordinator) {
-    detachChild(coordinator)
-
-    authFlow()
-  }
-}
-
-extension AppCoordinator: AuthCoordinatingDelegate {
-  func detachAuth(_ coordinator: Core.Coordinator) {
-    detachChild(coordinator)
-
-    mainFlow()
+    let coordinator = mainBuildable.build()
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+      self?.authFlow()
+    }
+    attachChild(coordinator)
+    coordinator.start()
   }
 }
 

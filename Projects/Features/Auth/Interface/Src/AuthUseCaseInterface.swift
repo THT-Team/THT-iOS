@@ -21,5 +21,8 @@ public protocol AuthUseCaseInterface {
   func needAuth() -> Bool
   func updateDeviceToken() -> Single<Void>
 
-  func auth(_ snsType: SNSType) -> Single<AuthNavigation>
+  func auth(_ snsType: SNSType) -> Single<SNSUserInfo>
+  func handleLogin(snsUserInfo: SNSUserInfo) -> Single<AuthNavigation>
+  func authenticate(userInfo: SNSUserInfo) -> Single<AuthResult>
+  func processResult(_ result: AuthResult) -> Single<AuthNavigation>
 }

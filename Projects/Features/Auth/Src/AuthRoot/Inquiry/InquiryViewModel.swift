@@ -17,7 +17,9 @@ public final class InquiryViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
 
   weak var delegate: InquiryCoordinatingActionDelegate?
-  
+
+  public var onBackButtonTap: (() -> Void)?
+
   public struct Input {
     let email: Driver<String>
     let content: Driver<String>
@@ -63,7 +65,7 @@ public final class InquiryViewModel: ViewModelType {
 
     input.cardBtnTap
       .emit(with: self) { owner, _ in
-        owner.delegate?.invoke(.finish)
+        owner.onBackButtonTap?()
       }.disposed(by: disposeBag)
 
     return Output(

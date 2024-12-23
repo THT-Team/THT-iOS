@@ -10,12 +10,8 @@ import SignUpInterface
 
 import Core
 
-public protocol MyPageCoordinatorDelegate: AnyObject {
-  func detachMyPage(_ coordinator: Coordinator)
-}
-
 public protocol MyPageCoordinating: Coordinator {
-  var delegate: MyPageCoordinatorDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
   func homeFlow()
 

@@ -23,7 +23,7 @@ public final class MyPageCoordinator: BaseCoordinator {
   private let mySettingBuildable: MySettingBuildable
   private var mySettingCoordinator: MySettingCoordinating?
 
-  public weak var delegate: MyPageCoordinatorDelegate?
+  public var finishFlow: (() -> Void)?
 
   private let userStore: UserStore
 
@@ -168,7 +168,6 @@ extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
   }
   
   public func photoPickerFlow(delegate: PhotoPickerDelegate) {
-
     let picker = PHPickerControllable(delegate: delegate)
     self.viewControllable.present(picker, animated: true)
   }
@@ -202,29 +201,21 @@ extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
 // MARK: MySetting
 
 extension MyPageCoordinator: MySettingCoordinatorDelegate {
-  public func detachMySetting(option: MySettingCoordinatorOption?) {
-    guard let coordinator = self.mySettingCoordinator else {
-      return
-    }
-
-    self.viewControllable.popViewController(animated: true)
-    self.detachChild(coordinator)
-    self.mySettingCoordinator = nil
-
-    if case .logout = option {
-      self.delegate?.detachMyPage(self)
-    }
-
-    if case .toRoot = option {
-      self.delegate?.detachMyPage(self)
-    }
-  }
 
   public func attachMySetting(_ user: User) {
     let coordinator = self.mySettingBuildable.build(rootViewControllable: self.viewControllable, user: user)
-    coordinator.delegate = self
+
+    coordinator.finishFlow = { [weak self, weak coordinator] option in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+      switch option {
+      case .finish: break
+      case .toRoot:
+        self?.finishFlow?()
+      }
+    }
+
     self.attachChild(coordinator)
-    self.mySettingCoordinator = coordinator
     coordinator.settingHomeFlow(user)
   }
 }

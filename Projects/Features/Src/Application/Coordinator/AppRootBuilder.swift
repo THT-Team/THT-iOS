@@ -48,15 +48,15 @@ public final class AppRootBuilder: AppRootBuildable {
 
     let component = AppRootComponent(dependency: dependency)
     let mainBuilder = MainBuilder(dependency: component)
-    let signUpBuilder = SignUpBuilder()
-    let authBuilder = AuthBuilder(signUpBuilable: signUpBuilder, inquiryBuildable: component.inquiryBuildable)
+    let authBuilder = AuthBuilder()
     let launcher = LaunchBuilder()
 
     let coordinator = AppCoordinator(
       viewControllable: viewController,
       mainBuildable: mainBuilder,
       authBuildable: authBuilder,
-      launchBUidlable: launcher
+      launchBUidlable: launcher,
+      signUpBuildable: SignUpBuilder()
     )
     return coordinator
   }

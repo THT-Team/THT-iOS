@@ -15,6 +15,7 @@ public protocol MainCoordinatorDelegate: AnyObject {
 
 protocol MainCoordinating: Coordinator {
   var delegate: MainCoordinatorDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
   func attachTab()
   func detachTab()

@@ -16,6 +16,9 @@ import RxMoya
 import Moya
 
 import Core
+import KakaoSDKCommon
+import KakaoSDKAuth
+import KakaoSDKUser
 
 public final class AuthRepository: ProviderProtocol {
 
@@ -53,6 +56,10 @@ extension AuthRepository: AuthRepositoryInterface {
     authService.loginSNS(userSNSLoginRequest)
   }
 
+  public func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<AuthInterface.Token> {
+    authService.signUpSNS(request)
+  }
+
   public func needAuth() -> Bool {
     authService.needAuth()
   }
@@ -63,6 +70,40 @@ extension AuthRepository: AuthRepositoryInterface {
       return .error(AuthError.invalidDeviceKey)
     }
     return requestWithNoContent(target: .updateDeviceToken(deviceKey: deviceToken))
+  }
+
+  public func kakaoLogin() -> Single<SNSUserInfo> {
+      .create { observer in
+        if (UserApi.isKakaoTalkLoginAvailable()) {
+          UserApi.shared.loginWithKakaoTalk { token, error in
+            if let error {
+              print(error.localizedDescription)
+              observer(.failure(error))
+            }
+            if let token {
+              UserApi.shared.me { user, error in
+                if let error {
+                  print(error.localizedDescription)
+                  observer(.failure(error))
+                }
+                if let user, let id = user.id {
+                  if let phoneNumber = user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber() {
+                    UserDefaultRepository.shared.save(phoneNumber, key: .phoneNumber)
+                  }
+                  observer(.success(
+                    SNSUserInfo(snsType: .kakao, id: String(id), email: user.kakaoAccount?.email, phoneNumber: user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber()))
+                  )
+                } else {
+                  observer(.failure(AuthError.invalidSNSUser))
+                }
+              }
+            }
+          }
+        } else {
+          observer(.failure(AuthError.canNotOpenSNSURL))
+        }
+        return Disposables.create { }
+      }
   }
 }
 
