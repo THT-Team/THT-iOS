@@ -4,7 +4,7 @@
 //
 //  Created by Kanghos on 5/8/24.
 //
-
+import UIKit
 import Foundation
 
 import Core
@@ -32,38 +32,45 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
-
     rootFlow()
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
   public func rootFlow() {
+
     let viewModel = AuthRootViewModel(useCase: authUseCase)
 
     let viewController = AuthRootViewController()
     viewController.viewModel = viewModel
 
-    viewModel.onPhoneNumberAuthFlow = { [weak self] in
-      self?.phoneNumberInputFlow()
+    viewModel.onPhoneNumberAuthFlow = {
+      self.phoneNumberInputFlow()
     }
 
-    viewModel.onSignUpFlow = { [weak self] userInfo in
-      self?.signUpFlow?(userInfo)
-    }
-
-    viewModel.onMainFlow = { [weak self] in
-      guard let self else { return }
+    viewModel.onSignUpFlow = { userInfo in
       self.viewControllable.popViewController(animated: true)
+//      self?.viewControllable.popToRootViewController(animated: false)
+      self.signUpFlow?(userInfo)
+    }
+
+    viewModel.onMainFlow = {
+      self.viewControllable.popToRootViewController(animated: true)
       self.finishFlow?()
     }
 
-    viewModel.onInquiryFlow = { [weak self] in
-      guard let self else { return }
+    viewModel.onInquiryFlow = {
+      let nav = (UIWindow.keyWindow?.rootViewController as? UINavigationController)
+//      let uic = viewControllable.uiController
+      print("nav", nav)
+      print("topvc", nav?.topViewController)
+      print("visible", nav?.visibleViewController)
+      print("current vc", self.viewControllable)
+//      print(nav == uic)
       self.inquiryFlow()
     }
 
     self.phoneNumberVerified = { [weak viewModel] phoneNumber in
-      viewModel?.onPhoneNumberVerified?(phoneNumber)
+      viewModel?.onPhoneNumberVerified(phoneNumber)
     }
 
     self.viewControllable.setViewControllers([viewController])

@@ -20,6 +20,13 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   public func start(_ userInfo: AuthInterface.SNSUserInfo) {
 
+    guard let phoneNumber = userInfo.phoneNumber else { return }
+
+    guard let email = userInfo.email else {
+      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
+      return
+    }
+    policyFlow(user: initPendingUser(with: userInfo))
   }
   
 
@@ -30,17 +37,17 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   public weak var delegate: SignUpCoordinatorDelegate?
   public var finishFlow: (() -> Void)?
 
-  // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
-  public func start(_ option: SignUpOption) {
-    replaceWindowRootViewController(rootViewController: viewControllable)
-
-    switch option {
-    case .start(let phoneNumber):
-      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
-    case .startPolicy(let snsUser):
-      policyFlow(user: initPendingUser(with: snsUser))
-    }
-  }
+//  // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
+//  public func start(_ option: SignUpOption) {
+////    replaceWindowRootViewController(rootViewController: viewControllable)
+//
+//    switch option {
+//    case .start(let phoneNumber):
+//      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
+//    case .startPolicy(let snsUser):
+//      policyFlow(user: initPendingUser(with: snsUser))
+//    }
+//  }
 
   private func initPendingUser(phoneNumber: String) -> PendingUser {
     var pendingUser = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self) ?? PendingUser(phoneNumber: phoneNumber)
@@ -109,9 +116,20 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 
   public func photoFlow(user: PendingUser) {
     let vm = PhotoInputViewModel(useCase: useCase, pendingUser: user)
-    vm.delegate = self
+    var picker = PHPickerControllable()
+    vm.onFetchPhoto = { [weak self] handler in
+      picker.handelr = handler
+      self?.viewControllable.present(picker, animated: true)
+    }
     let vc = PhotoInputViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
+  }
+
+  public func photoPickerFlow(handler: PhotoPickerHandler?) {
+
+    // coordinator로 빼기
+    let picker = PHPickerControllable(handler)
+    self.viewControllable.present(picker, animated: true)
   }
 
   public func heightFlow(user: PendingUser) {
@@ -207,8 +225,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       preferGenderPickerFlow(user: pendingUser)
     case .nextAtPreferGender:
       photoFlow(user: pendingUser)
-    case let .photoCellTap(_, listener):
-      photoPickerFlow(delegate: listener)
+    case let .photoCellTap(_, handler):
+      photoPickerFlow(handler: handler)
     case .nextAtPhoto:
       heightFlow(user: pendingUser)
 

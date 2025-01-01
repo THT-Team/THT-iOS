@@ -52,6 +52,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       }
     }
   }
+
+  func registerKakaoSDK(key: String) {
+    KakaoSDK.initSDK(appKey: key, loggingEnable: true)
+  }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {

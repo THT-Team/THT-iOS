@@ -14,15 +14,10 @@ import Core
 import RxSwift
 import RxCocoa
 
-protocol LauncherDelegate: AnyObject {
-  func needAuth()
-  func toMain()
-}
-
 public final class LauncherViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: AuthUseCaseInterface
-  weak var delegate: LauncherDelegate?
+  var onAuthResult: ((LaunchAction) -> Void)?
 
   public struct Input {
     let viewDidLoad: Driver<Void>
@@ -50,7 +45,7 @@ public final class LauncherViewModel: ViewModelType {
     load
       .filter { $0 }
       .drive(with: self) { owner, needAuth in
-        owner.delegate?.needAuth()
+        owner.onAuthResult?(.needAuth)
       }.disposed(by: disposeBag)
 
     load
@@ -62,12 +57,12 @@ public final class LauncherViewModel: ViewModelType {
             TFLogger.dataLogger.error("\(error.localizedDescription)")
             toast.accept("로그인에 실패하였습니다. 다시 시도해주시기 바랍니다.\n\(error.localizedDescription)")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-              owner.delegate?.needAuth()
+              owner.onAuthResult?(.needAuth)
             }
             return .empty()
           })
       }.drive(with: self) { owner, _ in
-        owner.delegate?.toMain()
+        owner.onAuthResult?(.toMain)
       }.disposed(by: disposeBag)
 
     return Output(

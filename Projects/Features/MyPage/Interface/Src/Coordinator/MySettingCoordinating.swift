@@ -15,22 +15,14 @@ public enum MySettingCoordinatorOption {
   case toRoot
 }
 
-public protocol MySettingCoordinatorDelegate: AnyObject {
-  func attachMySetting(_ user: User)
-}
-
 public protocol MySettingCoordinating: Coordinator {
   var finishFlow: ((MySettingCoordinatorOption) -> Void)? { get set }
 
   func settingHomeFlow(_ user: User)
-  func editPhoneNumberFlow()
-  func editEmailFlow()
 
   func editUserContactsFlow()
   func alarmSettingFlow()
   func accountSettingFlow()
-
-  func feedBackFlow()
 
   func webViewFlow(_ title: String?, _ url: URL)
 }

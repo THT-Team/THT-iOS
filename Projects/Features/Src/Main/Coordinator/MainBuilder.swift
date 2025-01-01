@@ -20,25 +20,12 @@ import Chat
 import MyPageInterface
 import MyPage
 
+import Auth
 import AuthInterface
 
-final class MainComponent: MyPageDependency {
-  var inquiryBuildable: AuthInterface.InquiryBuildable { dependency.inquiryBuildable }
-
-  var authViewFactory: AuthInterface.AuthViewFactoryType { dependency.authViewFactory }
-
-  private let dependency: MyPageDependency
-
-  init(dependency: MyPageDependency) {
-    self.dependency = dependency
-  }
-}
-
 final class MainBuilder: MainBuildable {
-  private let dependency: MyPageDependency
 
-  init(dependency: MyPageDependency) {
-    self.dependency = dependency
+  init() {
   }
 
   func build() -> MainCoordinating {
@@ -46,7 +33,7 @@ final class MainBuilder: MainBuildable {
     let fallingBuilder = FallingBuilder()
     let likeBuilder = LikeBuilder()
     let chatBuilder = ChatBuilder()
-    let myPageBuilder = MyPageBuilder(dependency: dependency)
+    let myPageBuilder = MyPageBuilder(factory: MyPageFactory(userStore: UserStore(), inquiryBuilder: InquiryBuilder()))
 
     let coordinator = MainCoordinator(
       viewControllable: tabBar,

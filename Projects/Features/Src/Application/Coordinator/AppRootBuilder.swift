@@ -15,7 +15,7 @@ import MyPage
 
 public protocol AppRootDependency { }
 
-final class AppRootComponent: AppRootDependency, MyPageDependency {
+final class AppRootComponent: AppRootDependency {
   lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
     InquiryBuilder()
   }()
@@ -43,16 +43,12 @@ public final class AppRootBuilder: AppRootBuildable {
   }
 
   public func build() -> (LaunchCoordinating & URLHandling) {
-
-    let viewController = NavigationViewControllable()
-
-    let component = AppRootComponent(dependency: dependency)
-    let mainBuilder = MainBuilder(dependency: component)
+    let mainBuilder = MainBuilder()
     let authBuilder = AuthBuilder()
     let launcher = LaunchBuilder()
 
     let coordinator = AppCoordinator(
-      viewControllable: viewController,
+      viewControllable: ProgressNavigationViewControllable(),
       mainBuildable: mainBuilder,
       authBuildable: authBuilder,
       launchBUidlable: launcher,

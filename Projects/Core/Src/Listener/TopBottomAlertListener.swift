@@ -19,6 +19,8 @@ public protocol TopBottomAlertListener {
   func didTapAction(_ action: TopBottomAction)
 }
 
+public typealias TopBottomAlertHandler = ((TopBottomAction) -> Void)?
+
 public enum TopBottomAction {
   case top
   case bottom

@@ -16,8 +16,6 @@ import RxSwift
 public final class InquiryViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
 
-  weak var delegate: InquiryCoordinatingActionDelegate?
-
   public var onBackButtonTap: (() -> Void)?
 
   public struct Input {

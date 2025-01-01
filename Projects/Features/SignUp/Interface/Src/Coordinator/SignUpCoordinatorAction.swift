@@ -40,7 +40,7 @@ public enum SignUpCoordinatingAction {
   case webViewTap(listner: WebViewDelegate)
   case birthdayTap(Date, listener: BottomSheetListener)
   case heightLabelTap(Int, listener: BottomSheetListener)
-  case photoCellTap(index: Int, listener: PhotoPickerDelegate)
+  case photoCellTap(index: Int, handler: PhotoPickerHandler?)
 
   case agreementWebView(_ url: URL)
   case photoEditOrDeleteAlert(_ listener: TopBottomAlertListener)

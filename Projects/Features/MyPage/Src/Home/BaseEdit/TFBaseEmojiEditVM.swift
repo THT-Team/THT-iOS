@@ -35,18 +35,19 @@ protocol EmojiSendable {
 
 public protocol CVEmojiPickerVMType: ViewModelType where Input: CVInputType, Output: CVEmojiOutputType  { }
 
-open class TFBaseEmojiEditVM: CVEmojiPickerVMType, FetchEmojiProtocol, EmojiSendable {
+open class TFBaseEmojiEditVM: CVEmojiPickerVMType, FetchEmojiProtocol, EmojiSendable, BottomSheetViewModelType {
   public typealias ItemVMType = InputTagItemViewModel
-  
+
+
   private var disposeBag = DisposeBag()
   
   private let initialValue: BottomSheetValueType
   let useCase: UserDomainUseCaseInterface
   let userStore: UserStore
 
-  public weak var listener: BottomSheetListener?
-  public weak var delegate: BottomSheetActionDelegate?
-  
+  public var onDismiss: (() -> Void)?
+  public var handler: BottomSheetHandler?
+
   public init(
     initialValue: BottomSheetValueType,
     useCase: UserDomainUseCaseInterface,
@@ -150,8 +151,7 @@ open class TFBaseEmojiEditVM: CVEmojiPickerVMType, FetchEmojiProtocol, EmojiSend
       }
       .drive(with: self, onNext: { owner, chips in
         owner.send(item: chips)
-        owner.delegate?.sheetInvoke(.onDismiss)
-        
+        owner.onDismiss?()
       })
       .disposed(by: disposeBag)
     

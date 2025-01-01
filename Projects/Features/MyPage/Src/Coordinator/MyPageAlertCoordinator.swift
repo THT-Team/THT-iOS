@@ -17,6 +17,7 @@ public final class MyPageAlertCoordinator: BaseCoordinator {
 
 extension MyPageAlertCoordinator: MyPageAlertCoordinating {
 
+
   public func showAlert(_ handler: AlertHandler, alertType: MyPageAlertType) {
     self.viewControllable.uiController.showAlert(
       title: alertType.title,

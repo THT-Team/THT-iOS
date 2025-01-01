@@ -11,16 +11,12 @@ import Core
 import RxSwift
 import RxCocoa
 
-public protocol PhoneNumberEditRootViewDelegate: AnyObject {
-  func didTapOnRootUpdatePhoneNum(_ phoneNumber: String)
-}
-
-final class PhoneNumberEditRootVM: ViewModelType {
-  struct Input {
+public final class PhoneNumberEditRootVM: ViewModelType {
+  public struct Input {
     let tap: Signal<Void>
   }
   
-  struct Output {
+  public struct Output {
     let model: Driver<SingleSettingModel>
     let toast: Signal<String>
   }
@@ -28,20 +24,21 @@ final class PhoneNumberEditRootVM: ViewModelType {
   private let phoneNumber: String
   private var disposeBag = DisposeBag()
   private let toastSignal = PublishRelay<String>()
-  weak var delegate: PhoneNumberEditRootViewDelegate?
-  
+
+  var onUpdate: ((String) -> Void)?
+
   init(phoneNumber: String) {
     self.phoneNumber = phoneNumber
   }
   
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
     
     let model = SingleSettingModel(header: "가입된 핸드폰 번호", footer: "핸드폰 번호가 변경된 경우 업데이트를 해주세요.", content: phoneNumber)
     
     input.tap
       .emit(with: self) { owner, _ in
-        owner.delegate?.didTapOnRootUpdatePhoneNum(owner.phoneNumber)
+        owner.onUpdate?((owner.phoneNumber))
       }.disposed(by: disposeBag)
     
     toastSignal

@@ -49,14 +49,24 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   func launchFlow() {
     let coordinator = self.launchBuildable.build(rootViewControllable: self.viewControllable)
+
+    coordinator.finishFlow = { [weak self, weak coordinator] action in
+      guard let coordinator else { return }
+      switch action {
+      case .needAuth:
+        self?.authFlow()
+      case .toMain:
+        self?.mainFlow()
+      }
+      self?.detachChild(coordinator)
+    }
     attachChild(coordinator)
-    coordinator.delegate = self
     coordinator.start()
   }
 
   // MARK: - public
   func authFlow() {
-    let coordinator = self.authBuildable.build()
+    let coordinator = self.authBuildable.build(rootViewController: self.viewControllable)
 
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
@@ -64,7 +74,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
       self?.mainFlow()
     }
 
-    coordinator.signUpFlow = { [weak self] userInfo in
+    coordinator.signUpFlow = { [weak self, weak coordinator] userInfo in
       self?.runSignUpFlow(userInfo)
     }
 
@@ -78,7 +88,6 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
       self?.detachChild(coordinator)
-      self?.start()
     }
 
     attachChild(coordinator)
@@ -89,23 +98,11 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     let coordinator = mainBuildable.build()
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
-      self?.detachChild(coordinator)
       self?.authFlow()
+      self?.detachChild(coordinator)
     }
     attachChild(coordinator)
     coordinator.start()
-  }
-}
-
-extension AppCoordinator: LaunchCoordinatingDelegate {
-  func finishFlow(_ coordinator: Core.Coordinator, _ action: AuthInterface.LaunchAction) {
-    switch action {
-    case .needAuth:
-      authFlow()
-    case .toMain:
-      mainFlow()
-    }
-    detachChild(coordinator)
   }
 }
 

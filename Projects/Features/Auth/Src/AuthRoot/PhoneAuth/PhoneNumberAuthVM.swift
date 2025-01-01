@@ -91,6 +91,7 @@ public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
 
     Signal.zip(validatePass, input.finishAnimationTrigger)
       .emit(with: self, onNext: { owner, _ in
+        owner.releaseTimer()
         owner.onSuccess?(owner.phoneNumber)
       })
       .disposed(by: disposeBag)

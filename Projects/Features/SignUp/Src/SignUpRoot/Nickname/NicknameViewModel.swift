@@ -83,6 +83,6 @@ final class NicknameInputViewModel: BasePenddingViewModel, ViewModelType {
   }
 
   func validateNickname(_ text: String) -> Bool {
-    !text.isEmpty && text.count < 13 && text.count > 5
+    !text.isEmpty && text.count < 13 && text.count > 1
   }
 }

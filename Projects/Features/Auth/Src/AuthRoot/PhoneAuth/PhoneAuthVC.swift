@@ -84,7 +84,7 @@ public final class PhoneAuthVC<ViewModel>: TFBaseViewController, AuthVCType wher
   }
 
   public override func navigationSetting() {
-    navigationController?.setNavigationBarHidden(true, animated: false)
+//    navigationController?.setNavigationBarHidden(true, animated: false)
     setBackButton()
   }
 

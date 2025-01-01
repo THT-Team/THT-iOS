@@ -8,12 +8,3 @@
 import Foundation
 
 import DSKit
-
-extension MyPageCoordinator: BottomSheetActionDelegate {
-  public func sheetInvoke(_ action: BottomSheetViewAction) {
-    switch action {
-    case .onDismiss:
-      self.viewControllable.dismiss()
-    }
-  }
-}

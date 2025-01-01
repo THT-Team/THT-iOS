@@ -23,21 +23,21 @@ struct MyPageInfoCollectionViewCellViewModel {
       return gender.title
     case .introduction(let content):
       return content
-    case .preferGender(let gender, let listner):
+    case .preferGender(let gender):
       return gender.title
-    case .height(let height, _):
+    case .height(let height):
       return "\(height)cm"
-    case .smoking(let frequency, _):
+    case .smoking(let frequency):
       return frequency.title
-    case .drinking(let frequency, _):
+    case .drinking(let frequency):
       return frequency.title
-    case .religion(let religion, _):
+    case .religion(let religion):
       return religion.title
-    case .interest(let array, _):
+    case .interest(let array):
       return array.map { emoji in
         TagItemViewModel(emojiCode: emoji.emojiCode, title: emoji.name)
       }
-    case .idealType(let array, _):
+    case .idealType(let array):
       return array.map { emoji in
         TagItemViewModel(emojiCode: emoji.emojiCode, title: emoji.name)
       }

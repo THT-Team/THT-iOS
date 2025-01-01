@@ -13,15 +13,12 @@ import RxSwift
 import RxCocoa
 import MyPageInterface
 
-public protocol EmailEditDelegate: AnyObject {
-  func didEmailTap(_ email: String)
-}
-
-final class EmailEdittVM: ViewModelType {
+public final class EmailEdittVM: ViewModelType {
   private let email: String
   private var disposeBag = DisposeBag()
-  weak var delegate: EmailEditDelegate?
+
   private let useCase: MyPageUseCaseInterface
+  var onComplete: ((String) -> Void)?
 
   init(email: String, useCase: MyPageUseCaseInterface) {
     self.email = email
@@ -34,7 +31,7 @@ final class EmailEdittVM: ViewModelType {
     case invalid
   }
 
-  struct Input {
+  public struct Input {
     let emailText: Driver<String>
     let nextBtnTap: Driver<Void>
     let naverBtnTapped: Driver<Void>
@@ -42,13 +39,13 @@ final class EmailEdittVM: ViewModelType {
     let gmailBtnTapped: Driver<Void>
   }
 
-  struct Output {
+  public struct Output {
     let buttonState: Driver<Bool>
     let emailTextStatus: Driver<EmailTextState>
     let emailText: Driver<String>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let initialEmail = Driver.just(self.email)
 
     let text = input.emailText
@@ -106,7 +103,7 @@ final class EmailEdittVM: ViewModelType {
           }
       }
       .drive(with: self, onNext: { owner, email in
-        owner.delegate?.didEmailTap(email)
+        owner.onComplete?(email)
       })
       .disposed(by: disposeBag)
 

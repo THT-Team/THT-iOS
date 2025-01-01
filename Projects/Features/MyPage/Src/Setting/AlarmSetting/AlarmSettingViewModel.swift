@@ -13,17 +13,16 @@ import RxSwift
 import RxCocoa
 import MyPageInterface
 
-final class AlarmSettingViewModel: ViewModelType {
+public final class AlarmSettingViewModel: ViewModelType {
 
   private let myPageUseCase: MyPageUseCaseInterface
   private var disposeBag = DisposeBag()
-  weak var delegate: MySettingCoordinatingActionDelegate?
 
   init(myPageUseCase: MyPageUseCaseInterface) {
     self.myPageUseCase = myPageUseCase
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
     let initialState = myPageUseCase.fetchAlarmSetting()
     let state = BehaviorRelay<[String: Bool]>(value: initialState.settings)
@@ -124,11 +123,11 @@ final class AlarmSettingViewModel: ViewModelType {
 }
 
 extension AlarmSettingViewModel {
-  struct Input {
+  public struct Input {
     let tap: Signal<IndexPath>
   }
 
-  struct Output {
+  public struct Output {
     let toast: Signal<String>
     let marketingDescription: Driver<String>
     let alarmSection: Driver<[AlarmSection]>

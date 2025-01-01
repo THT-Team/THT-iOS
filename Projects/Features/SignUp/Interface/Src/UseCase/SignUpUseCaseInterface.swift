@@ -11,13 +11,10 @@ import RxSwift
 import Domain
 
 import AuthInterface
-import PhotosUI
+import Core
 
 public protocol SignUpUseCaseInterface {
   func checkNickname(nickname: String) -> Single<Bool>
-
-//  func fetchIdealTypeEmoji() -> Single<[Domain.InputTagItemViewModel]>
-//  func fetchInterestEmoji() -> Single<[Domain.InputTagItemViewModel]>
 
   // MARK: Policy
   func fetchPolicy() -> Single<[ServiceAgreementRowViewModel]>
@@ -35,5 +32,5 @@ public protocol SignUpUseCaseInterface {
   func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]>
   func saveUserPhotos(key: String, datas: [Data]) -> Single<[String]>
   func uploadImage(data: [Data]) -> Single<[String]>
-  func processImage(_ result: PHPickerResult) -> Single<Data>
+  func processImage(_ result: PhotoItem) -> Single<Data>
 }

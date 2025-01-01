@@ -9,13 +9,8 @@ import Foundation
 
 import Core
 
-public protocol InquiryCoordinatingDelegate: AnyObject {
-  func detachInquiry(_ coordinator: Coordinator)
-  func attachInquiry()
-}
-
 public protocol InquiryCoordinating: Coordinator {
-  var delegate: InquiryCoordinatingDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
   func homeFlow()
 }

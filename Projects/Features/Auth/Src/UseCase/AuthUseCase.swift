@@ -10,9 +10,6 @@ import Foundation
 import AuthInterface
 
 import RxSwift
-import KakaoSDKUser
-import KakaoSDKCommon
-import KakaoSDKAuth
 import Core
 
 public final class AuthUseCase: AuthUseCaseInterface {

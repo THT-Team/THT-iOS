@@ -75,10 +75,10 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     chatCoordinator.delegate = self
     chatCoordinator.start()
     
-    let myPageCoordinator = myPageBuildable.build() //rootViewControllable: NavigationViewControllable())
+    let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(myPageCoordinator)
     myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
-    myPageCoordinator.finishFlow = { [weak self, weak myPageCoordinator] in
+    myPageCoordinator.finishFlow = { [weak self] in
       self?.detachTab()
     }
     myPageCoordinator.start()

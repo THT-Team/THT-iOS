@@ -32,4 +32,25 @@ public extension TFAlertBuilder {
     }
     return alert
   }
+
+  static func makePhotoEditAlert(_ handler: TopBottomAlertHandler) -> TFAlertViewController {
+    let alert = TFAlertViewController()
+    alert.addActionToButton(title: "사진 변경") {
+      alert.dismiss(animated: false) {
+        handler?(.top)
+      }
+    }
+    alert.addActionToButton(title: "사진 삭제", withSeparator: true) {
+      alert.dismiss(animated: false) {
+        handler?(.bottom)
+      }
+    }
+
+    alert.addActionToDim {
+      alert.dismiss(animated: false) {
+        handler?(.cancel)
+      }
+    }
+    return alert
+  }
 }

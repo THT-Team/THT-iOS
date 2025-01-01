@@ -11,7 +11,6 @@ import SignUpInterface
 import AuthInterface
 import Domain
 
-import PhotosUI
 import Core
 import DSKit
 
@@ -104,7 +103,7 @@ extension SignUpUseCase {
     return imageService.uploadImages(imageDataArray: data, bucket: .profile)
   }
 
-  public func processImage(_ result: PHPickerResult) -> Single<Data> {
+  public func processImage(_ result: PhotoItem) -> Single<Data> {
     imageService.bind(result, imageSize: .profile)
   }
 

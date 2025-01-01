@@ -10,9 +10,11 @@ import UIKit
 import RxSwift
 import FirebaseStorage
 import Domain
+import Core
 import PhotosUI
 
 public class ImageService: ImageServiceType {
+  
   public init() { }
   public func uploadImages(imageDataArray: [Data], bucket: Bucket) -> Single<[String]> {
     return Observable.from(imageDataArray)
@@ -53,9 +55,9 @@ public class ImageService: ImageServiceType {
     }
   }
 
-  public func bind(_ asset: PHPickerResult, imageSize: ImageSize) -> Single<Data> {
+  public func bind(_ asset: PhotoItem, imageSize: ImageSize) -> Single<Data> {
     return .create { observer in
-      let itemProvider = asset.itemProvider
+      let itemProvider = asset.items.itemProvider
       if itemProvider.canLoadObject(ofClass: UIImage.self) {
         itemProvider.loadObject(ofClass: UIImage.self) { item, error in
           if let image = item as? UIImage,

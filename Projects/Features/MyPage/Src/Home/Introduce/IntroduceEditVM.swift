@@ -14,14 +14,13 @@ import MyPageInterface
 import RxSwift
 import RxCocoa
 
-final class IntroduceEditVM: ViewModelType {
+public final class IntroduceEditVM: ViewModelType {
   private let useCase: MyPageUseCaseInterface
-  weak var delegate: MyPageCoordinatingActionDelegate?
   private var disposeBag = DisposeBag()
   private let initialValue: String
   private let userStore: UserStore
 
-  init(
+  public init(
     useCase: MyPageUseCaseInterface,
     introduce: String,
     userStore: UserStore
@@ -30,19 +29,20 @@ final class IntroduceEditVM: ViewModelType {
     self.initialValue = introduce
     self.userStore = userStore
   }
+  var onComplete: (() -> Void)?
 
-  struct Input {
+  public struct Input {
     let text: Driver<String>
     let nextBtnTap: Signal<Void>
   }
 
-  struct Output {
+  public struct Output {
     let isBtnEnabled: Driver<Bool>
     let errorMessage: Driver<String>
     let initialText: Driver<String>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let initialText = Driver.just(self.initialValue)
 
     let errorMessage = RxSwift.PublishSubject<String>()
@@ -70,7 +70,7 @@ final class IntroduceEditVM: ViewModelType {
           }
       }
       .drive(with: self) { owner, text in
-        owner.delegate?.invoke(.popToRoot)
+        owner.onComplete?()
         owner.userStore.send(action: .introduce(text))
       }.disposed(by: disposeBag)
 

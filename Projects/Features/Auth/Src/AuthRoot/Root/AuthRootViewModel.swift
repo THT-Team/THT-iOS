@@ -40,17 +40,12 @@ final class AuthRootViewModel: ViewModelType {
 
   // error toast
   //
+  let phoneNumberVerifiedSubject = PublishSubject<String>()
   func transform(input: Input) -> Output {
     let toastPublisher = PublishRelay<String>()
     let buttonTap = input.buttonTap
-    let phoneNumberVerifiedSubject = PublishSubject<String>()
 
     let snsUserInfoSubject = PublishSubject<SNSUserInfo>()
-    let checkRegisterPublisher = PublishSubject<SNSUserInfo>()
-
-    self.onPhoneNumberVerified = { phoneNumber in
-      phoneNumberVerifiedSubject.onNext(phoneNumber)
-    }
 
     buttonTap
       .throttle(.milliseconds(500), latest: false)
@@ -70,15 +65,20 @@ final class AuthRootViewModel: ViewModelType {
           owner.onPhoneNumberAuthFlow?()
           return
         }
-        phoneNumberVerifiedSubject.onNext(phoneNumber)
+        owner.phoneNumberVerifiedSubject.onNext(phoneNumber)
       })
       .disposed(by: disposeBag)
 
-    Observable.combineLatest(phoneNumberVerifiedSubject, snsUserInfoSubject)
+    phoneNumberVerifiedSubject
+      .withLatestFrom(snsUserInfoSubject) { ($0, $1) }
+//
+//    Observable.zip(phoneNumberVerifiedSubject, snsUserInfoSubject)
       .withUnretained(self)
       .flatMap { owner, info -> Single<AuthResult> in
         let (phoneNumber, snsUserInfo) = info
-        return owner.useCase.authenticate(userInfo: snsUserInfo)
+        var userInfo = snsUserInfo
+        userInfo.phoneNumber = phoneNumber
+        return owner.useCase.authenticate(userInfo: userInfo)
       }
       .withUnretained(self)
       .flatMap { owner, result -> Observable<AuthNavigation> in
@@ -105,6 +105,10 @@ final class AuthRootViewModel: ViewModelType {
       .disposed(by: disposeBag)
 
     return Output(toast: toastPublisher.asSignal(onErrorSignalWith: .empty()))
+  }
+
+  func onPhoneNumberVerified(_ number: String) {
+    phoneNumberVerifiedSubject.onNext(number)
   }
 }
 

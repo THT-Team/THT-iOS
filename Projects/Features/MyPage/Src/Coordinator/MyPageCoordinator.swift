@@ -16,22 +16,13 @@ import PhotosUI
 import Domain
 
 public final class MyPageCoordinator: BaseCoordinator {
-
-  @Injected var myPageUseCase: MyPageUseCaseInterface
-  @Injected var userDomainUseCase: UserDomainUseCaseInterface
-
-  private let mySettingBuildable: MySettingBuildable
-  private var mySettingCoordinator: MySettingCoordinating?
-
   public var finishFlow: (() -> Void)?
 
-  private let userStore: UserStore
+  private let factory: MyPageDependency
 
   init(viewControllable: ViewControllable,
-       mySettingBuildable: MySettingBuildable) {
-    self.mySettingBuildable = mySettingBuildable
-
-    userStore = UserStore()
+       factory: MyPageDependency) {
+    self.factory = factory
     super.init(viewControllable: viewControllable)
   }
 
@@ -43,27 +34,43 @@ public final class MyPageCoordinator: BaseCoordinator {
 extension MyPageCoordinator: MyPageCoordinating {
 
   public func homeFlow() {
-    let viewModel = MyPageHomeViewModel(myPageUseCase: myPageUseCase, userStore: userStore)
-    viewModel.delegate = self
-
-    let viewController = MyPageHomeViewController(viewModel: viewModel)
-
-    self.viewControllable.setViewControllers([viewController])
+    var (vm, vc) = factory.makeMyPageHome()
+    vm.onSetting = { [weak self] user in
+      self?.runMySettingFlow(user)
+    }
+    vm.onEditNickname = { [weak self] nickname in
+      self?.editNicknameFlow(nickname: nickname)
+    }
+    vm.onEditInfo = { [weak self] model in
+      self?.sectionFlow(model)
+    }
+    vm.onPhotoEdit = { [weak self] handler in
+      let alert = TFAlertBuilder.makePhotoEditAlert(handler)
+      alert.modalTransitionStyle = .crossDissolve
+      self?.viewControllable.present(alert, animated: true)
+    }
+    vm.onPhotoCell = { [weak self] index, handler in
+      let picker = PHPickerControllable { item in
+        handler?(item)
+      }
+      self?.viewControllable.present(picker, animated: true)
+    }
+    self.viewControllable.setViewControllers([vc])
   }
 
   public func editNicknameFlow(nickname: String) {
-    let vm = NicknameEditVM(useCase: myPageUseCase, nickname: nickname, userStore: userStore)
-    vm.delegate = self
-    let vc = NicknameEditVC(viewModel: vm)
-
+    var (vm, vc) = factory.editNicknameFlow(nickname: nickname)
+    vm.onComplete = { [weak self] in
+      self?.viewControllable.popToRootViewController(animated: true)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   public func editIntroduceFlow(introduce: String) {
-    let vm = IntroduceEditVM(useCase: myPageUseCase, introduce: introduce, userStore: userStore)
-    vm.delegate = self
-    let vc = IntroduceEditVC(viewModel: vm)
-
+    var (vm, vc) = factory.editIntroduceFlow(introduce: introduce)
+    vm.onComplete = { [weak self] in
+      self?.viewControllable.popToRootViewController(animated: true)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
@@ -71,128 +78,86 @@ extension MyPageCoordinator: MyPageCoordinating {
 
   }
 
-  public func editPreferGenderBottomSheetFlow(prefetGender: Gender, listener: BottomSheetListener) {
-    let vm = PreferGenderVM(initialValue: .text(text: prefetGender.rawValue), useCase: myPageUseCase, userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = PreferGenderVC(viewModel: vm)
+  public func editPreferGenderBottomSheetFlow(preferGender: Gender) {
+    var (vm, vc) = factory.makeGenderSheet(gender: preferGender)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 353.adjustedH, animated: true)
   }
 
-  public func editHeightBottomSheetFlow(height: Int, listener: BottomSheetListener) {
-    let vm = HeightEditVM(initialValue: .text(text: "\(height)"), useCase: myPageUseCase, userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = HeightEditVC(viewModel: vm)
+  public func editHeightBottomSheetFlow(height: Int) {
+    var (vm, vc) = factory.editHeightBottomSheetFlow(height: height)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 350, animated: true)
   }
   
-  public func editSmokingBottomSheetFlow(frequency: Frequency, listener: BottomSheetListener) {
-    let vm = SmokingEditVM(initialValue: .text(text: frequency.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = SmokingEditVC(viewModel: vm)
+  public func editSmokingBottomSheetFlow(frequency: Frequency) {
+    var (vm, vc) = factory.editSmokingBottomSheetFlow(frequency: frequency)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 273.adjustedH, animated: true)
   }
   
-  public func editDrinkingBottomSheetFlow(frequency: Frequency, listener: BottomSheetListener) {
-    let vm = DrinkingEditVM(initialValue: .text(text: frequency.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = DrinkingEditVC(viewModel: vm)
+  public func editDrinkingBottomSheetFlow(frequency: Frequency) {
+    var (vm, vc) = factory.editDrinkingBottomSheetFlow(frequency: frequency)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 273.adjustedH, animated: true)
   }
   
-  public func editReligionBottomSheetFlow(religion: Religion, listener: BottomSheetListener) {
-    let vm = ReligionEditVM(initialValue: .text(text: religion.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = ReligionEditVC(viewModel: vm)
+  public func editReligionBottomSheetFlow(religion: Religion) {
+    var (vm, vc) = factory.editReligionBottomSheetFlow(religion: religion)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 350.adjustedH, animated: true)
   }
   
-  public func editInterestBottomSheetFlow(interest: [EmojiType], listener: BottomSheetListener) {
-    let initialValue = interest.reduce("") { $0 + ",\($1.idx)"}
-    let vm = InterestEditVM(initialValue: .text(text: initialValue), useCase: userDomainUseCase, userStore: userStore)
-    vm.delegate = self
-    vm.listener = listener
-    let vc = InterestEditVC(viewModel: vm)
+  public func editInterestBottomSheetFlow(interest: [EmojiType]) {
+    var (vm, vc) = factory.editInterestBottomSheetFlow(interest: interest)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 600, animated: true)
   }
-  public func editIdealTypeBottomSheetFlow(ideals: [EmojiType], listener: BottomSheetListener) {
-    let initialValue = ideals.reduce("") { $0 + ",\($1.idx)"}
-    let vm = IdealEditVM(
-      initialValue: .text(text: initialValue),
-      useCase: userDomainUseCase,
-      userStore: userStore
-    )
-    vm.delegate = self
-    vm.listener = listener
-    let vc = IdealEditVC(viewModel: vm)
+  public func editIdealTypeBottomSheetFlow(ideals: [EmojiType]) {
+    var (vm, vc) = factory.editIdealTypeBottomSheetFlow(ideals: ideals)
+    vm.onDismiss = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
     self.viewControllable.presentMediumBottomSheet(vc, height: 600, animated: true)
   }
 }
 
 // MARK: Navigate Action
 
-extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
-  public func invoke(_ action: MyPageCoordinatingAction) {
-    switch action {
-    case let .setting(user):
-      attachMySetting(user)
-
-    // Cell 누르면 Section casting해서 넘겨줌
-    case let .edit(section):
-      sectionFlow(section)
-    case let .editNickname(nickname):
-      editNicknameFlow(nickname: nickname)
-
-    case .popToRoot:
-      self.viewControllable.popToRootViewController(animated: true)
-      
-    case let .photoCellTap(index: index, listener: listener):
-      photoPickerFlow(delegate: listener)
-    case let .photoEditOrDeleteAlert(listener):
-      showTopBottomAlert(listener)
-    default: break
-    }
-
-    func showTopBottomAlert(_ listener: TopBottomAlertListener) {
-      let alert = TFAlertBuilder.makePhotoEditOrDeleteAlert(listener: listener)
-      alert.modalTransitionStyle = .crossDissolve
-      self.viewControllable.present(alert, animated: true)
-    }
-  }
-  
-  public func photoPickerFlow(delegate: PhotoPickerDelegate) {
-    let picker = PHPickerControllable(delegate: delegate)
-    self.viewControllable.present(picker, animated: true)
-  }
+extension MyPageCoordinator {
 
   private func sectionFlow(_ section: MyPageSection) {
     switch section {
-    case .birthday(let string):
-      let vc = TFBaseViewController(nibName: nil, bundle: nil)
-      self.viewControllable.presentBottomSheet(vc, animated: true)
+    case .birthday:
+      break
     case .introduction(let introduce):
       editIntroduceFlow(introduce: introduce)
-    case let .height(height, listener):
-      editHeightBottomSheetFlow(height: height, listener: listener)
-    case let .preferGender(gender, listener):
-      editPreferGenderBottomSheetFlow(prefetGender: gender, listener: listener)
-    case let .smoking(frequency, listener):
-      editSmokingBottomSheetFlow(frequency: frequency, listener: listener)
-    case let .drinking(frequency, listener):
-      editDrinkingBottomSheetFlow(frequency: frequency, listener: listener)
-    case let .religion(religion, listener):
-      editReligionBottomSheetFlow(religion: religion, listener: listener)
-    case let .interest(interest, listener):
-      editInterestBottomSheetFlow(interest: interest, listener: listener)
-    case let .idealType(ideals, listener):
-      editIdealTypeBottomSheetFlow(ideals: ideals, listener: listener)
+    case let .height(height):
+      editHeightBottomSheetFlow(height: height)
+    case let .preferGender(gender):
+      editPreferGenderBottomSheetFlow(preferGender: gender)
+    case let .smoking(frequency):
+      editSmokingBottomSheetFlow(frequency: frequency)
+    case let .drinking(frequency):
+      editDrinkingBottomSheetFlow(frequency: frequency)
+    case let .religion(religion):
+      editReligionBottomSheetFlow(religion: religion)
+    case let .interest(interest):
+      editInterestBottomSheetFlow(interest: interest)
+    case let .idealType(ideals):
+      editIdealTypeBottomSheetFlow(ideals: ideals)
     default: break
     }
   }
@@ -200,10 +165,10 @@ extension MyPageCoordinator: MyPageCoordinatingActionDelegate {
 
 // MARK: MySetting
 
-extension MyPageCoordinator: MySettingCoordinatorDelegate {
+extension MyPageCoordinator {
 
-  public func attachMySetting(_ user: User) {
-    let coordinator = self.mySettingBuildable.build(rootViewControllable: self.viewControllable, user: user)
+  public func runMySettingFlow(_ user: User) {
+    let coordinator = factory.build(rootViewControllable: self.viewControllable, user: user)
 
     coordinator.finishFlow = { [weak self, weak coordinator] option in
       guard let coordinator else { return }
@@ -219,5 +184,3 @@ extension MyPageCoordinator: MySettingCoordinatorDelegate {
     coordinator.settingHomeFlow(user)
   }
 }
-
-

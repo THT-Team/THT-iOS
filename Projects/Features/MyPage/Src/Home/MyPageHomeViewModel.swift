@@ -13,59 +13,51 @@ import RxSwift
 import RxCocoa
 import Domain
 import DSKit
-import PhotosUI
 
-final class MyPageHomeViewModel: ViewModelType {
+public final class MyPageHomeViewModel: ViewModelType {
   private let myPageUseCase: MyPageUseCaseInterface
-  private let selectedPHResult =  PublishRelay<PHPickerResult>()
-  var pickerDelegate: PhotoPickerDelegate?
 
-  struct Input {
+  // MARK: Coordinating
+  var onSetting: ((User) -> Void)?
+  var onPhotoEdit: ((TopBottomAlertHandler) -> Void)?
+  var onPhotoCell: ((Int, PhotoPickerHandler?) -> Void)?
+  var onEditInfo: ((MyPageSection) -> Void)?
+  var onEditNickname: ((String) -> Void)?
+
+  public struct Input {
     let delegateAction: Driver<MyPageHome.Action>
   }
 
-  struct Output {
+  public struct Output {
     let user: Driver<[MyPageInfoCollectionViewCellViewModel]>
     let headerModel: Driver<PhotoHeaderModel>
     let toast: Signal<String>
     let isDimHidden: Signal<Bool>
   }
 
-  weak var delegate: MyPageCoordinatingActionDelegate?
   private var disposeBag = DisposeBag()
   private let userStore: UserStore
   private let alertSignal = PublishRelay<TopBottomAction>()
 
-  init(myPageUseCase: MyPageUseCaseInterface, userStore: UserStore) {
+  public init(myPageUseCase: MyPageUseCaseInterface, userStore: UserStore) {
     self.myPageUseCase = myPageUseCase
     self.userStore = userStore
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let isDimHiddenTrigger = PublishRelay<Bool>()
     let selectedIndex = PublishRelay<Int>()
     let photoEditTrigger = PublishRelay<Int>()
+    let photoAlertTrigger = PublishRelay<TopBottomAction>()
+    let selectedPHResult = PublishRelay<PhotoItem>()
 
     userStore.send(action: .fetch)
 
     let user = userStore.binding.asDriverOnErrorJustEmpty()
       .compactMap { $0 }
 
-    let output = user.map { [weak self] user -> [MyPageInfoCollectionViewCellViewModel] in
-      guard let listener = self else { return [] }
-      return [
-        .init(model: .birthday( user.birthday)),
-        .init(model: .gender(user.gender)),
-        .init(model: .introduction(user.introduction)),
-        .init(model: .preferGender(user.preferGender, listener)),
-        .init(model: .height(user.tall, listener)),
-        .init(model: .smoking(user.smoking, listener)),
-        .init(model: .drinking(user.drinking, listener)),
-        .init(model: .religion(user.religion, listener)),
-        .init(model: .interest(user.interestsList, listener)),
-        .init(model: .idealType(user.idealTypeList, listener))
-      ]
-    }
+    let output = user.map { UserInfoMapper.map($0) }
+
     let photos = user.map(\.userProfilePhotos)
 
     input.delegateAction.filter {
@@ -76,7 +68,7 @@ final class MyPageHomeViewModel: ViewModelType {
     }
     .withLatestFrom(user)
     .drive(with: self) { owner, user in
-      owner.delegate?.invoke(.setting(user))
+      owner.onSetting?(user)
     }.disposed(by: disposeBag)
 
 
@@ -97,20 +89,22 @@ final class MyPageHomeViewModel: ViewModelType {
           return
         }
         isDimHiddenTrigger.accept(false)
-        owner.delegate?.invoke(.photoEditOrDeleteAlert(owner))
+        owner.onPhotoEdit? { action in
+          photoAlertTrigger.accept(action)
+        }
       }.disposed(by: disposeBag)
 
     photoEditTrigger.asSignal()
       .emit(with: self) { owner, index in
-        let pickerDelegate = PhotoPickerDelegator()
+        let handler: (PhotoPickerHandler)? = { item in
+          selectedPHResult.accept(item)
+        }
         selectedIndex.accept(index)
-        pickerDelegate.listener = owner
-        owner.pickerDelegate = pickerDelegate
-        owner.delegate?.invoke(.photoCellTap(index: index, listener: pickerDelegate))
+        owner.onPhotoCell?(index, handler)
       }.disposed(by: disposeBag)
 
     input.delegateAction
-      .withLatestFrom(output) { action, array in
+      .withLatestFrom(output) { action, array -> MyPageInfoCollectionViewCellViewModel? in
         if case let .sectionTap(index) = action {
           return array[index]
         }
@@ -118,7 +112,7 @@ final class MyPageHomeViewModel: ViewModelType {
       }
       .compactMap { $0 }
       .drive(with: self, onNext: { owner, viewModel in
-        owner.delegate?.invoke(.edit(viewModel.model))
+        owner.onEditInfo?(viewModel.model)
       })
       .disposed(by: disposeBag)
     input.delegateAction
@@ -130,7 +124,7 @@ final class MyPageHomeViewModel: ViewModelType {
       }
       .withLatestFrom(user.map(\.username))
       .drive(with: self) { owner, nickname in
-        owner.delegate?.invoke(.editNickname(nickname))
+        owner.onEditNickname?(nickname)
       }.disposed(by: disposeBag)
 
     alertSignal.asSignal()
@@ -195,22 +189,19 @@ final class MyPageHomeViewModel: ViewModelType {
   }
 }
 
-extension MyPageHomeViewModel: BottomSheetListener {
-  func sendData(item: BottomSheetValueType) {
-    print(item)
-  }
-}
-
-extension MyPageHomeViewModel: PhotoPickerListener {
-  func picker(didFinishPicking results: [PHPickerResult]) {
-    if let item = results.first {
-      self.selectedPHResult.accept(item)
-    }
-  }
-}
-
-extension MyPageHomeViewModel: TopBottomAlertListener {
-  func didTapAction(_ action: Core.TopBottomAction) {
-    self.alertSignal.accept(action)
+struct UserInfoMapper {
+  static func map(_ user: User) -> [MyPageInfoCollectionViewCellViewModel] {
+    return [
+      .init(model: .birthday( user.birthday)),
+      .init(model: .gender(user.gender)),
+      .init(model: .introduction(user.introduction)),
+      .init(model: .preferGender(user.preferGender)),
+      .init(model: .height(user.tall)),
+      .init(model: .smoking(user.smoking)),
+      .init(model: .drinking(user.drinking)),
+      .init(model: .religion(user.religion)),
+      .init(model: .interest(user.interestsList)),
+      .init(model: .idealType(user.idealTypeList))
+    ]
   }
 }

@@ -12,7 +12,6 @@ import SignUpInterface
 import AuthInterface
 import RxSwift
 import Domain
-import PhotosUI
 
 import Core
 
@@ -192,7 +191,7 @@ extension MyPageUseCase {
       .map { UserProfilePhoto(url: $0, priority: priority) }
   }
 
-  public func processImage(_ result: PHPickerResult) -> Single<Data> {
+  public func processImage(_ result: PhotoItem) -> Single<Data> {
     imageService.bind(result, imageSize: .profile)
   }
 }

@@ -10,7 +10,7 @@ import RxSwift
 import AuthInterface
 import SignUpInterface
 import Domain
-import PhotosUI
+import Core
 
 public protocol MyPageUseCaseInterface {
   func fetchUser() -> Single<User>
@@ -44,5 +44,5 @@ public protocol MyPageUseCaseInterface {
 
   // MARK: ImageService
   func updateImage(_ data: Data, priority: Int) -> Single<UserProfilePhoto>
-  func processImage(_ result: PHPickerResult) -> Single<Data>
+  func processImage(_ result: PhotoItem) -> Single<Data>
 }

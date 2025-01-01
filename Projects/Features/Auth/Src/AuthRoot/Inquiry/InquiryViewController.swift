@@ -29,11 +29,11 @@ public final class InquiryViewController: TFBaseViewController {
 
   public override func navigationSetting() {
 //    super.navigationSetting()
-    navigationController?.setNavigationBarHidden(true, animated: false)
+//    navigationController?.setNavigationBarHidden(true, animated: false)
   }
 
   public override func viewWillDisappear(_ animated: Bool) {
-    navigationController?.setNavigationBarHidden(false, animated: false)
+//    navigationController?.setNavigationBarHidden(false, animated: false)
   }
 
   public override func bindViewModel() {

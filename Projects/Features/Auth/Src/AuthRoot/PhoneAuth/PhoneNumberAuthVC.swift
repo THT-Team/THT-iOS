@@ -85,7 +85,7 @@ public final class PhoneNumberAuthVC: TFBaseViewController {
   }
 
   public override func navigationSetting() {
-    navigationController?.setNavigationBarHidden(true, animated: false)
+//    navigationController?.setNavigationBarHidden(true, animated: false)
     setBackButton()
   }
 

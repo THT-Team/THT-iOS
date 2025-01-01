@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import PhotosUI
 
 import Core
 
@@ -21,9 +20,8 @@ enum PhotoAlertAction {
 }
 
 final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
-  var pickerDelegate: PhotoPickerDelegate?
-
   private let alertSignal = PublishRelay<TopBottomAction>()
+  var onFetchPhoto: ((PhotoPickerHandler?) -> Void)?
 
   struct Input {
     let cellTap: Signal<Int>
@@ -36,12 +34,12 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
     let isDimHidden: Signal<Bool>
   }
 
-  private let selectedPHResult =  PublishSubject<PHPickerResult>()
-
   func transform(input: Input) -> Output {
     let user = Driver.just(self.pendingUser)
     let isDimHidden = PublishRelay<Bool>()
     let editTrigger = PublishRelay<Int>()
+
+    let selectedPHResult = PublishSubject<PhotoItem>()
 
     let imageDataArray = BehaviorRelay<[PhotoCellViewModel]>(value: [
       PhotoCellViewModel(data: nil, cellType: .required),
@@ -108,13 +106,13 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
 
     editTrigger.asSignal()
       .emit(with: self) { owner, index in
-        let pickerDelegate = PhotoPickerDelegator()
-        pickerDelegate.listener = owner
-        owner.pickerDelegate = pickerDelegate
-        owner.delegate?.invoke(.photoCellTap(index: index, listener: pickerDelegate), owner.pendingUser)
+        let handler: PhotoPickerHandler? = { item in
+          selectedPHResult.onNext(item)
+        }
+        owner.onFetchPhoto?(handler)
       }.disposed(by: disposeBag)
 
-    let data = self.selectedPHResult
+    let data = selectedPHResult
       .withUnretained(self)
       .flatMapLatest { owner, asset -> Driver<Data> in
         owner.useCase.processImage(asset)
@@ -164,14 +162,6 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
       nextBtn: nextBtnStatus,
       isDimHidden: isDimHidden.asSignal()
     )
-  }
-}
-
-extension PhotoInputViewModel: PhotoPickerListener {
-  func picker(didFinishPicking results: [PHPickerResult]) {
-    if let item = results.first {
-      self.selectedPHResult.onNext(item)
-    }
   }
 }
 

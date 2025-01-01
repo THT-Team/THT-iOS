@@ -8,11 +8,7 @@
 import Foundation
 
 import RxSwift
-import Alamofire
 
-public protocol SessionFactoryType {
-  func createSession() -> Session
-}
 
 public protocol AuthServiceType {
   func clearToken()

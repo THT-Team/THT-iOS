@@ -13,7 +13,12 @@ import RxCocoa
 import DSKit
 import MyPageInterface
 
-final class HeightEditVM: ViewModelType {
+public protocol BottomSheetViewModelType {
+  var handler: BottomSheetHandler? { get set }
+  var onDismiss: (() -> Void)? { get set }
+}
+
+final class HeightEditVM: ViewModelType, BottomSheetViewModelType {
   struct Input {
     let viewDidAppear: Driver<Void>
     let selectedItem: Driver<(row: Int, component: Int)>
@@ -29,8 +34,8 @@ final class HeightEditVM: ViewModelType {
   private var disposeBag = DisposeBag()
   private let initialValue: BottomSheetValueType
   private let useCase: MyPageUseCaseInterface
-  public weak var listener: BottomSheetListener?
-  public weak var delegate: BottomSheetActionDelegate?
+  public var handler: BottomSheetHandler?
+  public var onDismiss: (() -> Void)?
   public let userStore: UserStore
 
   init(
@@ -82,8 +87,8 @@ final class HeightEditVM: ViewModelType {
       }
       .drive(with: self) { owner, height in
         owner.userStore.send(action: .height(height))
-        owner.delegate?.sheetInvoke(.onDismiss)
-        owner.listener?.sendData(item: .text(text: "\(height)"))
+        owner.onDismiss?()
+        owner.handler?(.text(text: "\(height)"))
       }
       .disposed(by: disposeBag)
 

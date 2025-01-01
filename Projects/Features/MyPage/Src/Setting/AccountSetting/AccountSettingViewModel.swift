@@ -15,7 +15,7 @@ import RxCocoa
 
 import MyPageInterface
 
-final class AccountSettingViewModel: ViewModelType {
+public final class AccountSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
   private let accountAlertSignal = PublishRelay<Void>()
@@ -26,20 +26,20 @@ final class AccountSettingViewModel: ViewModelType {
   var onRoot: (() -> Void)?
   var onWithDrawal: (() -> Void)?
 
-  init(useCase: MyPageUseCaseInterface) {
+  public init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase
   }
 
-  struct Input {
+  public struct Input {
     let tap: Driver<Void>
     let deactivateTap: Driver<Void>
   }
 
-  struct Output {
+  public struct Output {
     let toast: Driver<String>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
 
     input.tap
