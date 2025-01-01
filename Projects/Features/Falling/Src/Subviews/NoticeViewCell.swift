@@ -15,7 +15,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
   private let borderGradientLayer = CAGradientLayer()
   private let maskLayer = CAShapeLayer()
   
-  var NoticeType: NoticeType = .find
+  var Action: Action = .find
   
   private let cardTimeView = CardTimeView()
 
@@ -46,7 +46,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
     return view
   }()
   
-  private let summitButton: UIButton = {
+  let summitButton: UIButton = {
     let button = UIButton()
 //    button.setTitleColor(DSKitAsset.Color.neutral600.color, for: .normal)
 //    button.setTitleColor(DSKitAsset.Color.neutral50.color, for: .selected)
@@ -158,7 +158,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
     maskLayer.strokeColor = UIColor.orange.cgColor
   }
   
-  func configure(type: NoticeType) {
+  func configure(type: Action) {
     imageView.image = type.image
     titleLabel.text = type.title
     
@@ -188,7 +188,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
 }
 
 extension NoticeViewCell {
-  enum NoticeType: String {
+  enum Action: String {
     case allMet
     case find
     case selectedFirst
