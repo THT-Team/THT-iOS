@@ -45,18 +45,18 @@ final class FallingViewController: TFBaseViewController {
   private let deleteAnimationComplete = PublishRelay<Void>()
 
   override func bindViewModel() {
-    let initialTrigger = Driver<Void>.just(())
+    let viewDidLoad = Driver.just(())
     let fallingCellButtonAction = PublishSubject<FallingUserCollectionViewCell.Action>()
+    let noticeButtonAction = PublishSubject<NoticeViewCell.Action>()
     let viewWillDisAppear = self.rx.viewWillDisAppear.asDriver().map { _ in
     }
-    let viewDidAppear = self.rx.viewDidAppear.asDriver().map { _ in }
 
     let input = FallingViewModel.Input(
-      initialTrigger: initialTrigger,
-      viewDidAppear: viewDidAppear,
+      viewDidLoad: viewDidLoad,
       viewWillDisappear: viewWillDisAppear,
       cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty(),
-      deleteAnimationComplete: deleteAnimationComplete.asSignal()
+      deleteAnimationComplete: deleteAnimationComplete.asSignal(),
+      noticeButtonAction: noticeButtonAction.asDriverOnErrorJustEmpty()
     )
     
     let output = viewModel.transform(input: input)
@@ -107,8 +107,12 @@ final class FallingViewController: TFBaseViewController {
         .disposed(by: cell.disposeBag)
     }
     
-    let noticeRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.NoticeType> { cell, indexPath, item in
+    let noticeRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action> { cell, indexPath, item in
       cell.configure(type: item)
+      
+      cell.summitButton.rx.tap.map { item }.asDriverOnErrorJustEmpty()
+        .drive(noticeButtonAction)
+        .disposed(by: cell.disposeBag)
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
@@ -205,8 +209,8 @@ extension FallingViewController {
 }
 
 extension FallingViewController {
-  enum FallingDataModel: Hashable {
+  enum FallingDataModel: Hashable, Equatable {
     case fallingUser(FallingUser)
-    case notice(NoticeViewCell.NoticeType)
+    case notice(NoticeViewCell.Action)
   }
 }

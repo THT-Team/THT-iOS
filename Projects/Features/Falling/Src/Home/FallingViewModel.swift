@@ -22,15 +22,15 @@ final class FallingViewModel: ViewModelType {
   var disposeBag: DisposeBag = DisposeBag()
   
   private let timer = TFTimer(startTime: 15.0)
-  
   private let alertActionSignal = PublishRelay<FallingAlertAction>()
   
   struct Input {
-    let initialTrigger: Driver<Void>
-    let viewDidAppear: Driver<Void>
+    let viewDidLoad: Driver<Void>
+    //    let viewDidAppear: Driver<Void>
     let viewWillDisappear: Driver<Void>
     let cellButtonAction: Driver<CellType.Action>
     let deleteAnimationComplete: Signal<Void>
+    let noticeButtonAction: Driver<NoticeViewCell.Action>
   }
   
   struct Output {
@@ -91,7 +91,9 @@ final class FallingViewModel: ViewModelType {
     case setScrollEvent(ScrollActionType)
     case updateIndexPath(Int)
     case removeSnapshot(FallingUser)
-    case fetchUser([FallingUser])
+    
+    case fetchUser
+    case setUser(FallingUserInfo?)
     
     case selectAlert
     case toChatRoom(String)
@@ -160,11 +162,7 @@ extension FallingViewModel {
             .just(.showPause)
           )
         },
-      input.viewDidAppear
-        .asObservable()
-        .flatMap({ _ -> Observable<Mutation> in
-          return .concat(.empty())
-        }),
+      
       input.cellButtonAction
         .asObservable()
         .withLatestFrom(state) { ($0, $1) }
@@ -207,23 +205,27 @@ extension FallingViewModel {
           }
         }),
       
-      input.initialTrigger
+      input.viewDidLoad
         .asObservable()
         .flatMap { [unowned self] _ in
-          self.fallingUseCase.user(alreadySeenUserUUIDList: [], userDailyFallingCourserIdx: 1, size: 100)
-            .asObservable()
-            .catchAndReturn(
-              .init(
-                selectDailyFallingIdx: 0,
-                topicExpirationUnixTime: 0,
-                isLast: false,
-                userInfos: []
-              )
+          self.fallingUseCase.user(
+            alreadySeenUserUUIDList: [],
+            userDailyFallingCourserIdx: 1,
+            size: 100
+          )
+          .asObservable()
+          .catchAndReturn(
+            .init(
+              selectDailyFallingIdx: 0,
+              topicExpirationUnixTime: 0,
+              isLast: false,
+              userInfos: []
             )
+          )
         }
         .flatMap { snapshot -> Observable<Mutation> in
           return .concat(
-            .just(Mutation.fetchUser(snapshot.userInfos)),
+            .just(.setUser(snapshot)),
             .just(.startTimer)
           )
         },
@@ -236,12 +238,24 @@ extension FallingViewModel {
             .concat(.just(.removeSnapshot(user)),
                     .just(.setScrollEvent(.scroll))
             )
-        }
+        },
+      
+      input.noticeButtonAction
+        .asObservable()
+        .flatMap({ action -> Observable<Mutation> in
+          switch action {
+          case .allMet:
+              .just(.setUser(nil))
+          case .find:
+              .just(.setUser(nil))
+          case .selectedFirst:
+              .just(.setUser(nil))
+          }
+        })
     )
   }
   
   private func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
-    
     let signalMutation = self.alertActionSignal
       .withLatestFrom(state.compactMap(\.user)) { action, user in
         return (action, user)
@@ -295,16 +309,27 @@ extension FallingViewModel {
   private func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
-    case let .fetchUser(users):
-      if users.isEmpty {
+    case .fetchUser:
+      return newState
+    case let .setUser(userInfo):
+      if let userInfo = userInfo {
+        if userInfo.userInfos.isEmpty {
+          newState.snapshot = [
+            .notice(.selectedFirst)
+          ]
+        } else {
+          newState.snapshot = userInfo.userInfos.map {
+            FallingViewController.FallingDataModel.fallingUser($0)
+          }
+          
+          if userInfo.isLast {
+            newState.snapshot.append(.notice(.allMet))
+          }
+        }
+      } else {
         newState.snapshot = [
           .notice(.selectedFirst)
         ]
-      } else {
-        newState.snapshot = users.map {
-          FallingViewController.FallingDataModel.fallingUser($0)
-        }
-        newState.snapshot.append(.notice(.allMet))
       }
       return newState
     case let .updateIndexPath(offset):
