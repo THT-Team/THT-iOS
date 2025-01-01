@@ -38,7 +38,6 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-
     container.register(
       interface: LikeUseCaseInterface.self,
       implement: {
@@ -46,7 +45,8 @@ extension AppDelegate {
           repository: LikeRepository(
             isStub: true,
             sampleStatusCode: 200,
-            customEndpointClosure: nil)
+            customEndpointClosure: nil
+					)
         )
       }
     )
