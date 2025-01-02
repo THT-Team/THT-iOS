@@ -32,7 +32,7 @@ extension KakaoAPITarget: BaseTargetType {
   }
 
   public var headers: [String : String]? {
-    ["Authorization": "KakaoAK fd26fcdea335b93122163284d3fd4047"]
+    ["Authorization": "KakaoAK bb6994867d98b59fcc9700ee64688f4f"]
   }
 
   public var method: Moya.Method {

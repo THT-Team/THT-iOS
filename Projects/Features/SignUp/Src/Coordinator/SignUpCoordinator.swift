@@ -116,20 +116,21 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 
   public func photoFlow(user: PendingUser) {
     let vm = PhotoInputViewModel(useCase: useCase, pendingUser: user)
-    var picker = PHPickerControllable()
+    let picker = PHPickerControllable()
     vm.onFetchPhoto = { [weak self] handler in
       picker.handelr = handler
       self?.viewControllable.present(picker, animated: true)
     }
+    vm.onPhotoEdit = { [weak self] handler in
+      let alert = TFAlertBuilder.makePhotoEditAlert(handler)
+      alert.modalTransitionStyle = .crossDissolve
+      self?.viewControllable.present(alert, animated: true)
+    }
+    vm.onNext = { [weak self] user in
+      self?.heightFlow(user: user)
+    }
     let vc = PhotoInputViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
-  }
-
-  public func photoPickerFlow(handler: PhotoPickerHandler?) {
-
-    // coordinator로 빼기
-    let picker = PHPickerControllable(handler)
-    self.viewControllable.present(picker, animated: true)
   }
 
   public func heightFlow(user: PendingUser) {
@@ -178,7 +179,9 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 
   public func signUpCompleteFlow(user: SignUpInterface.PendingUser, contacts: [ContactType]) {
     let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user, contacts: contacts)
-    vm.delegate = self
+    vm.onNext = { [weak self] in
+      self?.finishFlow?()
+    }
     let vc = SignUpCompleteViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
@@ -226,7 +229,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case .nextAtPreferGender:
       photoFlow(user: pendingUser)
     case let .photoCellTap(_, handler):
-      photoPickerFlow(handler: handler)
+//      photoPickerFlow(handler: handler)
+      break
     case .nextAtPhoto:
       heightFlow(user: pendingUser)
 

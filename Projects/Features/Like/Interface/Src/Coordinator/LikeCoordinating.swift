@@ -19,11 +19,10 @@ public protocol LikeProfileListener: AnyObject {
 }
 
 public protocol LikeCoordinating: Coordinator {
-  var delegate: LikeCoordinatorDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
   func homeFlow()
-  func chatRoomFlow()
-  func profileFlow(_ item: Like, listener: LikeProfileListener)
+  func chatRoomFlow(_ userUUID: String)
 }
 
 public enum LikeCoordinatorAction {

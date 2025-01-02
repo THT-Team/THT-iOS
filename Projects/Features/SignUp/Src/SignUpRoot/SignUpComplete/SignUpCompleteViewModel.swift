@@ -23,6 +23,8 @@ final class SignUpCompleteViewModel: BasePenddingViewModel, ViewModelType {
     super.init(useCase: useCase, pendingUser: pendingUser)
   }
 
+  var onNext: (() -> Void)?
+
   struct Input {
     let nextBtnTap: Driver<Void>
   }
@@ -52,42 +54,23 @@ final class SignUpCompleteViewModel: BasePenddingViewModel, ViewModelType {
           }
       }.asDriverOnErrorJustEmpty()
 
-    // 이미지 업로드
-    // SignUpRequest
-
-    let imageUrls = input.nextBtnTap
+    input.nextBtnTap
       .throttle(.milliseconds(500), latest: false)
       .withLatestFrom(imagesData)
       .asObservable()
       .withUnretained(self)
-      .flatMapLatest { owner, data in
-        owner.useCase.uploadImage(data: data)
-          .asObservable()
-          .catch { error in
-            toast.accept("이미지 업로드에 실패했습니다.")
-            return .empty()
-          }
-      }
-      .asDriverOnErrorJustEmpty()
-
-    imageUrls
-      .debug("image URLS")
-      .filter { !$0.isEmpty }
-      .asObservable()
-      .withUnretained(self)
       .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
-      .flatMap { owner, urls -> Observable<Void> in
-        owner.pendingUser.photos = urls
-        return owner.useCase.signUp(request: owner.pendingUser, contacts: owner.contacts)
+      .flatMapLatest { owner, data in
+        owner.useCase.signUp(owner.pendingUser, imageData: data, contacts: owner.contacts)
           .asObservable()
           .catch { error in
-            toast.accept("회원가입에 실패했습니다.")
+            toast.accept(error.localizedDescription)
             return .empty()
           }
       }
       .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.nextAtSignUpComplete, owner.pendingUser)
+        owner.onNext?()
       }
       .disposed(by: disposeBag)
 

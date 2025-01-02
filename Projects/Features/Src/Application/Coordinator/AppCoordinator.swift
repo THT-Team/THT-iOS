@@ -88,6 +88,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
       self?.detachChild(coordinator)
+      self?.mainFlow()
     }
 
     attachChild(coordinator)

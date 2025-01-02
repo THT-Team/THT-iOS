@@ -33,7 +33,9 @@ public final class LikeHomeViewController: TFBaseViewController {
     let noti = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
   }
-  
+
+  private let deleteAnimationCompleteRelay = PublishRelay<Like>()
+
   public override func bindViewModel() {
       self.mainView.collectionView.delegate = self
 
@@ -51,14 +53,18 @@ public final class LikeHomeViewController: TFBaseViewController {
 		
       let pagingTrigger = self.mainView.collectionView.rx.didEndDragging
         .asDriver()
-        .filter { $0 }
-        .map { _ in }
-        .filter { self.mainView.needPaging }
+        .compactMap { [weak self] endDrag -> Void? in
+          if endDrag && self?.mainView.needPaging == true {
+            return
+          }
+          return nil
+        }
 
       let input = LikeHomeViewModel.Input(
         trigger: Driver.merge(initialTrigger, refreshControl),
         cellButtonAction: cellButtonSubject.asDriverOnErrorJustEmpty(),
-        pagingTrigger: pagingTrigger
+        pagingTrigger: pagingTrigger,
+        deleteAnimationComplete: deleteAnimationCompleteRelay.asDriverOnErrorJustEmpty()
       )
 
       let output = viewModel.transform(input: input)
@@ -68,18 +74,14 @@ public final class LikeHomeViewController: TFBaseViewController {
 		// 토픽별로 모아서 Response 가 오는지 확인 필요 -> 위에 추가되어도 괜찮다고 확인함
 		// 레드닷: 1. 액션 존재할때 2. 페이지에서 나갈때
 		output.likeList
-			.drive(with: self) { owner, list in
-				owner.mainView.emptyView.isHidden = !list.isEmpty
-				if owner.mainView.refreshControl.isRefreshing {
-					owner.mainView.refreshControl.endRefreshing()
-				}
+      .do(onNext: { [weak self] list in
+        self?.mainView.emptyView.isHidden = !list.isEmpty
+        if self?.mainView.refreshControl.isRefreshing == true {
+          self?.mainView.refreshControl.endRefreshing()
+        }
+      })
+      .drive(with: self) { owner, list in
 				owner.applyItemsToDataSource(list)
-			}
-			.disposed(by: disposeBag)
-
-		output.pagingList
-			.drive(with: self) { owner, likeItems in
-				owner.applyItemsToDataSource(likeItems)
 			}
 			.disposed(by: disposeBag)
 
@@ -88,7 +90,18 @@ public final class LikeHomeViewController: TFBaseViewController {
 				owner.deleteItems(item)
 			}
 			.disposed(by: disposeBag)
-			
+
+    output.headerLabel
+      .drive(with: self) { owner, item in
+        owner.mainView.headerLabel.text = item.1
+        owner.mainView.headerLabel.asColor(targetString: item.0, color: DSKitAsset.Color.primary500.color)
+      }
+      .disposed(by: disposeBag)
+
+    output.blurFlag
+      .emit(with: self) { owner, flag in
+        owner.mainView.visualEffectView.isHidden = !flag
+      }.disposed(by: disposeBag)
     }
 }
 
@@ -98,8 +111,7 @@ extension LikeHomeViewController {
 
   private func setupDataSource<O: ObserverType>(observer: O) where O.Element == LikeCellButtonAction {
     let likeCellRegistration = UICollectionView.CellRegistration<HeartCollectionViewCell, Like> { cell, indexPath, item in
-      cell.bind(observer, index: indexPath)
-      cell.bind(viewModel: item)
+      cell.bind(observer, like: item)
     }
 
     let headerRegistration = UICollectionView.SupplementaryRegistration<TFCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { [unowned self] supplementaryView, elementKind, indexPath in
@@ -130,28 +142,32 @@ extension LikeHomeViewController {
     else {
       return
     }
-    var snapshot = self.dataSource.snapshot()
-    snapshot.deleteItems([item])
+//    var snapshot = self.dataSource.snapshot()
+//    snapshot.deleteItems([item])
     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-      cell.frame = CGRect(x: cell.frame.minX - self.mainView.collectionView.frame.width, y: cell.frame.minY, width: cell.frame.width, height: cell.frame.height)
+      cell.frame = CGRect(
+        origin: .init(x: cell.frame.minX - self.mainView.collectionView.frame.width, y: cell.frame.minY),
+        size: cell.frame.size)
     } completion: { _ in
-      self.dataSource.apply(snapshot, animatingDifferences: true)
+
+//      self.dataSource.apply(snapshot, animatingDifferences: true)
+      self.deleteAnimationCompleteRelay.accept(item)
     }
   }
 
-	private func applyItemsToDataSource(_ items: [Like]) {
+  private func applyItemsToDataSource(_ items: [LikeTopicSection]) {
 		var snapshot = Snapshot()
-		var sections: [String: [Like]] = [:]
+//		var sections: [String: [Like]] = [:]
 		
-		items.forEach { item in
-			sections[item.topic, default: []].append(item)
-		}
+//		items.forEach { item in
+//			sections[item.topic, default: []].append(item)
+//		}
 		
-		snapshot.appendSections(Array(sections.keys))
-		
-		for section in Array(sections.keys) {
-			guard let items = sections[section] else { continue }
-			snapshot.appendItems(items, toSection: section)
+    snapshot.appendSections(items.filter { !$1.isEmpty }.map { $0.topic })
+
+		for (topic, list) in items {
+      guard !list.isEmpty else { continue }
+      snapshot.appendItems(list, toSection: topic)
 		}
 		
 		dataSource.apply(snapshot, animatingDifferences: true)

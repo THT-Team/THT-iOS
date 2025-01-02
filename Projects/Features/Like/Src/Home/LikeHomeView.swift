@@ -18,6 +18,18 @@ final class HeartListView: TFBaseView {
     collectionView.contentOffset.y + collectionView.frame.height > collectionView.contentSize.height - 100
   }
 
+  let headerLabel: UILabel = {
+    let label = UILabel()
+    label.font = .thtSubTitle1Sb
+    label.backgroundColor = DSKitAsset.Color.neutral900.color
+    label.textAlignment = .center
+    label.textColor = DSKitAsset.Color.neutral50.color
+    label.text = "무디 100명이 나를 좋아해요 :)"
+    label.layer.cornerRadius = 12
+    label.clipsToBounds = true
+    return label
+  }()
+
   lazy var collectionView: UICollectionView = {
     let layout = createLayout()
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -40,14 +52,25 @@ final class HeartListView: TFBaseView {
   )
 
   override func makeUI() {
-		self.addSubviews(collectionView, visualEffectView)
-    
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
+
+    self.addSubviews(headerLabel, collectionView, visualEffectView)
+
     visualEffectView.isHidden = true
     visualEffectView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
+
+    // FIXME: 수치
+    headerLabel.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.top.equalToSuperview().offset(10)
+      $0.height.equalTo(42)
+    }
+
     collectionView.snp.makeConstraints {
-      $0.edges.equalTo(self.safeAreaLayoutGuide)
+      $0.top.equalTo(headerLabel.snp.bottom).offset(10)
+      $0.leading.trailing.bottom.equalTo(self.safeAreaLayoutGuide)
     }
   }
 

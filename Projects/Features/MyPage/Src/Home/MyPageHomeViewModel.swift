@@ -37,7 +37,6 @@ public final class MyPageHomeViewModel: ViewModelType {
 
   private var disposeBag = DisposeBag()
   private let userStore: UserStore
-  private let alertSignal = PublishRelay<TopBottomAction>()
 
   public init(myPageUseCase: MyPageUseCaseInterface, userStore: UserStore) {
     self.myPageUseCase = myPageUseCase
@@ -127,7 +126,7 @@ public final class MyPageHomeViewModel: ViewModelType {
         owner.onEditNickname?(nickname)
       }.disposed(by: disposeBag)
 
-    alertSignal.asSignal()
+    photoAlertTrigger.asSignal()
       .compactMap { action -> Int? in
         isDimHiddenTrigger.accept(true)
         switch action {

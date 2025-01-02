@@ -69,10 +69,11 @@ final class AuthRootViewModel: ViewModelType {
       })
       .disposed(by: disposeBag)
 
-    phoneNumberVerifiedSubject
-      .withLatestFrom(snsUserInfoSubject) { ($0, $1) }
+
+//    phoneNumberVerifiedSubject
+//      .withLatestFrom(snsUserInfoSubject) { ($0, $1) }
 //
-//    Observable.zip(phoneNumberVerifiedSubject, snsUserInfoSubject)
+    Observable.zip(phoneNumberVerifiedSubject, snsUserInfoSubject)
       .withUnretained(self)
       .flatMap { owner, info -> Single<AuthResult> in
         let (phoneNumber, snsUserInfo) = info

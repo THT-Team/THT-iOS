@@ -26,11 +26,12 @@ public protocol SignUpUseCaseInterface {
 
 
   func block() -> Single<[ContactType]>
-  func signUp(request: PendingUser, contacts: [ContactType]) -> Single<Void>
+  func signUp(_ user: PendingUser, imageData: [Data], contacts: [ContactType]) -> Single<Void>
   
   // MARK: Photo
   func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]>
-  func saveUserPhotos(key: String, datas: [Data]) -> Single<[String]>
-  func uploadImage(data: [Data]) -> Single<[String]>
+
+  func saveUserPhotos(_ user: PendingUser, datas: [Data]) -> Single<PendingUser>
+
   func processImage(_ result: PhotoItem) -> Single<Data>
 }

@@ -33,19 +33,13 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     let rootViewControllable = NavigationViewControllable()
     replaceWindowRootViewController(rootViewController: rootViewControllable)
     
-    let likeCoordinator = self.likeBuildable.build(rootViewControllable: rootViewControllable)
-    
-    attachChild(likeCoordinator)
-    likeCoordinator.delegate = self
-    
-    likeCoordinator.start()
-  }
-}
+    let coordinator = self.likeBuildable.build(rootViewControllable: rootViewControllable)
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+    }
 
-extension AppCoordinator: LikeCoordinatorDelegate {
-  func test(_ coordinator: Core.Coordinator) {
-    detachChild(coordinator)
-    
-    TFLogger.dataLogger.debug("test")
+    attachChild(coordinator)
+    coordinator.start()
   }
 }

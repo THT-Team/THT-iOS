@@ -20,8 +20,9 @@ enum PhotoAlertAction {
 }
 
 final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
-  private let alertSignal = PublishRelay<TopBottomAction>()
   var onFetchPhoto: ((PhotoPickerHandler?) -> Void)?
+  var onPhotoEdit: ((TopBottomAlertHandler) -> Void)?
+  var onNext: ((PendingUser) -> Void)?
 
   struct Input {
     let cellTap: Signal<Int>
@@ -40,6 +41,7 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
     let editTrigger = PublishRelay<Int>()
 
     let selectedPHResult = PublishSubject<PhotoItem>()
+    let photoAlertTrigger = PublishRelay<TopBottomAction>()
 
     let imageDataArray = BehaviorRelay<[PhotoCellViewModel]>(value: [
       PhotoCellViewModel(data: nil, cellType: .required),
@@ -82,27 +84,26 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
           return
         }
         isDimHidden.accept(false)
-        owner.delegate?.invoke(.photoEditOrDeleteAlert(owner), owner.pendingUser)
+        owner.onPhotoEdit? { action in
+          photoAlertTrigger.accept(action)
+        }
       }.disposed(by: disposeBag)
 
-    alertSignal.asSignal()
-      .compactMap { action -> Int? in
+    photoAlertTrigger.asSignal()
+      .emit(onNext: {
         isDimHidden.accept(true)
-        switch action {
+        switch $0 {
         case .top:
           editTrigger.accept(2)
-          return nil
         case .bottom:
-          return 2
+          var mutable = imageDataArray.value
+          mutable[2].data = nil
+          imageDataArray.accept(mutable)
         case .cancel:
-          return nil
+          break
         }
-      }.emit(onNext: { item in
-        var mutable = imageDataArray.value
-        mutable[item].data = nil
-        imageDataArray.accept(mutable)
-      }).disposed(by: disposeBag)
-
+      })
+      .disposed(by: disposeBag)
 
     editTrigger.asSignal()
       .emit(with: self) { owner, index in
@@ -121,7 +122,8 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
       }
       .asSignal(onErrorSignalWith: .empty())
 
-    Signal.zip(editTrigger.asSignal(), data) { index, data in
+    data
+      .withLatestFrom(editTrigger.asSignal()) { data, index in
       var mutable = imageDataArray.value
       mutable[index].data = data
       return mutable
@@ -145,16 +147,17 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
       .withUnretained(self)
       .observe(on: ConcurrentDispatchQueueScheduler.init(qos: .userInitiated))
       .flatMapLatest { owner, datas in
-        owner.useCase.saveUserPhotos(key: owner.pendingUser.phoneNumber, datas: datas)
-          .catchAndReturn([])
+        owner.useCase.saveUserPhotos(owner.pendingUser, datas: datas)
           .asObservable()
+          .catch({ error in
+            print(error.localizedDescription)
+            return .empty()
+          })
       }
       .debug("saved filed URLS:")
       .asDriverOnErrorJustEmpty()
-      .drive(with: self) { owner, urls in
-        owner.pendingUser.photos = urls
-        owner.useCase.savePendingUser(owner.pendingUser)
-        owner.delegate?.invoke(.nextAtPhoto, owner.pendingUser)
+      .drive(with: self) { owner, user in
+        owner.onNext?(owner.pendingUser)
       }.disposed(by: disposeBag)
 
     return Output(
@@ -162,11 +165,5 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
       nextBtn: nextBtnStatus,
       isDimHidden: isDimHidden.asSignal()
     )
-  }
-}
-
-extension PhotoInputViewModel: TopBottomAlertListener {
-  func didTapAction(_ action: Core.TopBottomAction) {
-    self.alertSignal.accept(action)
   }
 }

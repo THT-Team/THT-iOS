@@ -11,19 +11,7 @@ import Core
 import DSKit
 import LikeInterface
 
-final class HeartCollectionViewCell: UICollectionViewListCell {
-  var disposeBag = DisposeBag()
-
-  private var model: Like?
-
-  private var indexPath: IndexPath? {
-    guard let collectionView = self.superview as? UICollectionView,
-          let indexPath = collectionView.indexPath(for: self) else {
-      TFLogger.ui.error("indexPath 얻기 실패")
-      return nil
-    }
-    return indexPath
-  }
+final class HeartCollectionViewCell: TFBaseCollectionViewCell {
 
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()
@@ -58,27 +46,8 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     return label
   }()
 
-  private lazy var nextTimeButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.image = DSKitAsset.Image.Icons.face.image.withTintColor(DSKitAsset.Color.neutral50.color, renderingMode: .alwaysOriginal)
-    config.imagePadding = 10
-    config.imagePlacement = .leading
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("다음에")
-    titleAttribute.font = UIFont.thtSubTitle2Sb
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral50.color
-    config.baseBackgroundColor = DSKitAsset.Color.neutral600.color
-    config.attributedTitle = titleAttribute
-    config.background.strokeWidth = 1
-    config.background.strokeColor = DSKitAsset.Color.neutral400.color
-
-    button.configuration = config
-
-    return button
-  }()
+  private lazy var chatButton = UIButton.chat()
+  private lazy var nextTimeButton = UIButton.nextTime()
 
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
@@ -89,26 +58,6 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     return stackView
   }()
 
-  private lazy var chatButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.image = DSKitAsset.Image.Icons.messageSquare1.image.withTintColor(DSKitAsset.Color.neutral700.color, renderingMode: .alwaysOriginal)
-    config.imagePadding = 10
-    config.imagePlacement = .leading
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("대화히기")
-    titleAttribute.font = UIFont.thtSubTitle2Sb
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral700.color
-    config.baseBackgroundColor = DSKitAsset.Color.primary500.color
-    config.attributedTitle = titleAttribute
-
-    button.configuration = config
-
-    return button
-  }()
-
   private let newArriavalView: UIView = {
     let view = UIView()
     view.backgroundColor = DSKitAsset.Color.error.color
@@ -117,23 +66,15 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     return view
   }()
 
-  override init(frame: CGRect) {
-    super.init(frame: .zero)
-    makeUI()
-  }
 
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
-  func makeUI() {
+  override func makeUI() {
 		self.backgroundView = UIView().then {
 			$0.backgroundColor = DSKitAsset.Color.neutral700.color
 		}
 		
     self.contentView.backgroundColor = DSKitAsset.Color.neutral600.color
     self.contentView.layer.cornerRadius = 12
-		
+
 		contentView.addSubviews(
 			profileImageView, 
 			nickNameLabel,
@@ -143,10 +84,8 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
 			stackView
 		)
 
-    [nextTimeButton, chatButton].forEach {
-      stackView.addArrangedSubview($0)
-
-    }
+    stackView.addArrangedSubview(nextTimeButton)
+    stackView.addArrangedSubview(chatButton)
 
     profileImageView.snp.makeConstraints {
       $0.width.equalTo((UIScreen.main.bounds.width - 14 * 2) * 84 / 358)
@@ -172,8 +111,9 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
     stackView.snp.makeConstraints {
       $0.top.equalTo(locationIconImageView.snp.bottom).offset(10)
       $0.leading.equalTo(nickNameLabel)
-      $0.trailing.bottom.equalToSuperview().inset(12)
+      $0.trailing.equalToSuperview().offset(-12)
       $0.height.equalTo((UIScreen.main.bounds.width - 14 * 2) * 33 / 358)
+      $0.bottom.equalToSuperview().offset(-12)
     }
 
     newArriavalView.snp.makeConstraints {
@@ -185,50 +125,71 @@ final class HeartCollectionViewCell: UICollectionViewListCell {
   }
 
   override func prepareForReuse() {
-    super.prepareForReuse()
-    self.disposeBag = DisposeBag()
     profileImageView.image = nil
     nickNameLabel.text = nil
     locationLabel.text = nil
+    super.prepareForReuse()
   }
 
-  func bind(viewModel: Like) {
-    self.model = viewModel
-    profileImageView.image = nil
-    nickNameLabel.text = viewModel.username
-    locationLabel.text = viewModel.address
-  }
-
-  func bind<O>(_ observer: O, index: IndexPath) where O: ObserverType, O.Element == ( LikeCellButtonAction) {
+  func bind<O>(_ observer: O, like: Like) where O: ObserverType, O.Element == ( LikeCellButtonAction) {
+    profileImageView.kf.setImage(with: URL(string: like.profileURL)!)
+    nickNameLabel.text = like.username
+    locationLabel.text = like.address
 
     nextTimeButton.rx.tap
-      .debug()
-      .map {
-        guard let collectionView = self.superview as? UICollectionView else {
-          TFLogger.ui.error("변환 실패")
-          return IndexPath(row: 0, section: 0)
-        }
-        guard let indexPath = collectionView.indexPath(for: self) else {
-          TFLogger.ui.error("indexPath 얻기 실패")
-          return IndexPath(row: 0, section: 0)
-        }
-        return indexPath
-      }
-      .map { LikeCellButtonAction.reject($0) }
+      .map { LikeCellButtonAction.reject(like) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     chatButton.rx.tap
-      .compactMap { self.indexPath }
-      .map { LikeCellButtonAction.chat($0) }
+      .map { LikeCellButtonAction.chat(like) }
       .bind(to: observer)
       .disposed(by: disposeBag)
 
     profileImageView.rx.tapGesture()
       .when(.recognized).mapToVoid()
-      .compactMap { self.indexPath }
-      .map { LikeCellButtonAction.profile($0) }
+      .map { LikeCellButtonAction.profile(like) }
       .bind(to: observer)
       .disposed(by: disposeBag)
+  }
+}
+
+
+fileprivate extension UIButton {
+  static func nextTime() -> UIButton {
+    let button = UIButton()
+    var config = UIButton.Configuration.filled()
+
+    config.cornerStyle = .capsule
+
+    var titleAttribute = AttributedString("다음에")
+    titleAttribute.font = UIFont.thtSubTitle2M
+    titleAttribute.foregroundColor = DSKitAsset.Color.neutral300.color
+    config.baseBackgroundColor = DSKitAsset.Color.neutral500.color
+    config.attributedTitle = titleAttribute
+
+    button.configuration = config
+
+    return button
+  }
+
+  static func chat() -> UIButton {
+    let button = UIButton()
+    var config = UIButton.Configuration.filled()
+
+    config.cornerStyle = .capsule
+
+    var titleAttribute = AttributedString("대화히기")
+    titleAttribute.font = UIFont.thtSubTitle2M
+    titleAttribute.foregroundColor = DSKitAsset.Color.neutral700.color
+    config.baseBackgroundColor = DSKitAsset.Color.primary500.color
+    config.attributedTitle = titleAttribute
+
+    config.background.strokeWidth = 1
+    config.background.strokeColor = DSKitAsset.Color.neutral300.color
+
+    button.configuration = config
+
+    return button
   }
 }
