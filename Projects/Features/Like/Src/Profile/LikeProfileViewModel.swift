@@ -14,45 +14,45 @@ import Domain
 public final class LikeProfileViewModel: ViewModelType {
 
   private let likeUseCase: LikeUseCaseInterface
-  private let likItem: Like
+  private let like: Like
   private var disposeBag = DisposeBag()
 
-  var handler: ((LikeCellButtonAction) -> Void)?
-  var onDismiss: (() -> Void)?
+  var onDismiss: ((LikeCellButtonAction) -> Void)?
 
   public init(likeUseCase: LikeUseCaseInterface, likItem: Like) {
     self.likeUseCase = likeUseCase
-    self.likItem = likItem
+    self.like = likItem
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
   }
 
   public struct Input {
-    let trigger: Driver<Void>
-    let rejectTrigger: Driver<Void>
-    let likeTrigger: Driver<Void>
-    let closeTrigger: Driver<Void>
-    let reportTrigger: Driver<Void>
+    let trigger: Signal<Void>
+    let rejectTrigger: Signal<Void>
+    let likeTrigger: Signal<Void>
+    let closeTrigger: Signal<Void>
   }
 
   public struct Output {
     let topic: Driver<TopicViewModel>
     let userInfo: Driver<UserInfo>
-    let photos: Driver<[UserProfilePhoto]>
   }
 
   public func transform(input: Input) -> Output {
-    let like = Driver.just(self.likItem)
+    let like = Signal.just(self.like)
 
     let userInfo = input.trigger
-      .withLatestFrom(like)
-      .flatMapLatest(with: self, selector: { owner, like in
-        owner.likeUseCase.user(id: like.userUUID)
-          .asDriverOnErrorJustEmpty()
-      })
+      .asObservable()
+      .withUnretained(self) { owner, _ in owner }
+      .flatMap { owner in
+        owner.likeUseCase.user(id: owner.like.userUUID)
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
 
-    let photos = userInfo
-      .map { $0.userProfilePhotos }
-
-    Driver<LikeCellButtonAction>.merge(
+    Signal<LikeCellButtonAction>.merge(
       input.rejectTrigger
         .withLatestFrom(like) {
           LikeCellButtonAction.reject($1)
@@ -60,25 +60,18 @@ public final class LikeProfileViewModel: ViewModelType {
       input.likeTrigger
         .withLatestFrom(like) {
           LikeCellButtonAction.chat($1)
-        }
+        },
+      input.closeTrigger
+        .map { LikeCellButtonAction.cancel }
     )
-    .drive(with: self, onNext: { owner, action in
-      owner.handler?(action)
-      owner.onDismiss?()
+    .emit(with: self, onNext: { owner, action in
+      owner.onDismiss?(action)
     })
     .disposed(by: disposeBag)
 
-    input.closeTrigger
-      .drive(with: self, onNext: { owner, _ in
-        owner.handler?(.cancel)
-        owner.onDismiss?()
-      })
-      .disposed(by: disposeBag)
-
     return Output(
-      topic: like.map { TopicViewModel(topic: $0.topic, issue: $0.issue) },
-      userInfo: userInfo,
-      photos: photos
+      topic: Driver.just(self.like).map { TopicViewModel(topic: $0.topic, issue: $0.issue) },
+      userInfo: userInfo
     )
   }
 }

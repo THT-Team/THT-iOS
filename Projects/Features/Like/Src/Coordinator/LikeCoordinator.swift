@@ -9,6 +9,7 @@ import Foundation
 
 import LikeInterface
 import Core
+import UIKit
 
 // MARK: Using Other Feature Coordinator
 // step 1. get buildable when init
@@ -21,6 +22,7 @@ public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
   public var finishFlow: (() -> Void)?
 
   public override func start() {
+    (self.viewControllable.uiController as? UINavigationController)?.delegate = TransitionManager.shared
     homeFlow()
   }
 
@@ -43,10 +45,17 @@ public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
 
   public func profileFlow(_ item: Like, handler: ((LikeCellButtonAction) -> Void)?) {
     let (vc, vm) = factory.makeProfile(like: item)
-    vm.handler = handler
-    vm.onDismiss = { [weak self] in
+    vm.onDismiss = { [weak self] action in
+      if case .reject = action {
+        TransitionManager.shared.modalTransition = RotatateTransition()
+      } else {
+        TransitionManager.shared.modalTransition = nil
+      }
       self?.viewControllable.dismiss()
+      handler?(action)
     }
+//    // TODO: make Proxy ref - ribs
+    vc.uiController.transitioningDelegate = TransitionManager.shared
     self.viewControllable.present(vc, animated: true)
   }
 
