@@ -158,7 +158,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
     maskLayer.strokeColor = UIColor.orange.cgColor
   }
   
-  func configure(type: Action) {
+  func configure(type: NoticeViewCell.Action) {
     imageView.image = type.image
     titleLabel.text = type.title
     
@@ -228,12 +228,10 @@ extension NoticeViewCell {
     
     var buttonTitle: String {
       switch self {
-      case .allMet:
+      case .allMet, .selectedFirst:
         "기다리는 무디 조회하기"
       case .find:
         "시작하기"
-      case .selectedFirst:
-        "기다리는 무디 조회하기"
       }
     }
   }

@@ -21,16 +21,20 @@ final class FallingViewModel: ViewModelType {
   
   var disposeBag: DisposeBag = DisposeBag()
   
+  private var userDailyFallingCourserIdx = 0
+  private let infiniteScrollAction = PublishRelay<Void>()
+  private let recentUserInfo = BehaviorRelay<FallingUserInfo?>(value: nil)
+  private var alreadySelectedTopic = false
+  
   private let timer = TFTimer(startTime: 15.0)
   private let alertActionSignal = PublishRelay<FallingAlertAction>()
   
   struct Input {
-    let viewDidLoad: Driver<Void>
-    //    let viewDidAppear: Driver<Void>
+    let viewDidLoad: Driver<ReloadAction>
     let viewWillDisappear: Driver<Void>
     let cellButtonAction: Driver<CellType.Action>
     let deleteAnimationComplete: Signal<Void>
-    let noticeButtonAction: Driver<NoticeViewCell.Action>
+    let noticeButtonAction: Driver<ReloadAction>
   }
   
   struct Output {
@@ -92,8 +96,11 @@ final class FallingViewModel: ViewModelType {
     case updateIndexPath(Int)
     case removeSnapshot(FallingUser)
     
-    case fetchUser
-    case setUser(FallingUserInfo?)
+    case fetchUser(ReloadAction)
+    case setRescentUserInfo(FallingUserInfo?)
+    case setUser([FallingUser])
+    case addUser([FallingUser])
+    case setIsLast(Bool)
     
     case selectAlert
     case toChatRoom(String)
@@ -205,30 +212,20 @@ extension FallingViewModel {
           }
         }),
       
-      input.viewDidLoad
+      
+      Driver.merge(input.viewDidLoad, input.noticeButtonAction)
         .asObservable()
-        .flatMap { [unowned self] _ in
-          self.fallingUseCase.user(
-            alreadySeenUserUUIDList: [],
-            userDailyFallingCourserIdx: 1,
-            size: 100
-          )
-          .asObservable()
-          .catchAndReturn(
-            .init(
-              selectDailyFallingIdx: 0,
-              topicExpirationUnixTime: 0,
-              isLast: false,
-              userInfos: []
-            )
-          )
-        }
-        .flatMap { snapshot -> Observable<Mutation> in
-          return .concat(
-            .just(.setUser(snapshot)),
-            .just(.startTimer)
-          )
-        },
+        .map(Mutation.fetchUser),
+//        .flatMap({ [weak self] action -> Observable<Mutation> in
+//          guard let self = self else { return .empty() }
+//          switch action {
+//          case .viewDidLoad:
+//            return .just(.fetchUser)
+//          case .noticeButtonAction:
+//            self.userDailyFallingCourserIdx += 20
+//            return .just(.fetchUser)
+//          }
+//        }),
       
       input.deleteAnimationComplete
         .asObservable()
@@ -238,24 +235,86 @@ extension FallingViewModel {
             .concat(.just(.removeSnapshot(user)),
                     .just(.setScrollEvent(.scroll))
             )
-        },
-      
-      input.noticeButtonAction
-        .asObservable()
-        .flatMap({ action -> Observable<Mutation> in
-          switch action {
-          case .allMet:
-              .just(.setUser(nil))
-          case .find:
-              .just(.setUser(nil))
-          case .selectedFirst:
-              .just(.setUser(nil))
-          }
-        })
+        }
     )
   }
   
   private func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
+    var retryCount = 2
+  
+    let fetchUser = mutation
+      .flatMap { [weak self] mutation -> Observable<Mutation> in
+        guard let self = self else { return .empty() }
+      switch mutation {
+      case .fetchUser(let reloadAction):
+        switch reloadAction {
+        case .noticeButtonAction(let buttonAction):
+          self.userDailyFallingCourserIdx += 20
+          
+          switch buttonAction {
+          case .find:
+            self.alreadySelectedTopic = true
+            return .just(.setUser(self.recentUserInfo.value?.userInfos ?? []))
+          default: break
+          }
+          
+        case .autoScroll:
+          self.userDailyFallingCourserIdx += 20
+        default: break
+        }
+        
+        return self.fallingUseCase.user(
+          alreadySeenUserUUIDList: [],
+          userDailyFallingCourserIdx: self.userDailyFallingCourserIdx,
+          size: 20
+        )
+        .retry(when: { errorObservable in
+          errorObservable
+            .enumerated()
+            .flatMap { attempt, error in
+              switch reloadAction {
+              case .noticeButtonAction:
+                if attempt < 2 { return Observable<Int>.just(attempt).delay(.seconds(3), scheduler: MainScheduler.instance)
+                } else {
+                  return Observable.error(error)
+                }
+              default: return Observable.empty()
+              }
+            }
+        })
+        .asObservable()
+        .flatMap { [weak self] userInfo -> Observable<Mutation> in
+          guard let self = self else { return .empty() }
+          switch reloadAction {
+          case .autoScroll:
+            return .concat(
+              .just(.setRescentUserInfo(userInfo)),
+              .just(.addUser(userInfo.userInfos))
+            )
+          default:
+            return .concat(
+              .just(.setRescentUserInfo(userInfo)),
+              .just(.setUser(userInfo.userInfos))
+            )
+          }
+        }
+      default: return .empty()
+      }
+    }
+    
+    let infiniteScrollAction = self.infiniteScrollAction
+      .withLatestFrom(self.recentUserInfo) { [weak self] _, recentUserInfo ->
+        Observable<Mutation> in
+        guard let self = self else { return .empty() }
+        if recentUserInfo?.isLast ?? false {
+          return .empty()
+        }
+        
+        self.userDailyFallingCourserIdx += 20
+        return .just(.fetchUser(.autoScroll))
+      }
+      .flatMap { $0 }
+    
     let signalMutation = self.alertActionSignal
       .withLatestFrom(state.compactMap(\.user)) { action, user in
         return (action, user)
@@ -303,26 +362,27 @@ extension FallingViewModel {
       .map { TimeState(rawValue: $0) }
       .map { Mutation.setTimeState($0) }
     
-    return Observable.merge(mutation, signalMutation, timeStateMutation, timeOut)
+    return Observable.merge(fetchUser, infiniteScrollAction, mutation, signalMutation, timeStateMutation, timeOut)
   }
   
   private func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
-    case .fetchUser:
-      return newState
-    case let .setUser(userInfo):
-      if let userInfo = userInfo {
-        if userInfo.userInfos.isEmpty {
+//    case let .setRescentUserInfo(userInfo):
+//      self.recentUserInfo = userInfo
+//      return newState
+    case let .setUser(userInfos):
+      if !userInfos.isEmpty {
+        if !alreadySelectedTopic {
           newState.snapshot = [
-            .notice(.selectedFirst)
+            .notice(.find)
           ]
         } else {
-          newState.snapshot = userInfo.userInfos.map {
+          newState.snapshot = userInfos.map {
             FallingViewController.FallingDataModel.fallingUser($0)
           }
           
-          if userInfo.isLast {
+          if self.recentUserInfo.value?.isLast ?? false {
             newState.snapshot.append(.notice(.allMet))
           }
         }
@@ -332,11 +392,20 @@ extension FallingViewModel {
         ]
       }
       return newState
+      
+    case let .addUser(userInfos):
+      newState.snapshot.append(contentsOf: userInfos.map { .fallingUser($0) })
+      return newState
     case let .updateIndexPath(offset):
       if newState.snapshot.count - 1 > newState.index {
         newState.index += offset
         newState.scrollAction = .scroll(newState.indexPath)
         timer.reset()
+        
+        if newState.index % 20 == 19 {
+          self.infiniteScrollAction.accept(())
+        }
+        
         return newState
       } else {
         timer.pause()
@@ -391,6 +460,7 @@ extension FallingViewModel {
     case .showPause:
       newState.shouldShowPause = true
       return newState
+    default: return newState
     }
   }
   
@@ -400,6 +470,14 @@ extension FallingViewModel {
   
   public func pulse<Result>(_ transformToPulse: @escaping (State) throws -> Pulse<Result>) -> Observable<Result> {
     state.map(transformToPulse).distinctUntilChanged(\.valueUpdatedCount).map(\.value)
+  }
+}
+
+extension FallingViewModel {
+  enum ReloadAction {
+    case viewDidLoad
+    case noticeButtonAction(NoticeViewCell.Action)
+    case autoScroll
   }
 }
 

@@ -52,11 +52,11 @@ final class FallingViewController: TFBaseViewController {
     }
 
     let input = FallingViewModel.Input(
-      viewDidLoad: viewDidLoad,
+      viewDidLoad: viewDidLoad.map { _ in FallingViewModel.ReloadAction.viewDidLoad },
       viewWillDisappear: viewWillDisAppear,
       cellButtonAction: fallingCellButtonAction.asDriverOnErrorJustEmpty(),
       deleteAnimationComplete: deleteAnimationComplete.asSignal(),
-      noticeButtonAction: noticeButtonAction.asDriverOnErrorJustEmpty()
+      noticeButtonAction: noticeButtonAction.asDriverOnErrorJustEmpty().map { FallingViewModel.ReloadAction.noticeButtonAction($0) }
     )
     
     let output = viewModel.transform(input: input)
@@ -144,7 +144,8 @@ final class FallingViewController: TFBaseViewController {
 
     initialSnapshot()
 
-    output.state.map(\.snapshot).distinctUntilChanged()
+    output.state.map(\.snapshot)
+      .distinctUntilChanged()
       .drive(with: self, onNext: { owner, list in
         var snapshot = Snapshot()
         snapshot.appendSections([.profile])
