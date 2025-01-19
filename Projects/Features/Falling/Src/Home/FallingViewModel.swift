@@ -97,9 +97,9 @@ final class FallingViewModel: ViewModelType {
     case removeSnapshot(FallingUser)
     
     case fetchUser(ReloadAction)
-    case setRescentUserInfo(FallingUserInfo?)
-    case setUser([FallingUser])
-    case addUser([FallingUser])
+    case setRecentUserInfo(FallingUserInfo?)
+    case setUser([FallingViewController.FallingDataModel])
+    case addUser([FallingViewController.FallingDataModel])
     case setIsLast(Bool)
     
     case selectAlert
@@ -216,16 +216,6 @@ extension FallingViewModel {
       Driver.merge(input.viewDidLoad, input.noticeButtonAction)
         .asObservable()
         .map(Mutation.fetchUser),
-//        .flatMap({ [weak self] action -> Observable<Mutation> in
-//          guard let self = self else { return .empty() }
-//          switch action {
-//          case .viewDidLoad:
-//            return .just(.fetchUser)
-//          case .noticeButtonAction:
-//            self.userDailyFallingCourserIdx += 20
-//            return .just(.fetchUser)
-//          }
-//        }),
       
       input.deleteAnimationComplete
         .asObservable()
@@ -240,8 +230,6 @@ extension FallingViewModel {
   }
   
   private func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
-    var retryCount = 2
-  
     let fetchUser = mutation
       .flatMap { [weak self] mutation -> Observable<Mutation> in
         guard let self = self else { return .empty() }
@@ -249,18 +237,29 @@ extension FallingViewModel {
       case .fetchUser(let reloadAction):
         switch reloadAction {
         case .noticeButtonAction(let buttonAction):
-          self.userDailyFallingCourserIdx += 20
-          
           switch buttonAction {
-          case .find:
+          case .selectedFirst:
             self.alreadySelectedTopic = true
-            return .just(.setUser(self.recentUserInfo.value?.userInfos ?? []))
-          default: break
+            self.userDailyFallingCourserIdx = 0
+          case .allMet:
+            self.userDailyFallingCourserIdx += 20
+          case .find:
+            if let recentUserInfo = self.recentUserInfo.value {
+              return .concat(
+                .just(.setUser(recentUserInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0) })),
+                .just(.startTimer)
+              )
+            } else {
+              return Observable.empty()
+            }
           }
           
         case .autoScroll:
           self.userDailyFallingCourserIdx += 20
-        default: break
+        case .viewDidLoad:
+          if !self.alreadySelectedTopic {
+            return .just(.setUser([.notice(.selectedFirst)]))
+          } else { break }
         }
         
         return self.fallingUseCase.user(
@@ -283,18 +282,33 @@ extension FallingViewModel {
             }
         })
         .asObservable()
-        .flatMap { [weak self] userInfo -> Observable<Mutation> in
-          guard let self = self else { return .empty() }
+        .flatMap { userInfo -> Observable<Mutation> in
           switch reloadAction {
+          case .noticeButtonAction(let buttonAction):
+            switch buttonAction {
+            case .selectedFirst, .allMet:
+              if !userInfo.userInfos.isEmpty {
+                return .concat(
+                  .just(.setRecentUserInfo(userInfo)),
+                  .just(.setUser([.notice(.find)]))
+                  )
+              } else {
+                return .just(.setRecentUserInfo(userInfo))
+              }
+            default: return Observable.empty()
+            }
+            
           case .autoScroll:
             return .concat(
-              .just(.setRescentUserInfo(userInfo)),
-              .just(.addUser(userInfo.userInfos))
+              .just(.setRecentUserInfo(userInfo)),
+              .just(.addUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
+              .just(.startTimer)
             )
           default:
             return .concat(
-              .just(.setRescentUserInfo(userInfo)),
-              .just(.setUser(userInfo.userInfos))
+              .just(.setRecentUserInfo(userInfo)),
+              .just(.setUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
+              .just(.startTimer)
             )
           }
         }
@@ -368,41 +382,29 @@ extension FallingViewModel {
   private func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
-//    case let .setRescentUserInfo(userInfo):
-//      self.recentUserInfo = userInfo
-//      return newState
-    case let .setUser(userInfos):
-      if !userInfos.isEmpty {
-        if !alreadySelectedTopic {
-          newState.snapshot = [
-            .notice(.find)
-          ]
-        } else {
-          newState.snapshot = userInfos.map {
-            FallingViewController.FallingDataModel.fallingUser($0)
-          }
-          
-          if self.recentUserInfo.value?.isLast ?? false {
-            newState.snapshot.append(.notice(.allMet))
-          }
-        }
-      } else {
-        newState.snapshot = [
-          .notice(.selectedFirst)
-        ]
+    case .setUser(let userInfos):
+      newState.snapshot = userInfos
+      if self.recentUserInfo.value?.isLast ?? false {
+        newState.snapshot.append(.notice(.allMet))
       }
       return newState
       
     case let .addUser(userInfos):
-      newState.snapshot.append(contentsOf: userInfos.map { .fallingUser($0) })
+      newState.snapshot += userInfos
+      timer.start()
       return newState
+      
+    case let .setRecentUserInfo(userInfo):
+      self.recentUserInfo.accept(userInfo)
+      return newState
+      
     case let .updateIndexPath(offset):
       if newState.snapshot.count - 1 > newState.index {
         newState.index += offset
         newState.scrollAction = .scroll(newState.indexPath)
         timer.reset()
         
-        if newState.index % 20 == 19 {
+        if newState.index % newState.snapshot.count == newState.snapshot.count - 1 {
           self.infiniteScrollAction.accept(())
         }
         
@@ -411,12 +413,15 @@ extension FallingViewModel {
         timer.pause()
       }
       return newState
+      
     case .selectAlert:
       self.delegate?.invoke(.toReportBlockAlert(listener: self))
       return newState
+      
     case let .toChatRoom(chatRoomIndex):
       self.delegate?.invoke(.toChatRoom(chatRoomIndex: Int(chatRoomIndex) ?? 0))
       return newState
+      
     case let .removeSnapshot(user):
       newState.snapshot.removeAll(where: {
         switch $0 {
