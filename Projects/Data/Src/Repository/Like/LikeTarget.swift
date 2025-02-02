@@ -12,7 +12,8 @@ import Networks
 import Moya
 
 public enum LikeTarget {
-  case like(id: String, topic: Int)
+  case dontLike(id: String, topic: String)
+  case like(id: String, topic: String)
   case list(request: HeartListReq)
   case reject(request: HeartRejectReq)
   case userInfo(id: String)
@@ -22,7 +23,9 @@ extension LikeTarget: BaseTargetType {
 
   public var path: String {
     switch self {
-    case .like(let id, let topic):
+    case let .dontLike(id, topic):
+      return "i-dont-like-you/\(id)/\(topic)"
+    case let .like(id, topic):
       return "i-like-you/\(id)/\(topic)"
     case .list:
       return "like/receives"
@@ -35,24 +38,19 @@ extension LikeTarget: BaseTargetType {
 
   public var method: Moya.Method {
     switch self {
-    case .like, .reject: return .post
+    case .dontLike, .like, .reject: return .post
     default: return .get
     }
   }
 
-  // Request의 파라미터를 결정한다.
   public var task: Task {
     switch self {
     case .list(let request):
 			return .requestJSONEncodable(request)
     case .reject(let request):
-			return .requestJSONEncodable(request)
-//    case .like(id: <#T##String#>, topic: <#T##Int#>)
-//    case .userInfo(let id):
-
-    default:
+      return .requestParameters(parameters: request.toDictionary(), encoding: URLEncoding.queryString)
+    case .dontLike, .like, .userInfo:
       return .requestPlain
     }
   }
-
 }

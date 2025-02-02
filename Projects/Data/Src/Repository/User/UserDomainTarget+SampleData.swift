@@ -225,6 +225,79 @@ extension UserDomainTarget {
       }
     ]
     """.utf8)
+    case .report:
+      return Data()
+    case .block:
+      return Data()
+    case .user:
+      return Data("""
+{
+  "prefer_gender": "BISEXUAL",
+  "username": "ibcylon",
+  "userUuid": "397d42f24a-b7a0-4bc3-8bc7-da8d18f56376",
+  "age": 22,
+  "introduction": "SksmsandjdfRKdyndkckckckfkk스으이니므으스흐ㅡ스르미그극sjsjwjwnwjdkfkfkckkckxksnxmxnmdksmznxnnxjx",
+  "address": "서울 성북구 성북동",
+  "phoneNumber": "01089192466",
+  "email": "ibcylon@naver.com",
+  "birthDay": "2003-06-03",
+  "gender": "MALE",
+  "tall": 145,
+  "smoking": "NONE",
+  "drinking": "FREQUENTLY",
+  "religion": "BUDDHISM",
+  "idealTypeList": [
+    {
+      "idx": 15,
+      "name": "적극적인",
+      "emojiCode": "U+1F609"
+    },
+    {
+      "idx": 17,
+      "name": "말이 통하는",
+      "emojiCode": "U+1F4AC"
+    },
+    {
+      "idx": 19,
+      "name": "다정한",
+      "emojiCode": "U+1F607"
+    }
+  ],
+  "interestsList": [
+    {
+      "idx": 15,
+      "name": "패션",
+      "emojiCode": "U+1F457"
+    },
+    {
+      "idx": 17,
+      "name": "재테크",
+      "emojiCode": "U+1F4B0"
+    },
+    {
+      "idx": 20,
+      "name": "K-Pop 덕질",
+      "emojiCode": "U+1F3A4"
+    }
+  ],
+  "userProfilePhotos": [
+    {
+      "url": "https://firebasestorage.googleapis.com:443/v0/b/tht-falling.appspot.com/o/profile%2F1723205454.626751?alt=media&token=c5691356-8ffd-471e-8145-8e06a4b2c04a",
+      "priority": 1
+    },
+    {
+      "url": "https://firebasestorage.googleapis.com:443/v0/b/tht-falling.appspot.com/o/profile%2F1723205472.88589?alt=media&token=10fd9511-8fd7-4409-aa43-90a42e7e3db3",
+      "priority": 2
+    }
+  ],
+  "userAgreements": {
+    "serviceUseAgree": true,
+    "personalPrivacyInfoAgree": true,
+    "locationServiceAgree": false,
+    "marketingAgree": false
+  }
+}
+""".utf8)
     }
   }
 }

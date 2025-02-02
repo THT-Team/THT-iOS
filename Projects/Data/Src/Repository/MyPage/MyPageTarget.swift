@@ -5,11 +5,13 @@
 //  Created by SeungMin on 1/16/24.
 //
 
+import Foundation
+
+import Domain
 import Networks
 
 import Moya
 import AuthInterface
-import Foundation
 
 public enum MyPageTarget {
   case fetchUserContacts
@@ -24,7 +26,7 @@ public enum MyPageTarget {
 
   case introduction(String)
   case location(LocationReq)
-  case profilePhoto([UserProfilePhotoRes])
+  case profilePhoto([UserProfilePhoto])
 
   // MARK: Path
   case nickname(String)
@@ -101,7 +103,7 @@ extension MyPageTarget: BaseTargetType {
         .requestJSONEncodable(IntroductionReq(introduction: introduction)) /*.requestParameters(parameters: ["introduction": introduction], encoding: JSONEncoding.default)*/
     case let .idealType(emojies): return .requestParameters(parameters: ["idealTypeList": emojies], encoding: JSONEncoding.default)
     case let .interests(emojies): return .requestParameters(parameters: ["interestList": emojies], encoding: JSONEncoding.default)
-    case let .profilePhoto(photos): return .requestJSONEncodable(PhotoReq(userProfilePhotoList: photos))
+    case let .profilePhoto(photos): return .requestJSONEncodable(PhotoReq(photos))
     case .nickname, .phoneNumber, .email, .preferGender, .logout:
       return .requestPlain
     }
@@ -112,6 +114,10 @@ struct IntroductionReq: Codable {
   let introduction: String
 }
 
-struct PhotoReq: Codable {
-  let userProfilePhotoList: [UserProfilePhotoRes]
+struct PhotoReq: Encodable {
+  let userProfilePhotoList: [UserProfilePhoto.Req]
+
+  init(_ userProfilePhotoList: [UserProfilePhoto]) {
+    self.userProfilePhotoList = userProfilePhotoList.map { .init(url: $0.url, priority: $0.priority) }
+  }
 }
