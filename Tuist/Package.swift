@@ -16,6 +16,8 @@ let packageSettings = PackageSettings(
     "RxRelay": .framework,
     "RxCocoaRuntime": .framework,
     "Lottie": .framework,
+    "ReactorKit": .framework,
+    "SwiftStomp": .framework,
   ]
 )
 #endif
@@ -34,5 +36,9 @@ let package = Package(
     .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
     .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "11.0.0")),
     .package(url: "https://github.com/airbnb/lottie-spm.git", .upToNextMajor(from: "4.0.0")),
+    .package(url: "https://github.com/ReactorKit/ReactorKit.git",
+      .upToNextMajor(from: "3.2.0")),
+    .package(url: "https://github.com/Romixery/SwiftStomp.git",
+      .upToNextMajor(from: "1.2.1")),
   ]
 )
