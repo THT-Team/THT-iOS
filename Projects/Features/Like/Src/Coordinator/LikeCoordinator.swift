@@ -5,16 +5,20 @@
 //  Created by Kanghos on 2023/12/06.
 //
 
-import Foundation
+import UIKit
 
 import LikeInterface
+
 import Core
-import UIKit
+import Domain
+import DSKit
 
 // MARK: Using Other Feature Coordinator
 // step 1. get buildable when init
 // step 2. build coordinator when need, and assign optional variable -> attachMethod
 // step 3. release when coordinator finish, bc, optimize memory -> detachMethod
+
+public typealias LikeProfileHandler = ((LikeProfileAction) -> Void)
 
 public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
   private let factory: LikeFactory
@@ -43,16 +47,23 @@ public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
     self.viewControllable.setViewControllers([vc])
   }
 
-  public func profileFlow(_ item: Like, handler: ((LikeCellButtonAction) -> Void)?) {
+  public func profileFlow(_ item: Like, handler: LikeProfileHandler?) {
     let (vc, vm) = factory.makeProfile(like: item)
-    vm.onDismiss = { [weak self] action in
-      if case .reject = action {
-        TransitionManager.shared.modalTransition = RotatateTransition()
-      } else {
-        TransitionManager.shared.modalTransition = nil
-      }
+    TransitionManager.shared.modalTransition = nil
+
+    vm.onDismiss = { [weak self] needTransition in
+      TransitionManager.shared.modalTransition = needTransition
+      ? RotatateTransition() : nil
       self?.viewControllable.dismiss()
+    }
+
+    vm.onHandleLike = { action in
       handler?(action)
+    }
+
+    vm.onReport = { [weak viewControllable] handler in
+      guard let viewControllable else { return }
+      AlertHelper.userReportAlert(viewControllable, handler)
     }
 //    // TODO: make Proxy ref - ribs
     vc.uiController.transitioningDelegate = TransitionManager.shared
@@ -60,6 +71,14 @@ public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
   }
 
   public func chatRoomFlow(_ userUUID: String) {
-    TFLogger.dataLogger.info("ChatRoom!")
+    TFLogger.dataLogger.info("ChatRoom - \(userUUID)!")
+    var coordinator = factory.makeChatRoomCoordinator(userUUID, self.viewControllable)
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let self, let coordinator else { return }
+      coordinator.childCoordinators.removeAll()
+      self.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.chatRoomFlow(userUUID)
   }
 }

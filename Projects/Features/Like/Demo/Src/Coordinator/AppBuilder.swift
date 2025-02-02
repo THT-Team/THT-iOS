@@ -11,6 +11,7 @@ import DSKit
 
 import Like
 import LikeInterface
+import ChatRoom
 
 public protocol AppRootBuildable {
   func build() -> LaunchCoordinating
@@ -20,7 +21,7 @@ public final class AppRootBuilder: AppRootBuildable {
   public init() { }
 
   lazy var likeBuildable: LikeBuildable = {
-    LikeBuilder()
+    LikeBuilder(chatRoomBuilder: ChatRoomBuilder())
   }()
 
   public func build() -> LaunchCoordinating {

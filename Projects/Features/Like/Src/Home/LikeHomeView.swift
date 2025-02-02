@@ -14,8 +14,7 @@ final class HeartListView: TFBaseView {
   enum Metric {
     static let horizontalPadding: CGFloat = 14
   }
-  private lazy var blurEffect = UIBlurEffect(style: .regular)
-  lazy var visualEffectView = UIVisualEffectView(effect: blurEffect)
+  lazy var visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
 
   var needPaging: Bool {
     collectionView.contentOffset.y + collectionView.frame.height > collectionView.contentSize.height - 100

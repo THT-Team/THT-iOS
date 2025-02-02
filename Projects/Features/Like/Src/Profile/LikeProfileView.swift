@@ -12,11 +12,19 @@ import DSKit
 final class ProfileView: TFBaseView {
 
   lazy var topicBarView = TFTopicBarView()
+  lazy var visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+
 
   lazy var profileCollectionView: UICollectionView = {
     let layout = createLayout()
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.backgroundColor  = DSKitAsset.Color.disabled.color
+    collectionView.register(cellType: ProfileCollectionViewCell.self)
+    collectionView.register(cellType: TagCollectionViewCell.self)
+    collectionView.register(cellType: ProfileIntroduceCell.self)
+    collectionView.register(cellType: InfoCVCell.self)
+    collectionView.register(viewType: ProfileInfoReusableView.self, kind: UICollectionView.elementKindSectionHeader)
+    collectionView.register(viewType: TFCollectionReusableView.self, kind: UICollectionView.elementKindSectionHeader)
+    collectionView.backgroundColor  = DSKitAsset.Color.neutral600.color
     collectionView.layer.cornerRadius = 12
     collectionView.clipsToBounds = true
     return collectionView
@@ -67,9 +75,14 @@ final class ProfileView: TFBaseView {
 
   override func makeUI() {
     self.backgroundColor = .clear
-    [topicBarView, profileCollectionView, stackView].forEach {
+    [topicBarView, profileCollectionView, stackView, visualEffectView].forEach {
       self.addSubview($0)
     }
+    visualEffectView.isHidden = true
+    visualEffectView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
     stackView.addArrangedSubview(nextTimeButton)
     stackView.addArrangedSubview(chatButton)
 
@@ -91,28 +104,103 @@ final class ProfileView: TFBaseView {
   }
 
   func createLayout() -> UICollectionViewLayout {
-    let estimatedHeight = CGFloat(600)
-    let layoutSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                            heightDimension: .estimated(estimatedHeight))
+    let layout = UICollectionViewCompositionalLayout { [weak self] index, environment in
+      self?.createSection(index)
+    }
+    layout.configuration.interSectionSpacing = 0
+    return layout
+  }
+
+  func createSection(_ index: Int) -> NSCollectionLayoutSection? {
+    switch index {
+    case 0:
+      // Photo
+      return createPhotoSection()
+    case 1:
+      // Emoji + Title
+      return createEmojiSection()
+    case 2:
+      // Emoji
+      return createEmojiSection()
+    case 3:
+      // Info
+      return createInfoSection()
+    case 4:
+      // Introduce
+      return createIntroduceSection()
+    default: return nil
+    }
+  }
+
+  func createPhotoSection() -> NSCollectionLayoutSection {
+    let layoutSize = NSCollectionLayoutSize(
+      widthDimension: .fractionalWidth(1.0),
+      heightDimension: .estimated(600))
+
     let item = NSCollectionLayoutItem(layoutSize: layoutSize)
     let group = NSCollectionLayoutGroup.vertical(layoutSize: layoutSize, subitems: [item])
     let section = NSCollectionLayoutSection(group: group)
-    section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
-    section.interGroupSpacing = 0
 
+    return section
+  }
+
+  func createEmojiSection() -> NSCollectionLayoutSection {
+    let layoutSize = NSCollectionLayoutSize(
+      widthDimension: .estimated(100),
+      heightDimension: .estimated(50)
+    )
+    let item = NSCollectionLayoutItem(layoutSize: layoutSize)
+    let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(100)), repeatingSubitem: item, count: 3)
+    group.interItemSpacing = .fixed(5)
+    let section = NSCollectionLayoutSection(group: group)
     let headerFooterSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .estimated(500)
+      heightDimension: .estimated(100)
     )
     let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(
       layoutSize: headerFooterSize,
-      elementKind: UICollectionView.elementKindSectionFooter,
-      alignment: .bottom
+      elementKind: UICollectionView.elementKindSectionHeader,
+      alignment: .top
     )
     section.boundarySupplementaryItems = [sectionFooter]
+    section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+    return section
+  }
 
-    let layout = UICollectionViewCompositionalLayout(section: section)
-    return layout
+  func createInfoSection() -> NSCollectionLayoutSection {
+    let layoutSize = NSCollectionLayoutSize(
+      widthDimension: .estimated(80),
+      heightDimension: .estimated(80)
+    )
+    let item = NSCollectionLayoutItem(layoutSize: layoutSize)
+    let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(100)), repeatingSubitem: item, count: 4)
+    group.interItemSpacing = .fixed(16)
+    let section = NSCollectionLayoutSection(group: group)
+    section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+    return section
+  }
+
+  func createIntroduceSection() -> NSCollectionLayoutSection {
+    let layoutSize = NSCollectionLayoutSize(
+      widthDimension: .fractionalWidth(1.0),
+      heightDimension: .estimated(100)
+    )
+    let item = NSCollectionLayoutItem(layoutSize: layoutSize)
+    let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(100)), subitems: [item])
+    let section = NSCollectionLayoutSection(group: group)
+    let headerFooterSize = NSCollectionLayoutSize(
+      widthDimension: .fractionalWidth(1.0),
+      heightDimension: .estimated(10)
+    )
+    let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(
+      layoutSize: headerFooterSize,
+      elementKind: UICollectionView.elementKindSectionHeader,
+      alignment: .top
+    )
+    section.boundarySupplementaryItems = [sectionFooter]
+    section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+    return section
   }
 }
+
 

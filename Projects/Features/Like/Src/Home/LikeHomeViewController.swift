@@ -9,11 +9,15 @@ import UIKit
 
 import Core
 import DSKit
+
+import Domain
+
 import LikeInterface
 
 public final class LikeHomeViewController: TFBaseViewController {
   private lazy var mainView = HeartListView()
   private var dataSource: DataSource!
+  private let cellUpdateTrigger = PublishRelay<Like>()
 
   private let viewModel: LikeHomeViewModel
 
@@ -43,10 +47,8 @@ public final class LikeHomeViewController: TFBaseViewController {
       self.setupDataSource(observer: cellButtonSubject.asObserver())
 		
 		// FIXME: 프로필 닫을때 ViewWillAppear 호출됨
-      let initialTrigger = self.rx.viewWillAppear
-        .map { _ in }
-        .asDriverOnErrorJustEmpty()
-		
+    let initialTrigger = Driver.just(())
+
 		
       let refreshControl = self.mainView.refreshControl.rx.controlEvent(.valueChanged)
         .asDriver()
@@ -62,8 +64,10 @@ public final class LikeHomeViewController: TFBaseViewController {
 
       let input = LikeHomeViewModel.Input(
         trigger: Driver.merge(initialTrigger, refreshControl),
+        viewWillAppear: self.rx.viewWillAppear.asDriver().mapToVoid(),
         cellButtonAction: cellButtonSubject.asDriverOnErrorJustEmpty(),
         pagingTrigger: pagingTrigger,
+        cellUpdateTrigger: cellUpdateTrigger.asSignal(),
         deleteAnimationComplete: deleteAnimationCompleteRelay.asDriverOnErrorJustEmpty()
       )
 
@@ -98,10 +102,16 @@ public final class LikeHomeViewController: TFBaseViewController {
       }
       .disposed(by: disposeBag)
 
-    output.blurFlag
-      .emit(with: self) { owner, flag in
-        owner.mainView.visualEffectView.isHidden = !flag
-      }.disposed(by: disposeBag)
+    output.isBlurHidden
+      .debug("isBlurHidden")
+      .emit(to: mainView.visualEffectView.rx.isHidden)
+      .disposed(by: disposeBag)
+
+    output.toast
+      .emit(with: self) { owner, message in
+        owner.mainView.makeToast(message, duration: 3.0, position: .bottom)
+      }
+      .disposed(by: disposeBag)
     }
 }
 
@@ -110,7 +120,7 @@ extension LikeHomeViewController {
   typealias Snapshot = NSDiffableDataSourceSnapshot<String, Like>
 
   private func setupDataSource<O: ObserverType>(observer: O) where O.Element == LikeCellButtonAction {
-    let likeCellRegistration = UICollectionView.CellRegistration<HeartCollectionViewCell, Like> { cell, indexPath, item in
+    let likeCellRegistration = UICollectionView.CellRegistration<LikeCVCell, Like> { cell, indexPath, item in
       cell.bind(observer, like: item)
     }
 
@@ -138,7 +148,7 @@ extension LikeHomeViewController {
   private func deleteItems(_ item: Like) {
     guard
       let indexPath = self.dataSource.indexPath(for: item),
-      let cell = self.mainView.collectionView.cellForItem(at: indexPath) as? HeartCollectionViewCell
+      let cell = self.mainView.collectionView.cellForItem(at: indexPath) as? LikeCVCell
     else {
       return
     }
@@ -181,5 +191,10 @@ extension LikeHomeViewController: UICollectionViewDelegate {
     if scrollView.contentSize.height - 100 < scrollView.contentOffset.y + scrollView.frame.height {
       TFLogger.ui.debug("need pagination")
     }
+  }
+
+  public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    guard var item = dataSource.itemIdentifier(for: indexPath) else { return }
+    cellUpdateTrigger.accept(item)
   }
 }

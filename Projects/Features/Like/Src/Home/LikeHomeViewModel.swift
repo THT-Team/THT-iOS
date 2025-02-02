@@ -9,11 +9,11 @@ import Foundation
 
 import Core
 import LikeInterface
+import Domain
 
 import RxSwift
 import RxCocoa
 
-public typealias LikeHandler = ((LikeCellButtonAction) -> Void)
 public typealias LikeTopicSection = (topic: String, [Like])
 
 public final class LikeHomeViewModel: ViewModelType {
@@ -21,7 +21,7 @@ public final class LikeHomeViewModel: ViewModelType {
 
   private var disposeBag: DisposeBag = DisposeBag()
 
-  var onProfile: ((Like,LikeHandler?) -> Void)?
+  var onProfile: ((Like, LikeProfileHandler?) -> Void)?
   var onChatRoom: ((String) -> Void)?
 
   public init(likeUseCase: LikeUseCaseInterface) {
@@ -38,7 +38,6 @@ public enum LikeCellButtonAction {
   case reject(Like)
   case chat(Like)
   case profile(Like)
-  case cancel
 }
 
 extension LikeHomeViewModel {
@@ -46,8 +45,10 @@ extension LikeHomeViewModel {
 
   public struct Input {
     let trigger: Driver<Void>
+    let viewWillAppear: Driver<Void>
     let cellButtonAction: Driver<LikeCellButtonAction>
     let pagingTrigger: Driver<Void>
+    let cellUpdateTrigger: Signal<Like>
     let deleteAnimationComplete: Driver<Like>
   }
 
@@ -55,14 +56,21 @@ extension LikeHomeViewModel {
     let likeList: Driver<[LikeTopicSection]>
     let reject: Driver<Like>
     let headerLabel: Driver<(String, String)>
-    let blurFlag: Signal<Bool>
+    let isBlurHidden: Signal<Bool>
+    let toast: Signal<String>
   }
 
   public func transform(input: Input) -> Output {
     let currentCursor = BehaviorRelay<CursorInfo>(value: CursorInfo(nil, nil))
     let snapshot = BehaviorRelay<[LikeTopicSection]>(value: [])
-    let userAction = PublishSubject<LikeCellButtonAction>()
-    let blurTrigger = PublishRelay<Bool>()
+    let userAction = PublishSubject<LikeHomeAction>()
+    let isBlurHidden = PublishRelay<Bool>()
+    let rejectTrigger = PublishRelay<Like>()
+    let toastTrigger = PublishRelay<String>()
+    let chatTrigger = PublishRelay<Like>()
+
+    let deleteItem = PublishSubject<Like>()
+    let changeItem = PublishSubject<Like>()
 
     input.trigger
       .asObservable()
@@ -93,7 +101,26 @@ extension LikeHomeViewModel {
       })
       .disposed(by: disposeBag)
 
+    input.viewWillAppear
+      .withLatestFrom(snapshot.asDriver())
+      .drive()
+      .disposed(by: disposeBag)
+
+    input.cellUpdateTrigger
+      .emit(to: changeItem)
+      .disposed(by: disposeBag)
+
     input.cellButtonAction
+      .map {
+        switch $0 {
+        case let .chat(like):
+          return LikeHomeAction.chat(like)
+        case let .profile(like):
+          return LikeHomeAction.profile(like)
+        case let .reject(like):
+          return LikeHomeAction.remove(like)
+        }
+      }
       .drive(userAction)
       .disposed(by: disposeBag)
 
@@ -101,35 +128,67 @@ extension LikeHomeViewModel {
       .drive(with: self, onNext: { owner, action in
         switch action {
         case let .profile(like):
-          blurTrigger.accept(true)
-          owner.onProfile?(like) { userAction.onNext($0) }
+          isBlurHidden.accept(false)
+          owner.onProfile?(like) { profileAction in
+            isBlurHidden.accept(true)
+            switch profileAction {
+            case .cancel: break
+            case let .chat(id):
+              userAction.onNext(.chat(id))
+            case let .remove(like):
+              userAction.onNext(.remove(like))
+            case let .toast(message):
+              userAction.onNext(.toast(message))
+            }
+          }
         case let .chat(like):
-          blurTrigger.accept(false)
-          owner.onChatRoom?(like.userUUID)
-        case .reject:
-          blurTrigger.accept(false)
-          break
-        case .cancel:
-          blurTrigger.accept(false)
+          deleteItem.onNext(like)
+          chatTrigger.accept(like)
+        case let .remove(like):
+          rejectTrigger.accept(like)
+        case let .toast(message):
+          toastTrigger.accept(message)
         }
       })
       .disposed(by: disposeBag)
 
-    let reject = userAction
-      .compactMap { action -> Like? in
-      if case let .reject(like) = action {
-        return like
-      }
-      return nil
-      }
-      .asDriverOnErrorJustEmpty()
+    chatTrigger
+      .withUnretained(self)
+      .flatMapLatest { owner, like in
+        owner.likeUseCase.like(id: like.userUUID, topicID: "\(like.dailyFallingIdx)")
+          .asObservable()
+          .map {
+            guard $0.isMatching, let chatIdx = $0.chatRoomIdx else {
+              throw LikeError.invalid
+            }
+            return String(chatIdx)
+          }
+          .catch { error in
+            toastTrigger.accept(error.localizedDescription)
+            return .empty()
+          }
+      }.subscribe(with: self) { owner, chatIdx in
+        owner.onChatRoom?(chatIdx)
+      }.disposed(by: disposeBag)
 
     input.deleteAnimationComplete
-      .withLatestFrom(snapshot.asDriver()) { item, snapshot in
+      .flatMap({ [weak self] like -> Driver<Like> in
+        guard let self else { return .empty() }
+        return self.likeUseCase.reject(index: like.likeIdx)
+          .map { _ in like }
+          .asDriver { error in
+            return .empty()
+          }
+      })
+      .drive(deleteItem)
+      .disposed(by: disposeBag)
+
+    deleteItem
+      .withLatestFrom(snapshot) { item, snapshot in
         let section: LikeTopicSection? = snapshot.first(where: { (topic, _) in
           topic == item.topic
         }) ?? nil
-        guard var (topic, items) = section else { return snapshot }
+        guard var (_, items) = section else { return snapshot }
         items.removeAll { $0.identifier == item.identifier }
 
         let index = snapshot.firstIndex { (topic, _) in
@@ -138,10 +197,11 @@ extension LikeHomeViewModel {
         guard let index else { return snapshot }
 
         var mutable = snapshot
-        mutable[index] = (topic, items)
+        mutable[index] = (item.topic, items)
 
         return mutable
       }
+      .asDriverOnErrorJustEmpty()
       .drive(snapshot)
       .disposed(by: disposeBag)
 
@@ -154,59 +214,24 @@ extension LikeHomeViewModel {
 
     return Output(
       likeList: snapshot.asDriver(),
-      reject: reject,
+      reject: rejectTrigger.asDriverOnErrorJustEmpty(),
       headerLabel: headerLabel,
-      blurFlag: blurTrigger.asSignal()
+      isBlurHidden: isBlurHidden.asSignal(),
+      toast: toastTrigger.asSignal()
     )
   }
 }
 
-struct LikeHelper {
-  static func preprocess(initial: [LikeTopicSection] = [], _ raws: [Like]) -> [LikeTopicSection] {
-    var topics: [String] = initial.map { $0.topic }
-    var sections: [String: [Like]] = [:]
-    initial.forEach { (key, items) in
-      sections[key] = items
-    }
-
-    raws.forEach { item in
-      if sections[item.topic] == nil {
-        topics.append(item.topic)
-      }
-      sections[item.topic, default: []].append(item)
-    }
-
-    return topics
-      .compactMap { topic -> LikeTopicSection? in
-        guard let value = sections[topic] else { return nil }
-        return (topic, value)
-    }
-  }
+public enum LikeHomeAction {
+  case toast(String)
+  case remove(Like) // API
+  case chat(Like) // API
+  case profile(Like)
 }
 
-struct OrderedDictionary<Key: Hashable, Value> {
-  private var keys: [Key] = []
-  private var values: [Key: Value] = [:]
-
-  func values(for key: Key) -> Value? {
-    return values[key]
-  }
-
-  var orderedKeys: [Key] {
-    keys
-  }
-
-  mutating func updateValue(_ value: Value, forKey key: Key) {
-         if values[key] == nil {
-             keys.append(key) // Add key if it's new
-         }
-         values[key] = value
-  }
-
-  func orderedPairs() -> [(Key, Value)] {
-    keys.compactMap { key -> (Key, Value)? in
-      guard let value = values[key] else { return nil }
-      return (key, value)
-    }
-  }
+public enum LikeProfileAction {
+  case toast(String)
+  case remove(Like)
+  case chat(Like)
+  case cancel
 }

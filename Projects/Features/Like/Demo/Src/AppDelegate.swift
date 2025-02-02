@@ -31,24 +31,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
   }
 }
-
-extension AppDelegate {
-  var container: DIContainer {
-    DIContainer.shared
-  }
-
-  func registerDependencies() {
-    container.register(
-      interface: LikeUseCaseInterface.self,
-      implement: {
-        LikeUseCase(
-          repository: LikeRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-					)
-        )
-      }
-    )
-  }
-}

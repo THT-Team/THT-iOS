@@ -12,7 +12,7 @@ import DSKit
 import LikeInterface
 import Domain
 
-final class HeartCollectionViewCell: TFBaseCollectionViewCell {
+final class LikeCVCell: TFBaseCollectionViewCell {
 
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()
@@ -136,6 +136,7 @@ final class HeartCollectionViewCell: TFBaseCollectionViewCell {
 //    profileImageView.kf.setImage(with: URL(string: like.profileURL)!)
     nickNameLabel.text = like.username
     locationLabel.text = like.address
+    newArriavalView.isHidden = !like.isNew
 
     nextTimeButton.rx.tap
       .map { LikeCellButtonAction.reject(like) }
