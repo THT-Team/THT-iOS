@@ -11,7 +11,7 @@ import Core
 import DSKit
 
 final class FallingView: TFBaseView {
-  lazy var collectionView: UICollectionView = {
+  let collectionView: UICollectionView = {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
     let collectionView = UICollectionView(frame: .zero,
                                           collectionViewLayout: flowLayout)

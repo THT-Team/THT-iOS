@@ -72,6 +72,7 @@ final class FallingViewModel: ViewModelType {
     @Pulse var toast: String? = nil
     @Pulse var timeState: TimeState = .none
     @Pulse var shouldShowPause: Bool = false
+    @Pulse var isLoading = false
     
     var indexPath: IndexPath {
       IndexPath(row: index, section: 0)
@@ -101,6 +102,7 @@ final class FallingViewModel: ViewModelType {
     case setUser([FallingViewController.FallingDataModel])
     case addUser([FallingViewController.FallingDataModel])
     case setIsLast(Bool)
+    case setLoading(Bool)
     
     case selectAlert
     case toChatRoom(String)
@@ -262,56 +264,60 @@ extension FallingViewModel {
           } else { break }
         }
         
-        return self.fallingUseCase.user(
-          alreadySeenUserUUIDList: [],
-          userDailyFallingCourserIdx: self.userDailyFallingCourserIdx,
-          size: 20
-        )
-        .retry(when: { errorObservable in
-          errorObservable
-            .enumerated()
-            .flatMap { attempt, error in
-              switch reloadAction {
-              case .noticeButtonAction:
-                if attempt < 2 { return Observable<Int>.just(attempt).delay(.seconds(3), scheduler: MainScheduler.instance)
+        return .concat(
+          .just(.setLoading(true)),
+          self.fallingUseCase.user(
+            alreadySeenUserUUIDList: [],
+            userDailyFallingCourserIdx: self.userDailyFallingCourserIdx,
+            size: 20
+          )
+          .retry(when: { errorObservable in
+            errorObservable
+              .enumerated()
+              .flatMap { attempt, error in
+                switch reloadAction {
+                case .noticeButtonAction:
+                  if attempt < 2 { return Observable<Int>.just(attempt).delay(.seconds(3), scheduler: MainScheduler.instance)
+                  } else {
+                    return Observable.error(error)
+                  }
+                default: return Observable.empty()
+                }
+              }
+          })
+          .asObservable()
+          .flatMap { userInfo -> Observable<Mutation> in
+            switch reloadAction {
+            case .noticeButtonAction(let buttonAction):
+              switch buttonAction {
+              case .selectedFirst, .allMet:
+                if !userInfo.userInfos.isEmpty {
+                  return .concat(
+                    .just(.setRecentUserInfo(userInfo)),
+                    .just(.setUser([.notice(.find)]))
+                  )
                 } else {
-                  return Observable.error(error)
+                  return .just(.setRecentUserInfo(userInfo))
                 }
               default: return Observable.empty()
               }
+              
+            case .autoScroll:
+              return .concat(
+                .just(.setRecentUserInfo(userInfo)),
+                .just(.addUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
+                .just(.startTimer)
+              )
+            default:
+              return .concat(
+                .just(.setRecentUserInfo(userInfo)),
+                .just(.setUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
+                .just(.startTimer)
+              )
             }
-        })
-        .asObservable()
-        .flatMap { userInfo -> Observable<Mutation> in
-          switch reloadAction {
-          case .noticeButtonAction(let buttonAction):
-            switch buttonAction {
-            case .selectedFirst, .allMet:
-              if !userInfo.userInfos.isEmpty {
-                return .concat(
-                  .just(.setRecentUserInfo(userInfo)),
-                  .just(.setUser([.notice(.find)]))
-                  )
-              } else {
-                return .just(.setRecentUserInfo(userInfo))
-              }
-            default: return Observable.empty()
-            }
-            
-          case .autoScroll:
-            return .concat(
-              .just(.setRecentUserInfo(userInfo)),
-              .just(.addUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
-              .just(.startTimer)
-            )
-          default:
-            return .concat(
-              .just(.setRecentUserInfo(userInfo)),
-              .just(.setUser(userInfo.userInfos.map { FallingViewController.FallingDataModel.fallingUser($0)})),
-              .just(.startTimer)
-            )
-          }
-        }
+          },
+          .just(.setLoading(false))
+        )
       default: return .empty()
       }
     }
@@ -458,6 +464,9 @@ extension FallingViewModel {
       return newState
     case .setTimeState(let timeState):
       newState.timeState = timeState
+      return newState
+    case .setLoading(let isLoading):
+      newState.isLoading = isLoading
       return newState
     case .hidePause:
       newState.shouldShowPause = false
