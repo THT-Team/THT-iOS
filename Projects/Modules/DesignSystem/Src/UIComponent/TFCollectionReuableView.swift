@@ -7,11 +7,11 @@
 
 import UIKit
 
-public class TFCollectionReusableView: UICollectionReusableView {
+open class TFCollectionReusableView: UICollectionReusableView {
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
-    label.textColor = DSKitAsset.Color.neutral50.color
-    label.font = UIFont.thtSubTitle1M
+    label.textColor = DSKitAsset.Color.neutral50.color.withAlphaComponent(0.6)
+    label.font = UIFont.thtP2Sb
     return label
   }()
 
@@ -31,13 +31,13 @@ public class TFCollectionReusableView: UICollectionReusableView {
     fatalError("init(coder:) has not been implemented")
   }
 
-  private func setUpViews() {
+  open func setUpViews() {
     self.addSubview(titleLabel)
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(14)
-      $0.leading.equalToSuperview().offset(12)
-      $0.bottom.equalToSuperview().offset(-14)
+      $0.top.equalToSuperview().offset(10)
+      $0.leading.equalToSuperview()
+      $0.bottom.equalToSuperview()
     }
   }
 }

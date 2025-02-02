@@ -20,7 +20,7 @@ public final class TagCollectionViewCell: UICollectionViewCell {
   }()
   private lazy var emojiView: UILabel = {
     let label = UILabel()
-    label.font = UIFont.thtSubTitle1R
+    label.font = UIFont.thtP2M
     label.text = "🍅"
     label.numberOfLines = 1
     return label
@@ -28,7 +28,7 @@ public final class TagCollectionViewCell: UICollectionViewCell {
 
   private lazy var titleLabel: UILabel = {
     let label = UILabel()
-    label.font = UIFont.thtSubTitle1R
+    label.font = UIFont.thtP2M
     label.textColor = DSKitAsset.Color.neutral50.color
     label.text = "칩 텍스트"
     label.textAlignment = .left
@@ -94,5 +94,12 @@ public struct TagItemViewModel {
   public init(emojiCode: String, title: String) {
     self.emojiCode = emojiCode
     self.title = title
+  }
+}
+
+extension TagItemViewModel: Hashable {
+  public var id: UUID { UUID() }
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
   }
 }

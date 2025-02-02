@@ -15,21 +15,22 @@ public final class ProfileIntroduceCell: TFBaseCollectionViewCell {
     textView.font = UIFont.thtP2M
     textView.isScrollEnabled = false
     textView.isEditable = false
-    textView.textContainerInset = .init(top: 5, left: 5, bottom: 5, right: 5)
+    textView.textContainerInset = .init(top: 12, left: 5, bottom: 12, right: 5)
     textView.contentInset = .zero
+    textView.textAlignment = .left
+    textView.backgroundColor = DSKitAsset.Color.neutral700.color
+    textView.clipsToBounds = true
+    textView.layer.cornerRadius = 12
     return textView
   }()
 
   public override func makeUI() {
-    contentView.layer.cornerRadius = 12
-    contentView.backgroundColor = DSKitAsset.Color.neutral700.color
-    contentView.clipsToBounds = true
     contentView.addSubview(textView)
-
     textView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-      $0.width.equalTo(self.superview?.bounds.width ?? 200)
-      $0.height.equalTo(100).priority(.low)
+      $0.top.equalToSuperview()
+      $0.leading.trailing.equalToSuperview()
+      $0.height.greaterThanOrEqualTo(40)
+      $0.bottom.equalToSuperview().offset(-24)
     }
   }
 
@@ -41,8 +42,5 @@ public final class ProfileIntroduceCell: TFBaseCollectionViewCell {
 
   public func bind(_ text: String?) {
     self.textView.text = text
-    self.textView.invalidateIntrinsicContentSize()
-    self.textView.sizeToFit()
-    self.textView.setNeedsLayout()
   }
 }

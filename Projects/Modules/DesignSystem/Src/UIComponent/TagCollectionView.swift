@@ -15,20 +15,6 @@ public final class TagCollectionView: TFBaseView {
       }
     }
   }
-  public lazy var reportButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.plain()
-    config.image = DSKitAsset.Image.Icons.reportFill.image.withTintColor(
-      DSKitAsset.Color.neutral50.color,
-      renderingMode: .alwaysOriginal
-    )
-    config.imagePlacement = .all
-    config.baseBackgroundColor = DSKitAsset.Color.topicBackground.color
-    button.configuration = config
-
-    config.automaticallyUpdateForSelection = true
-    return button
-  }()
 
   public lazy var collectionView: UICollectionView = {
     let layout = LeftAlignCollectionViewFlowLayout()
@@ -48,12 +34,8 @@ public final class TagCollectionView: TFBaseView {
 
   public override func makeUI() {
     addSubview(collectionView)
-    addSubview(reportButton)
     collectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
-    }
-    reportButton.snp.makeConstraints {
-      $0.trailing.top.equalToSuperview().inset(12)
     }
   }
 }
@@ -71,16 +53,19 @@ extension TagCollectionView: UICollectionViewDataSource {
   }
 
   public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    guard indexPath.section < 2 else {
+    switch indexPath.section {
+    case 0, 1:
+      let item = self.sections[indexPath.section].items[indexPath.item]
+      let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
+      cell.bind(TagItemViewModel(emojiCode: item.emojiCode, title: item.name))
+      return cell
+    default:
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: ProfileIntroduceCell.self)
       cell.bind(self.sections[indexPath.section].introduce)
       return cell
     }
-    let item = self.sections[indexPath.section].items[indexPath.item]
-    let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
-    cell.bind(TagItemViewModel(emojiCode: item.emojiCode, title: item.name))
-    return cell
   }
+
   public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
     let header = collectionView.dequeueReusableView(for: indexPath, ofKind: kind, viewType: TFCollectionReusableView.self)
     header.title = self.sections[indexPath.section].header
