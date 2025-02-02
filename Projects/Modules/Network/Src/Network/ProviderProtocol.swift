@@ -15,6 +15,34 @@ public protocol ProviderProtocol: AnyObject, Networkable {
   var provider: MoyaProvider<Target> { get set }
 }
 
+extension ParseStrategy where Self == Date.ISO8601FormatStyle {
+  static var iso8601OptionalFractionalSeconds: Self { .init(includingFractionalSeconds: true)
+  }
+}
+
+extension JSONDecoder.DateDecodingStrategy {
+  static let iso8601withOptionalFractionalSeconds = custom {
+    var rawString = try $0.singleValueContainer().decode(String.self)
+    if !rawString.hasSuffix("Z") {
+      rawString.append(contentsOf: "Z")
+    }
+
+    do {
+      return try .init(rawString, strategy: .iso8601OptionalFractionalSeconds)
+    } catch {
+      return try .init(rawString, strategy: .iso8601)
+    }
+  }
+}
+
+extension JSONDecoder {
+  static let customDeocder: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601withOptionalFractionalSeconds
+    return decoder
+  }()
+}
+
 public extension ProviderProtocol {
   static func makeStubProvider(sampleStatusCode: Int = 200) -> MoyaProvider<Target> {
     let endPointClosure = { (target: Target) -> Endpoint in
@@ -88,7 +116,7 @@ public extension ProviderProtocol {
 
   func request<D: Decodable>(type: D.Type, target: Target) -> Single<D> {
     provider.rx.request(target)
-      .map(type)
+      .map(type, using: .customDeocder)
       .catch { error in
         if let error = error as? MoyaError {
           print(error.localizedDescription)
