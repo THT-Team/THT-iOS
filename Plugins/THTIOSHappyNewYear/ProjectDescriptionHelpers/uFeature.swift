@@ -18,6 +18,7 @@ public enum Feature: String {
 	case SignUp = "SignUp"
 	case Falling = "Falling"
 	case Chat = "Chat"
+  case ChatRoom = "ChatRoom"
 	case MyPage = "MyPage"
 	
 	// MARK: - Modules
@@ -88,6 +89,9 @@ public extension TargetDependency {
   enum SPM {
     public static let RxSwfit = TargetDependency.external(name: "RxSwift")
     public static let RxCocoa = TargetDependency.external(name: "RxCocoa")
+    public static let ReactorKit = TargetDependency.external(name: "ReactorKit")
+    public static let SwiftStomp =
+    TargetDependency.external(name: "SwiftStomp")
 
     public static let KingFisher = TargetDependency.external(name: External.Kingfisher.rawValue)
     public static let Moya  = TargetDependency.external(name: External.Moya.rawValue)
