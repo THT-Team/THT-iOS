@@ -8,6 +8,7 @@
 import Foundation
 import Core
 
-public protocol ChatRoomCoordinating: Coordinator, CoordinatorOutput {
+public protocol ChatRoomCoordinating: Coordinator {
   func chatRoomFlow(_ id: String)
+  var finishFlow: ((String?) -> Void)? { get set }
 }
