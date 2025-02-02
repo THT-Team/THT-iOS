@@ -8,6 +8,7 @@
 import Foundation
 
 import Core
+import Domain
 
 public protocol MySettingBuildable {
   func build(rootViewControllable: ViewControllable, user: User) -> MySettingCoordinating
