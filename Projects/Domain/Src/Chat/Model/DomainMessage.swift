@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+public enum DomainMessage {
+  case incoming(ChatMessage)
+  case outgoing(ChatMessage)
+}

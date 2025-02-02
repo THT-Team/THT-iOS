@@ -6,3 +6,9 @@
 //
 
 import Foundation
+import Domain
+import Core
+
+public protocol ChatRoomBuildable {
+  func build(_ userUUID: String, rootViewControllable: ViewControllable, talkUseCase: TalkUseCaseInterface) -> ChatRoomCoordinating
+}

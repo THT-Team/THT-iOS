@@ -6,3 +6,8 @@
 //
 
 import Foundation
+import Core
+
+public protocol ChatRoomCoordinating: Coordinator, CoordinatorOutput {
+  func chatRoomFlow(_ id: String)
+}

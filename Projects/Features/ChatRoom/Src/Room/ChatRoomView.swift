@@ -11,6 +11,7 @@ import DSKit
 
 final class ChatRoomView: TFBaseView {
 
+  lazy var visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
   lazy var backButton: UIBarButtonItem = .backButton
   lazy var exitButton: UIBarButtonItem = .exit
   lazy var reportButton: UIBarButtonItem = .report
@@ -18,10 +19,11 @@ final class ChatRoomView: TFBaseView {
   private(set) lazy var chatInputView = ChatInputView()
 
   lazy var collectionView: UICollectionView = {
-    let layout = UICollectionViewCompositionalLayout.listLayoutAutomaticHeight(withEstimatedHeight: 50)
+    let layout = UICollectionViewCompositionalLayout.listLayoutAutomaticHeight(withEstimatedHeight: 100)
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.refreshControl = self.refreshControl
     collectionView.backgroundColor = DSKitAsset.Color.neutral700.color
+    collectionView.keyboardDismissMode = .interactive
     return collectionView
   }()
 
@@ -29,10 +31,15 @@ final class ChatRoomView: TFBaseView {
 
   override func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral700.color
-    self.addSubviews(topicBar, collectionView, chatInputView)
+    self.addSubviews(topicBar, collectionView, chatInputView, visualEffectView)
 
     topicBar.snp.makeConstraints {
       $0.top.leading.trailing.equalTo(safeAreaLayoutGuide ).inset(10)
+    }
+
+    visualEffectView.isHidden = true
+    visualEffectView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
     }
 
     collectionView.snp.makeConstraints {

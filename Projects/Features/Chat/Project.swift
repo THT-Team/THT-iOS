@@ -21,6 +21,7 @@ let project = Project(
 		.feature(
 			implementation: .Chat,
 			dependencies: [
+        .feature(interface: .ChatRoom),
 				.feature(interface: .Chat),
 				.feature(interface: .Auth),
         .dsKit,

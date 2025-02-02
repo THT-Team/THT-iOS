@@ -11,12 +11,9 @@ import DSKit
 
 import Kingfisher
 import ChatInterface
+import Domain
 
 final class MyChatBubbleCell: TFBaseCollectionViewCell {
-  enum State {
-    case onlyContent
-    case contentWithDate
-  }
 
   private lazy var contentLabel: TFPaddingLabel = {
     let padding = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -47,7 +44,6 @@ final class MyChatBubbleCell: TFBaseCollectionViewCell {
     contentLabel.snp.makeConstraints {
       $0.top.equalToSuperview().offset(13)
       $0.trailing.equalToSuperview().offset(-16)
-
       $0.bottom.equalToSuperview().offset(-13)
     }
 
@@ -57,24 +53,15 @@ final class MyChatBubbleCell: TFBaseCollectionViewCell {
       $0.bottom.equalTo(contentLabel)
     }
   }
+
   // 경우의 수 2가지
   /*
    3. 메세지 + 날짜
    4. 메세지만
    */
-  func bind(_ item: ChatRoom, state: State) {
-    self.contentLabel.text = item.currentMessage
-    self.dateLabel.text = item.messageTime.toTimeString()
-    bind(state)
-  }
-
-  private func bind(_ state: State) {
-    switch state {
-    case .onlyContent:
-      self.dateLabel.isHidden = true
-    case .contentWithDate:
-      self.dateLabel.isHidden = false
-    }
+  func bind(_ item: BubbleReactor) {
+//    self.contentLabel.text = item.msg
+//    self.dateLabel.text = item.dateTime.toTimeString()
   }
 
   override func prepareForReuse() {
@@ -84,37 +71,4 @@ final class MyChatBubbleCell: TFBaseCollectionViewCell {
     dateLabel.text = nil
   }
 }
-
-#if canImport(SwiftUI) && DEBUG
-import SwiftUI
-
-struct MyChatBubbleCellViewPreview: PreviewProvider {
-
-  static let model = ChatRoom(
-    chatRoomIndex: 1,
-    partnerName: "nickname",
-    partnerProfileURL: "",
-    currentMessage: "테스트 메세지asdfkljaslk\naasfassdlfjasdlfkjasdflaksfjsdl\nasdf",
-    messageTime: Date(),
-    isAvailableChat: true
-  )
-  static var previews: some View {
-    Group {
-      UIViewPreview {
-        let cell = MyChatBubbleCell()
-        cell.bind(model, state: .contentWithDate)
-        return cell
-      }
-      .frame(width: UIScreen.main.bounds.width, height: 110)
-      UIViewPreview {
-        let cell = MyChatBubbleCell()
-        cell.bind(model, state: .onlyContent)
-        return cell
-      }
-      .frame(width: UIScreen.main.bounds.width, height: 110)
-    }
-    .previewLayout(.sizeThatFits)
-  }
-}
-#endif
 

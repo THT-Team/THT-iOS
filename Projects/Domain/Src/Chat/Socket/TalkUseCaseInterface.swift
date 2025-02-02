@@ -19,38 +19,18 @@ public protocol TalkUseCaseInterface {
   func send(destination: String, message: ChatMessage.Request)
   func send(destination: String, text: String)
   func listen() -> Observable<ChatSignalType>
-
 }
-public enum ChatSignalType {
-  case stompConnected
-  case message(ChatMessage)
-  case receipt(String)
-}
-
-extension ChatSignalType: Equatable {
-  public static func == (lhs: ChatSignalType, rhs: ChatSignalType) -> Bool {
-    switch (lhs, rhs) {
-    case (.stompConnected, .stompConnected):
-      return true
-    case let (.message(lhsMessage), .message(rhsMessage)):
-      return lhsMessage.chatIdx == rhsMessage.chatIdx
-    case let (.receipt(lhsReceipt), receipt(rhsReceipt)):
-      return lhsReceipt == rhsReceipt
-    default: return false
-    }
-  }
-}
-
 
 public final class DefaultTalkUseCase: TalkUseCaseInterface {
   private let client: SwiftStomp
   private var cancellable = Set<AnyCancellable>()
   private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
 
-  public init(config: ChatConfiguration) {
+  public init(config: ChatConfiguration = ChatConfiguration()) {
     self.client = SwiftStomp(host: config.hostURL, headers: [
       "Authorization": ""
     ])
+    
     bind()
   }
 
@@ -132,7 +112,7 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
         case let .disconnected(type):
           print("DISCONNECTED: ", type)
         case let .error(error):
-          print(error.description)
+          print("ERROR: \(error.description)")
         }
       }
       .store(in: &cancellable)

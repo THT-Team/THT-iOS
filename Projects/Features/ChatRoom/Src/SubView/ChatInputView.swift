@@ -10,7 +10,7 @@ import UIKit
 import Core
 import DSKit
 
-final class ChatInputView: UIControl {
+final class ChatInputView: UIView {
   lazy var attachButton: UIButton = {
     let button = UIButton(frame: .zero)
     var config = UIButton.Configuration.plain()
@@ -19,13 +19,14 @@ final class ChatInputView: UIControl {
     return button
   }()
   lazy var sendButton: UIButton = {
-    let button = UIButton(frame: .zero)
-    var config = UIButton.Configuration.plain()
-    config.image = DSKitAsset.Image.Icons.send.image
-    button.configuration = config
+    let button = UIButton()
+    button.setImage(DSKitAsset.Image.Icons.send.image, for: .normal)
+//    var config = UIButton.Configuration.plain()
+//    config.image = DSKitAsset.Image.Icons.send.image
+//    button.configuration = config
     return button
   }()
-  lazy var textField: UITextView = {
+  lazy var field: UITextView = {
     let textField = UITextView()
     textField.layer.masksToBounds = true
     textField.font = .thtSubTitle2R
@@ -38,17 +39,8 @@ final class ChatInputView: UIControl {
   }()
 
   var text: String? {
-    set {
-      textField.text = newValue
-      if textField.isFocused {
-        attachButton.configuration?.image = DSKitAsset.Image.Icons.attachSelected.image
-        sendButton.configuration?.image = DSKitAsset.Image.Icons.sendSelected.image
-      } else {
-        attachButton.configuration?.image = DSKitAsset.Image.Icons.attach.image
-        sendButton.configuration?.image = DSKitAsset.Image.Icons.send.image
-      }
-    } get {
-      textField.text
+    get {
+      field.text
     }
   }
 
@@ -61,6 +53,7 @@ final class ChatInputView: UIControl {
   init() {
     super.init(frame: .zero)
     makeUI()
+    bind()
   }
   
   required init?(coder: NSCoder) {
@@ -69,31 +62,24 @@ final class ChatInputView: UIControl {
   
   func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral700.color
-    self.addSubviews(lineView, attachButton, textField, sendButton)
+    self.addSubviews(lineView, field, sendButton)
 
     lineView.snp.makeConstraints {
       $0.leading.trailing.top.equalToSuperview()
       $0.height.equalTo(1)
     }
-    attachButton.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-    attachButton.snp.makeConstraints {
-      $0.leading.equalToSuperview()
-      $0.centerY.equalToSuperview().offset(1)
-    }
-//    textField.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
-    textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-    textField.setContentHuggingPriority(.defaultLow, for: .vertical)
-    textField.snp.makeConstraints {
+
+    field.snp.makeConstraints {
       $0.top.equalTo(lineView.snp.bottom).offset(10)
       $0.bottom.equalToSuperview().offset(-10)
       $0.height.equalTo(40).priority(.low)
-      $0.leading.equalTo(attachButton.snp.trailing)
-      $0.trailing.equalTo(sendButton.snp.leading)
+      $0.leading.equalToSuperview().offset(10)
     }
-    sendButton.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-    sendButton.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     sendButton.snp.makeConstraints {
-      $0.centerY.equalTo(attachButton)
+      $0.centerY.equalToSuperview()
+      $0.width.equalTo(50)
+      $0.leading.equalTo(field.snp.trailing)
+      $0.height.equalTo(40)
       $0.trailing.equalToSuperview()
     }
   }
@@ -101,8 +87,40 @@ final class ChatInputView: UIControl {
   override func layoutSubviews() {
     super.layoutSubviews()
 
-    textField.layer.cornerRadius = textField.frame.height / 2
+    field.layer.cornerRadius = field.frame.height / 2
   }
+
+  func bind() {
+    field.delegate = self
+  }
+}
+
+extension ChatInputView: UITextViewDelegate {
+  func textViewDidChange(_ textView: UITextView) {
+    sendButton.isEnabled = true // !textView.text.isEmpty
+    let image = textView.text.isEmpty
+    ? DSKitAsset.Image.Icons.send.image
+    : DSKitAsset.Image.Icons.sendSelected.image
+    sendButton.setImage(image, for: .normal)
+  }
+}
+
+extension Reactive where Base: ChatInputView {
+  var sendButtonTap: ControlEvent<String> {
+    let source: Observable<String> = base.sendButton.rx.tap
+      .withLatestFrom(self.base.field.rx.text.orEmpty)
+        .flatMap { text -> Observable<String> in
+          if !text.isEmpty {
+            return .just(text)
+          } else {
+            return .empty()
+          }
+        }
+        .do(onNext: { [weak base = self.base] _ in
+          base?.field.text = nil
+        })
+      return ControlEvent(events: source)
+    }
 }
 
 

@@ -10,5 +10,8 @@ import Foundation
 import RxSwift
 
 public protocol ChatRepositoryInterface {
-  func fetchRooms() -> Single<[ChatRoom]>
+  func rooms() -> Single<[ChatRoom]>
+  func history(roomIdx: String, chatIdx: String?, size: Int) -> Single<[ChatMessage]>
+  func room(_ roomIdx: String) -> Single<ChatRoomInfo>
+  func out(_ roomIdx: String) -> Single<Void>
 }

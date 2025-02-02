@@ -9,6 +9,7 @@ import Foundation
 
 import Core
 import ChatInterface
+import Domain
 
 import RxSwift
 import RxCocoa
@@ -56,7 +57,7 @@ extension ChatHomeViewModel: ViewModelType {
       .asObservable()
       .withUnretained(self)
       .flatMapLatest { owner, _ in
-        owner.chatUsecase.fetchRooms()
+        owner.chatUsecase.rooms()
       }
       .map { rooms in
         var mutable = snapshot.value
