@@ -6,8 +6,6 @@
 //
 
 import Foundation
-import Domain
-import SignUpInterface
 
 public struct User {
   public let age: Int
@@ -44,5 +42,17 @@ public struct User {
     self.interestsList = interestsList
     self.userProfilePhotos = userProfilePhotos
     self.userAgreements = userAgreements
+  }
+}
+
+public struct ProfileItem {
+  public let id: String
+  public let topic: String
+  public let issue: String
+
+  public init(id: String, topic: String, issue: String) {
+    self.id = id
+    self.topic = topic
+    self.issue = issue
   }
 }

@@ -7,19 +7,26 @@
 
 import Foundation
 
+public protocol UserInfoType {
+  var username: String { get }
+  var userUUID: String { get }
+  var age: Int { get }
+  var introduction: String { get }
+  var address: String { get }
+  var idealTypeList: [EmojiType] { get }
+  var interestsList: [EmojiType] { get }
+  var userProfilePhotos: [UserProfilePhoto] { get }
+}
+
 // MARK: - UserResponse
-public struct UserInfo {
+public struct UserInfo: UserInfoType {
   public let username, userUUID: String
   public let age: Int
-  public let introduction, address, phoneNumber, email: String
+  public let introduction, address: String
   public let idealTypeList, interestsList: [EmojiType]
   public let userProfilePhotos: [UserProfilePhoto]
 
-  enum CodingKeys: String, CodingKey {
-    case username
-    case userUUID = "userUuid"
-    case age, introduction, address, phoneNumber, email, idealTypeList, interestsList, userProfilePhotos
-  }
+  public let phoneNumber, email: String
 
   public var description: String {
     username + ", " + "\(age)"

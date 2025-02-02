@@ -9,7 +9,7 @@ import Foundation
 
 public struct LikeMatching {
   public let isMatching: Bool
-  public let chatRoomIdx: Int
+  public let chatRoomIdx: Int?
 
   public init(isMatching: Bool, chatRoomIdx: Int) {
     self.isMatching = isMatching

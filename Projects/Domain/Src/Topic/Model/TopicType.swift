@@ -6,3 +6,7 @@
 //
 
 import Foundation
+
+public enum TopicType: String, Decodable {
+  case oneChoice, twoChoice, fourChoice
+}

@@ -13,4 +13,7 @@ import RxCocoa
 public protocol UserDomainRepositoryInterface {
   func fetchIdealTypeEmoji() -> Single<[EmojiType]>
   func fetchInterestEmoji() -> Single<[EmojiType]>
+  func report(id: String, reason: String) -> Single<Void>
+  func block(id: String) -> Single<Void>
+  func user(_ id: String) -> Single<User>
 }

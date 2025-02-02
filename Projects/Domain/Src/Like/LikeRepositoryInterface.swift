@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Domain
 
 import RxSwift
 
@@ -14,5 +13,6 @@ public protocol LikeRepositoryInterface {
   func fetchList(size: Int, lastTopicIndex: Int?, lastLikeIndex: Int?) -> Single<LikeListinfo>
   func user(id: String) -> Single<UserInfo>
   func reject(index: Int) -> Single<Void>
-  func like(id: String, topicID: String) -> Single<LikeMatchingRes>
+  func like(id: String, topicID: String) -> Single<LikeMatching>
+  func dontLike(id: String, topicID: String) -> Single<Void>
 }

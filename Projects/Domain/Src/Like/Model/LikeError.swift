@@ -7,6 +7,6 @@
 
 import Foundation
 
-public enum LikeError {
-  
+public enum LikeError: Error {
+  case invalid
 }

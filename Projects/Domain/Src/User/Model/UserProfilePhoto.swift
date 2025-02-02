@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct UserProfilePhoto: Codable {
+public struct UserProfilePhoto {
   public var identifier = UUID()
   public let url: String
   public let priority: Int
@@ -19,7 +19,6 @@ public struct UserProfilePhoto: Codable {
 }
 
 extension UserProfilePhoto: Hashable {
-
   public func hash(into hasher: inout Hasher) {
     hasher.combine(identifier)
   }

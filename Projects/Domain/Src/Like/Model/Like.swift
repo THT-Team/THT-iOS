@@ -14,6 +14,7 @@ public struct Like {
   public let profileURL: String
   public let age: Int
   public let address, receivedTime: String
+  public var isNew: Bool
 
   public init(dailyFallingIdx: Int, likeIdx: Int, topic: String, issue: String, userUUID: String, username: String, profileURL: String, age: Int, address: String, receivedTime: String) {
     self.dailyFallingIdx = dailyFallingIdx
@@ -26,6 +27,11 @@ public struct Like {
     self.age = age
     self.address = address
     self.receivedTime = receivedTime
+    self.isNew = true
+  }
+
+  public mutating func updateNew() {
+    self.isNew = false
   }
 }
 

@@ -6,3 +6,7 @@
 //
 
 import Foundation
+
+public struct TopicChoose: Decodable {
+  public let isChoose: Bool
+}

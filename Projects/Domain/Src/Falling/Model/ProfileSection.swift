@@ -8,11 +8,11 @@
 import Foundation
 import Domain
 
-public enum FallingProfileSection {
+public enum ProfileSection {
   case profile
 }
 
-public enum FallingUserInfoSection: Int {
+public enum UserInfoSection: Int {
   case interest
   case ideal
   case introduction
@@ -29,7 +29,7 @@ public enum FallingUserInfoSection: Int {
   }
 }
 
-public enum FallingUserInfoItem: Hashable {
+public enum UserInfoItem: Hashable {
   case interest(EmojiType)
   case ideal(EmojiType)
   case introduction(String)

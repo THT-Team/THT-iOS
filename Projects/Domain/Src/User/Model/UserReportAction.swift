@@ -7,6 +7,8 @@
 
 import Foundation
 
+public typealias UserReportHandler = ((UserReportAction) -> Void)
+
 public enum UserReportAction {
   case block
   case report(String)
@@ -16,4 +18,11 @@ public enum UserReportAction {
 public enum UserReportType {
   case block(String)
   case report(String, String)
+}
+
+public typealias ConfirmHandler = ((ConfirmAction) -> Void)
+
+public enum ConfirmAction {
+  case confirm
+  case cancel
 }
