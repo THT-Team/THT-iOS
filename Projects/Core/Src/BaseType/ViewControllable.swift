@@ -50,17 +50,26 @@ public extension ViewControllable {
 
   func present(_ viewControllable: ViewControllable, animated: Bool) {
     if let nav = self.uiController as? UINavigationController {
-      nav.present(viewControllable.uiController, animated: animated)
+      if let presented = nav.presentedViewController {
+        presented.present(viewControllable.uiController, animated: animated)
+      } else {
+        nav.present(viewControllable.uiController, animated: animated)
+      }
     } else {
       self.uiController.navigationController?.present(viewControllable.uiController, animated: animated)
     }
   }
 
   func dismiss() {
-    if let presented = self.uiController.presentedViewController {
-      presented.dismiss(animated: true)
+    if let nav = self.uiController as? UINavigationController {
+      if let presented = nav.presentedViewController {
+        
+        presented.dismiss(animated: true)
+      } else {
+        nav.topViewController?.dismiss(animated: true)
+      }
     } else {
-      self.uiController.dismiss(animated: true)
+      uiController.dismiss(animated: true)
     }
   }
   
