@@ -17,6 +17,7 @@ let project = Project.makeModule(
     .feature(implementation: .SignUp),
     .feature(implementation: .Falling),
     .feature(implementation: .Chat),
+    .feature(implementation: .ChatRoom),
     .feature(implementation: .MyPage),
     .module(implementation: .Data, pathName: .Data)
   ],
