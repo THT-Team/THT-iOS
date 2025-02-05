@@ -12,6 +12,7 @@ import SignUpInterface
 
 import RxSwift
 import RxCocoa
+import Domain
 
 final class AlcoholTobaccoPickerViewModel: BasePenddingViewModel, ViewModelType {
 

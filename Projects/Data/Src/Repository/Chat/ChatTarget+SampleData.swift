@@ -76,7 +76,7 @@ extension ChatTarget {
     "sender": "짱구",
     "senderUuid": "user-uuid",
     "msg": "채팅 내용",
-    "imgUrl": "img-url",
+    "imgUrl": "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18",
     "dateTime": "2023-11-13T17:30:12.000001234"
   },
   {
@@ -84,7 +84,7 @@ extension ChatTarget {
     "sender": "신사임당",
     "senderUuid": "46d960f565-2ae2-4193-96fd-31b6a8757611",
     "msg": "안녕하세요~~2233",
-    "imgUrl": "user-profile-url",
+    "imgUrl": "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18",
     "dateTime": "2024-03-14T19:45:37.311199135"
   },
   {
@@ -92,7 +92,7 @@ extension ChatTarget {
     "sender": "신사임당",
     "senderUuid": "46d960f565-2ae2-4193-96fd-31b6a8757611",
     "msg": "안녕하세요~~2233",
-    "imgUrl": "user-profile-url",
+    "imgUrl": "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18",
     "dateTime": "2024-03-14T19:45:37.311199135"
   },
   {
@@ -100,7 +100,7 @@ extension ChatTarget {
     "sender": "신사임당",
     "senderUuid": "46d960f565-2ae2-4193-96fd-31b6a8757611",
     "msg": "안녕하세요~~2233",
-    "imgUrl": "user-profile-url",
+    "imgUrl": "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18",
     "dateTime": "2024-03-14T19:45:37.311199135"
   },
   {
@@ -108,7 +108,7 @@ extension ChatTarget {
     "sender": "신사임당",
     "senderUuid": "46d960f565-2ae2-4193-96fd-31b6a8757611",
     "msg": "안녕하세요~~2233",
-    "imgUrl": "user-profile-url",
+    "imgUrl": "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18",
     "dateTime": "2024-03-14T19:45:37.311199135"
   },
 ]

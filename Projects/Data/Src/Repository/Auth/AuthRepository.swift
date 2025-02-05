@@ -19,6 +19,7 @@ import Core
 import KakaoSDKCommon
 import KakaoSDKAuth
 import KakaoSDKUser
+import Domain
 
 public final class AuthRepository: ProviderProtocol {
 
@@ -38,7 +39,7 @@ public final class AuthRepository: ProviderProtocol {
 }
 
 extension AuthRepository: AuthRepositoryInterface {
-  public func checkUserExist(phoneNumber: String) -> RxSwift.Single<AuthInterface.UserSignUpInfoRes> {
+  public func checkUserExist(phoneNumber: String) -> RxSwift.Single<UserSignUpInfoRes> {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
   }
 
@@ -48,15 +49,15 @@ extension AuthRepository: AuthRepositoryInterface {
 //    request(type: PhoneValidationResponse.self, target: .certificate(phoneNumber: phoneNumber)).map(\.authNumber)
   }
 
-  public func login(phoneNumber: String, deviceKey: String) -> Single<AuthInterface.Token> {
+  public func login(phoneNumber: String, deviceKey: String) -> Single<Domain.Token> {
     authService.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
   }
 
-  public func loginSNS(_ userSNSLoginRequest: AuthInterface.UserSNSLoginRequest) -> Single<AuthInterface.Token> {
+  public func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Domain.Token> {
     authService.loginSNS(userSNSLoginRequest)
   }
 
-  public func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<AuthInterface.Token> {
+  public func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Domain.Token> {
     authService.signUpSNS(request)
   }
 

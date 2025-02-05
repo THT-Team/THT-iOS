@@ -25,4 +25,10 @@ extension FallingUserInfo {
       )
     }
   }
+
+  init(_ res: Res) {
+    self.init(selectDailyFallingIdx: res.selectDailyFallingIdx,
+                    topicExpirationUnixTime: res.topicExpirationUnixTime,
+                    isLast: res.isLast, userInfos: res.userInfos.map { $0.toDomain() })
+  }
 }

@@ -20,7 +20,9 @@ public final class InfoCVCell: TFBaseCollectionViewCell {
   private lazy var contentContainerView: UIView = {
     let view = UIView()
     view.clipsToBounds = true
+    view.layer.masksToBounds = true
     view.backgroundColor = DSKitAsset.Color.neutral700.color
+    view.layer.cornerRadius = 25
     return view
   }()
 
@@ -65,5 +67,7 @@ public final class InfoCVCell: TFBaseCollectionViewCell {
   public func bind(_ title: String, _ content: String) {
     self.titleLabel.text = title
     self.contentLabel.text = content
+
+    setNeedsLayout()
   }
 }

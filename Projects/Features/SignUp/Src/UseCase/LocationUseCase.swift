@@ -8,6 +8,7 @@
 import Foundation
 import SignUpInterface
 import AuthInterface
+import Domain
 
 import RxSwift
 

@@ -13,6 +13,7 @@ import RxSwift
 import RxCocoa
 import SignUpInterface
 import AuthInterface
+import Domain
 
 final class LocationInputViewModel: BasePenddingViewModel, ViewModelType {
 

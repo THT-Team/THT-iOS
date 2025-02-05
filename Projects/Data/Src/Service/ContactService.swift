@@ -10,6 +10,7 @@ import RxSwift
 import SignUpInterface
 import AuthInterface
 import Contacts
+import Domain
 
 enum ContactError: Error {
   case fetchError(message: String)

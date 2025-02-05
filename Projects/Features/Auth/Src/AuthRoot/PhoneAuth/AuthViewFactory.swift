@@ -9,6 +9,7 @@ import UIKit
 import AuthInterface
 import DSKit
 import Core
+import Domain
 
 public final class AuthViewFactory {
   @Injected private var useCase: AuthUseCaseInterface

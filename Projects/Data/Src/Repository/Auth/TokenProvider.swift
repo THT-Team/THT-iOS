@@ -14,6 +14,7 @@ import RxSwift
 import Networks
 
 import AuthInterface
+import Domain
 
 public final class DefaultTokenProvider: ProviderProtocol {
   public typealias Target = TokenProviderTarget
@@ -26,7 +27,7 @@ public final class DefaultTokenProvider: ProviderProtocol {
 }
 
 extension DefaultTokenProvider: TokenProvider {
-  public func signUpSNS(_ userSNSSignUpRequest: AuthInterface.UserSNSSignUpRequest) -> RxSwift.Single<AuthInterface.Token> {
+  public func signUpSNS(_ userSNSSignUpRequest: UserSNSSignUpRequest) -> RxSwift.Single<Token> {
     request(type: Token.self, target: .signUpSNS(userSNSSignUpRequest))
   }
   

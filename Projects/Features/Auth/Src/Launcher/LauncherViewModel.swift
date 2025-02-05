@@ -10,6 +10,7 @@ import Foundation
 import AuthInterface
 import SignUpInterface
 import Core
+import Domain
 
 import RxSwift
 import RxCocoa

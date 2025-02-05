@@ -9,6 +9,7 @@ import UIKit
 import DSKit
 import RxSwift
 import SignUpInterface
+import Domain
 
 final class PreferGenderPickerView: TFBaseView {
 

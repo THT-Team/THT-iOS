@@ -11,5 +11,5 @@ import Core
 import Domain
 
 public protocol LikeBuildable {
-  func build(rootViewControllable: ViewControllable, talkUseCase: TalkUseCaseInterface) -> LikeCoordinating
+  func build(rootViewControllable: ViewControllable) -> LikeCoordinating
 }

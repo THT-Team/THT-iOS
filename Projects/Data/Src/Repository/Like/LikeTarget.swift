@@ -46,7 +46,7 @@ extension LikeTarget: BaseTargetType {
   public var task: Task {
     switch self {
     case .list(let request):
-			return .requestJSONEncodable(request)
+      return .requestParameters(parameters: request.toDictionary(), encoding: URLEncoding.queryString)
     case .reject(let request):
       return .requestParameters(parameters: request.toDictionary(), encoding: URLEncoding.queryString)
     case .dontLike, .like, .userInfo:

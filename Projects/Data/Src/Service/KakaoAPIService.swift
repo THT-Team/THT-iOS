@@ -10,6 +10,7 @@ import Foundation
 import SignUpInterface
 import AuthInterface
 import Networks
+import Domain
 
 import Moya
 import RxSwift

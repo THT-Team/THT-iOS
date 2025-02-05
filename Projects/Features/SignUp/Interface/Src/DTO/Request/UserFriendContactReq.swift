@@ -7,6 +7,7 @@
 
 import Foundation
 
+import Domain
 import AuthInterface
 
 public struct UserFriendContactReq: Codable {

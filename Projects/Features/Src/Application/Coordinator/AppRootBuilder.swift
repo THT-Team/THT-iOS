@@ -12,6 +12,7 @@ import DSKit
 import Auth
 import SignUp
 import MyPage
+import Domain
 
 public protocol AppRootDependency { }
 
@@ -36,6 +37,8 @@ public protocol AppRootBuildable {
 }
 
 public final class AppRootBuilder: AppRootBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
+
   private let dependency: AppRootDependency
 
   public init(dependency: AppRootDependency) {
@@ -52,7 +55,8 @@ public final class AppRootBuilder: AppRootBuildable {
       mainBuildable: mainBuilder,
       authBuildable: authBuilder,
       launchBUidlable: launcher,
-      signUpBuildable: SignUpBuilder()
+      signUpBuildable: SignUpBuilder(),
+      talkUseCase: talkUseCase
     )
     return coordinator
   }

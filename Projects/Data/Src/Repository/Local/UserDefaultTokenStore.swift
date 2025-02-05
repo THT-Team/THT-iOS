@@ -9,6 +9,7 @@ import Foundation
 
 import AuthInterface
 import RxSwift
+import Domain
 
 public final class UserDefaultTokenStore: TokenStore {
   enum Key {
@@ -19,10 +20,10 @@ public final class UserDefaultTokenStore: TokenStore {
   public static let shared: TokenStore = UserDefaultTokenStore()
 
   public init () {
-    self.cachedToken = try? UserDefaults.standard.getCodableObject(forKey: Key.token, as: AuthInterface.Token.self)
+    self.cachedToken = try? UserDefaults.standard.getCodableObject(forKey: Key.token, as: Token.self)
   }
 
-  public func saveToken(token: AuthInterface.Token) {
+  public func saveToken(token: Token) {
     try? UserDefaults.standard.setCodableObject(token, forKey: Key.token)
     cachedToken = token
   }

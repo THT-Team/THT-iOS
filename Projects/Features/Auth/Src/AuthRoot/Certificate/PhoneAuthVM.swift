@@ -9,6 +9,7 @@ import Foundation
 
 import DSKit
 import AuthInterface
+import Domain
 
 public final class PhoneAuthVM: AuthViewModelType {
   private let phoneNumber: String

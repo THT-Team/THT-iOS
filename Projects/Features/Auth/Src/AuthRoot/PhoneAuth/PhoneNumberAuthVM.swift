@@ -9,6 +9,7 @@ import Foundation
 
 import DSKit
 import AuthInterface
+import Domain
 
 public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
   public var onSuccess: ((String) -> Void)?

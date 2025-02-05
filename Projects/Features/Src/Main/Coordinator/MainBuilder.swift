@@ -23,16 +23,22 @@ import MyPage
 import Auth
 import AuthInterface
 
+import ChatRoom
+import ChatRoomInterface
+
+import Domain
+
 final class MainBuilder: MainBuildable {
 
   init() {
   }
 
-  func build() -> MainCoordinating {
+  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating {
     let tabBar = TFTabBarController()
-    let fallingBuilder = FallingBuilder()
-    let likeBuilder = LikeBuilder()
-    let chatBuilder = ChatBuilder()
+    let chatRoomBuilder = ChatRoomBuilder(talkUseCase: talkUseCase)
+    let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
+    let likeBuilder = LikeBuilder(chatRoomBuilder: chatRoomBuilder)
+    let chatBuilder = ChatBuilder(chatRoomBuilder: chatRoomBuilder)
     let myPageBuilder = MyPageBuilder(factory: MyPageFactory(userStore: UserStore(), inquiryBuilder: InquiryBuilder()))
 
     let coordinator = MainCoordinator(

@@ -7,7 +7,7 @@
 
 import Domain
 
-public enum ProfileDatailSection {
+public enum ProfileDetailSection {
   case photo([UserProfilePhoto])
   case text(String, String)
   case emoji(String, [EmojiType], title: (String, String)?)
@@ -37,11 +37,31 @@ public enum ProfileDatailSection {
   }
 }
 
-extension User {
+extension UserInfoType {
+  public func toUserCardSection() -> [ProfileDetailSection] {
+    var sections: [ProfileDetailSection] = [
+      .emoji("내 관심사", interestsList, title: nil),
+      .emoji("내 이상형", idealTypeList, title: nil),
+      .blocks([
+        ("키", "\(10)cm"),
+        ("흡연",  Frequency.frequently.title),
+        ("술", Frequency.frequently.title),
+        ("종교", Religion.buddhism.title),
+      ])
+    ]
+    if !introduction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      sections.append(.text("자기소개", introduction))
+    }
+
+    return sections
+  }
+}
+
+extension UserDetailInfoType {
   public var profileTitle: String {
     username + ", \(age)"
   }
-  public func toProfileSection() -> [ProfileDatailSection] {
+  public func toProfileSection() -> [ProfileDetailSection] {
       [
         .photo(userProfilePhotos),
         .emoji("관심사", interestsList, title: (profileTitle, address)),
@@ -54,6 +74,23 @@ extension User {
         ]),
         .text("자기소개", introduction + "\n\n\nasfasdf")
       ]
+  }
+
+  public func toUserCardSection() -> [ProfileDetailSection] {
+    var sections: [ProfileDetailSection] = [
+      .emoji("내 관심사", interestsList, title: nil),
+      .emoji("내 이상형", idealTypeList, title: nil),
+      .blocks([
+        ("키", "\(tall)cm"),
+        ("흡연",  smoking.title),
+        ("술", drinking.title),
+        ("종교", religion.title),
+      ]),
+    ]
+    if !introduction.isEmpty {
+      sections.append(.text("자기소개", introduction))
+    }
+    return sections
   }
 }
 

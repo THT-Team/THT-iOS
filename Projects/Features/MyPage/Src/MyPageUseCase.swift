@@ -17,7 +17,7 @@ import Core
 
 public final class MyPageUseCase: MyPageUseCaseInterface {
   
-  public func createSettingMenu(user: MyPageInterface.User) -> [MyPageInterface.SectionModel<MyPageInterface.MySetting.MenuItem>] {
+  public func createSettingMenu(user: User) -> [MyPageInterface.SectionModel<MyPageInterface.MySetting.MenuItem>] {
 
     let userSignUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)
     

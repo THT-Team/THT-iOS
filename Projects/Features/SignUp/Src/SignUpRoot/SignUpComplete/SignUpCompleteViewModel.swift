@@ -14,6 +14,7 @@ import RxCocoa
 
 import SignUpInterface
 import AuthInterface
+import Domain
 
 final class SignUpCompleteViewModel: BasePenddingViewModel, ViewModelType {
   private let contacts: [ContactType]

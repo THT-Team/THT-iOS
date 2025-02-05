@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct User: UserInfoType {
+public struct User: UserDetailInfoType {
   public let age: Int
   public let birthday: String
   public let userUUID: String

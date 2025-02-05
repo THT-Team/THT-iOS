@@ -11,6 +11,7 @@ import AuthInterface
 import Core
 import RxSwift
 import RxCocoa
+import Domain
 
 public final class PhoneNumberInputVM: PhoneNumberViewModelType {
   public var onBackButtonTap: (() -> Void)?

@@ -10,6 +10,7 @@ import Core
 import DSKit
 import AuthInterface
 import SignUpInterface
+import Domain
 
 public final class AuthLaunchCoordinator: BaseCoordinator, AuthLaunchCoordinating {
   @Injected private var useCase: AuthUseCaseInterface

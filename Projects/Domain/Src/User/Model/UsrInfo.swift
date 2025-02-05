@@ -18,6 +18,13 @@ public protocol UserInfoType {
   var userProfilePhotos: [UserProfilePhoto] { get }
 }
 
+public protocol UserDetailInfoType: UserInfoType {
+  var tall: Int { get }
+  var drinking: Frequency { get }
+  var smoking: Frequency { get }
+  var religion: Religion { get }
+}
+
 // MARK: - UserResponse
 public struct UserInfo: UserInfoType {
   public let username, userUUID: String

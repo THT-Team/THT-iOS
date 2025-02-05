@@ -18,7 +18,7 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
-  public func start(_ userInfo: AuthInterface.SNSUserInfo) {
+  public func start(_ userInfo: SNSUserInfo) {
 
     guard let phoneNumber = userInfo.phoneNumber else { return }
 

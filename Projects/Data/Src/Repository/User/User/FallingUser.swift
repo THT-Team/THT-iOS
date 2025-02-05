@@ -27,8 +27,8 @@ extension FallingUser {
       case username
       case userUUID = "userUuid"
       case age, address, isBirthDay
-      case idealTypeResponseList = "idealTypeList"
-      case interestResponses = "interestList"
+      case idealTypeResponseList = "idealTypeResponseList"
+      case interestResponses = "interestResponses"
       case userProfilePhotos, introduction, userDailyFallingCourserIdx, distance
     }
     

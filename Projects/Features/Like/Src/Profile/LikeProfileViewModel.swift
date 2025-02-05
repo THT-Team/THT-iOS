@@ -39,7 +39,7 @@ public final class LikeProfileViewModel: ViewModelType {
 
   public struct Output {
     let topic: Driver<TopicViewModel>
-    let sections: Driver<[ProfileDatailSection]>
+    let sections: Driver<[ProfileDetailSection]>
     let isBlurHidden: Driver<Bool>
   }
 

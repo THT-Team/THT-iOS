@@ -12,14 +12,15 @@ import Domain
 extension LikeListinfo {
   struct Res: Decodable {
     let likeList: [Like.Res]
-    let size, lastFallingTopicIdx, lastLikeIdx: Int
+    let size: Int
+    let lastFallingTopicIdx, lastLikeIdx: Int?
 
     func toDomain() -> LikeListinfo {
       LikeListinfo(
         likeList: self.likeList.map { $0.toDomain() },
         size: self.size,
-        lastFallingTopicIdx: self.lastFallingTopicIdx,
-        lastLikeIdx: self.lastLikeIdx
+        lastFallingTopicIdx: self.lastFallingTopicIdx ?? 0,
+        lastLikeIdx: self.lastLikeIdx ?? 0
       )
     }
   }

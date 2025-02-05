@@ -8,6 +8,7 @@
 import Foundation
 
 import Core
+import Domain
 
 public protocol AuthCoordinating: Coordinator {
   var finishFlow: (() -> Void)? { get set }

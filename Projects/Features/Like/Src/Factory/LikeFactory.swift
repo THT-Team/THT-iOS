@@ -18,11 +18,9 @@ public final class LikeFactory {
   @Injected var userUseCase: UserDomainUseCaseInterface
 
   private let chatRoomBuilder: ChatRoomBuildable
-  private let talkUseCase: TalkUseCaseInterface
 
-  public init(chatRoomBuilder: ChatRoomBuildable, talkUseCase: TalkUseCaseInterface) {
+  public init(chatRoomBuilder: ChatRoomBuildable) {
     self.chatRoomBuilder = chatRoomBuilder
-    self.talkUseCase = talkUseCase
   }
 
   public func makeLikeHome() -> (ViewControllable, LikeHomeViewModel) {
@@ -39,8 +37,8 @@ public final class LikeFactory {
     return (vc, vm)
   }
 
-  public func makeChatRoomCoordinator(_ userUUID: String, _ rootViewControllable: ViewControllable) -> ChatRoomCoordinating {
-    let coordinator = chatRoomBuilder.build(userUUID, rootViewControllable: rootViewControllable, talkUseCase: talkUseCase)
+  public func makeChatRoomCoordinator(_ rootViewControllable: ViewControllable) -> ChatRoomCoordinating {
+    let coordinator = chatRoomBuilder.build( rootViewControllable: rootViewControllable)
     return coordinator
   }
 }

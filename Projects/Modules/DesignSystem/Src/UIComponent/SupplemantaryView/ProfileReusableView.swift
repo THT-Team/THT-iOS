@@ -7,7 +7,6 @@
 
 import UIKit
 
-import LikeInterface
 import Domain
 
 public class TFBaseCollectionReusableView: UICollectionReusableView {
@@ -15,6 +14,10 @@ public class TFBaseCollectionReusableView: UICollectionReusableView {
   override public init(frame: CGRect) {
     super.init(frame: frame)
     makeUI()
+  }
+
+  public enum Metric {
+    static let horizontalPadding: CGFloat = 16
   }
 
   @available(*, unavailable)
@@ -28,11 +31,6 @@ public class TFBaseCollectionReusableView: UICollectionReusableView {
 }
 
 public final class ProfileInfoReusableView: TFBaseCollectionReusableView {
-
-  enum Metric {
-    static let horizontalPadding: CGFloat = 16
-  }
-
   var disposeBag = DisposeBag()
 
   private lazy var titleLabel: UILabel = {
@@ -63,20 +61,7 @@ public final class ProfileInfoReusableView: TFBaseCollectionReusableView {
     return label
   }()
 
-  public lazy var reportButton: UIButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.plain()
-    config.image = DSKitAsset.Image.Icons.reportFill.image.withTintColor(
-      DSKitAsset.Color.neutral50.color,
-      renderingMode: .alwaysOriginal
-    )
-    config.imagePlacement = .all
-    config.baseBackgroundColor = DSKitAsset.Color.topicBackground.color
-    button.configuration = config
-
-    config.automaticallyUpdateForSelection = true
-    return button
-  }()
+  public lazy var reportButton = UIButton.createReportButton()
 
   public override func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral600.color

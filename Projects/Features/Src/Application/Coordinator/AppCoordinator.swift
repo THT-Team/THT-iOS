@@ -15,6 +15,7 @@ import Auth
 import KakaoSDKAuth
 import KakaoSDKUser
 import DSKit
+import Domain
 
 protocol AppCoordinating {
   func launchFlow()
@@ -28,18 +29,23 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   private let authBuildable: AuthBuildable
   private let launchBuildable: LaunchBuildable
   private let signUpBuildable: SignUpBuildable
+  private let talkUseCase: TalkUseCaseInterface
 
   init(
     viewControllable: ViewControllable,
     mainBuildable: MainBuildable,
     authBuildable: AuthBuildable,
     launchBUidlable: LaunchBuildable,
-    signUpBuildable: SignUpBuildable
+    signUpBuildable: SignUpBuildable,
+    talkUseCase: TalkUseCaseInterface
   ) {
     self.mainBuildable = mainBuildable
     self.authBuildable = authBuildable
     self.launchBuildable = launchBUidlable
     self.signUpBuildable = signUpBuildable
+    self.talkUseCase = talkUseCase
+    // FIXME: talkUseCase를 메인 진입 후 하는 게 나을 것 같은데 어디서 초기화를 해야할지..?
+
     super.init(viewControllable: viewControllable)
   }
 
@@ -74,7 +80,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
       self?.mainFlow()
     }
 
-    coordinator.signUpFlow = { [weak self, weak coordinator] userInfo in
+    coordinator.signUpFlow = { [weak self] userInfo in
       self?.runSignUpFlow(userInfo)
     }
 
@@ -96,7 +102,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   func mainFlow() {
-    let coordinator = mainBuildable.build()
+    let coordinator = mainBuildable.build(talkUseCase: self.talkUseCase)
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
       self?.authFlow()

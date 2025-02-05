@@ -9,6 +9,8 @@ import Foundation
 
 import ChatInterface
 import Core
+import Domain
+import ChatRoomInterface
 
 enum ChatCoordinatingAction {
   case backButtonTapped
@@ -23,9 +25,14 @@ protocol ChatCoordinatingActionDelegate: AnyObject {
 }
 
 public final class ChatCoordinator: BaseCoordinator {
-  @Injected var chatUseCase: ChatUseCaseInterface
+  private let factory: ChatFactory
 
   public weak var delegate: ChatCoordinatorDelegate?
+
+  public init(factory: ChatFactory, viewControllable: ViewControllable) {
+    self.factory = factory
+    super.init(viewControllable: viewControllable)
+  }
 
   public override func start() {
     homeFlow()
@@ -34,22 +41,23 @@ public final class ChatCoordinator: BaseCoordinator {
 
 extension ChatCoordinator: ChatCoordinating {
   public func homeFlow() {
-    let viewModel = ChatHomeViewModel(chatUseCase: chatUseCase)
-    viewModel.delegate = self
-    let viewController = ChatHomeViewController(viewModel: viewModel)
+    let (vc, vm) = factory.makeChatHomeFlow()
 
-    self.viewControllable.setViewControllers([viewController])
+    vm.delegate = self
+
+    self.viewControllable.setViewControllers([vc])
   }
 
-  public func chatRoomFlow(_ item: ChatRoom) {
-    let viewModel = ChatRoomViewModel(
-      chatUseCase: chatUseCase,
-      chatRoom: item
-    )
-    viewModel.delegate = self
-    let viewController = ChatRoomViewController(viewModel: viewModel)
-
-    self.viewControllable.pushViewController(viewController, animated: true)
+  public func chatRoomFlow(_ chatIndex: String) {
+    TFLogger.dataLogger.info("ChatRoom - \(chatIndex)!")
+    var coordinator = factory.makeChatRoomCoordinator( self.viewControllable)
+    coordinator.finishFlow = { [weak self, weak coordinator] message in
+      guard let self, let coordinator else { return }
+      coordinator.childCoordinators.removeAll()
+      self.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.chatRoomFlow(chatIndex)
   }
 
   public func notiFlow() {
@@ -58,8 +66,8 @@ extension ChatCoordinator: ChatCoordinating {
 }
 
 extension ChatCoordinator: ChatHomeDelegate {
-  func itemTapped(_ room: ChatInterface.ChatRoom) {
-    chatRoomFlow(room)
+  func itemTapped(_ room: ChatRoom) {
+    chatRoomFlow(String(room.chatRoomIndex))
   }
   
   func notiTapped() {
@@ -73,7 +81,7 @@ extension ChatCoordinator: ChatCoordinatingActionDelegate {
     case .backButtonTapped:
       self.viewControllable.popViewController(animated: true)
     case .roomItemTapped(let room):
-      chatRoomFlow(room)
+      chatRoomFlow(String(room.chatRoomIndex))
     case .notiTapped:
       notiFlow()
     case .reportTapped:

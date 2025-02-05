@@ -11,6 +11,7 @@ import MyPageInterface
 import SignUpInterface
 import AuthInterface
 import DSKit
+import Domain
 
 public final class MySettingCoordinator: BaseCoordinator {
 
@@ -144,7 +145,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
 
   public func runFeedbackFlow() {
-    let coordinator = factory.buildInquiryCoordinator(rootViewControllable: self.viewControllable)
+    var coordinator = factory.buildInquiryCoordinator(rootViewControllable: self.viewControllable)
     coordinator.finishFlow = { [weak self, weak coordinator] in
       guard let coordinator else { return }
       self?.detachChild(coordinator)

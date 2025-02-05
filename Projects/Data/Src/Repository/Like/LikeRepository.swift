@@ -23,6 +23,10 @@ public final class LikeRepository: ProviderProtocol {
   public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
     self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
   }
+
+  public init(session: Session) {
+    self.provider = Self.makeProvider(session: session)
+  }
 }
 
 extension LikeRepository: LikeRepositoryInterface {

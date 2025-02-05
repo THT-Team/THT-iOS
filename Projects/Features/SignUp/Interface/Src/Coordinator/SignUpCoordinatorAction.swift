@@ -8,7 +8,7 @@
 import Foundation
 import AuthInterface
 import Core
-
+import Domain
 
 public protocol WebViewDelegate: AnyObject {
   func didReceiveAddress(_ address: String)

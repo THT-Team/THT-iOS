@@ -9,6 +9,7 @@ import Foundation
 
 import Core
 import AuthInterface
+import Domain
 
 public protocol SignUpAlertCoordinating {
   func showTopBottomAlert(_ listener: TopBottomAlertListener)

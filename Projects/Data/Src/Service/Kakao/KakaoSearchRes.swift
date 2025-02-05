@@ -9,6 +9,7 @@ import Foundation
 
 import SignUpInterface
 import AuthInterface
+import Domain
 
 struct KakaoSearchRes: Codable {
   let documents: [Document]

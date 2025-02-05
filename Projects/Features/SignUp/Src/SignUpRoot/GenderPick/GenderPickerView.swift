@@ -10,6 +10,7 @@ import UIKit
 import DSKit
 import RxSwift
 import SignUpInterface
+import Domain
 
 class GenderPickerView: TFBaseView {
 

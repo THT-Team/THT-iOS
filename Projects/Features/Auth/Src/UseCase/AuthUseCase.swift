@@ -11,15 +11,16 @@ import AuthInterface
 
 import RxSwift
 import Core
+import Domain
 
 public final class AuthUseCase: AuthUseCaseInterface {
-  public func authenticate(userInfo: AuthInterface.SNSUserInfo) -> RxSwift.Single<AuthInterface.AuthResult> {
+  public func authenticate(userInfo: SNSUserInfo) -> RxSwift.Single<AuthResult> {
     guard let phoneNumber = userInfo.phoneNumber else {
       return .just(.needPhoneNumber)
     }
 
     return repository.checkUserExist(phoneNumber: phoneNumber)
-      .flatMap { result -> Single<AuthInterface.AuthResult> in
+      .flatMap { result -> Single<AuthResult> in
         // 가입 이력
         if result.isSignUp {
           // 선택한 SNS도 가입 이력이 있음
@@ -113,7 +114,7 @@ public final class AuthUseCase: AuthUseCaseInterface {
     repository.needAuth()
   }
 
-  public func loginSNS(_ request: AuthInterface.UserSNSLoginRequest) -> Single<Void> {
+  public func loginSNS(_ request: UserSNSLoginRequest) -> Single<Void> {
     return repository.loginSNS(request)
       .map { _ in }
   }

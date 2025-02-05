@@ -10,6 +10,7 @@ import Foundation
 import DSKit
 import AuthInterface
 import MyPageInterface
+import Domain
 
 final class PhoneNumberAuthVM: AuthViewModelType {
   

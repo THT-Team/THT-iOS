@@ -7,7 +7,8 @@
 
 import Foundation
 import Core
+import Domain
 
 protocol MainBuildable {
-  func build() -> MainCoordinating
+  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating
 }

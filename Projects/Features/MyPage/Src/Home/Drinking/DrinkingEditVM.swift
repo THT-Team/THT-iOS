@@ -14,6 +14,7 @@ import MyPageInterface
 
 import RxCocoa
 import RxSwift
+import Domain
 
 final class DrinkingEditVM: TFBaseCollectionVM<Frequency, TFSimpleItemVM<Frequency>>  {
 

@@ -13,6 +13,7 @@ import RxCocoa
 import DSKit
 import MyPageInterface
 import SignUpInterface
+import Domain
 
 struct PreferGenderItemVM {
   let value: Gender

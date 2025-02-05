@@ -10,7 +10,7 @@ import Core
 
 open class TFProfileView: TFBaseView {
 
-  public var sections = [ProfileDatailSection]()
+  public var sections = [ProfileDetailSection]()
   public var reportTap: (() -> Void)?
 
   public private(set) lazy var topicBarView = TFTopicBarView()
@@ -91,7 +91,7 @@ extension TFProfileView: UICollectionViewDataSource {
 }
 
 extension Reactive where Base: TFProfileView {
-  public var sections: Binder<[ProfileDatailSection]> {
+  public var sections: Binder<[ProfileDetailSection]> {
 
     return Binder(base) { base, value in
       base.sections = value

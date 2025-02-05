@@ -26,10 +26,12 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   private let client: SwiftStomp
   private var cancellable = Set<AnyCancellable>()
   private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
+  private let tokenStore: TokenStore
 
-  public init(config: ChatConfiguration = ChatConfiguration()) {
+  public init(config: ChatConfiguration = ChatConfiguration(), tokenStore: TokenStore) {
+    self.tokenStore = tokenStore
     self.client = SwiftStomp(host: config.hostURL, headers: [
-      "Authorization": ""
+      "Authorization": tokenStore.getToken()?.accessToken ?? ""
     ])
 
     bind()
@@ -57,7 +59,7 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   
   public func send(destination: String, message: ChatMessage.Request) {
     client.send(body: message, to: destination, receiptId: "asldjf", headers: [
-      "Authorization": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhdXRob3JpemF0aW9uIiwidXNlclV1aWQiOiI0NmQ5NjBmNTY1LTJhZTItNDE5My05NmZkLTMxYjZhODc1NzYxMSIsInJvbGUiOiJOT1JNQUwiLCJleHAiOjQ4NjQwMDQxODZ9.VGC6EJmCBdevtfSQspqsdu42FFl25dSBSHvHue6mAhE"
+      "Authorization": tokenStore.getToken()?.accessToken ?? ""
     ])
   }
 

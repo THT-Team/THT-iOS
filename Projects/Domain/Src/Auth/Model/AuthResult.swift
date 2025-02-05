@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Domain
 
 public enum AuthResult {
   case signUp(SNSUserInfo)

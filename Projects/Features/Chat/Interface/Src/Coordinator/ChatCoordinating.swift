@@ -18,5 +18,5 @@ public protocol ChatCoordinating: Coordinator {
   var delegate: ChatCoordinatorDelegate? { get set }
 
   func homeFlow()
-  func chatRoomFlow(_ room: ChatRoom)
+  func chatRoomFlow(_ chatIndex: String)
 }

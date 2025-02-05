@@ -63,11 +63,7 @@ extension AppDelegate {
       interface: LikeUseCaseInterface.self,
       implement: {
         LikeUseCase(
-          repository: LikeRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          )
+          repository: LikeRepository(session: session)
         )
       }
     )
@@ -75,13 +71,10 @@ extension AppDelegate {
     container.register(
       interface: ChatUseCaseInterface.self,
       implement: {
-        ChatUseCase(
-          repository: ChatRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          )
-        )
+        DefaultChatUseCase(
+          repository: ChatRepository.init())
+//
+//                            ChatRepository(session: session))
       }
     )
     
@@ -103,5 +96,9 @@ extension AppDelegate {
         locationService: LocationService(),
         kakaoAPIService: kakaoService) }
     )
+
+    container.register(interface: TalkUseCaseInterface.self) {
+      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore())
+    }
   }
 }

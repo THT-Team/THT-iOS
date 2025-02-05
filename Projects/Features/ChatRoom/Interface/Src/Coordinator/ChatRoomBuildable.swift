@@ -10,5 +10,5 @@ import Domain
 import Core
 
 public protocol ChatRoomBuildable {
-  func build(_ userUUID: String, rootViewControllable: ViewControllable, talkUseCase: TalkUseCaseInterface) -> ChatRoomCoordinating
+  func build(rootViewControllable: ViewControllable) -> ChatRoomCoordinating
 }

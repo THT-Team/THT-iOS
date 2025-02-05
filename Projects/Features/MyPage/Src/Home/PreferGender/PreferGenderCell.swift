@@ -8,8 +8,8 @@
 import UIKit
 import DSKit
 
-import SignUpInterface
 import Core
+import Domain
 
 final class PreferGenderCell: TFBaseCollectionViewCell, SelectableCellType, textBindable {
   enum Image {

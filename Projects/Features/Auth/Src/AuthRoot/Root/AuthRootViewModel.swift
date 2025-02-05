@@ -12,6 +12,7 @@ import RxCocoa
 import AuthInterface
 
 import Core
+import Domain
 
 final class AuthRootViewModel: ViewModelType {
   private let useCase: AuthUseCaseInterface

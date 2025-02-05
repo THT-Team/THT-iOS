@@ -9,6 +9,7 @@ import Foundation
 
 import Core
 import AuthInterface
+import Domain
 
 public final class PhoneNumberFactory: PhoneNumberFactoryType {
   @Injected private var useCase: AuthUseCaseInterface

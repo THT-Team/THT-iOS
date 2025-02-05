@@ -12,6 +12,7 @@ import Networks
 import Moya
 import AuthInterface
 import SignUpInterface
+import Domain
 
 public enum TokenProviderTarget {
   case login(phoneNumber: String, deviceKey: String)

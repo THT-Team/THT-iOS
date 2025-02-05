@@ -53,7 +53,7 @@ public final class ProfileReactor: Reactor, ProfileOutput {
   }
 
   public struct State {
-    var section = [ProfileDatailSection]()
+    var section = [ProfileDetailSection]()
     var isBlurHidden: Bool = true
     var topic: TopicViewModel? = nil
   }
