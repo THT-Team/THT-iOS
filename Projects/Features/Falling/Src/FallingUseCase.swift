@@ -8,6 +8,7 @@
 import Foundation
 
 import FallingInterface
+import Domain
 
 import RxSwift
 
@@ -35,13 +36,13 @@ public final class FallingUseCase: FallingUseCaseInterface {
     .just(())
   }
 
-  public func like(userUUID: String, topicIndex: String) -> RxSwift.Single<Bool> {
-    return .just([true, false].randomElement() ?? false)
+  public func like(userUUID: String, topicIndex: String) -> RxSwift.Single<MatchResponse> {
+    let randomIsMatched = [true, false].randomElement() ?? false
+
+    return .just(MatchResponse(isMatched: randomIsMatched, chatIndex: "1"))
   }
 
   public func reject(userUUID: String, topicIndex: String) -> RxSwift.Single<Void> {
     return .just(())
   }
-
 }
-

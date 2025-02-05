@@ -41,7 +41,6 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     let view = UserInfoView()
     view.layer.cornerRadius = 20
     view.clipsToBounds = true
-    view.collectionView.backgroundColor = DSKitAsset.Color.DimColor.default.color
     view.isHidden = true
     return view
   }()
@@ -78,7 +77,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
 
     userInfoView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(10)
-      $0.height.equalTo(300)
+      $0.height.greaterThanOrEqualTo(150)
       $0.bottom.equalTo(userInfoBoxView.snp.top).offset(-8)
     }
 
@@ -104,6 +103,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     cardTimeView.bind(.none)
     cardTimeView.hideTimerGradient()
     userInfoView.isHidden = true
+    userInfoView.sections = []
   }
 
   func bind() {
@@ -166,8 +166,8 @@ extension FallingUserCollectionViewCell {
 
 extension FallingUserCollectionViewCell {
   typealias Model = UserProfilePhoto
-  typealias DataSource = UICollectionViewDiffableDataSource<FallingProfileSection, Model>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<FallingProfileSection, Model>
+  typealias DataSource = UICollectionViewDiffableDataSource<ProfileSection, Model>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<ProfileSection, Model>
 
   func setDataSource() {
     let profileCellRegistration = UICollectionView.CellRegistration<ProfileCollectionViewCell, Model> { cell, indexPath, item in
@@ -284,7 +284,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
 
 // MARK: Binder
 
-extension Reactive where Base == FallingUserCollectionViewCell {
+extension Reactive where Base: FallingUserCollectionViewCell {
 
   var timeState: Binder<TimeState> {
     return Binder(self.base) { (base, timeState) in
@@ -296,7 +296,6 @@ extension Reactive where Base == FallingUserCollectionViewCell {
     return Binder(self.base) { base, user in
       base.bind(userProfilePhotos: user.userProfilePhotos)
       base.userInfoBoxView.bind(user)
-      base.userInfoView.bind(user)
     }
   }
   var isDimViewHidden: Binder<Bool> {

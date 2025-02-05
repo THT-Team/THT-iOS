@@ -10,6 +10,7 @@ import UIKit
 import Core
 import DSKit
 import FallingInterface
+import Domain
 
 final class FallingViewController: TFBaseViewController {
   private let viewModel: FallingViewModel
@@ -95,7 +96,9 @@ final class FallingViewController: TFBaseViewController {
       Driver.just(item)
         .drive(cell.rx.user)
         .disposed(by: cell.disposeBag)
-      
+
+      cell.userInfoView.sections = item.toUserCardSection()
+
       self.viewModel.pulse(\.$timeState)
         .asDriverOnErrorJustEmpty()
         .withLatestFrom(timerActiveTrigger) { ($0, $1) }
@@ -202,7 +205,7 @@ final class FallingViewController: TFBaseViewController {
 
 extension FallingViewController {
   typealias ModelType = FallingDataModel
-  typealias SectionType = FallingProfileSection
+  typealias SectionType = ProfileSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
   typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
   

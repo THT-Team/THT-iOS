@@ -11,11 +11,19 @@ import FallingInterface
 import Core
 
 import DSKit
+import ChatRoomInterface
 
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
+  
   @Injected var fallingUseCase: FallingUseCaseInterface
+  private let chatRoomBuilder: ChatRoomBuildable
 
   public weak var delegate: FallingCoordinatorDelegate?
+
+  public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {
+    self.chatRoomBuilder = chatRoomBuilder
+    super.init(viewControllable: viewControllable)
+  }
 
   public override func start() {
     homeFlow()
@@ -30,8 +38,34 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     self.viewControllable.setViewControllers([viewController])
   }
 
-  public func chatRoomFlow() {
+  public func chatRoomFlow(_ index: String) {
         TFLogger.dataLogger.info("ChatRoom!")
+    let coordinator = chatRoomBuilder.build(rootViewControllable: viewControllable)
+
+    coordinator.finishFlow = { [weak self, weak coordinator] message in
+      guard let self, let coordinator else { return }
+      coordinator.childCoordinators.removeAll()
+      self.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.chatRoomFlow(index)
+  }
+
+  public func matchFlow(_ imageURL: String, index: String) {
+    let vc = MatchViewController(imageURL, index: index)
+
+    vc.onCancel = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
+
+    vc.onClick = { [weak self] index in
+      self?.viewControllable.dismiss()
+      self?.chatRoomFlow(index)
+    }
+
+    vc.uiController.modalTransitionStyle = .crossDissolve
+    vc.uiController.modalPresentationStyle = .overFullScreen
+    viewControllable.present(vc, animated: true)
   }
 }
 
@@ -63,8 +97,8 @@ extension FallingCoordinator: FallingActionDelegate {
       userReportAlert(listener)
     case let .toBlockAlert(listener):
       blockAlertFlow(listener)
-    case let .toChatRoom(chatRoomIndex):
-      chatRoomFlow()
+    case let .matchFlow(url, index):
+      matchFlow(url, index: index)
     }
   }
 }

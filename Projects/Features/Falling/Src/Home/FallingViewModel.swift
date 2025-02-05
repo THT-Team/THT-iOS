@@ -11,6 +11,7 @@ import FallingInterface
 import RxSwift
 import RxCocoa
 import Foundation
+import Domain
 
 final class FallingViewModel: ViewModelType {
   typealias CellType = FallingUserCollectionViewCell
@@ -105,7 +106,7 @@ final class FallingViewModel: ViewModelType {
     case setLoading(Bool)
     
     case selectAlert
-    case toChatRoom(String)
+    case toMatch(String, String)
     case toast(String)
     
     // MARK: Timer
@@ -181,10 +182,10 @@ extension FallingViewModel {
           case .likeTap:
             return self.fallingUseCase.like(userUUID: user.userUUID, topicIndex: state.topicIndex)
               .asObservable()
-              .flatMap({ isMatched -> Observable<Mutation> in
-                if isMatched {
+              .flatMap({ response -> Observable<Mutation> in
+                if response.isMatched {
                   return .concat(
-                    .just(.toChatRoom("1111")),
+                    .just(.toMatch(user.userProfilePhotos[0].url, response.chatIndex)),
                     .just(.stopTimer)
                   )
                 }
@@ -423,11 +424,11 @@ extension FallingViewModel {
     case .selectAlert:
       self.delegate?.invoke(.toReportBlockAlert(listener: self))
       return newState
-      
-    case let .toChatRoom(chatRoomIndex):
-      self.delegate?.invoke(.toChatRoom(chatRoomIndex: Int(chatRoomIndex) ?? 0))
+
+    case let .toMatch(url, index):
+      self.delegate?.invoke(.matchFlow(url, index))
       return newState
-      
+
     case let .removeSnapshot(user):
       newState.snapshot.removeAll(where: {
         switch $0 {

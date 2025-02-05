@@ -17,7 +17,7 @@ public protocol FallingCoordinating: Coordinator {
   var delegate: FallingCoordinatorDelegate? { get set }
 
   func homeFlow()
-  func chatRoomFlow()
+  func chatRoomFlow(_ index: String)
 
 }
 
@@ -31,7 +31,7 @@ public enum FallingNavigationAction {
   case toReportBlockAlert(listener: BlockOrReportAlertListener)
   case toReportAlert(listener: ReportAlertListener)
   case toBlockAlert(listener: BlockAlertListener)
-  case toChatRoom(chatRoomIndex: Int)
+  case matchFlow(String, String)
 }
 
 public protocol FallingActionDelegate: AnyObject {
