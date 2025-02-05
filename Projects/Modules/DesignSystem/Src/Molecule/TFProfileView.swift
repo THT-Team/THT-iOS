@@ -8,30 +8,21 @@
 import UIKit
 import Core
 
-public final class TFProfileView: TFBaseView {
+open class TFProfileView: TFBaseView {
 
   public var sections = [ProfileDatailSection]()
   public var reportTap: (() -> Void)?
 
   public private(set) lazy var topicBarView = TFTopicBarView()
-  public private(set) lazy var visualEffectView: UIVisualEffectView = {
-    let visualView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-    visualView.isHidden = true
-    return visualView
-  }()
 
-  private(set) lazy var profileCollectionView: UICollectionView = .createProfileCollectionView()
+  public private(set) lazy var profileCollectionView: UICollectionView = .createProfileCollectionView()
 
   public override func makeUI() {
     self.profileCollectionView.dataSource = self
 
     self.backgroundColor = .clear
-    [topicBarView, profileCollectionView, visualEffectView].forEach {
+    [topicBarView, profileCollectionView].forEach {
       self.addSubview($0)
-    }
-    visualEffectView.isHidden = true
-    visualEffectView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
     }
 
     topicBarView.snp.makeConstraints {

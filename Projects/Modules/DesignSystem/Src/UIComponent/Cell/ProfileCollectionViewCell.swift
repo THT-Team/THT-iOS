@@ -8,7 +8,6 @@
 import UIKit
 
 import Core
-import DSKit
 
 final class ProfileCollectionViewCell: UICollectionViewCell {
   private lazy var imageView: UIImageView = {

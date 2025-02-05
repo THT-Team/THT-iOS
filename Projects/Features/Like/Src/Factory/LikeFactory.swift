@@ -18,9 +18,11 @@ public final class LikeFactory {
   @Injected var userUseCase: UserDomainUseCaseInterface
 
   private let chatRoomBuilder: ChatRoomBuildable
+  private let talkUseCase: TalkUseCaseInterface
 
-  public init(chatRoomBuilder: ChatRoomBuildable) {
+  public init(chatRoomBuilder: ChatRoomBuildable, talkUseCase: TalkUseCaseInterface) {
     self.chatRoomBuilder = chatRoomBuilder
+    self.talkUseCase = talkUseCase
   }
 
   public func makeLikeHome() -> (ViewControllable, LikeHomeViewModel) {
@@ -30,14 +32,15 @@ public final class LikeFactory {
   }
 
   public func makeProfile(like: Like) -> (ViewControllable, LikeProfileViewModel) {
-    let vm = LikeProfileViewModel(likeUseCase: likeUseCase, userUseCase: userUseCase, likItem: like)
+
+    let vm = LikeProfileViewModel(userUseCase: userUseCase, likItem: like)
     let vc = LikeProfileViewController(viewModel: vm)
     vc.modalPresentationStyle = .overFullScreen
     return (vc, vm)
   }
 
   public func makeChatRoomCoordinator(_ userUUID: String, _ rootViewControllable: ViewControllable) -> ChatRoomCoordinating {
-    let coordinator = chatRoomBuilder.build(userUUID, rootViewControllable: rootViewControllable)
+    let coordinator = chatRoomBuilder.build(userUUID, rootViewControllable: rootViewControllable, talkUseCase: talkUseCase)
     return coordinator
   }
 }

@@ -47,8 +47,8 @@ final class LikeCVCell: TFBaseCollectionViewCell {
     return label
   }()
 
-  private lazy var chatButton = UIButton.chat()
-  private lazy var nextTimeButton = UIButton.nextTime()
+  private lazy var chatButton = UIButton.makeCapsuleButton(type: .chat)
+  private lazy var nextTimeButton = UIButton.makeCapsuleButton(type: .disLike)
 
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
@@ -153,45 +153,5 @@ final class LikeCVCell: TFBaseCollectionViewCell {
       .map { LikeCellButtonAction.profile(like) }
       .bind(to: observer)
       .disposed(by: disposeBag)
-  }
-}
-
-
-fileprivate extension UIButton {
-  static func nextTime() -> UIButton {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("다음에")
-    titleAttribute.font = UIFont.thtSubTitle2M
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral300.color
-    config.baseBackgroundColor = DSKitAsset.Color.neutral500.color
-    config.attributedTitle = titleAttribute
-
-    button.configuration = config
-
-    return button
-  }
-
-  static func chat() -> UIButton {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.cornerStyle = .capsule
-
-    var titleAttribute = AttributedString("대화히기")
-    titleAttribute.font = UIFont.thtSubTitle2M
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral700.color
-    config.baseBackgroundColor = DSKitAsset.Color.primary500.color
-    config.attributedTitle = titleAttribute
-
-    config.background.strokeWidth = 1
-    config.background.strokeColor = DSKitAsset.Color.neutral300.color
-
-    button.configuration = config
-
-    return button
   }
 }

@@ -16,6 +16,11 @@ import ReactorKit
 
 public final class ProfileViewController: TFBaseViewController, View {
   private lazy var mainView = TFProfileView()
+  public private(set) lazy var visualEffectView: UIVisualEffectView = {
+    let visualView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+    visualView.isHidden = true
+    return visualView
+  }()
 
   public init(reactor: ProfileReactor) {
     super.init(nibName: nil, bundle: nil)
@@ -24,6 +29,14 @@ public final class ProfileViewController: TFBaseViewController, View {
 
   public override func loadView() {
     self.view = mainView
+  }
+
+  public override func makeUI() {
+    self.view.addSubview(visualEffectView)
+
+    visualEffectView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
   }
 
   public func bind(reactor: ProfileReactor) {
@@ -38,7 +51,7 @@ public final class ProfileViewController: TFBaseViewController, View {
     .disposed(by: disposeBag)
 
     reactor.state.map(\.isBlurHidden)
-      .bind(to: self.mainView.visualEffectView.rx.isHidden)
+      .bind(to: visualEffectView.rx.isHidden)
       .disposed(by: disposeBag)
 
     reactor.state.compactMap(\.topic)

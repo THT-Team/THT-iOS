@@ -73,7 +73,7 @@ public final class LikeCoordinator: BaseCoordinator, LikeCoordinating {
   public func chatRoomFlow(_ userUUID: String) {
     TFLogger.dataLogger.info("ChatRoom - \(userUUID)!")
     var coordinator = factory.makeChatRoomCoordinator(userUUID, self.viewControllable)
-    coordinator.finishFlow = { [weak self, weak coordinator] in
+    coordinator.finishFlow = { [weak self, weak coordinator] message in
       guard let self, let coordinator else { return }
       coordinator.childCoordinators.removeAll()
       self.detachChild(coordinator)
