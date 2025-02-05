@@ -33,7 +33,8 @@ public final class BubbleReactor: Reactor {
 
   public let initialState: State
 
-  public init(_ message: ChatMessage) {
+  public init(_ message: ChatMessageType) {
+    let message = message.message
     self.initialState = State(
       message: message.msg,
       dateText: message.dateTime.toTimeString(),

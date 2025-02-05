@@ -24,7 +24,7 @@ final class AppCoordinator: LaunchCoordinator {
     chatRoomBuildable: ChatRoomBuildable
   ) {
     self.chatRoomBuilder = chatRoomBuildable
-    self.talkLifeCycleUseCase = DefaultTalkUseCase() // MockTalkUseCase()
+    self.talkLifeCycleUseCase =  MockTalkUseCase()
     super.init(viewControllable: viewControllable)
   }
 
@@ -35,7 +35,6 @@ final class AppCoordinator: LaunchCoordinator {
     }
 
     self.toastHandler = { [weak vc] message in
-      print(message)
       vc?.toastHandler?(message)
     }
 

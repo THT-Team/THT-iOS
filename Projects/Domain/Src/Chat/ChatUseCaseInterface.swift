@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import Core
 
 import RxSwift
 
 public protocol ChatUseCaseInterface {
   func rooms() -> Observable<[ChatRoom]>
-  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[ChatMessage]>
+  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[ChatMessageType]>
   func room(_ roomIdx: String) -> Observable<ChatRoomInfo>
   func out(_ roomIdx: String) -> Observable<Void>
 }
@@ -30,9 +31,17 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
       .asObservable()
   }
   
-  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[ChatMessage]> {
+  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[ChatMessageType]> {
     repository.history(roomIdx: roomIdx, chatIdx: chatIdx, size: size)
       .asObservable()
+      .flatMap { messages -> Observable<[ChatMessageType]> in
+        let userUUID = UserDefaultRepository.shared.fetch(for: .currentUUID, type: String.self) ?? ""
+        let result = messages.map { message -> ChatMessageType in
+          message.senderUuid == userUUID
+          ? .outgoing(message) : .incoming(message)
+        }
+        return .just(result)
+      }
   }
   
   public func room(_ roomIdx: String) -> RxSwift.Observable<ChatRoomInfo> {

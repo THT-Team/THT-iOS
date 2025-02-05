@@ -41,8 +41,8 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
     let domain = ChatMessage(chatIdx: String(chatIndex), sender: message.sender, senderUuid: message.senderUUID, msg: message.message, imgUrl: message.imageURL, dataTime: Date())
     chatIndex += 1
     let echo = ChatMessage(chatIdx: String(chatIndex), sender: "echo", senderUuid: message.senderUUID + "1", msg: message.message, imgUrl: message.imageURL, dataTime: Date())
-    messagePublisher.onNext(.message(domain))
-    echoRelay.accept(.message(echo))
+    messagePublisher.onNext(.message(.outgoing(domain)))
+    echoRelay.accept(.message(.incoming(echo)))
   }
   
   public func send(destination: String, text: String) {

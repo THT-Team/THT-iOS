@@ -18,6 +18,7 @@ public enum PersistentKey: String, CaseIterable {
   case deviceKey = "device_key"
   case snsUUID = "sns_uuid"
   case sign_up_info
+  case currentUUID = "current_uuid"
 }
 
 public protocol KeyValueStorageInterface {

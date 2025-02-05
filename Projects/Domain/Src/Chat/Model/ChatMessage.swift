@@ -7,6 +7,18 @@
 
 import Foundation
 
+public enum ChatMessageType {
+  case incoming(ChatMessage)
+  case outgoing(ChatMessage)
+
+  public var message: ChatMessage {
+    switch self {
+    case let .incoming(message): return message
+    case let .outgoing(message): return message
+    }
+  }
+}
+
 public struct ChatMessage {
   public let chatIdx: String
   public let sender: String
@@ -67,9 +79,9 @@ extension ChatMessage {
       case message = "msg"
       case dateTime
     }
+  }
 
-    public func toDomain() -> ChatMessage {
-      ChatMessage(chatIdx: chatIndex, sender: sender, senderUuid: senderUUID, msg: message, imgUrl: imageURL, dataTime: dateTime)
-    }
+  public init(_ res: Response) {
+    self.init(chatIdx: res.chatIndex, sender: res.sender, senderUuid: res.senderUUID, msg: res.message, imgUrl: res.imageURL, dataTime: res.dateTime)
   }
 }

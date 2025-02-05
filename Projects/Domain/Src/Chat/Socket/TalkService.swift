@@ -23,7 +23,7 @@ public struct ChatConfiguration {
 
 public enum ChatSignalType {
   case stompConnected
-  case message(ChatMessage)
+  case message(ChatMessageType)
   case receipt(String)
 }
 
@@ -33,7 +33,7 @@ extension ChatSignalType: Equatable {
     case (.stompConnected, .stompConnected):
       return true
     case let (.message(lhsMessage), .message(rhsMessage)):
-      return lhsMessage.chatIdx == rhsMessage.chatIdx
+      return lhsMessage.message.chatIdx == rhsMessage.message.chatIdx
     case let (.receipt(lhsReceipt), receipt(rhsReceipt)):
       return lhsReceipt == rhsReceipt
     default: return false

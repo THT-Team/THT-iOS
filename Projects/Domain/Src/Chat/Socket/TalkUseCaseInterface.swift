@@ -5,11 +5,12 @@
 //  Created by Kanghos on 1/20/25.
 //
 
-import Foundation
-import RxSwift
-import SwiftStomp
 import Combine
 import UIKit
+
+import Core
+import RxSwift
+import SwiftStomp
 
 public protocol TalkUseCaseInterface {
   func connect()
@@ -30,7 +31,7 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
     self.client = SwiftStomp(host: config.hostURL, headers: [
       "Authorization": ""
     ])
-    
+
     bind()
   }
 
@@ -85,10 +86,15 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
         switch message {
         case let .data(data, _, _, _):
           // TODO: Move Decoding Logic to Data Layer
-          guard let chatMessage = try? JSONDecoder().decode(ChatMessage.Response.self, from: data) else {
+          guard let response = try? JSONDecoder().decode(ChatMessage.Response.self, from: data) else {
             return
           }
-          self?.messagePublisher.onNext(.message(chatMessage.toDomain()))
+          let chatMessage = ChatMessage(response)
+          let currentUserUUID = UserDefaultRepository.shared.fetch(for: .currentUUID, type: String.self)
+          let messageType: ChatMessageType =  chatMessage.senderUuid == currentUserUUID
+          ? .outgoing(chatMessage) : .incoming(chatMessage)
+
+          self?.messagePublisher.onNext(.message(messageType))
         case let .text(message, _, _, _):
           print(message)
         }

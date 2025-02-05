@@ -46,8 +46,8 @@ public final class ChatRoomReactor: ChatRoomOutputType, Reactor {
   }
 
   public enum Mutation {
-    case addMessage(ChatMessage)
-    case addHistory([ChatMessage])
+    case addMessage(ChatMessageType)
+    case insertMessage([ChatMessageType])
     case setInfo(ChatRoomInfo)
     case changeBlurHidden(Bool)
     case showProfile(ProfileItem, ProfileOutputHandler?)
@@ -103,7 +103,7 @@ extension ChatRoomReactor {
         self.chatUsecase.room(id)
           .map(Mutation.setInfo),
         self.chatUsecase.history(roomIdx: id, chatIdx: nil, size: 10)
-          .map(Mutation.addHistory)
+          .map(Mutation.insertMessage)
       ])
     case .paging: return .empty()
     case .onExitBtnTap:
@@ -215,63 +215,57 @@ extension ChatRoomReactor {
     case let .showProfile(item, handler):
       self.onProfile?(item, handler)
     case let .addMessage(message):
-      let reactor = BubbleReactor(message)
-      reactor.pulse(\.$showProfile)
-        .compactMap { $0 }
-        .map(Action.onProfile)
-        .bind(to: self.action)
-        .disposed(by: reactor.disposeBag)
-
-      state.sections[0].items.appendMessage(.incoming(reactor))
+      print(message)
+      print(message.message)
+      let item = ChatViewSectionItem.create(from: message, actionSubject: self.action)
+      print(item)
+      state.sections[0].items.append(ChatViewSectionItem.create(from: message, actionSubject: self.action))
     case let .setInfo(info):
       state.info = info
     case let .changeBlurHidden(isHidden):
       state.isBlurHidden = isHidden
-    case let .addHistory(messages): break
-      // SectionModel key: values
-      // Message -> Reactor
-      // Reactor --> ViewMessages
-
-//      let reactors = messages.map(BubbleReactor.init)
-//        .compactMap { [weak self] reactor -> BubbleReactor? in
-//          guard let self else { return nil }
-//          reactor.pulse(\.$showProfile)
-//            .compactMap { $0 }
-//            .map(Action.onProfile)
-//            .bind(to: self.action)
-//            .disposed(by: reactor.disposeBag)
-//          return reactor
-//        }
-//
-//      state.sections[0].items.appendMessages()
+    case let .insertMessage(messages): 
+      let items = messages.compactMap { [weak self] type -> ChatViewSectionItem? in
+        guard let self else { return nil }
+        return ChatViewSectionItem.create(from: type, actionSubject: self.action)
+      }
+      state.sections[0].items.insert(items)
     case let .setToast(msg):
       self.onBack?(msg)
     }
     return state
   }
+}
 
-  private func makeBubbleReactor(from message: ChatMessage) -> BubbleReactor {
-    let reactor = BubbleReactor(message)
-    reactor.pulse(\.$showProfile)
-      .compactMap { $0 }
-      .map(Action.onProfile)
-      .bind(to: self.action)
-      .disposed(by: disposeBag)
+extension ChatViewSectionItem {
+  static func create(from type: ChatMessageType, actionSubject: ActionSubject<ChatRoomReactor.Action>) -> Self {
+      let reactor = BubbleReactor(type)
+      reactor.pulse(\.$showProfile)
+        .compactMap { $0 }
+        .map(ChatRoomReactor.Action.onProfile)
+        .bind(to: actionSubject)
+        .disposed(by: reactor.disposeBag)
 
-    return reactor
+      return ChatViewSectionItem.transfrom(from: type, reactor: reactor)
   }
 }
 
 extension Array where Element == ChatViewSectionItem {
-  mutating func appendMessage(_ item: Element) {
+  mutating func appendItem(_ item: Element) {
     var mutable = self
     mutable.append(item)
     self = mutable
   }
 
-  mutating func appendMessages(_ items: [Element]) {
+  mutating func append(_ items: [Element]) {
     var mutable = self
     mutable.append(contentsOf: items)
+    self = mutable
+  }
+
+  mutating func insert(_ items: [Element]) {
+    var mutable = items
+    mutable.append(contentsOf: self)
     self = mutable
   }
 }

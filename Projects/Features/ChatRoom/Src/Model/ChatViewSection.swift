@@ -28,6 +28,15 @@ public enum ChatViewSectionItem: Hashable {
       return bubbleReactor.currentState.index
     }
   }
+
+  static func transfrom(from messageType: ChatMessageType, reactor: BubbleReactor) -> Self {
+    switch messageType {
+    case let .incoming(message):
+      return .incoming(reactor)
+    case let .outgoing(messageType):
+      return .outgoing(reactor)
+    }
+  }
 }
 
 extension ChatMessage: @retroactive Equatable {}
