@@ -62,7 +62,6 @@ extension UserInfoView: UICollectionViewDataSource {
   }
 
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    print(sections)
     switch sections[indexPath.section] {
     case let .emoji(_, items, _):
       let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: TagCollectionViewCell.self)
