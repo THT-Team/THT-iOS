@@ -60,7 +60,6 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     let fallingCoordinator = fallingBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(fallingCoordinator)
     fallingCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.falling)
-    fallingCoordinator.delegate = self
     fallingCoordinator.start()
     
     let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
@@ -101,5 +100,5 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
   }
 }
 
-extension MainCoordinator: FallingCoordinatorDelegate, ChatCoordinatorDelegate {
+extension MainCoordinator: ChatCoordinatorDelegate {
 }

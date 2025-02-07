@@ -18,8 +18,6 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   @Injected var fallingUseCase: FallingUseCaseInterface
   private let chatRoomBuilder: ChatRoomBuildable
 
-  public weak var delegate: FallingCoordinatorDelegate?
-
   public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {
     self.chatRoomBuilder = chatRoomBuilder
     super.init(viewControllable: viewControllable)
@@ -31,7 +29,15 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
 
   public func homeFlow() {
     let viewModel = FallingViewModel(fallingUseCase: fallingUseCase)
-    viewModel.delegate = self
+
+    viewModel.onReport = { [weak viewControllable] handler in
+      guard let viewControllable else { return }
+      AlertHelper.userReportAlert(viewControllable, handler)
+    }
+
+    viewModel.onMatch = { [weak self] url, index in
+      self?.toMatchFlow(url, index: index)
+    }
 
     let viewController = FallingViewController(viewModel: viewModel)
 
@@ -51,7 +57,7 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     coordinator.chatRoomFlow(index)
   }
 
-  public func matchFlow(_ imageURL: String, index: String) {
+  public func toMatchFlow(_ imageURL: String, index: String) {
     let vc = MatchViewController(imageURL, index: index)
 
     vc.onCancel = { [weak self] in
@@ -66,39 +72,5 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     vc.uiController.modalTransitionStyle = .crossDissolve
     vc.uiController.modalPresentationStyle = .overFullScreen
     viewControllable.present(vc, animated: true)
-  }
-}
-
-extension FallingCoordinator: FallingAlertCoordinating {
-  public func reportOrBlockAlert(_ listener: BlockOrReportAlertListener) {
-    let alert = TFAlertBuilder.makeBlockOrReportAlert(listener: listener)
-
-    self.viewControllable.present(alert, animated: false)
-  }
-
-  public func blockAlertFlow(_ listener: BlockAlertListener) {
-    let alert = TFAlertBuilder.makeBlockAlert(listener: listener)
-
-    self.viewControllable.present(alert, animated: false)
-  }
-
-  public func userReportAlert(_ listener: ReportAlertListener) {
-    let alert = TFAlertBuilder.makeUserReportAlert(listener: listener)
-    self.viewControllable.present(alert, animated: false)
-  }
-}
-
-extension FallingCoordinator: FallingActionDelegate {
-  public func invoke(_ action: FallingNavigationAction) {
-    switch action {
-    case let .toReportBlockAlert(listener):
-      reportOrBlockAlert(listener)
-    case let .toReportAlert(listener):
-      userReportAlert(listener)
-    case let .toBlockAlert(listener):
-      blockAlertFlow(listener)
-    case let .matchFlow(url, index):
-      matchFlow(url, index: index)
-    }
   }
 }
