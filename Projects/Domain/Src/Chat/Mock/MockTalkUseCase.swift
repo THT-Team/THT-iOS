@@ -58,14 +58,5 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
       .delay(.seconds(1), scheduler: MainScheduler.instance)
       .subscribe(messagePublisher)
       .disposed(by: disposeBag)
-//    Observable<Int>
-//      .timer(.seconds(0), period: .seconds(10), scheduler: MainScheduler.instance)
-//      .withUnretained(self)
-//      .map { owner, _ -> ChatSignalType in
-//        owner.chatIndex += 1
-//        return .message(ChatMessage(chatIdx: String(owner.chatIndex), sender: "echo", senderUuid: "echo", msg: "echo", imgUrl: "", dataTime: Date()))
-//      }
-//      .subscribe(messagePublisher)
-//      .disposed(by: disposeBag)
   }
 }
