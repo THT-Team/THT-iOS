@@ -9,21 +9,21 @@ import UIKit
 
 import Core
 import DSKit
+
+import Domain
+
 import LikeInterface
 
 public final class LikeHomeViewController: TFBaseViewController {
   private lazy var mainView = HeartListView()
   private var dataSource: DataSource!
+  private let cellUpdateTrigger = PublishRelay<Like>()
 
   private let viewModel: LikeHomeViewModel
 
   init(viewModel: LikeHomeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
 
   public override func loadView() {
@@ -37,113 +37,151 @@ public final class LikeHomeViewController: TFBaseViewController {
     let noti = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
     navigationItem.rightBarButtonItem = noti
   }
-  
+
+  private let deleteAnimationCompleteRelay = PublishRelay<Like>()
+
   public override func bindViewModel() {
       self.mainView.collectionView.delegate = self
 
       let cellButtonSubject = PublishSubject<LikeCellButtonAction>()
       self.setupDataSource(observer: cellButtonSubject.asObserver())
+		
+		// FIXME: 프로필 닫을때 ViewWillAppear 호출됨
+    let initialTrigger = Driver.just(())
 
-      let initialTrigger = self.rx.viewDidLoad
-        .map { _ in }
-        .asDriverOnErrorJustEmpty()
+		
       let refreshControl = self.mainView.refreshControl.rx.controlEvent(.valueChanged)
         .asDriver()
+		
       let pagingTrigger = self.mainView.collectionView.rx.didEndDragging
         .asDriver()
-        .filter { $0 }
-        .map { _ in }
-        .filter { self.mainView.needPaging }
+        .compactMap { [weak self] endDrag -> Void? in
+          if endDrag && self?.mainView.needPaging == true {
+            return
+          }
+          return nil
+        }
 
       let input = LikeHomeViewModel.Input(
         trigger: Driver.merge(initialTrigger, refreshControl),
+        viewWillAppear: self.rx.viewWillAppear.asDriver().mapToVoid(),
         cellButtonAction: cellButtonSubject.asDriverOnErrorJustEmpty(),
-        pagingTrigger: pagingTrigger
+        pagingTrigger: pagingTrigger,
+        cellUpdateTrigger: cellUpdateTrigger.asSignal(),
+        deleteAnimationComplete: deleteAnimationCompleteRelay.asDriverOnErrorJustEmpty()
       )
 
       let output = viewModel.transform(input: input)
 
-      output.heartList
-        .drive(onNext: { [weak self] list in
-          self?.mainView.emptyView.isHidden = !list.isEmpty
+		// likeList 와 pagingList가 분리되어 있을 필요가 없어 보임
+		// 토픽별로 모아서 보여줘야 하는데 서버에서 Response가 토픽별로 오지 않는다면 스크롤시 상위 토픽에 추가될 가능성이 있음.
+		// 토픽별로 모아서 Response 가 오는지 확인 필요 -> 위에 추가되어도 괜찮다고 확인함
+		// 레드닷: 1. 액션 존재할때 2. 페이지에서 나갈때
+		output.likeList
+      .do(onNext: { [weak self] list in
+        self?.mainView.emptyView.isHidden = !list.isEmpty
+        if self?.mainView.refreshControl.isRefreshing == true {
+          self?.mainView.refreshControl.endRefreshing()
+        }
+      })
+      .drive(with: self) { owner, list in
+				owner.applyItemsToDataSource(list)
+			}
+			.disposed(by: disposeBag)
 
-          if self?.mainView.refreshControl.isRefreshing == true {
-            self?.mainView.refreshControl.endRefreshing()
-          }
-          self?.refreshDataSource(list)
-        })
-        .disposed(by: disposeBag)
+		output.reject
+			.drive(with: self) { owner, item in
+				owner.deleteItems(item)
+			}
+			.disposed(by: disposeBag)
 
-      output.pagingList
-        .drive(onNext: { [weak self] items in
-          self?.pagingDataSource(items)
-        }).disposed(by: disposeBag)
+    output.headerLabel
+      .drive(with: self) { owner, item in
+        owner.mainView.headerLabel.text = item.1
+        owner.mainView.headerLabel.asColor(targetString: item.0, color: DSKitAsset.Color.primary500.color)
+      }
+      .disposed(by: disposeBag)
 
-      output.reject
-        .drive(onNext: { [weak self] item in
-          self?.deleteItems(item)
-        }).disposed(by: disposeBag)
+    output.isBlurHidden
+      .debug("isBlurHidden")
+      .emit(to: mainView.visualEffectView.rx.isHidden)
+      .disposed(by: disposeBag)
+
+    output.toast
+      .emit(with: self) { owner, message in
+        owner.mainView.makeToast(message, duration: 3.0, position: .bottom)
+      }
+      .disposed(by: disposeBag)
     }
 }
 
 extension LikeHomeViewController {
-  typealias DataSource = UICollectionViewDiffableDataSource<HeartListSection, Like>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<HeartListSection, Like>
+  typealias DataSource = UICollectionViewDiffableDataSource<String, Like>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<String, Like>
 
   private func setupDataSource<O: ObserverType>(observer: O) where O.Element == LikeCellButtonAction {
-    let likeCellRegistration = UICollectionView.CellRegistration<HeartCollectionViewCell, Like> { cell, indexPath, item in
-      cell.bind(observer, index: indexPath)
-      cell.bind(viewModel: item)
+    let likeCellRegistration = UICollectionView.CellRegistration<LikeCVCell, Like> { cell, indexPath, item in
+      cell.bind(observer, like: item)
     }
 
-    let headerRegistration = UICollectionView.SupplementaryRegistration<TFCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { supplementaryView, elementKind, indexPath in
-      supplementaryView.title = "test"
+    let headerRegistration = UICollectionView.SupplementaryRegistration<TFCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { [unowned self] supplementaryView, elementKind, indexPath in
+			let sectionTitle = self.dataSource.snapshot().sectionIdentifiers[indexPath.section]
+      supplementaryView.title = sectionTitle
     }
-
-    dataSource = UICollectionViewDiffableDataSource(collectionView: mainView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
-      return collectionView.dequeueConfiguredReusableCell(using: likeCellRegistration, for: indexPath, item: itemIdentifier)
-    })
+		
+		dataSource = DataSource(
+			collectionView: mainView.collectionView,
+			cellProvider: { collectionView, indexPath, itemIdentifier in
+				return collectionView.dequeueConfiguredReusableCell(
+					using: likeCellRegistration,
+					for: indexPath,
+					item: itemIdentifier
+				)
+			}
+		)
+		
     dataSource.supplementaryViewProvider = { (view, kind, index) in
       return view.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: index)
     }
   }
+	
   private func deleteItems(_ item: Like) {
     guard
       let indexPath = self.dataSource.indexPath(for: item),
-      let cell = self.mainView.collectionView.cellForItem(at: indexPath) as? HeartCollectionViewCell
+      let cell = self.mainView.collectionView.cellForItem(at: indexPath) as? LikeCVCell
     else {
       return
     }
-    var snapshot = self.dataSource.snapshot()
-    snapshot.deleteItems([item])
+//    var snapshot = self.dataSource.snapshot()
+//    snapshot.deleteItems([item])
     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-      cell.frame = CGRect(x: cell.frame.minX - self.mainView.collectionView.frame.width, y: cell.frame.minY, width: cell.frame.width, height: cell.frame.height)
+      cell.frame = CGRect(
+        origin: .init(x: cell.frame.minX - self.mainView.collectionView.frame.width, y: cell.frame.minY),
+        size: cell.frame.size)
     } completion: { _ in
-      self.dataSource.apply(snapshot, animatingDifferences: true)
+
+//      self.dataSource.apply(snapshot, animatingDifferences: true)
+      self.deleteAnimationCompleteRelay.accept(item)
     }
   }
 
-  private func refreshDataSource(_ items: [Like]) {
-    var snapshot = Snapshot()
-    var sections: [String: [Like]] = [:]
-    items.forEach { item in
-      sections[item.topic, default: []].append(item)
-    }
-    snapshot.appendSections([.main])
-    snapshot.appendItems(items)
+  private func applyItemsToDataSource(_ items: [LikeTopicSection]) {
+		var snapshot = Snapshot()
+//		var sections: [String: [Like]] = [:]
+		
+//		items.forEach { item in
+//			sections[item.topic, default: []].append(item)
+//		}
+		
+    snapshot.appendSections(items.filter { !$1.isEmpty }.map { $0.topic })
 
-    self.dataSource.apply(snapshot, animatingDifferences: true)
-  }
-
-  private func pagingDataSource(_ items: [Like]) {
-    var snapshot = self.dataSource.snapshot()
-    snapshot.appendItems(items)
-    self.dataSource.apply(snapshot)
-  }
-
-  enum HeartListSection: Hashable {
-    case main
-  }
+		for (topic, list) in items {
+      guard !list.isEmpty else { continue }
+      snapshot.appendItems(list, toSection: topic)
+		}
+		
+		dataSource.apply(snapshot, animatingDifferences: true)
+	}
 }
 
 extension LikeHomeViewController: UICollectionViewDelegate {
@@ -153,5 +191,10 @@ extension LikeHomeViewController: UICollectionViewDelegate {
     if scrollView.contentSize.height - 100 < scrollView.contentOffset.y + scrollView.frame.height {
       TFLogger.ui.debug("need pagination")
     }
+  }
+
+  public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    guard var item = dataSource.itemIdentifier(for: indexPath) else { return }
+    cellUpdateTrigger.accept(item)
   }
 }

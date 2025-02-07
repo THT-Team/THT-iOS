@@ -8,17 +8,13 @@
 import Foundation
 import Core
 
-public protocol LaunchCoordinatingDelegate: AnyObject {
-  func finishFlow(_ coordinator: Coordinator, _ action: LaunchAction)
-}
-
 public enum LaunchAction {
   case needAuth
   case toMain
 }
 
 public protocol AuthLaunchCoordinating: Coordinator {
-  var delegate: LaunchCoordinatingDelegate? { get set }
-  
+  var finishFlow: ((LaunchAction) -> Void)? { get set }
+
   func launchFlow()
 }

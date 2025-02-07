@@ -20,6 +20,8 @@ public protocol BottomSheetActionDelegate: AnyObject {
   func sheetInvoke(_ action: BottomSheetViewAction)
 }
 
+public typealias BottomSheetHandler = ((BottomSheetValueType) -> Void)
+
 public protocol BottomSheetListener: AnyObject {
   func sendData(item: BottomSheetValueType)
 }

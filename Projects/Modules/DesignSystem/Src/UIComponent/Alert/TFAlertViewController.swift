@@ -120,7 +120,7 @@ public final class TFAlertViewController: TFBaseViewController {
     return view
   }()
   
-  init(
+  public init(
     titleText: String? = nil,
     messageText: String? = nil,
     dimColor: UIColor = DSKitAsset.Color.DimColor.default.color
@@ -132,7 +132,7 @@ public final class TFAlertViewController: TFBaseViewController {
     modalPresentationStyle = .overFullScreen
   }
   
-  convenience init(contentView: UIView, dimColor: UIColor) {
+  convenience init(contentView: UIView, dimColor: UIColor = DSKitAsset.Color.DimColor.default.color) {
     self.init()
     
     self.contentView = contentView

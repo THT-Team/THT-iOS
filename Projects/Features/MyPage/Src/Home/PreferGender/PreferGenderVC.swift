@@ -11,6 +11,7 @@ import DSKit
 
 import RxSwift
 import RxCocoa
+import Domain
 
 final class PreferGenderVC: TFBaseCollectionViewVC<PreferGenderVM, PreferGenderCell> {
   private let _titleLabel = UILabel.setH4TargetBold(text: "선호 성별 을 선택해주세요.", target: "선호 성별")

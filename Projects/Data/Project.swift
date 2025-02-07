@@ -22,11 +22,12 @@ let project = Project.makeModule(
   dependencies: [
     .feature(interface: .Like),
     .feature(interface: .Chat),
+    .feature(interface: .ChatRoom),
     .feature(interface: .MyPage),
     .feature(interface: .Falling),
     .module(implementation: .Network, pathName: .Modules(.Network)),
-    .SPM.Moya,
-    .SPM.RxMoya,
+//    .SPM.Moya,
+//    .SPM.RxMoya,
     
     .SPM.KakaoSDKAuth,
     .SPM.KakaoSDKUser,

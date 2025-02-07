@@ -21,6 +21,7 @@ let project = Project(
 		.feature(
 			implementation: .Like,
 			dependencies: [
+        .feature(interface: .ChatRoom),
 				.feature(interface: .Like),
 				.feature(interface: .Auth),
         .dsKit,
@@ -30,7 +31,8 @@ let project = Project(
       demo: .Like,
       dependencies: [
         .data,
-        .feature(implementation: .Like)
+        .feature(implementation: .Like),
+        .feature(implementation: .ChatRoom)
       ]
     )
 	]

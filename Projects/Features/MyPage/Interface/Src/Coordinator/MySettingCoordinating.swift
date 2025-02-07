@@ -9,29 +9,21 @@ import Foundation
 import SignUpInterface
 
 import Core
+import Domain
 
 public enum MySettingCoordinatorOption {
-  case logout
+  case finish
   case toRoot
 }
 
-public protocol MySettingCoordinatorDelegate: AnyObject {
-  func detachMySetting(option: MySettingCoordinatorOption?)
-  func attachMySetting(_ user: User)
-}
-
 public protocol MySettingCoordinating: Coordinator {
-  var delegate: MySettingCoordinatorDelegate? { get set }
+  var finishFlow: ((MySettingCoordinatorOption) -> Void)? { get set }
 
   func settingHomeFlow(_ user: User)
-  func editPhoneNumberFlow()
-  func editEmailFlow()
 
   func editUserContactsFlow()
   func alarmSettingFlow()
   func accountSettingFlow()
-
-  func feedBackFlow()
 
   func webViewFlow(_ title: String?, _ url: URL)
 }
@@ -55,9 +47,6 @@ public enum MySettingCoordinatingAction {
   case webView(WebViewInfo)
 
   case accountSetting
-
-  case showLogoutAlert(LogoutListenr)
-  case showDeactivateAlert(DeactivateListener)
 
   case selectWithdrawal
   case WithdrawalDetail(WithdrawalReason)

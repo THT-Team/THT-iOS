@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Domain
 
 public protocol UserEditListener: AnyObject {
   func sendData(user: User)

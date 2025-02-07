@@ -11,80 +11,124 @@ import DSKit
 import LikeInterface
 import Domain
 
-final class LikeProfileViewModel: ViewModelType {
-
-  private let likeUseCase: LikeUseCaseInterface
-  private let likItem: Like
+public final class LikeProfileViewModel: ViewModelType {
+  private let userUseCase: UserDomainUseCaseInterface
+  private let like: Like
   private var disposeBag = DisposeBag()
 
-  weak var listener: LikeProfileListener?
-  weak var delegate: LikeCoordinatorActionDelegate?
+  var onDismiss: ((Bool) -> Void)?
+  var onReport: ((((UserReportAction) -> Void)?) -> Void)?
+  var onHandleLike: (LikeProfileHandler)?
 
-  init(likeUseCase: LikeUseCaseInterface, likItem: Like) {
-    self.likeUseCase = likeUseCase
-    self.likItem = likItem
+  public init(userUseCase: UserDomainUseCaseInterface, likItem: Like) {
+    self.userUseCase = userUseCase
+    self.like = likItem
   }
 
-  struct Input {
-    let trigger: Driver<Void>
-    let rejectTrigger: Driver<Void>
-    let likeTrigger: Driver<Void>
-    let closeTrigger: Driver<Void>
-    let reportTrigger: Driver<Void>
+  deinit {
+    TFLogger.cycle(name: self)
   }
 
-  struct Output {
+  public struct Input {
+    let trigger: Signal<Void>
+    let rejectTrigger: Signal<Void>
+    let likeTrigger: Signal<Void>
+    let closeTrigger: Signal<Void>
+    let reportTrigger: Signal<Void>
+  }
+
+  public struct Output {
     let topic: Driver<TopicViewModel>
-    let userInfo: Driver<UserInfo>
-    let photos: Driver<[UserProfilePhoto]>
+    let sections: Driver<[ProfileDetailSection]>
+    let isBlurHidden: Driver<Bool>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
+    let like = Signal.just(self.like)
+    let userReportActionRelay = PublishRelay<UserReportType>()
+    let errorSubject = PublishSubject<Error>()
+    let isBlurHidden = BehaviorRelay<Bool>(value: true)
+    let profileAction = PublishSubject<LikeProfileAction>()
 
-    let topic = Driver.just(self.likItem).map {
-      TopicViewModel(topic: $0.topic, issue: $0.issue)
-    }
-    let userIDSubject = BehaviorSubject<Like>(value: self.likItem)
     let userInfo = input.trigger
       .asObservable()
-      .withLatestFrom(userIDSubject)
-      .flatMapLatest(weak: self, selector: { owner, item in
-        owner.likeUseCase.user(id: item.userUUID)
-      })
+      .withUnretained(self) { owner, _ in owner }
+      .flatMap { owner -> Observable<User> in
+        owner.userUseCase.user(owner.like.userUUID)
+          .asObservable()
+      }
       .asDriverOnErrorJustEmpty()
+      .map { $0.toProfileSection() }
 
-
-    let photos = userInfo
-      .map { $0.userProfilePhotos }
-
-    input.rejectTrigger
-      .withLatestFrom(userIDSubject.asDriverOnErrorJustEmpty())
-      .map { $0 }
-      .drive(with: self, onNext: { owner, like in
-        owner.listener?.likeProfileDidTapReject(like)
-        owner.delegate?.invoke(.dismissProfile)
-      })
-      .disposed(by: disposeBag)
-
-    input.likeTrigger
-      .withLatestFrom(userIDSubject.asDriver(onErrorDriveWith: .empty()))
-    .map { $0 }
-    .drive(with: self, onNext: { owner, like in
-      owner.listener?.likeProfileDidTapChat(like)
-      owner.delegate?.invoke(.dismissProfile)
-    })
+    Signal<LikeProfileAction>.merge(
+      input.rejectTrigger
+        .withLatestFrom(like) { .remove($1) },
+      input.likeTrigger
+        .withLatestFrom(like) { .chat($1) },
+      input.closeTrigger
+        .map { .cancel }
+    )
+    .emit(to: profileAction)
     .disposed(by: disposeBag)
 
-    input.closeTrigger
-      .drive(with: self, onNext: { owner, _ in
-        owner.delegate?.invoke(.dismissProfile)
+    input.reportTrigger
+      .emit(with: self) { owner, _ in
+        isBlurHidden.accept(false)
+        owner.onReport? {
+          isBlurHidden.accept(true)
+          switch $0 {
+          case .block:
+            userReportActionRelay.accept(.block(owner.like.userUUID))
+          case let .report(reason):
+            userReportActionRelay.accept(.report(owner.like.userUUID, reason))
+          case .cancel: break
+          }
+        }
+      }
+      .disposed(by: disposeBag)
+
+    userReportActionRelay
+      .withUnretained(self)
+      .flatMapLatest { owner, action -> Observable<LikeProfileAction> in
+        owner.userUseCase.userReport(action)
+          .map { _ -> LikeProfileAction in
+            switch action {
+            case .block: .toast(UserToast.block.message)
+            case .report: .toast(UserToast.report.message)
+            }
+          }
+          .asObservable()
+          .catch { error in
+            errorSubject.onNext(error)
+            return .empty()
+          }
+      }
+      .subscribe(profileAction)
+      .disposed(by: disposeBag)
+
+    profileAction
+      .subscribe(with: self, onNext: { owner, action in
+        switch action {
+        case .cancel:
+          owner.onHandleLike?(.cancel)
+          owner.onDismiss?(false)
+        case .chat(let id):
+          owner.onHandleLike?(.chat(id))
+          owner.onDismiss?(false)
+        case .remove(let like):
+          owner.onHandleLike?(.remove(like))
+          owner.onDismiss?(true)
+        case .toast(let msg):
+          owner.onHandleLike?(.toast(msg))
+          owner.onDismiss?(true)
+        }
       })
       .disposed(by: disposeBag)
 
     return Output(
-      topic: topic,
-      userInfo: userInfo,
-      photos: photos
+      topic: Driver.just(self.like).map { TopicViewModel(topic: $0.topic, issue: $0.issue) },
+      sections: userInfo,
+      isBlurHidden: isBlurHidden.asDriver()
     )
   }
 }

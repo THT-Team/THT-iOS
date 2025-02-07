@@ -14,6 +14,7 @@ import FallingInterface
 import Falling
 import AuthInterface
 import Auth
+import Domain
 //import FirebaseCore
 
 @main
@@ -41,6 +42,7 @@ extension AppDelegate {
 
   func registerDependencies() {
     let authService = DefaultAuthService()
+    let session = SessionProvider.create()
 
     container.register(
       interface: AuthUseCaseInterface.self,
@@ -52,10 +54,12 @@ extension AppDelegate {
       interface: FallingUseCaseInterface.self,
       implement: {
         FallingUseCase(
-          repository: FallingRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil)
+          repository: FallingRepository(session: session)
+//            FallingRepository(
+//            session: authService.createSession(),
+//            isStub: true,
+//            sampleStatusCode: 200,
+//            customEndpointClosure: nil)
         )
       }
     )

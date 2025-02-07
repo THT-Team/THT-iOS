@@ -9,6 +9,7 @@ import UIKit
 import SignUpInterface
 import DSKit
 import RxSwift
+import Domain
 
 class AlcoholTobaccoPickerView: TFBaseView {
   lazy var titleLabel = UILabel.setTargetBold(text: "추가정보를 알려주세요.", target: "추가정보", font: .thtH1B, targetFont: .thtH1B)

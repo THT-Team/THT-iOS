@@ -10,5 +10,5 @@ import Foundation
 import Core
 
 public protocol AuthBuildable {
-  func build() -> AuthCoordinating
+  func build(rootViewController: ViewControllable) -> AuthCoordinating
 }

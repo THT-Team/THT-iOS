@@ -90,3 +90,104 @@ public final class TFAlertBuilder {
     return alert
   }
 }
+
+extension TFAlertBuilder {
+  public static func makeUserReportAlert(
+    topAction: (() -> Void)?,
+    bottomAction: (() -> Void)?,
+    cancelAction: (() -> Void)?
+  ) -> ViewControllable {
+    makeTwoBtnAlert(
+      topTitle: "신고하기", bottomTitle: "차단하기",
+      topAction: topAction,
+      bottomAction: bottomAction,
+      cancelAction: cancelAction)
+  }
+  public static func makeTwoBtnAlert(
+    topTitle: String,
+    bottomTitle: String,
+    topAction: (() -> Void)?,
+    bottomAction: (() -> Void)?,
+    cancelAction: (() -> Void)?
+  ) -> ViewControllable {
+    let alert = TFAlertViewController()
+    alert.addActionToButton(title: topTitle) {
+      alert.dismiss(animated: false) {
+        topAction?()
+      }
+    }
+    alert.addActionToButton(title: bottomTitle, withSeparator: true) {
+      alert.dismiss(animated: false) {
+        bottomAction?()
+      }
+    }
+
+    alert.addActionToDim {
+      alert.dismiss(animated: false) {
+        cancelAction?()
+      }
+    }
+    alert.modalTransitionStyle = .crossDissolve
+    return alert
+  }
+
+  public static func makeBlockAlert(
+    topAction: (() -> Void)?,
+    cancelAction: (() -> Void)?
+  ) -> ViewControllable {
+    let alert = TFAlertViewController(
+      titleText: "차단할까요?",
+      messageText: "해당 사용자와 서로 차단됩니다."
+    )
+
+    alert.addActionToButton(title: "차단하기") {
+      alert.dismiss(animated: false) {
+        topAction?()
+      }
+    }
+
+    alert.addActionToButton(title: "취소", withSeparator: true) {
+      alert.dismiss(animated: false) {
+        cancelAction?()
+      }
+    }
+
+    alert.addActionToDim {
+      alert.dismiss(animated: false) {
+        cancelAction?()
+      }
+    }
+    alert.modalTransitionStyle = .crossDissolve
+    return alert
+  }
+
+  public static func makeReportAlert(
+    selectAction: ((String) -> Void)?,
+    cancelAction: (() -> Void)?
+  ) -> TFAlertViewController {
+    let contentView = TFUserAlertContentView()
+
+    let alert = TFAlertViewController(contentView: contentView)
+
+    contentView.didSelectMenu = { menu in
+      alert.dismiss(animated: false) {
+        selectAction?(menu.key)
+      }
+    }
+
+    alert.addActionToButton(title: "취소", withSeparator: true) {
+      alert.dismiss(animated: false) {
+        cancelAction?()
+      }
+    }
+
+    alert.addActionToDim {
+      alert.dismiss(animated: false) {
+        cancelAction?()
+      }
+    }
+    alert.modalTransitionStyle = .crossDissolve
+    return alert
+  }
+
+}

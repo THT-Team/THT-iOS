@@ -17,6 +17,8 @@ public enum DomainType {
 
 public protocol UserDomainUseCaseInterface {
   func fetchEmoji(initial: [Int], type: DomainType) -> Single<[InputTagItemViewModel]>
+  func userReport(_ action: UserReportType) -> Single<String>
+  func user(_ id: String) -> Single<User>
 }
 
 public final class DefaultUserDomainUseCase: UserDomainUseCaseInterface {
@@ -46,5 +48,20 @@ public final class DefaultUserDomainUseCase: UserDomainUseCaseInterface {
         }
         return mutable
       }
+  }
+
+  public func userReport(_ action: UserReportType) -> Single<String> {
+    switch action {
+    case let .block(id):
+      repository.block(id: id)
+        .map { _ in "차단하기가 완료되었습니다.\n해당 사용자와 서로 차단됩니다." }
+    case let .report(id, reason):
+      repository.report(id: id, reason: reason)
+        .map { _ in "신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며, 신고 사유는 검토 후 처리됩니다." }
+    }
+  }
+
+  public func user(_ id: String) -> Single<User> {
+    repository.user(id)
   }
 }

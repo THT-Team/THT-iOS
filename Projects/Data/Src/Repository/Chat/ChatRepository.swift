@@ -7,28 +7,46 @@
 
 import Foundation
 
-import ChatInterface
 import Networks
 
 import RxSwift
 import RxMoya
 import Moya
+import Domain
 
 public final class ChatRepository: ProviderProtocol {
   public typealias Target = ChatTarget
   public var provider: MoyaProvider<Target>
 
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
+  public init(session: Moya.Session) {
+    self.provider = Self.makeProvider(session: session)
+  }
+
+  public init() {
+    self.provider = Self.makeStubProvider()
   }
 }
 
 extension ChatRepository: ChatRepositoryInterface {
-  public func fetchRooms() -> Single<[ChatRoom]> {
-    request(
-      type: ChatRoomsRes.self,
-      target: .rooms
-    )
-    .map { $0.map { $0.toDomain() } }
+
+  public func rooms() -> Single<[ChatRoom]> {
+    request(type: ChatRoomsRes.self, target: .rooms)
+      .map { $0.map { $0.toDomain() } }
+  }
+
+  public func room(_ roomIdx: String) -> Single<ChatRoomInfo> {
+    request(type: ChatRoomInfo.Res.self, target: .room(roomIdx))
+      .map(ChatRoomInfo.init)
+  }
+
+  public func history(roomIdx: String, chatIdx: String?, size: Int) -> Single<[ChatMessage]> {
+    request(type: ChatMessagesRes.self, target: .history(roomNo: roomIdx, chatIdx: chatIdx, size: size))
+      .map { res in
+        res.map(ChatMessage.init)
+      }
+  }
+
+  public func out(_ roomIdx: String) -> Single<Void> {
+    requestWithNoContent(target: .out(roomIdx))
   }
 }

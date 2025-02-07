@@ -11,119 +11,147 @@ import MyPageInterface
 import SignUpInterface
 import AuthInterface
 import DSKit
-
-public protocol MySettingCoordinatorDependency {
-  var myPageAlertBuildable: MyPageAlertBuildable { get }
-  var inquiryBuildable: InquiryBuildable { get }
-  var authViewFactory: AuthViewFactoryType { get }
-}
+import Domain
 
 public final class MySettingCoordinator: BaseCoordinator {
 
-  @Injected var myPageUseCase: MyPageUseCaseInterface
-  @Injected var locationUseCase: LocationUseCaseInterface
-  @Injected var authUseCase: AuthUseCaseInterface
+  public var finishFlow: ((MySettingCoordinatorOption) -> Void)?
 
-  private let myPageAlertBuildable: MyPageAlertBuildable
-  private var myPageAlertCoordinator: MyPageAlertCoordinating?
-
-  private let inquiryBuildable: InquiryBuildable
-  private var inquiryCoordinator: InquiryCoordinating?
-  private let authViewFactory: AuthViewFactoryType
-
-  public weak var delegate: MySettingCoordinatorDelegate?
-
-  private let user: User
+  private let factory: MySettingFactoryType
 
   public init(
-    viewControllable: ViewControllable, user: User,
-    dependency: MySettingCoordinatorDependency
-//    myPageAlertBuildable: MyPageAlertBuildable,
-//    inquiryBuildable: InquiryBuildable,
-//    authViewFactory: AuthViewFactoryType
+    viewControllable: ViewControllable, factory: MySettingFactoryType
   ) {
-    self.user = user
-    self.myPageAlertBuildable = dependency.myPageAlertBuildable
-    self.inquiryBuildable = dependency.inquiryBuildable
-    self.authViewFactory = dependency.authViewFactory
+    self.factory = factory
     super.init(viewControllable: viewControllable)
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
   }
 }
 
 extension MySettingCoordinator: MySettingCoordinating {
-  public func editPhoneNumberFlow() {
-    
-  }
-  
-  public func editEmailFlow() {
-    
-  }
-  
   
   public func settingHomeFlow(_ user: User) {
-    let vm = MySettingViewModel(useCase: self.myPageUseCase, locationUseCase: self.locationUseCase, user: user)
-    vm.delegate = self
-    let vc = MySettingsViewController(viewModel: vm)
+    var (vm, vc) = factory.makeHomeFlow()
+    vm.onMenuItem = { [weak self] section, item in
+      self?.navigate(section: section, item: item)
+    }
+    vm.onBackBtn = { [weak self] in
+      self?.finishFlow?(.finish)
+    }
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
-  
+
+  private func navigate(section: MySetting.Section, item: MySetting.MenuItem) {
+    switch section {
+    // TODO: email, phoneNumber 분리하기
+    case .account:
+      item.title == "핸드폰 번호"
+      ? self.editPhoneNumberRootFlow(phoneNumber: "")
+      : self.editEmailRootFlow(email: "")
+    case .activity:
+      self.editUserContactsFlow()
+    case .location:
+      break
+    case .notification:
+      self.alarmSettingFlow()
+    case .support, .law:
+      guard let url = item.url else {
+        self.runFeedbackFlow()
+        return
+      }
+      self.webViewFlow(item.title, url)
+    case .accoutSetting:
+      self.accountSettingFlow()
+    }
+  }
+
   public func editPhoneNumberRootFlow(phoneNumber: String) {
-    let vm = PhoneNumberEditRootVM(phoneNumber: phoneNumber)
-    vm.delegate = self
-    let vc = PhoneNumberEditRootVC(viewModel: vm)
+    var (vm, vc) = factory.makePhoneNumberRootFlow(phoneNumber: phoneNumber)
+    vm.onUpdate = { [weak self] phoneNumber in
+      self?.editPhoneInputFlow(phoneNumber: phoneNumber)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func editPhoneInputFlow(phoneNumber: String) {
-    self.viewControllable.pushViewController(authViewFactory.makePhoneNumberScene(delegate: self), animated: true)
+    fatalError()
   }
   
   public func editPhoneAuthFlow(phoneNumber: String) {
-    let vm = PhoneNumberAuthVM(phoneNumber: phoneNumber, useCase: myPageUseCase, authUseCase: authUseCase)
-    vm.delegate = self
-    let vc = authViewFactory.makePhoneAuthScene(viewModel: vm)
-    self.viewControllable.pushViewController(vc, animated: true)
+    fatalError()
   }
   
   public func editEmailRootFlow(email: String) {
-    let vm = EmailEditRootVM(email: email)
-    vm.delegate = self
-    let vc = EmailEditRootVC(viewModel: vm)
+    var (vm, vc) = factory.makeEmailRootView(email: email)
+    vm.onUpdate = { [weak self] email in
+      self?.editEmailFlow(email: email)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func editEmailFlow(email: String) {
-    let vm = EmailEdittVM(email: email, useCase: myPageUseCase)
-    vm.delegate = self
-    let vc = EmailEditVC(viewModel: vm)
+    var (vm, vc) = factory.makeEmailView(email: email)
+    vm.onComplete = { [weak self] email in
+      self?.viewControllable.popViewController(animated: true)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func editUserContactsFlow() {
-    let vm = UserContactSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = UserContactSettingViewController(viewModel: vm)
+    let (vm, vc) = factory.makeEditUserContacts()
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func alarmSettingFlow() {
-    let vm = AlarmSettingViewModel(myPageUseCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = AlarmSettingViewController(viewModel: vm)
+    let (vm, vc) = factory.makeAlarmSetting()
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func accountSettingFlow() {
-    let vm = AccountSettingViewModel(useCase: self.myPageUseCase)
-    vm.delegate = self
-    let vc = AccountSettingViewController(viewModel: vm)
+    var (vm, vc) = factory.makeAccountSetting()
+    vm.onRoot = { [weak self] in
+      self?.finishFlow?(.toRoot)
+    }
+
+    vm.onWithDrawal = { [weak self] in
+      self?.viewControllable.popViewController(animated: true)
+      self?.withdrawalFlow()
+    }
+
+    vm.showDeactivateAlert = { [weak self] handler in
+      self?.runAlert(handler, type: .deactivate)
+    }
+
+    vm.showLogOutAlert = { [weak self] handler in
+      self?.runAlert(handler, type: .logout)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
-  
-  public func feedBackFlow() {
-    attachInquiry()
+
+  public func runAlert(_ handler: AlertHandler, type: MyPageAlertType) {
+    let coordinator = factory.buildMyPageCoordinator(rootViewControllable: self.viewControllable)
+
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.showAlert(handler, alertType: type)
+  }
+
+  public func runFeedbackFlow() {
+    var coordinator = factory.buildInquiryCoordinator(rootViewControllable: self.viewControllable)
+    coordinator.finishFlow = { [weak self, weak coordinator] in
+      guard let coordinator else { return }
+      self?.detachChild(coordinator)
+    }
+    attachChild(coordinator)
+    coordinator.start()
   }
   
   public func webViewFlow(_ title: String?, _ url: URL) {
@@ -132,132 +160,23 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
 
   public func withdrawalFlow() {
-    let vm = SelectWithdrawalViewModel()
-    vm.delegate = self
-    let vc = SelectWithdrawViewController(viewModel: vm)
+    var (vm, vc) = factory.makeWithdrawal()
+    vm.onSelect = { [weak self] reason in
+      self?.withdrawalDetailFlow(reason)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   public func withdrawalDetailFlow(_ reason: WithdrawalReason) {
-    let vm = WithdrawalDetailViewModel(withdrawalDetail: WithdrawalReasonDetailProvider.createReasonDetail(reason), useCase: myPageUseCase)
-    vm.delegate = self
-    let vc = WithdrawalDetailViewController(viewModel: vm)
-
+    var (vm, vc) = factory.makeWithdrawalDetail(reason)
+    vm.onWithdrawComplete = { [weak self] in
+      self?.compleflow()
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
   func compleflow() {
-    let vc = WithdrawalCompleteViewController()
-    vc.delegate = self
-    vc.modalPresentationStyle = .overFullScreen
+    var vc = factory.makeWithdrawComplete()
     self.viewControllable.present(vc, animated: true)
-  }
-}
-
-extension MySettingCoordinator: MySettingCoordinatingActionDelegate {
-  public func invoke(_ action: MySettingCoordinatingAction) {
-    switch action {
-    case .toRoot:
-      delegate?.detachMySetting(option: .toRoot)
-    case .logout:
-      delegate?.detachMySetting(option: .logout)
-    case .finish:
-      if (self.viewControllable.uiController as? UINavigationController)?.topViewController is MySettingsViewController {
-        delegate?.detachMySetting(option: nil)
-      }
-    case let .editPhoneNumber(phoneNumber):
-      editPhoneNumberRootFlow(phoneNumber: phoneNumber)
-    case let .editEmail(email):
-      editEmailRootFlow(email: email)
-    case .editUserContacts:
-      editUserContactsFlow()
-    case .alarmSetting:
-      alarmSettingFlow()
-    case .feedback:
-      feedBackFlow()
-    case let .webView(webviewInfo):
-      webViewFlow(webviewInfo.title, webviewInfo.url)
-    case .accountSetting:
-      accountSettingFlow()
-    case let .showLogoutAlert(listener):
-      attachMyPageAlert()
-      self.myPageAlertCoordinator?.showLogoutAlert(listener: listener)
-    case let .showDeactivateAlert(listener):
-      attachMyPageAlert()
-      self.myPageAlertCoordinator?.showDeactivateAlert(listener: listener)
-    case .selectWithdrawal:
-      self.viewControllable.popViewController(animated: true)
-      withdrawalFlow()
-    case let .WithdrawalDetail(reason):
-      withdrawalDetailFlow(reason)
-    case .withdrawalComplete:
-      compleflow()
-    }
-  }
-}
-
-extension MySettingCoordinator: MyPageAlertCoordinatorDelegate {
-  public func detachMyPageAlert() {
-    guard let coordinator = self.myPageAlertCoordinator else {
-      return
-    }
-    detachChild(coordinator)
-    self.myPageAlertCoordinator = nil
-  }
-
-  public func attachMyPageAlert() {
-    let coordinator = self.myPageAlertBuildable.build(rootViewControllable: self.viewControllable)
-    attachChild(coordinator)
-    coordinator.delegate = self
-    self.myPageAlertCoordinator = coordinator
-  }
-}
-
-extension MySettingCoordinator: InquiryCoordinatingDelegate {
-  public func detachInquiry(_ coordinator: Core.Coordinator) {
-    guard let inquiryCoordinator else { return }
-    self.detachChild(inquiryCoordinator)
-    self.inquiryCoordinator = nil
-  }
-  
-  public func attachInquiry() {
-    if self.inquiryCoordinator != nil { return }
-    let coordinator = self.inquiryBuildable.build(rootViewControllable: self.viewControllable)
-    coordinator.delegate = self
-    self.attachChild(coordinator)
-    self.inquiryCoordinator = coordinator
-
-    coordinator.start()
-  }
-}
-
-extension MySettingCoordinator: PhoneAuthViewDelegate, PhoneNumberEditRootViewDelegate, PhoneInputVCDelegate {
-  public func didTapPhoneInputBtn(_ phoneNumber: String) {
-    editPhoneAuthFlow(phoneNumber: phoneNumber)
-  }
-  
-  public func didTapOnRootUpdatePhoneNum(_ phoneNumber: String) {
-    editPhoneInputFlow(phoneNumber: phoneNumber)
-  }
-  
-  public func didAuthComplete(option: AuthInterface.PhoneAuthOption) {
-    if case .none = option {
-      DispatchQueue.main.async {
-        self.viewControllable.popViewController(animated: false)
-        self.viewControllable.popViewController(animated: true)
-      }
-    }
-  }
-}
-
-extension MySettingCoordinator: EmailEditRootViewDelegate, EmailEditDelegate {
-  public func didTapOnRootUpdateEmail(_ email: String) {
-    editEmailFlow(email: email)
-  }
-
-  public func didEmailTap(_ email: String) {
-    DispatchQueue.main.async {
-      self.viewControllable.popViewController(animated: true)
-    }
   }
 }

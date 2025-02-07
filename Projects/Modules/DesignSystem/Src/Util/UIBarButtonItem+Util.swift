@@ -15,9 +15,8 @@ public extension UIBarButtonItem {
     style: .plain,
     target: nil, action: nil)
   static let exit = UIBarButtonItem(
-    image: UIImage(systemName: "rectangle.portrait.and.arrow.right"),
-    style: .plain,
-    target: nil, action: nil)
-
+      image: DSKitAsset.Image.Icons.logOut.image,
+      style: .plain,
+      target: nil, action: nil)
 }
 

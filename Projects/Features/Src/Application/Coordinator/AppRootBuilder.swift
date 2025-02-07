@@ -12,10 +12,11 @@ import DSKit
 import Auth
 import SignUp
 import MyPage
+import Domain
 
 public protocol AppRootDependency { }
 
-final class AppRootComponent: AppRootDependency, MyPageDependency {
+final class AppRootComponent: AppRootDependency {
   lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
     InquiryBuilder()
   }()
@@ -36,6 +37,8 @@ public protocol AppRootBuildable {
 }
 
 public final class AppRootBuilder: AppRootBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
+
   private let dependency: AppRootDependency
 
   public init(dependency: AppRootDependency) {
@@ -43,20 +46,17 @@ public final class AppRootBuilder: AppRootBuildable {
   }
 
   public func build() -> (LaunchCoordinating & URLHandling) {
-
-    let viewController = NavigationViewControllable()
-
-    let component = AppRootComponent(dependency: dependency)
-    let mainBuilder = MainBuilder(dependency: component)
-    let signUpBuilder = SignUpBuilder()
-    let authBuilder = AuthBuilder(signUpBuilable: signUpBuilder, inquiryBuildable: component.inquiryBuildable)
+    let mainBuilder = MainBuilder()
+    let authBuilder = AuthBuilder()
     let launcher = LaunchBuilder()
 
     let coordinator = AppCoordinator(
-      viewControllable: viewController,
+      viewControllable: ProgressNavigationViewControllable(),
       mainBuildable: mainBuilder,
       authBuildable: authBuilder,
-      launchBUidlable: launcher
+      launchBUidlable: launcher,
+      signUpBuildable: SignUpBuilder(),
+      talkUseCase: talkUseCase
     )
     return coordinator
   }

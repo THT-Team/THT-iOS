@@ -13,6 +13,9 @@ import Moya
 
 public enum ChatTarget {
   case rooms
+  case room(String)
+  case out(String)
+  case history(roomNo: String, chatIdx: String?, size: Int)
 }
 
 extension ChatTarget: BaseTargetType {
@@ -21,21 +24,32 @@ extension ChatTarget: BaseTargetType {
     switch self {
     case .rooms:
       return "chat/rooms"
+    case let .room(index):
+      return "chat/room/\(index)"
+    case let .out(index):
+      return "chat/out/room/\(index)"
+    case .history:
+      return "chat/history"
     }
   }
 
   public var method: Moya.Method {
     switch self {
-    default: return .get
+    case .rooms, .room, .history: return .get
+    case .out: return .post
     }
   }
 
-  // Request의 파라미터를 결정한다.
   public var task: Task {
     switch self {
-
-    default:
+    case .rooms:
       return .requestPlain
+    case .room:
+      return .requestPlain
+    case .out:
+      return .requestPlain
+    case let .history(roomNo, chatIdx, size):
+      return .requestParameters(parameters: ChatHistoryReq(roomNo: roomNo, chatIndex: chatIdx, size: size).toDictionary(), encoding: URLEncoding.queryString)
     }
   }
 }

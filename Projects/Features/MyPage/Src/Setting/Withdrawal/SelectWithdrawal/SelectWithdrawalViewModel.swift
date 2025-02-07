@@ -14,21 +14,21 @@ import Core
 
 import MyPageInterface
 
-final class SelectWithdrawalViewModel: ViewModelType {
-  weak var delegate: MySettingCoordinatingActionDelegate?
+public final class SelectWithdrawalViewModel: ViewModelType {
+  var onSelect: ((WithdrawalReason) -> Void)?
 
-  struct Input {
+  public struct Input {
     let load: Driver<Void>
     let selectModel: Driver<WithdrawalReason>
   }
 
-  struct Output {
+  public struct Output {
     let models: Driver<[WithdrawalReason]>
   }
 
   private var disposeBag = DisposeBag()
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let models = input.load
       .map { _ -> [WithdrawalReason] in
         [.stop, .matched, .disLikeApp, .newStart, .problem, .other]
@@ -37,7 +37,7 @@ final class SelectWithdrawalViewModel: ViewModelType {
     input.selectModel
       .debug()
       .drive(with: self) { owner, reason in
-        owner.delegate?.invoke(.WithdrawalDetail(reason))
+        owner.onSelect?(reason)
       }.disposed(by: disposeBag)
 
     return Output(models: models)

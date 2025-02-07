@@ -11,7 +11,6 @@ import SignUpInterface
 import AuthInterface
 import Domain
 
-import PhotosUI
 import Core
 import DSKit
 
@@ -44,6 +43,42 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func block() -> Single<[ContactType]> {
     self.contactService.fetchContact()
+  }
+
+  public func signUp(_ user: PendingUser, imageData: [Data], contacts: [ContactType]) -> Single<Void> {
+    imageService.uploadImages(imageDataArray: imageData, bucket: .profile)
+      .catch({ error in
+        return .error(SignUpError.imageUploadFailed)
+      })
+      .flatMap { [weak self] urls in
+        guard let self else { return .error(SignUpError.invalidRequest) }
+        var user = user
+        user.photos = urls
+
+        guard
+          let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self),
+          let request = user.toRequest(contacts: contacts, deviceKey: deviceKey)
+        else {
+          return .error(SignUpError.invalidRequest)
+        }
+        return self.authService.signUp(request)
+          .map { token in
+            UserDefaultRepository.shared.remove(key: .pendingUser)
+            UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
+          }
+          .flatMap { _ in
+            if user.snsUserInfo.snsType == .normal {
+              return .just(())
+            } else {
+              return self.authService.signUpSNS(.init(email: request.email, phoneNumber: request.phoneNumber, snsUniqueId: user.snsUserInfo.id, snsType: user.snsUserInfo.snsType))
+                .map { token in
+                  UserDefaultRepository.shared.remove(key: .pendingUser)
+                  UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
+                  return
+                }
+            }
+          }
+      }
   }
 
   public func signUp(request: PendingUser, contacts: [ContactType]) -> Single<Void> {
@@ -100,18 +135,45 @@ extension SignUpUseCase {
 // MARK: Image
 extension SignUpUseCase {
   
-  public func uploadImage(data: [Data]) -> Single<[String]> {
-    return imageService.uploadImages(imageDataArray: data, bucket: .profile)
+  public func uploadImage(_ user: PendingUser, data: [Data]) -> Single<PendingUser> {
+    imageService.uploadImages(imageDataArray: data, bucket: .profile)
+      .map { urls in
+        var pendingUser = user
+        pendingUser.photos = urls
+        return pendingUser
+      }
   }
 
-  public func processImage(_ result: PHPickerResult) -> Single<Data> {
+  public func processImage(_ result: PhotoItem) -> Single<Data> {
     imageService.bind(result, imageSize: .profile)
   }
 
   public func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]> {
     .create { [weak self] observer in
-      if let imageDatas = self?.fileRepository.fetch(fileNames: fileNames.map { key + "/" + $0 }) {
-        observer(.success(imageDatas))
+      guard
+        let user = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self),
+        let imageData = self?.fileRepository.fetch(fileNames: user.photos.map { key + "/" + $0 })
+      else {
+        observer(.failure(StorageError.notExisted))
+        return Disposables.create()
+      }
+      print(user)
+      observer(.success(imageData))
+      return Disposables.create()
+    }
+  }
+
+  public func saveUserPhotos(_ user: PendingUser, datas: [Data]) -> Single<PendingUser> {
+    .create { [weak self] observer in
+      if let urls = self?.fileRepository.save(datas.enumerated()
+        .map {
+          (fileName: user.phoneNumber + "/\($0).jpeg", data: $1)
+        }) {
+        var pendingUser = user
+        print(urls)
+        pendingUser.photos = urls
+        UserDefaultRepository.shared.saveModel(pendingUser, key: .pendingUser)
+        observer(.success(pendingUser))
       } else {
         observer(.failure(StorageError.notExisted))
       }
@@ -119,16 +181,8 @@ extension SignUpUseCase {
     }
   }
 
-  public func saveUserPhotos(key: String, datas: [Data]) -> Single<[String]> {
-    .create { [weak self] observer in
-      if let urls = self?.fileRepository.save(
-        datas.enumerated()
-          .map { (fileName: key + "/\($0).jpeg", data: $1) }) {
-        observer(.success(urls))
-      } else {
-        observer(.failure(StorageError.notExisted))
-      }
-      return Disposables.create()
-    }
+  public func savePendingUser(_ user: PendingUser) -> Single<PendingUser> {
+    UserDefaultRepository.shared.saveModel(user, key: .pendingUser)
+    return .just(user)
   }
 }

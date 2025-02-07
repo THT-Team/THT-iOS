@@ -28,15 +28,15 @@ public final class MyPageRepository: ProviderProtocol {
 }
 
 extension MyPageRepository: MyPageRepositoryInterface {
-  public func updateReligion(_ religion: SignUpInterface.Religion) -> RxSwift.Single<Void> {
+  public func updateReligion(_ religion: Religion) -> RxSwift.Single<Void> {
     return .just(())
   }
   
-  public func updateSmoking(_ smoking: SignUpInterface.Frequency) -> RxSwift.Single<Void> {
+  public func updateSmoking(_ smoking: Frequency) -> RxSwift.Single<Void> {
     return .just(())
   }
   
-  public func updateDrinking(_ drinking: SignUpInterface.Frequency) -> RxSwift.Single<Void> {
+  public func updateDrinking(_ drinking: Frequency) -> RxSwift.Single<Void> {
     return .just(())
   }
 
@@ -44,7 +44,7 @@ extension MyPageRepository: MyPageRepositoryInterface {
     return .just(())
   }
 
-  public func updatePreferGender(_ gender: SignUpInterface.Gender) -> RxSwift.Single<Void> {
+  public func updatePreferGender(_ gender: Gender) -> RxSwift.Single<Void> {
     requestWithNoContent(target: .preferGender(gender.rawValue))
   }
   
@@ -65,9 +65,7 @@ extension MyPageRepository: MyPageRepositoryInterface {
   }
   
   public func updateProfilePhotos(_ photos: [Domain.UserProfilePhoto]) -> RxSwift.Single<Void> {
-    requestWithNoContent(target: .profilePhoto(photos.map {
-      UserProfilePhotoRes(url: $0.url, priority: $0.priority)
-    }))
+    requestWithNoContent(target: .profilePhoto(photos))
   }
   
   public func updatePhoneNumber(_ phoneNumber: String) -> RxSwift.Single<Void> {
@@ -89,7 +87,8 @@ extension MyPageRepository: MyPageRepositoryInterface {
   }
 
   public func fetchUser() -> Single<User> {
-    request(type: UserDetailRes.self, target: .user)
+    
+    return request(type: User.Res.self, target: .user)
       .map { $0.toDomain() }
   }
 

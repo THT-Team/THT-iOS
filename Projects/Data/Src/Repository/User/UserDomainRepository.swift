@@ -36,6 +36,31 @@ extension DefaultUserDomainRepository: UserDomainRepositoryInterface {
     request(type: [EmojiTypeRes].self, target: .interests)
       .map { $0.map { $0.toDomain() } }
   }
+
+  public func report(id: String, reason: String) -> Single<Void> {
+    requestWithNoContent(target: .report(id, reason))
+  }
+
+  public func block(id: String) -> Single<Void> {
+    requestWithNoContent(target: .block(id))
+  }
+
+  public func user(_ id: String) -> Single<User> {
+    request(type: User.Res.self, target: .user(id))
+      .map { $0.toDomain() }
+      .debug()
+      .catch { error in
+        if let moyaError = error as? MoyaError,
+           case let .objectMapping(error, response) = moyaError {
+          do {
+            let result = try JSONDecoder().decode(User.Res.self, from: response.data)
+          } catch {
+            print(error)
+          }
+        }
+        return .error(error)
+      }
+  }
 }
 
 extension EmojiTypeRes {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Domain
 
 public final class MenuFactory {
   static func makeStaticSettingMenus(user: User) -> [SectionModel<MySetting.MenuItem>] {

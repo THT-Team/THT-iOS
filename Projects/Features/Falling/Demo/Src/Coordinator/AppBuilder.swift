@@ -12,6 +12,8 @@ import DSKit
 
 import Falling
 import FallingInterface
+import ChatRoomInterface
+import Domain
 
 public protocol AppRootBuildable {
   func build() -> LaunchCoordinating
@@ -21,7 +23,7 @@ public final class AppRootBuilder: AppRootBuildable {
   public init() { }
 
   lazy var fallingBuildable: FallingBuildable = {
-    FallingBuilder()
+    FallingBuilder(chatRoomBuilder: ChatRoomBuilder(talkUseCase: MockTalkUseCase()))
   }()
 
   public func build() -> LaunchCoordinating {

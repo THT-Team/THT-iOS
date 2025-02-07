@@ -21,7 +21,7 @@ public protocol ProcessUseCaseProtocol {
   func sendUserStore(item: ModelType)
 }
 
-open class TFBaseCollectionVM<ModelType, ItemVMType>: CVViewModelType, ProcessUseCaseProtocol where ModelType: RawRepresentable & CaseIterable, ModelType.RawValue == String, ItemVMType: TFSimpleItemType, ModelType == ItemVMType.ModelType {
+open class TFBaseCollectionVM<ModelType, ItemVMType>: CVViewModelType, ProcessUseCaseProtocol, BottomSheetViewModelType where ModelType: RawRepresentable & CaseIterable, ModelType.RawValue == String, ItemVMType: TFSimpleItemType, ModelType == ItemVMType.ModelType {
 
   public struct Input: CVInputType {
     public let selectedItem: Driver<Int>
@@ -41,8 +41,8 @@ open class TFBaseCollectionVM<ModelType, ItemVMType>: CVViewModelType, ProcessUs
   private let initialValue: BottomSheetValueType
   public let useCase: MyPageUseCaseInterface
   public let userStore: UserStore
-  public weak var listener: BottomSheetListener?
-  public weak var delegate: BottomSheetActionDelegate?
+  public var onDismiss: (() -> Void)?
+  public var handler: BottomSheetHandler?
 
   public init(
     initialValue: BottomSheetValueType,
@@ -99,8 +99,8 @@ open class TFBaseCollectionVM<ModelType, ItemVMType>: CVViewModelType, ProcessUs
         processUseCase(value: value)
       }
       .drive(with: self) { owner, value in
-        owner.delegate?.sheetInvoke(.onDismiss)
-        owner.listener?.sendData(item: .text(text: "\(value.rawValue)"))
+        owner.onDismiss?()
+        owner.handler?(.text(text: "\(value.rawValue)"))
         owner.sendUserStore(item: value)
       }
       .disposed(by: disposeBag)

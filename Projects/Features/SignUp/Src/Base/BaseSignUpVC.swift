@@ -19,7 +19,7 @@ open class BaseSignUpVC<ViewModel>: TFBaseViewController where ViewModel: ViewMo
   }
 
   open override func navigationSetting() {
-    navigationController?.setNavigationBarHidden(true, animated: false)
+//    navigationController?.setNavigationBarHidden(true, animated: false)
     self.navigationItem.hidesBackButton = true
     setBackButton()
   }

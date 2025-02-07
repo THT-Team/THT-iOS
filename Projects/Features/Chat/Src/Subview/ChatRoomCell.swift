@@ -11,7 +11,7 @@ import DSKit
 
 import Kingfisher
 import ChatInterface
-
+import Domain
 final class ChatRoomCell: TFBaseCollectionViewCell {
   private lazy var profileImageView: UIImageView = {
     let imageView = UIImageView()

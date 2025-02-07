@@ -14,30 +14,30 @@ import RxCocoa
 import DSKit
 import MyPageInterface
 
-final class WithdrawalDetailViewModel: ViewModelType {
+public final class WithdrawalDetailViewModel: ViewModelType {
   let withdrawalDetail: WithdrawalReasonDetail
   private let useCase: MyPageUseCaseInterface
   private var disposeBag = DisposeBag()
 
-  weak var delegate: MySettingCoordinatingActionDelegate?
+  var onWithdrawComplete: (() -> Void)?
 
   init(withdrawalDetail: WithdrawalReasonDetail, useCase: MyPageUseCaseInterface) {
     self.withdrawalDetail = withdrawalDetail
     self.useCase = useCase
   }
 
-  struct Input {
+  public struct Input {
     let load: Driver<Void>
     let selectedIndexPath: Signal<IndexPath>
     let withdrawalTap: Signal<Void>
     let otherText: Driver<String>
   }
 
-  struct Output {
+  public struct Output {
     let models: Driver<[ReasonModel]>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let reasonArray = PublishSubject<[ReasonModel]>()
     let model = Driver.just(self.withdrawalDetail)
 
@@ -78,7 +78,7 @@ final class WithdrawalDetailViewModel: ViewModelType {
           }
       }
       .drive(with: self) { owner, _ in
-        owner.delegate?.invoke(.withdrawalComplete)
+        owner.onWithdrawComplete?()
       }.disposed(by: disposeBag)
 
     selectedSignal

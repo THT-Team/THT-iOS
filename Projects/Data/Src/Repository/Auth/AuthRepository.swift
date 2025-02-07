@@ -16,6 +16,10 @@ import RxMoya
 import Moya
 
 import Core
+import KakaoSDKCommon
+import KakaoSDKAuth
+import KakaoSDKUser
+import Domain
 
 public final class AuthRepository: ProviderProtocol {
 
@@ -25,7 +29,7 @@ public final class AuthRepository: ProviderProtocol {
 
   public init(authService: AuthServiceType) {
     self.authService = authService
-    self.provider = Self.makeProvider(session: authService.createSession())
+    self.provider = Self.makeProvider(session: SessionProvider.create())
     TFLogger.dataLogger.debug("init AuthRepo")
   }
 
@@ -35,16 +39,8 @@ public final class AuthRepository: ProviderProtocol {
 }
 
 extension AuthRepository: AuthRepositoryInterface {
-  public func checkUserExist(phoneNumber: String) -> RxSwift.Single<AuthInterface.UserSignUpInfoRes> {
+  public func checkUserExist(phoneNumber: String) -> RxSwift.Single<UserSignUpInfoRes> {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
-  }
-  
-  public func refresh(completion: @escaping (Result<Token, Error>) -> Void) {
-    authService.refreshToken(completion: completion)
-  }
-
-  public func refresh() -> Single<Token> {
-    authService.refresh()
   }
 
   public func certificate(phoneNumber: String) -> Single<Int> {
@@ -53,16 +49,62 @@ extension AuthRepository: AuthRepositoryInterface {
 //    request(type: PhoneValidationResponse.self, target: .certificate(phoneNumber: phoneNumber)).map(\.authNumber)
   }
 
-  public func login(phoneNumber: String, deviceKey: String) -> Single<AuthInterface.Token> {
+  public func login(phoneNumber: String, deviceKey: String) -> Single<Domain.Token> {
     authService.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
   }
 
-  public func loginSNS(_ userSNSLoginRequest: AuthInterface.UserSNSLoginRequest) -> Single<AuthInterface.Token> {
+  public func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Domain.Token> {
     authService.loginSNS(userSNSLoginRequest)
+  }
+
+  public func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Domain.Token> {
+    authService.signUpSNS(request)
   }
 
   public func needAuth() -> Bool {
     authService.needAuth()
+  }
+
+  public func updateDeviceToken() -> Single<Void> {
+    guard let deviceToken = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
+    else {
+      return .error(AuthError.invalidDeviceKey)
+    }
+    return requestWithNoContent(target: .updateDeviceToken(deviceKey: deviceToken))
+  }
+
+  public func kakaoLogin() -> Single<SNSUserInfo> {
+      .create { observer in
+        if (UserApi.isKakaoTalkLoginAvailable()) {
+          UserApi.shared.loginWithKakaoTalk { token, error in
+            if let error {
+              print(error.localizedDescription)
+              observer(.failure(error))
+            }
+            if let token {
+              UserApi.shared.me { user, error in
+                if let error {
+                  print(error.localizedDescription)
+                  observer(.failure(error))
+                }
+                if let user, let id = user.id {
+                  if let phoneNumber = user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber() {
+                    UserDefaultRepository.shared.save(phoneNumber, key: .phoneNumber)
+                  }
+                  observer(.success(
+                    SNSUserInfo(snsType: .kakao, id: String(id), email: user.kakaoAccount?.email, phoneNumber: user.kakaoAccount?.phoneNumber?.sanitizedPhoneNumber()))
+                  )
+                } else {
+                  observer(.failure(AuthError.invalidSNSUser))
+                }
+              }
+            }
+          }
+        } else {
+          observer(.failure(AuthError.canNotOpenSNSURL))
+        }
+        return Disposables.create { }
+      }
   }
 }
 

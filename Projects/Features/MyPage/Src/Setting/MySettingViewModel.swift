@@ -13,39 +13,43 @@ import Core
 
 import RxSwift
 import RxCocoa
+import Domain
 
-final class MySettingViewModel: ViewModelType {
+public final class MySettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
   private let locationUseCase: LocationUseCaseInterface
-  weak var delegate: MySettingCoordinatingActionDelegate?
-  private let user: User
 
-  struct Input {
+  private let userStore: UserStore
+  var onMenuItem: ((MySetting.Section, MySetting.MenuItem) -> Void)?
+  var onBackBtn: (() -> Void)?
+
+  public struct Input {
     let viewDidLoad: Driver<Void>
     let indexPath: Driver<IndexPath>
     let backBtnTap: Signal<Void>
   }
 
-  struct Output {
+  public struct Output {
     let sections: Driver<[SectionModel<MySetting.MenuItem>]>
     let toast: Driver<String>
   }
 
-  init(useCase: MyPageUseCaseInterface, locationUseCase: LocationUseCaseInterface, user: User) {
+  public init(useCase: MyPageUseCaseInterface, locationUseCase: LocationUseCaseInterface, userStore: UserStore) {
     self.useCase = useCase
     self.locationUseCase = locationUseCase
-    self.user = user
+    self.userStore = userStore
   }
 
-  func transform(input: Input) -> Output {
-    let section = useCase.createSettingMenu(user: user)
-    let user = Driver.just(self.user)
+  public func transform(input: Input) -> Output {
+    let user: Driver<User> = userStore.binding.asDriverOnErrorJustEmpty().compactMap { $0 }
     let toast = PublishRelay<String>()
     let errorTracker = PublishSubject<Error>()
-    
 
-    let sections = Driver.just(section)
+    let sections = user
+      .map { [weak self] user in
+      self?.useCase.createSettingMenu(user: user) ?? []
+    }
 
     input.indexPath
       .compactMap { MySetting.Section(rawValue: $0.section) }
@@ -99,44 +103,15 @@ final class MySettingViewModel: ViewModelType {
         return (section: section, item: menu)
       }
       .drive(with: self) { owner, component -> Void in
-        owner.navigate(section: component.section, item: component.item)
+        owner.onMenuItem?(component.section, component.item)
       }.disposed(by: disposeBag)
 
     input.backBtnTap
       .emit(with: self) { owner, _ in
-        owner.delegate?.invoke(.finish)
+        owner.onBackBtn?()
       }.disposed(by: disposeBag)
 
     return Output(
       sections: sections,
       toast: toast.asDriverOnErrorJustEmpty())}
-}
-
-extension MySettingViewModel {
-
-  func navigate(section: MySetting.Section, item: MySetting.MenuItem) {
-    switch section {
-    case .account:
-      item.title == "핸드폰 번호"
-      ? self.delegate?.invoke(.editPhoneNumber(phoneNumber: self.user.phoneNumber))
-      : self.delegate?.invoke(.editEmail(email: self.user.email))
-      break
-    case .activity:
-      self.delegate?.invoke(.editUserContacts)
-    case .location:
-      break
-    case .notification:
-      self.delegate?.invoke(.alarmSetting)
-    case .support, .law:
-      guard let url = item.url else {
-        self.delegate?.invoke(.feedback)
-        return
-      }
-      self.delegate?.invoke(.webView(.init(title: item.title, url: url)))
-    case .accoutSetting:
-      self.delegate?.invoke(.accountSetting)
-    }
-  }
-
-  
 }

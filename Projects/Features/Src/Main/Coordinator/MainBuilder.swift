@@ -20,33 +20,26 @@ import Chat
 import MyPageInterface
 import MyPage
 
+import Auth
 import AuthInterface
 
-final class MainComponent: MyPageDependency {
-  var inquiryBuildable: AuthInterface.InquiryBuildable { dependency.inquiryBuildable }
+import ChatRoom
+import ChatRoomInterface
 
-  var authViewFactory: AuthInterface.AuthViewFactoryType { dependency.authViewFactory }
-
-  private let dependency: MyPageDependency
-
-  init(dependency: MyPageDependency) {
-    self.dependency = dependency
-  }
-}
+import Domain
 
 final class MainBuilder: MainBuildable {
-  private let dependency: MyPageDependency
 
-  init(dependency: MyPageDependency) {
-    self.dependency = dependency
+  init() {
   }
 
-  func build() -> MainCoordinating {
+  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating {
     let tabBar = TFTabBarController()
-    let fallingBuilder = FallingBuilder()
-    let likeBuilder = LikeBuilder()
-    let chatBuilder = ChatBuilder()
-    let myPageBuilder = MyPageBuilder(dependency: dependency)
+    let chatRoomBuilder = ChatRoomBuilder(talkUseCase: talkUseCase)
+    let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
+    let likeBuilder = LikeBuilder(chatRoomBuilder: chatRoomBuilder)
+    let chatBuilder = ChatBuilder(chatRoomBuilder: chatRoomBuilder)
+    let myPageBuilder = MyPageBuilder(factory: MyPageFactory(userStore: UserStore(), inquiryBuilder: InquiryBuilder()))
 
     let coordinator = MainCoordinator(
       viewControllable: tabBar,

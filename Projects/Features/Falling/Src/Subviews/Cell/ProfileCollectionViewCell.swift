@@ -47,7 +47,6 @@ final class ProfileCollectionViewCell: UICollectionViewCell {
       return
     }
     
-//    self.imageView.kf.setImage(with: url)
-    self.imageView.image = DSKitAsset.Image.Test.test3.image
+    self.imageView.kf.setImage(with: url)
   }
 }

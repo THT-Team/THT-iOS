@@ -9,6 +9,7 @@ import Foundation
 
 import Core
 import AuthInterface
+import Domain
 
 public protocol SignUpAlertCoordinating {
   func showTopBottomAlert(_ listener: TopBottomAlertListener)
@@ -31,8 +32,10 @@ public protocol SignUpCoordinatorDelegate: AnyObject {
 
 public protocol SignUpCoordinating: Coordinator, SignUpAlertCoordinating {
   var delegate: SignUpCoordinatorDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
-  func start(_ option: SignUpOption)
+//  func start(_ option: SignUpOption)
+  func start(_ userInfo: SNSUserInfo)
 
   func finishFlow(_ option: FinishSignUpOption)
 

@@ -8,19 +8,13 @@
 import Foundation
 
 import Core
-
-public protocol AuthCoordinatingDelegate: AnyObject {
-  func detachAuth(_ coordinator: Coordinator)
-}
+import Domain
 
 public protocol AuthCoordinating: Coordinator {
-  var delegate: AuthCoordinatingDelegate? { get set }
+  var finishFlow: (() -> Void)? { get set }
+  var signUpFlow: ((SNSUserInfo) -> Void)? { get set }
 
-  func launchFlow()
+  var phoneNumberVerified: ((String) -> Void)? { get set }
 
   func rootFlow()
-
-  func phoneNumberFlow()
-
-  func snsFlow(type: AuthType)
 }

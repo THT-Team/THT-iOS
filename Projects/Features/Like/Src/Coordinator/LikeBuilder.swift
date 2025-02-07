@@ -8,15 +8,21 @@
 import Foundation
 
 import LikeInterface
+import ChatRoomInterface
 import Core
+import Domain
 
 public final class LikeBuilder: LikeBuildable {
 
-  public init() { }
-  public func build(rootViewControllable: ViewControllable) -> LikeCoordinating {
+  private let chatRoomBuilder: ChatRoomBuildable
 
-    let buildable = MockChatRoomBuilder()
-    let coordinator = LikeCoordinator(chatRoomBuildable: buildable, viewControllable: rootViewControllable)
+  public init(chatRoomBuilder: ChatRoomBuildable) {
+    self.chatRoomBuilder = chatRoomBuilder
+  }
+  
+  public func build(rootViewControllable: ViewControllable) -> LikeCoordinating {
+    let factory = LikeFactory(chatRoomBuilder: chatRoomBuilder)
+    let coordinator = LikeCoordinator(factory: factory, viewControllable: rootViewControllable)
 
     return coordinator
   }

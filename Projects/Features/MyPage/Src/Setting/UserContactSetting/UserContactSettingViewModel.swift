@@ -14,7 +14,7 @@ import RxCocoa
 
 import MyPageInterface
 
-final class UserContactSettingViewModel: ViewModelType {
+public final class UserContactSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
   weak var delegate: MySettingCoordinatingActionDelegate?
@@ -23,17 +23,17 @@ final class UserContactSettingViewModel: ViewModelType {
     self.useCase = useCase
   }
 
-  struct Input {
+  public struct Input {
     let viewDidAppear: Driver<Void>
     let tap: Driver<Void>
   }
 
-  struct Output {
+  public struct Output {
     let toast: Driver<String>
     let fetchedContactCount: Driver<Int>
   }
 
-  func transform(input: Input) -> Output {
+  public func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
     let fetchedContactCount = PublishSubject<Int>()
 

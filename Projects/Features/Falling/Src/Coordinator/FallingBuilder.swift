@@ -9,13 +9,17 @@ import Foundation
 
 import FallingInterface
 import Core
+import ChatRoomInterface
 
 public final class FallingBuilder: FallingBuildable {
+  private let chatRoomBuilder: ChatRoomBuildable
 
-  public init() { }
+  public init(chatRoomBuilder: ChatRoomBuildable) {
+    self.chatRoomBuilder = chatRoomBuilder
+  }
   public func build(rootViewControllable: ViewControllable) -> FallingCoordinating {
 
-    let coordinator = FallingCoordinator(viewControllable: rootViewControllable)
+    let coordinator = FallingCoordinator(chatRoomBuilder: chatRoomBuilder, viewControllable: rootViewControllable)
 
     return coordinator
   }

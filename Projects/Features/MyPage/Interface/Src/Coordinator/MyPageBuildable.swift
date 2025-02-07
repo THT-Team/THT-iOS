@@ -10,6 +10,6 @@ import Foundation
 import Core
 
 public protocol MyPageBuildable {
-  func build() -> MyPageCoordinating
+  func build(rootViewControllable: ViewControllable) -> MyPageCoordinating
 }
 

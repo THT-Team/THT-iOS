@@ -12,13 +12,12 @@ import SignUpInterface
 import AuthInterface
 import RxSwift
 import Domain
-import PhotosUI
 
 import Core
 
 public final class MyPageUseCase: MyPageUseCaseInterface {
   
-  public func createSettingMenu(user: MyPageInterface.User) -> [MyPageInterface.SectionModel<MyPageInterface.MySetting.MenuItem>] {
+  public func createSettingMenu(user: User) -> [MyPageInterface.SectionModel<MyPageInterface.MySetting.MenuItem>] {
 
     let userSignUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)
     
@@ -110,8 +109,11 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
   }
 
   public func logout() -> Single<Void> {
-    removeUser()
     return repository.logout()
+      .flatMap { [unowned self] _ in
+        removeUser()
+        return .just(())
+      }
   }
 
   public func withdrawal(reason: String, feedback: String) -> RxSwift.Single<Void> {
@@ -189,7 +191,7 @@ extension MyPageUseCase {
       .map { UserProfilePhoto(url: $0, priority: priority) }
   }
 
-  public func processImage(_ result: PHPickerResult) -> Single<Data> {
+  public func processImage(_ result: PhotoItem) -> Single<Data> {
     imageService.bind(result, imageSize: .profile)
   }
 }

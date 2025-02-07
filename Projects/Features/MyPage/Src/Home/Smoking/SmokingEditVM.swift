@@ -13,7 +13,7 @@ import RxCocoa
 import DSKit
 import MyPageInterface
 import SignUpInterface
-
+import Domain
 
 final class SmokingEditVM: TFBaseCollectionVM<Frequency, TFSimpleItemVM<Frequency>>  {
 

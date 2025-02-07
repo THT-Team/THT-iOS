@@ -9,6 +9,7 @@ import UIKit
 
 import DSKit
 import ChatInterface
+import Domain
 
 final class ChatHomeViewController: TFBaseViewController {
   private lazy var mainView = ChatHomeView()

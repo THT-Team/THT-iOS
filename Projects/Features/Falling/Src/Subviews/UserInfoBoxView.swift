@@ -9,6 +9,7 @@ import UIKit
 
 import DSKit
 import FallingInterface
+import Domain
 
 final class UserInfoBoxView: TFBaseView {
 //  lazy var pageControl: UIPageControl = {

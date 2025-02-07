@@ -11,60 +11,66 @@ import FallingInterface
 import Core
 
 import DSKit
+import ChatRoomInterface
 
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
+  
   @Injected var fallingUseCase: FallingUseCaseInterface
+  private let chatRoomBuilder: ChatRoomBuildable
 
-  public weak var delegate: FallingCoordinatorDelegate?
+  public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {
+    self.chatRoomBuilder = chatRoomBuilder
+    super.init(viewControllable: viewControllable)
+  }
 
   public override func start() {
     homeFlow()
   }
 
   public func homeFlow() {
-    let viewModel = FallingHomeViewModel(fallingUseCase: fallingUseCase)
-    viewModel.delegate = self
+    let viewModel = FallingViewModel(fallingUseCase: fallingUseCase)
 
-    let viewController = FallingHomeViewController(viewModel: viewModel)
+    viewModel.onReport = { [weak viewControllable] handler in
+      guard let viewControllable else { return }
+      AlertHelper.userReportAlert(viewControllable, handler)
+    }
+
+    viewModel.onMatch = { [weak self] url, index in
+      self?.toMatchFlow(url, index: index)
+    }
+
+    let viewController = FallingViewController(viewModel: viewModel)
 
     self.viewControllable.setViewControllers([viewController])
   }
 
-  public func chatRoomFlow() {
+  public func chatRoomFlow(_ index: String) {
         TFLogger.dataLogger.info("ChatRoom!")
-  }
-}
+    let coordinator = chatRoomBuilder.build(rootViewControllable: viewControllable)
 
-extension FallingCoordinator: FallingAlertCoordinating {
-  public func reportOrBlockAlert(_ listener: BlockOrReportAlertListener) {
-    let alert = TFAlertBuilder.makeBlockOrReportAlert(listener: listener)
-
-    self.viewControllable.present(alert, animated: false)
-  }
-
-  public func blockAlertFlow(_ listener: BlockAlertListener) {
-    let alert = TFAlertBuilder.makeBlockAlert(listener: listener)
-
-    self.viewControllable.present(alert, animated: false)
-  }
-
-  public func userReportAlert(_ listener: ReportAlertListener) {
-    let alert = TFAlertBuilder.makeUserReportAlert(listener: listener)
-    self.viewControllable.present(alert, animated: false)
-  }
-}
-
-extension FallingCoordinator: FallingHomeActionDelegate {
-  public func invoke(_ action: FallingHomeNavigationAction) {
-    switch action {
-    case let .toReportBlockAlert(listener):
-      reportOrBlockAlert(listener)
-    case let .toReportAlert(listener):
-      userReportAlert(listener)
-    case let .toBlockAlert(listener):
-      blockAlertFlow(listener)
-    case let .toChatRoom(chatRoomIndex):
-      chatRoomFlow()
+    coordinator.finishFlow = { [weak self, weak coordinator] message in
+      guard let self, let coordinator else { return }
+      coordinator.childCoordinators.removeAll()
+      self.detachChild(coordinator)
     }
+    attachChild(coordinator)
+    coordinator.chatRoomFlow(index)
+  }
+
+  public func toMatchFlow(_ imageURL: String, index: String) {
+    let vc = MatchViewController(imageURL, index: index)
+
+    vc.onCancel = { [weak self] in
+      self?.viewControllable.dismiss()
+    }
+
+    vc.onClick = { [weak self] index in
+      self?.viewControllable.dismiss()
+      self?.chatRoomFlow(index)
+    }
+
+    vc.uiController.modalTransitionStyle = .crossDissolve
+    vc.uiController.modalPresentationStyle = .overFullScreen
+    viewControllable.present(vc, animated: true)
   }
 }

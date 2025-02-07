@@ -13,6 +13,7 @@ import SignUpInterface
 import RxSwift
 import RxCocoa
 import RxGesture
+import Domain
 
 final class GenderPickerViewController: BaseSignUpVC<GenderPickerViewModel>, StageProgressable {
   private let mainView = GenderPickerView()

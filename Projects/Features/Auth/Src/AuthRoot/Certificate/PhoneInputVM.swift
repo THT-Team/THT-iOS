@@ -9,6 +9,7 @@ import Foundation
 
 import AuthInterface
 import Core
+import Domain
 
 public final class PhoneInputVM: ViewModelType, PhoneNumberVMType {
   public weak var delegate: PhoneInputVCDelegate?

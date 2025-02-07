@@ -20,8 +20,8 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-
-    let authService = DefaultAuthService()
+    let session = SessionProvider.create()
+    let authService: AuthServiceType = DefaultAuthService()
     let contactService = ContactService()
     let kakaoService = KakaoAPIService() // TODO: SNS Login 때 사용됨
     let fileRepository = FileRepository()
@@ -47,7 +47,7 @@ extension AppDelegate {
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(session: authService.createSession())
+            FallingRepository(session: session)
         )
       }
     )
@@ -63,11 +63,7 @@ extension AppDelegate {
       interface: LikeUseCaseInterface.self,
       implement: {
         LikeUseCase(
-          repository: LikeRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          )
+          repository: LikeRepository(session: session)
         )
       }
     )
@@ -75,13 +71,10 @@ extension AppDelegate {
     container.register(
       interface: ChatUseCaseInterface.self,
       implement: {
-        ChatUseCase(
-          repository: ChatRepository(
-            isStub: true,
-            sampleStatusCode: 200,
-            customEndpointClosure: nil
-          )
-        )
+        DefaultChatUseCase(
+          repository: ChatRepository.init())
+//
+//                            ChatRepository(session: session))
       }
     )
     
@@ -89,7 +82,7 @@ extension AppDelegate {
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(session: authService.createSession()),
+          repository: MyPageRepository(session: session),
           contactsService: contactService,
           authService: authService,
           imageService: imageService
@@ -103,5 +96,9 @@ extension AppDelegate {
         locationService: LocationService(),
         kakaoAPIService: kakaoService) }
     )
+
+    container.register(interface: TalkUseCaseInterface.self) {
+      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore())
+    }
   }
 }

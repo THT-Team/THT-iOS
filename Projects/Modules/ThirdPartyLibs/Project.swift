@@ -14,8 +14,9 @@ let project = Project.makeModule(
   dependencies: [
     .SPM.RxSwfit,
     .SPM.RxCocoa,
-
+    .SPM.ReactorKit,
     .SPM.FirebaseMessaging,
+    .SPM.SwiftStomp,
   ],
 
   product: .staticLibrary

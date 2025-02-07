@@ -10,6 +10,7 @@ import Foundation
 import RxSwift
 
 import AuthInterface
+import Domain
 
 public protocol KakaoAPIServiceType {
   func fetchLocationByCoordinate2d(longitude: Double, latitude: Double) -> Single<LocationReq?>

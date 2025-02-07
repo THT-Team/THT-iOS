@@ -7,7 +7,7 @@
 
 import Foundation
 
-import FallingInterface
+import Domain
 import Networks
 
 import RxSwift
@@ -29,7 +29,7 @@ public final class FallingRepository: ProviderProtocol {
 extension FallingRepository: FallingRepositoryInterface {
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {
     request(
-      type: FallingUserRes.self,
+      type: FallingUserInfo.Res.self,
       target: .users(
         FallingUserReq(
         alreadySeenUserUUIDList: alreadySeenUserUUIDList,

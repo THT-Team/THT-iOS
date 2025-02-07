@@ -11,6 +11,7 @@ import UIKit
 import DSKit
 
 import AuthInterface
+import Domain
 
 final class AuthRootViewController: TFBaseViewController {
   private lazy var buttonStackView = UIStackView().then {

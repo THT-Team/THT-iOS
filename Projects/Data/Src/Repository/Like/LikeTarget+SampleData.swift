@@ -106,7 +106,7 @@ extension LikeTarget {
                 "likeList": [
                   {
                     "dailyFallingIdx": 1,
-                    "likeIdx": 1,
+                    "likeIdx": 11,
                     "topic": "행복",
                     "issue": "무엇을 할때 행복한가요?",
                     "userUuid": "user-uuid-5",
@@ -118,7 +118,7 @@ extension LikeTarget {
                   },
                   {
                     "dailyFallingIdx": 2,
-                    "likeIdx": 3,
+                    "likeIdx": 31,
                     "topic": "취미",
                     "issue": "침대에 누워있고 싶지 않으세요?",
                     "userUuid": "user-uuid-6",
@@ -130,7 +130,7 @@ extension LikeTarget {
                   },
                   {
                     "dailyFallingIdx": 3,
-                    "likeIdx": 154,
+                    "likeIdx": 1541,
                     "topic": "평화",
                     "issue": "돈많은 백수가 되고싶네요",
                     "userUuid": "user-uuid-7",
@@ -142,7 +142,7 @@ extension LikeTarget {
                   },
                   {
                     "dailyFallingIdx": 2,
-                    "likeIdx": 893,
+                    "likeIdx": 8931,
                     "topic": "취미",
                     "issue": "침대에 누워있고 싶지 않으세요?",
                     "userUuid": "user-uuid-8",
@@ -154,7 +154,7 @@ extension LikeTarget {
                   },
                   {
                     "dailyFallingIdx": 2,
-                    "likeIdx": 891,
+                    "likeIdx": 8911,
                     "topic": "취미",
                     "issue": "침대에 누워있고 싶지 않으세요?",
                     "userUuid": "user-uuid-9",
@@ -166,7 +166,7 @@ extension LikeTarget {
                   },
                   {
                     "dailyFallingIdx": 2,
-                    "likeIdx": 88,
+                    "likeIdx": 881,
                     "topic": "행복",
                     "issue": "침대에 누워있고 싶지 않으세요?",
                     "userUuid": "user-uuid-10",
@@ -209,34 +209,34 @@ extension LikeTarget {
             {
               "idx": 1,
               "name": "자극을 주는",
-              "emojiCode": "1F4DA"
+              "emojiCode": "U+1F4DA"
             },
             {
               "idx": 2,
               "name": "피부가 좋은",
-              "emojiCode": "1F3AC"
+              "emojiCode": "U+1F3AC"
             },
             {
               "idx": 3,
               "name": "집순이/집돌이",
-              "emojiCode": "1F3B5"
+              "emojiCode": "U+1F3B5"
             }
           ],
           "interestsList": [
             {
               "idx": 1,
               "name": "등산하기",
-              "emojiCode": "1F3A4"
+              "emojiCode": "U+1F3A4"
             },
             {
               "idx": 2,
               "name": "영화/드라마",
-              "emojiCode": "1F642"
+              "emojiCode": "U+1F642"
             },
             {
               "idx": 3,
               "name": "게임",
-              "emojiCode": "1F963"
+              "emojiCode": "U+1F963"
             }
           ],
           "userProfilePhotos": [

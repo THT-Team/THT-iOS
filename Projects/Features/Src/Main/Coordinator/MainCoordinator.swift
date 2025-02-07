@@ -26,6 +26,7 @@ protocol MainViewControllable: ViewControllable {
 }
 
 final class MainCoordinator: BaseCoordinator, MainCoordinating {
+  var finishFlow: (() -> Void)?
   
   public weak var delegate: MainCoordinatorDelegate?
   private let mainViewControllable: MainViewControllable
@@ -59,13 +60,11 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     let fallingCoordinator = fallingBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(fallingCoordinator)
     fallingCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.falling)
-    fallingCoordinator.delegate = self
     fallingCoordinator.start()
     
     let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(likeCoordinator)
     likeCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.like)
-    likeCoordinator.delegate = self
     likeCoordinator.start()
     
     let chatCoordinator = chatBuildable.build(rootViewControllable: NavigationViewControllable())
@@ -74,10 +73,12 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     chatCoordinator.delegate = self
     chatCoordinator.start()
     
-    let myPageCoordinator = myPageBuildable.build() //rootViewControllable: NavigationViewControllable())
+    let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(myPageCoordinator)
     myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
-    myPageCoordinator.delegate = self
+    myPageCoordinator.finishFlow = { [weak self] in
+      self?.detachTab()
+    }
     myPageCoordinator.start()
     
     let viewControllables = [
@@ -95,15 +96,9 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
       child.viewControllable.setViewControllers([])
       detachChild(child)
     }
-    delegate?.detachTab(self)
+    finishFlow?()
   }
 }
 
-extension MainCoordinator: FallingCoordinatorDelegate, LikeCoordinatorDelegate, ChatCoordinatorDelegate, MyPageCoordinatorDelegate {
-
-  
-
-  func detachMyPage(_ coordinator: Core.Coordinator) {
-    detachTab()
-  }
+extension MainCoordinator: ChatCoordinatorDelegate {
 }

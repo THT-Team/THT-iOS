@@ -9,6 +9,7 @@ import Foundation
 import SignUpInterface
 
 import Core
+import Domain
 
 public struct AlarmSettingFactory {
   public static func createDefaultAlarmSetting() -> AlarmSetting {

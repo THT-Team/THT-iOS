@@ -10,6 +10,7 @@ import Foundation
 import RxSwift
 
 import AuthInterface
+import Domain
 
 public protocol LocationUseCaseInterface {
   func fetchLocation() -> Single<LocationReq>

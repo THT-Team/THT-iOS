@@ -9,6 +9,7 @@ import Foundation
 import SignUpInterface
 import AuthInterface
 import Core
+import Domain
 
 protocol Signing {
   

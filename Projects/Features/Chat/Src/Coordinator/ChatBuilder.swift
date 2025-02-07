@@ -10,14 +10,20 @@ import Foundation
 import DSKit
 
 import ChatInterface
+import ChatRoomInterface
+import Domain
 
 public final class ChatBuilder {
-  public init() { }
+  private let chatRoomBuilder: ChatRoomBuildable
+
+  public init(chatRoomBuilder: ChatRoomBuildable) {
+    self.chatRoomBuilder = chatRoomBuilder
+  }
 }
 
 extension ChatBuilder: ChatBuildable {
   public func build(rootViewControllable: ViewControllable) -> ChatCoordinating {
-    let coordinator = ChatCoordinator(viewControllable: rootViewControllable)
+    let coordinator = ChatCoordinator(factory: ChatFactory(chatRoomBuilder: chatRoomBuilder), viewControllable: rootViewControllable)
 
     return coordinator
   }
