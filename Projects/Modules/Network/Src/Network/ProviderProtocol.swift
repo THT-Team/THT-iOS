@@ -117,18 +117,7 @@ public extension ProviderProtocol {
   func request<D: Decodable>(type: D.Type, target: Target) -> Single<D> {
     provider.rx.request(target)
       .map(type, using: .customDeocder)
-      .catch { error in
-        if let error = error as? MoyaError {
-          print(error.localizedDescription)
-          return .error(error)
-        }
-        if let error = error as? DecodingError {
-          print(error.localizedDescription)
-          return .error(error)
-        }
-        print(error.localizedDescription)
-        return .error(error)
-      }
+      .catch { .error(ErrorMaper.map($0)) }
   }
 
   func request<D: Decodable>(target: Target, completion: @escaping (Result<D, Error>) -> Void) {
@@ -189,5 +178,17 @@ public extension ProviderProtocol {
   func requestWithNoContent(target: Target) -> Single<Void> {
     provider.rx.request(target)
       .map { _ in }
+      .catch { .error(ErrorMaper.map($0)) }
+  }
+}
+
+fileprivate struct ErrorMaper {
+  static func map(_ error: Error) -> APIError {
+    guard
+      let moyaError = error as? MoyaError,
+      let response = moyaError.response,
+      let errorResponse = try? JSONDecoder.customDeocder.decode(ErrorResponse.self, from: response.data)
+    else { return APIError.unknown(error) }
+    return APIError.serverError(errorResponse)
   }
 }
