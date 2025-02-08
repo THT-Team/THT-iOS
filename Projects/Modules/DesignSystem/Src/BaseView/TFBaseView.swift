@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 open class TFBaseView: UIView {
   private var dimView: UIView?
@@ -50,5 +52,13 @@ open class TFBaseView: UIView {
     let view = UIView()
     view.backgroundColor = dimColor
     return view
+  }
+}
+
+extension Reactive where Base: TFBaseView {
+  public var makeToast: Binder<String> {
+    Binder(self.base) { base, value in
+      base.makeToast(value, duration: 3.0, position: .bottom)
+    }
   }
 }

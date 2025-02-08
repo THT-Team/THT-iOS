@@ -146,8 +146,13 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .bind(to: userDetailInfoRelay)
       .disposed(by: disposeBag)
   }
+  func bind(_ item: FallingUser) {
+    userInfoBoxView.bind(item)
+    userInfoView.sections = item.toUserCardSection()
+    bind(userProfilePhotos: item.userProfilePhotos)
+  }
 
-  func bind(userProfilePhotos: [UserProfilePhoto]) {
+  private func bind(userProfilePhotos: [UserProfilePhoto]) {
     var snapshot = Snapshot()
     snapshot.appendSections([.profile])
     snapshot.appendItems(userProfilePhotos)
@@ -207,6 +212,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         base?.cardTimeView.bind(.none)
         base?.cardTimeView.showTimerGradient()
       }
+      .delay(.milliseconds(500), scheduler: MainScheduler.instance)
     return ControlEvent(events: source)
   }
 
@@ -224,6 +230,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         base?.cardTimeView.bind(.none)
         base?.cardTimeView.hideTimerGradient()
       }
+      .delay(.milliseconds(300), scheduler: MainScheduler.instance)
     return ControlEvent(events: source)
   }
 
@@ -243,16 +250,16 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     return ControlEvent(events: source)
   }
 
-  var cardDoubleTap: ControlEvent<Base.Action> {
+  var cardDoubleTap: ControlEvent<Void> {
     let source = self.base.carouselView.carouselView.rx
       .tapGesture(configuration: { gestureRecognizer, delegate in
         gestureRecognizer.numberOfTapsRequired = 2
       })
       .when(.recognized)
       .withLatestFrom(self.base.activateCardSubject)
-      .flatMap { isActivate -> Observable<Base.Action> in
+      .flatMap { isActivate -> Observable<Void> in
         return isActivate
-        ? .just(.pause(true))
+        ? .just(())
         : .empty()
       }
       .do(onNext: { [weak base = self.base] _ in
@@ -262,16 +269,16 @@ extension Reactive where Base: FallingUserCollectionViewCell {
     return ControlEvent(events: source)
   }
 
-  var pauseDoubleTap: ControlEvent<Base.Action> {
+  var pauseDoubleTap: ControlEvent<Void> {
     let source = self.base.pauseView.rx
       .tapGesture(configuration: { gestureRecognizer, delegate in
         gestureRecognizer.numberOfTapsRequired = 2
       })
       .when(.recognized)
       .withLatestFrom(self.base.activateCardSubject)
-      .flatMap { isActivate -> Observable<Base.Action> in
+      .flatMap { isActivate -> Observable<Void> in
         return isActivate
-        ? .just(.pause(false))
+        ? .just(())
         : .empty()
       }
       .do(onNext: { [weak base = self.base] _ in
@@ -291,13 +298,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
       base.cardTimeView.bind(timeState)
     }
   }
-
-  var user: Binder<FallingUser> {
-    return Binder(self.base) { base, user in
-      base.bind(userProfilePhotos: user.userProfilePhotos)
-      base.userInfoBoxView.bind(user)
-    }
-  }
+  
   var isDimViewHidden: Binder<Bool> {
     return Binder(self.base) { (base, isHidden) in
       isHidden ? base.carouselView.hiddenDimView() : base.carouselView.showDimView()
