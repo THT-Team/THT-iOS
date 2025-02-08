@@ -31,6 +31,7 @@ let project = Project(
       dependencies: [
         .feature(implementation: .Falling),
         .feature(implementation: .Auth),
+        .feature(implementation: .ChatRoom),
         .data,
       ]
     )
