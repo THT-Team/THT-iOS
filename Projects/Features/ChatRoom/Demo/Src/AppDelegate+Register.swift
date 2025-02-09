@@ -10,6 +10,7 @@ import Foundation
 import Core
 import Data
 import Domain
+import Auth
 
 extension AppDelegate {
   var container: DIContainer {
@@ -17,6 +18,8 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
+    let authService: AuthServiceType = DefaultAuthService()
+    
     container.register(
       interface: UserDomainUseCaseInterface.self,
       implement: {
@@ -28,5 +31,16 @@ extension AppDelegate {
       implement: {
         DefaultChatUseCase(repository: ChatRepository())
       })
+
+    container.register(interface: TalkUseCaseInterface.self) {
+      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore.shared)
+    }
+
+    container.register(
+      interface: AuthUseCaseInterface.self,
+      implement: {
+        AuthUseCase(authRepository: AuthRepository(authService: authService))
+      }
+    )
   }
 }

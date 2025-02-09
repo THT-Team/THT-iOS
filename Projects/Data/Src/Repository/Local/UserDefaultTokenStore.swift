@@ -19,7 +19,7 @@ public final class UserDefaultTokenStore: TokenStore {
 
   public static let shared: TokenStore = UserDefaultTokenStore()
 
-  public init () {
+  private init () {
     self.cachedToken = try? UserDefaults.standard.getCodableObject(forKey: Key.token, as: Token.self)
   }
 

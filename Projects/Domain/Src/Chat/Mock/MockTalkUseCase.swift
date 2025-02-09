@@ -53,7 +53,7 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
     messagePublisher.asObservable()
   }
 
-  private func bind() {
+  public func bind() {
     echoRelay
       .delay(.seconds(1), scheduler: MainScheduler.instance)
       .subscribe(messagePublisher)

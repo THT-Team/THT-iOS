@@ -44,10 +44,6 @@ extension DefaultTokenProvider: TokenProvider {
   }
 }
 
-public protocol TokenRefresher {
-  func refresh(_ token: Token) async throws -> Token
-}
-
 public final class DefaultTokenRefresher: ProviderProtocol, TokenRefresher {
   
   public typealias Target = TokenProviderTarget

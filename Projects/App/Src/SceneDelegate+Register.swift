@@ -98,7 +98,7 @@ extension AppDelegate {
     )
 
     container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore())
+      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore.shared)
     }
   }
 }

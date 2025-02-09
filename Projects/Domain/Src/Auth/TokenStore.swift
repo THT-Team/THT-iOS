@@ -14,3 +14,7 @@ public protocol TokenStore {
   func getToken() -> Token?
   func clearToken()
 }
+
+public protocol TokenRefresher {
+  func refresh(_ token: Token) async throws -> Token
+}

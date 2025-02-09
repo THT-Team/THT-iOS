@@ -23,8 +23,10 @@ public struct ChatConfiguration {
 
 public enum ChatSignalType {
   case stompConnected
+  case stompDisconnected
   case message(ChatMessageType)
   case receipt(String)
+  case needAuth
 }
 
 extension ChatSignalType: Equatable {

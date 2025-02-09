@@ -20,10 +20,11 @@ public protocol AppRootBuildable {
 }
 
 public final class AppRootBuilder: AppRootBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
   public init() { }
 
   lazy var chatRoomBuilder: ChatRoomBuildable = {
-    ChatRoomBuilder(talkUseCase: DefaultTalkUseCase(tokenStore: UserDefaultTokenStore()))
+    ChatRoomBuilder(talkUseCase: talkUseCase)
   }()
 
   public func build() -> LaunchCoordinating {
