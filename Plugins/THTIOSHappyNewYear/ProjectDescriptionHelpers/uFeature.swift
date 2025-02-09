@@ -166,6 +166,14 @@ public extension TargetDependency {
     .feature(implementation: moduleName.rawValue)
   }
 
+  static func feature(testing moduleName: Feature) -> TargetDependency {
+    .feature(target: moduleName.rawValue + "Testing", featureName: moduleName.rawValue)
+  }
+
+  static func feature(test moduleName: Feature) -> TargetDependency {
+    .feature(target: moduleName.rawValue + "Test", featureName: moduleName.rawValue)
+  }
+
   // MARK: Module
 
   private static func module(target: String, pathName: String) -> TargetDependency {

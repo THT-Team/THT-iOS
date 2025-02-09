@@ -33,6 +33,12 @@ let project = Project(
         .feature(implementation: .Auth),
         .data
       ]
+    ),
+    .unitTest(
+      feature: .ChatRoom,
+      dependencies: [
+        .feature(implementation: .ChatRoom)
+      ]
     )
   ]
 )
