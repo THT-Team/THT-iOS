@@ -117,7 +117,9 @@ final class FallingViewModel: Reactor {
       return newState
     case let .setRecentUserInfo(userInfo):
       let users = userInfo.userInfos
-      newState.dailyUserCursorIndex = users[users.count - 1].userDailyFallingCourserIdx
+      if users.count > 0 {
+        newState.dailyUserCursorIndex = users[users.count - 1].userDailyFallingCourserIdx
+      }
       newState.userInfo = userInfo
       return newState
 
