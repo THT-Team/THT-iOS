@@ -5,30 +5,25 @@
 //  Created by Kanghos on 2/8/25.
 //
 
-import Foundation
+import UIKit
 import Combine
+
 import SwiftStomp
 import Core
-import UIKit
 
-public protocol SocketInterface {
-  func connect()
-  func disconnect()
-  func subscribe(topic: String)
-  func unsubscribe(topic: String)
-  func send(destination: String, message: ChatMessage.Request)
-  func listen() ->  AnyPublisher<ChatSignalType, Never>
-  func bind()
-}
+import Domain
+import Networks
 
 public class SocketComponent: SocketInterface {
   private let publisher = PassthroughSubject<ChatSignalType, Never>()
   private var client: SwiftStomp
   private var cancellable: Set<AnyCancellable> = []
-  public init(config: ChatConfiguration) {
+  public init(config: ChatConfiguration, header: [String: String]) {
     self.client = SwiftStomp(
       host: config.hostURL,
-      headers: [:])
+      headers: header)
+    self.client.autoReconnect = true
+    self.client.enableLogging = true
   }
 
   deinit {
@@ -44,22 +39,19 @@ public class SocketComponent: SocketInterface {
   public func disconnect() {
     if client.isConnected {
       client.disconnect()
+      cancellable.forEach { $0.cancel() }
     }
   }
-  public func subscribe(topic: String) {
+  public func subscribe(topic: String, header: [String : String]) {
     client.subscribe(to: topic, mode: .client)
   }
 
-  public func unsubscribe(topic: String) {
+  public func unsubscribe(topic: String, header: [String : String]) {
     client.unsubscribe(from: topic)
   }
 
-  public func send(destination: String, message: ChatMessage.Request) {
-    client.send(
-      body: message,
-      to: destination,
-      receiptId: UUID().uuidString
-      )
+  public func send<T: Encodable>(destination: String, message: T, header: [String : String]) {
+    client.send(body: message, to: destination, receiptId: UUID().uuidString,headers: header)
   }
 
   public func listen() -> AnyPublisher<ChatSignalType, Never> {
@@ -67,7 +59,6 @@ public class SocketComponent: SocketInterface {
   }
 
   public func bind() {
-    bindLifeCycle()
 
     client.messagesUpstream
       .compactMap(StompMessageMapper.message(_:))
@@ -75,50 +66,41 @@ public class SocketComponent: SocketInterface {
       .store(in: &cancellable)
 
     client.receiptUpstream
-      .print()
       .map(ChatSignalType.receipt(_:))
       .subscribe(publisher)
       .store(in: &cancellable)
 
     client.eventsUpstream
-      .print()
       .compactMap(StompMessageMapper.event(_:))
       .subscribe(publisher)
       .store(in: &cancellable)
   }
 
-  private func bindLifeCycle() {
-    // TODO: App Life Cycle과 Message Stream 분리해서 UseCase만들기
-    NotificationCenter.default.publisher(for: UIScene.didActivateNotification)
-      .sink { [weak self] _ in
-        self?.connect()
-      }.store(in: &cancellable)
-
-    NotificationCenter.default.publisher(for: UIScene.didEnterBackgroundNotification)
-      .sink { [weak self] _ in
-        self?.disconnect()
-      }.store(in: &cancellable)
+  public func replace(_ config: ChatConfiguration, header: [String : String]) {
+    self.client = SwiftStomp(host: config.hostURL, headers: header)
   }
 }
 
 struct StompMessageMapper {
-  // TODO: Move Decoding Logic to Data Layer
   static func message(_ message: StompUpstreamMessage) -> ChatSignalType? {
     switch message {
     case let .data(data, _, _, _):
-      guard let response = try? JSONDecoder().decode(ChatMessage.Response.self, from: data) else {
-        return nil
-      }
-      let chatMessage = ChatMessage(response)
-      let currentUserUUID = UserDefaultRepository.shared.fetch(for: .currentUUID, type: String.self)
-      let messageType: ChatMessageType =  chatMessage.senderUuid == currentUserUUID
-      ? .outgoing(chatMessage) : .incoming(chatMessage)
+      return transform(data)
+    case let .text(text, _, _, _):
+      return transform(Data(text.utf8))
+    }
+  }
 
-      return .message(messageType)
-    case let .text(message, _, _, _):
-      print(message)
+  private static func transform(_ data: Data) -> ChatSignalType? {
+    guard
+      let response = try? JSONDecoder.customDeocder .decode(ChatMessage.Response.self, from: data),
+      let id = UserDefaultTokenStore.shared.getToken()?.userUuid
+    else {
       return nil
     }
+    return response.senderUUID == id
+    ? .message(.outgoing(ChatMessage(response)))
+    : .message(.incoming(ChatMessage(response)))
   }
 
   static func event(_ event: StompUpstreamEvent) -> ChatSignalType? {
@@ -128,7 +110,7 @@ struct StompMessageMapper {
     case let .disconnected(type):
       return type == .fromStomp ? .stompDisconnected : nil
     case let .error(error):
-      return error.description.contains("401")
+      return error.description.contains("UNAUTHORIZED")
       ? .needAuth : nil
     }
   }

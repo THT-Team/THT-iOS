@@ -13,10 +13,11 @@ import Domain
 import ReactorKit
 
 final class ChatRoomViewController: TFBaseViewController, View {
+  typealias Reactor = ChatRoomReactor
   private lazy var mainView = ChatRoomView()
   private var dataSource: DataSource!
 
-  init(reactor: ChatRoomReactor) {
+  init(reactor: Reactor) {
     super.init(nibName: nil, bundle: nil)
     self.reactor = reactor
   }
@@ -32,13 +33,16 @@ final class ChatRoomViewController: TFBaseViewController, View {
     navigationItem.rightBarButtonItems = [self.mainView.exitButton, self.mainView.reportButton, ]
   }
 
-  func bind(reactor: ChatRoomReactor) {
+  func bind(reactor: Reactor) {
     self.setupDataSource()
-
     // Action
     Observable<Reactor.Action>.merge(
+      NotificationCenter.default.rx.notification(UIScene.didEnterBackgroundNotification)
+        .map { _ in Reactor.Action.didEnterBackground },
+      NotificationCenter.default.rx.notification(UIScene.willEnterForegroundNotification)
+        .map { _ in Reactor.Action.willEnterForeground },
       rx.viewDidLoad.map { _ in Reactor.Action.viewDidLoad },
-      mainView.chatInputView.rx.sendButtonTap.map(Reactor.Action.send),
+//      mainView.chatInputView.rx.sendButtonTap.map(Reactor.Action.send),
       mainView.backButton.rx.tap.map { Reactor.Action.onBackBtnTap },
       mainView.reportButton.rx.tap.map { Reactor.Action.onReportBtnTap },
       mainView.exitButton.rx.tap.map { Reactor.Action.onExitBtnTap }
@@ -46,10 +50,15 @@ final class ChatRoomViewController: TFBaseViewController, View {
     .bind(to: reactor.action)
     .disposed(by: disposeBag)
 
+    mainView.chatInputView.rx.sendButtonTap
+      .withLatestFrom(reactor.state.map(\.info)) { Reactor.Action.send($0, $1) }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
+
     // State
     reactor.state.compactMap(\.info)
       .subscribe(with: self) { owner, info in
-        owner.title = "Partner Name"
+        owner.title = info.title ?? "Partner's name"
         owner.mainView.topicBind(info.talkSubject, info.talkIssue)
       }
       .disposed(by: disposeBag)

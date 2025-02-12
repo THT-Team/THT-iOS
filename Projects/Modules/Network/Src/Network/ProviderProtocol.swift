@@ -36,7 +36,7 @@ extension JSONDecoder.DateDecodingStrategy {
 }
 
 extension JSONDecoder {
-  static let customDeocder: JSONDecoder = {
+  public static let customDeocder: JSONDecoder = {
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601withOptionalFractionalSeconds
     return decoder
@@ -143,7 +143,7 @@ public extension ProviderProtocol {
         switch result {
         case let .success(response):
           do {
-            let model = try JSONDecoder().decode(D.self, from: response.data)
+            let model = try JSONDecoder.customDeocder.decode(D.self, from: response.data)
             continuation.resume(returning: model)
           } catch {
             continuation.resume(throwing: error)

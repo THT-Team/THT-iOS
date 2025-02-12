@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 import Core
 
@@ -27,6 +28,7 @@ protocol MainViewControllable: ViewControllable {
 
 final class MainCoordinator: BaseCoordinator, MainCoordinating {
   var finishFlow: (() -> Void)?
+  var cancellables = Set<AnyCancellable>()
   
   public weak var delegate: MainCoordinatorDelegate?
   private let mainViewControllable: MainViewControllable
@@ -48,7 +50,9 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     self.chatBuildable = chatBuildable
     self.myPageBuildable = myPageBuildable
     
+    
     super.init(viewControllable: self.mainViewControllable)
+    bind()
   }
   
   override func start() {
@@ -70,7 +74,6 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     let chatCoordinator = chatBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(chatCoordinator)
     chatCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.chat)
-    chatCoordinator.delegate = self
     chatCoordinator.start()
     
     let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
@@ -91,6 +94,7 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     self.mainViewControllable.setViewController(viewControllables)
   }
   
+  
   func detachTab() {
     self.childCoordinators.forEach { child in
       child.viewControllable.setViewControllers([])
@@ -98,7 +102,13 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     }
     finishFlow?()
   }
-}
-
-extension MainCoordinator: ChatCoordinatorDelegate {
+  
+  func bind() {
+    NotificationCenter.default.publisher(for: .needAuthLogout)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        self?.detachTab()
+      }
+      .store(in: &cancellables)
+  }
 }

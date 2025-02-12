@@ -34,19 +34,25 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
   public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[ChatMessageType]> {
     repository.history(roomIdx: roomIdx, chatIdx: chatIdx, size: size)
       .asObservable()
-      .flatMap { messages -> Observable<[ChatMessageType]> in
-        let userUUID = UserDefaultRepository.shared.fetch(for: .currentUUID, type: String.self) ?? ""
-        let result = messages.map { message -> ChatMessageType in
-          message.senderUuid == userUUID
+      .map { messages -> [ChatMessageType] in
+        messages.map { message -> ChatMessageType in
+          let userUUID = UserDefaultRepository.shared.fetchModel(for: .token, type: Token.self)?.userUuid
+          return message.senderUuid == userUUID
           ? .outgoing(message) : .incoming(message)
         }
-        return .just(result)
       }
   }
   
   public func room(_ roomIdx: String) -> RxSwift.Observable<ChatRoomInfo> {
-    repository.room(roomIdx)
+    let userUUID = UserDefaultRepository.shared.fetchModel(for: .token, type: Token.self)?.userUuid
+    return repository.room(roomIdx)
       .asObservable()
+      .map { info in
+        var info = info
+        info.title = info.participants
+          .first { $0.id != userUUID }?.name
+        return info
+      }
   }
   
   public func out(_ roomIdx: String) -> RxSwift.Observable<Void> {

@@ -9,14 +9,13 @@ import Combine
 
 import Core
 import RxSwift
-//import SwiftStomp
 
 public protocol TalkUseCaseInterface {
   func connect()
   func disconnect()
   func subscribe(topic: String)
   func unsubscribe(topic: String)
-  func send(destination: String, message: ChatMessage.Request)
+  func send(destination: String, message: String, participant: [ChatRoomInfo.Participant])
   func listen() -> Observable<ChatSignalType>
   func bind()
 }
@@ -25,9 +24,11 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   private var cancellable = Set<AnyCancellable>()
   private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
   private let client: SocketInterface
+  private let userStore: UserDefaultRepository
 
-  public init(socketInterface: SocketInterface) {
+  public init(socketInterface: SocketInterface, userStore: UserDefaultRepository) {
     self.client = socketInterface
+    self.userStore = userStore
   }
 
   public func connect() {
@@ -36,18 +37,25 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   
   public func disconnect() {
     client.disconnect()
+    cancellable.forEach { item in
+      item.cancel()
+    }
   }
   
   public func subscribe(topic: String) {
     client.subscribe(topic: topic)
   }
-  
+
   public func unsubscribe(topic: String) {
     client.unsubscribe(topic: topic)
   }
   
-  public func send(destination: String, message: ChatMessage.Request) {
-    client.send(destination: destination, message: message)
+  public func send(destination: String, message: String, participant: [ChatRoomInfo.Participant]) {
+    guard let currentID = userStore.fetchModel(for: .token, type: Token.self)?.userUuid,
+          let currentUser = participant.first(where: { $0.id == currentID }) else {
+      return
+    }
+    client.send(destination: destination, message: ChatMessage.Request(participant: currentUser, message: message))
   }
 
   public func listen() -> RxSwift.Observable<ChatSignalType> {
@@ -56,5 +64,11 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
 
   public func bind() {
     client.bind()
+
+    client.listen()
+      .sink(receiveValue: { [weak self] signal in
+        self?.messagePublisher.onNext(signal)
+      })
+      .store(in: &cancellable)
   }
 }
