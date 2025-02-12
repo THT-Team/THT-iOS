@@ -13,6 +13,7 @@ public enum AuthError: Error {
   case invalidDeviceKey
   case invalidSNSUser
   case canNotOpenSNSURL
+  case tokenRefreshFailed
 
   var message: String {
     switch self {
@@ -26,6 +27,8 @@ public enum AuthError: Error {
       return "유효하지 않은 SNS 유저입니다."
     case .canNotOpenSNSURL:
       return "URL을 열 수 없습니다."
+    case .tokenRefreshFailed:
+      return "토큰 갱신에 실패하였습니다."
     }
   }
 }

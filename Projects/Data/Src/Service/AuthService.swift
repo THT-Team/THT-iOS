@@ -82,9 +82,11 @@ public class SessionProvider {
   public static func create() -> Moya.Session {
     if let session { return session }
 
-    let token = UserDefaultTokenStore.shared.getToken()?.toAuthOCredential() ?? OAuthCredential(accessToken: "", accessTokenExpiresIn: Date().timeIntervalSince1970)
+    let token = UserDefaultTokenStore.shared.getToken()?.toAuthOCredential() ?? OAuthCredential(accessToken: "", accessTokenExpiresIn: Date().timeIntervalSince1970, userUuid: "")
     let authenticator = OAuthAuthenticator()
     let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: token)
-    return Session(interceptor: interceptor)
+    let session = Session(interceptor: interceptor)
+    self.session = session
+    return session
   }
 }

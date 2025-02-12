@@ -10,6 +10,7 @@ import Alamofire
 import RxSwift
 import AuthInterface
 import Core
+import Domain
 
 final class OAuthAuthenticator: Authenticator {
   private let refresher: TokenRefresher

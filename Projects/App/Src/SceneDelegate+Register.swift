@@ -23,9 +23,11 @@ extension AppDelegate {
     let session = SessionProvider.create()
     let authService: AuthServiceType = DefaultAuthService()
     let contactService = ContactService()
-    let kakaoService = KakaoAPIService() // TODO: SNS Login 때 사용됨
+    let kakaoService = KakaoAPIService()
     let fileRepository = FileRepository()
     let imageService: ImageServiceType = ImageService()
+    let socketInterface: SocketInterface = SocketComponent(config: ChatConfiguration(), header: ["Authorization": "\(UserDefaultTokenStore.shared.getToken()?.accessToken ?? "")"])
+    let authSocket: SocketInterface = SocketAuthDecorator(socketInterface, tokenRefresher: DefaultTokenRefresher(), tokenStore: UserDefaultTokenStore.shared)
 
     container.register(
       interface: SignUpUseCaseInterface.self,
@@ -72,9 +74,7 @@ extension AppDelegate {
       interface: ChatUseCaseInterface.self,
       implement: {
         DefaultChatUseCase(
-          repository: ChatRepository.init())
-//
-//                            ChatRepository(session: session))
+          repository: ChatRepository(session: session))
       }
     )
     
@@ -98,7 +98,7 @@ extension AppDelegate {
     )
 
     container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore.shared)
+      DefaultTalkUseCase(socketInterface: authSocket, userStore: UserDefaultRepository.shared)
     }
   }
 }

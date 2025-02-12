@@ -10,9 +10,11 @@ import Foundation
 public struct Token: Codable {
   public let accessToken: String
   public let accessTokenExpiresIn: Double
+  public let userUuid: String
 
-  public init(accessToken: String, accessTokenExpiresIn: Double) {
+  public init(accessToken: String, accessTokenExpiresIn: Double, userUuid: String) {
     self.accessToken = accessToken
     self.accessTokenExpiresIn = accessTokenExpiresIn
+    self.userUuid = userUuid
   }
 }

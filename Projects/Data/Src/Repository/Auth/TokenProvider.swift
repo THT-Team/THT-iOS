@@ -57,8 +57,12 @@ public final class DefaultTokenRefresher: ProviderProtocol, TokenRefresher {
   }
 
   public func refresh(_ token: Token) async throws -> Token {
-    let refreshToken: Token = try await request(target: .refresh(token))
-    tokenStore.saveToken(token: refreshToken)
-    return refreshToken
+    do {
+      let refreshToken: Token = try await request(target: .refresh(token))
+      tokenStore.saveToken(token: refreshToken)
+      return refreshToken
+    } catch {
+      throw AuthError.tokenRefreshFailed
+    }
   }
 }
