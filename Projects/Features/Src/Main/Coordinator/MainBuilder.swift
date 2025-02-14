@@ -29,11 +29,12 @@ import ChatRoomInterface
 import Domain
 
 final class MainBuilder: MainBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
 
   init() {
   }
 
-  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating {
+  func build() -> MainCoordinating {
     let tabBar = TFTabBarController()
     let chatRoomBuilder = ChatRoomBuilder(talkUseCase: talkUseCase)
     let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)

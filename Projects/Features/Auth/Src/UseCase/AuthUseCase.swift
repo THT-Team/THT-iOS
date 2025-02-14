@@ -61,21 +61,6 @@ public final class AuthUseCase: AuthUseCaseInterface {
       return .error(AuthError.canNotOpenSNSURL)
     }
   }
-
-  
-  public func handleLogin(snsUserInfo: SNSUserInfo) -> Single<AuthNavigation> {
-    switch snsUserInfo.snsType {
-    case .normal:
-      return login()
-        .map { AuthNavigation.main }
-    case .kakao, .naver, .google, .apple:
-      guard let email = snsUserInfo.email, let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) else {
-        return .error(AuthError.invalidSNSUser)
-      }
-      return loginSNS(.init(email: email, snsType: snsUserInfo.snsType, snsUniqueId: snsUserInfo.id, deviceKey: deviceKey))
-        .map { AuthNavigation.main }
-    }
-  }
   
   private let repository: AuthRepositoryInterface
 
@@ -142,7 +127,8 @@ public final class AuthUseCase: AuthUseCaseInterface {
 
   public func auth(_ snsType: SNSType) -> Single<SNSUserInfo> {
     UserDefaultRepository.shared.saveModel(snsType, key: .snsType)
-    var snsUserInfo = SNSUserInfo(snsType: snsType, id: "", email: nil, phoneNumber: nil)
+    let snsUserInfo = SNSUserInfo(snsType: snsType, id: "", email: nil, phoneNumber: nil)
+
     switch snsType {
     case .normal:
       return .just(snsUserInfo)
@@ -152,16 +138,4 @@ public final class AuthUseCase: AuthUseCaseInterface {
       return .just(snsUserInfo)
     }
   }
-
-  public func handleLogin(snsUserInfo: SNSUserInfo) -> Single<Void> {
-    if snsUserInfo.snsType == .normal {
-      return login()
-    } else {
-      guard let email = snsUserInfo.email, let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) else {
-        return .error(AuthError.invalidSNSUser)
-      }
-      return loginSNS(.init(email: email, snsType: snsUserInfo.snsType, snsUniqueId: snsUserInfo.id, deviceKey: deviceKey))
-    }
-  }
 }
-

@@ -39,6 +39,7 @@ public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
   }
 
   deinit {
+    TFLogger.cycle(name: self)
     releaseTimer()
   }
 

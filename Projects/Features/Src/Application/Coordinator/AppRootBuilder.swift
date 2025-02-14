@@ -16,29 +16,27 @@ import Domain
 
 public protocol AppRootDependency { }
 
-final class AppRootComponent: AppRootDependency {
-  lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
-    InquiryBuilder()
-  }()
-
-  lazy var authViewFactory: AuthInterface.AuthViewFactoryType = {
-    AuthViewFactory()
-  }()
-
-  private let dependency: AppRootDependency
-
-  init(dependency: AppRootDependency) {
-    self.dependency = dependency
-  }
-}
+//final class AppRootComponent: AppRootDependency {
+//  lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
+//    InquiryBuilder()
+//  }()
+//
+//  lazy var authViewFactory: AuthInterface.AuthViewFactoryType = {
+//    AuthViewFactory()
+//  }()
+//
+//  private let dependency: AppRootDependency
+//
+//  init(dependency: AppRootDependency) {
+//    self.dependency = dependency
+//  }
+//}
 
 public protocol AppRootBuildable {
   func build() -> (LaunchCoordinating & URLHandling)
 }
 
 public final class AppRootBuilder: AppRootBuildable {
-  @Injected var talkUseCase: TalkUseCaseInterface
-
   private let dependency: AppRootDependency
 
   public init(dependency: AppRootDependency) {
@@ -46,19 +44,12 @@ public final class AppRootBuilder: AppRootBuildable {
   }
 
   public func build() -> (LaunchCoordinating & URLHandling) {
-    let mainBuilder = MainBuilder()
-    let authBuilder = AuthBuilder()
-    let launcher = LaunchBuilder()
-
-    let coordinator = AppCoordinator(
+    AppCoordinator(
       viewControllable: ProgressNavigationViewControllable(),
-      mainBuildable: mainBuilder,
-      authBuildable: authBuilder,
-      launchBUidlable: launcher,
-      signUpBuildable: SignUpBuilder(),
-      talkUseCase: talkUseCase
+      mainBuildable:  MainBuilder(),
+      authBuildable: AuthBuilder(),
+      signUpBuildable: SignUpBuilder()
     )
-    return coordinator
   }
 }
 

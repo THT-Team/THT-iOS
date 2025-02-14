@@ -39,19 +39,27 @@ final class AuthRootViewModel: ViewModelType {
     self.useCase = useCase
   }
 
-  // error toast
-  //
-  let phoneNumberVerifiedSubject = PublishSubject<String>()
+  let snsUserInfoSubject = PublishSubject<SNSUserInfo>()
+
   func transform(input: Input) -> Output {
     let toastPublisher = PublishRelay<String>()
     let buttonTap = input.buttonTap
 
-    let snsUserInfoSubject = PublishSubject<SNSUserInfo>()
 
-    buttonTap
+    let btnTap = buttonTap
       .throttle(.milliseconds(500), latest: false)
-      .flatMapLatest(with: self) { owner, type -> Driver<SNSUserInfo> in
-        owner.useCase.auth(type)
+
+    btnTap
+      .filter { $0 == .normal }
+      .drive(with: self, onNext: { owner, type in
+        owner.onPhoneNumberAuthFlow?()
+      })
+      .disposed(by: disposeBag)
+
+    btnTap
+      .filter { $0 != .normal }
+      .flatMapLatest(with: self) { owner, snsType in
+        owner.useCase.auth(snsType)
           .asDriver { error in
             toastPublisher.accept(error.localizedDescription)
             return .empty()
@@ -61,26 +69,9 @@ final class AuthRootViewModel: ViewModelType {
       .disposed(by: disposeBag)
 
     snsUserInfoSubject
-      .subscribe(with: self, onNext: { owner, userInfo in
-        guard let phoneNumber = userInfo.phoneNumber else {
-          owner.onPhoneNumberAuthFlow?()
-          return
-        }
-        owner.phoneNumberVerifiedSubject.onNext(phoneNumber)
-      })
-      .disposed(by: disposeBag)
-
-
-//    phoneNumberVerifiedSubject
-//      .withLatestFrom(snsUserInfoSubject) { ($0, $1) }
-//
-    Observable.zip(phoneNumberVerifiedSubject, snsUserInfoSubject)
       .withUnretained(self)
       .flatMap { owner, info -> Single<AuthResult> in
-        let (phoneNumber, snsUserInfo) = info
-        var userInfo = snsUserInfo
-        userInfo.phoneNumber = phoneNumber
-        return owner.useCase.authenticate(userInfo: userInfo)
+        owner.useCase.authenticate(userInfo: info)
       }
       .withUnretained(self)
       .flatMap { owner, result -> Observable<AuthNavigation> in
@@ -110,7 +101,7 @@ final class AuthRootViewModel: ViewModelType {
   }
 
   func onPhoneNumberVerified(_ number: String) {
-    phoneNumberVerifiedSubject.onNext(number)
+    snsUserInfoSubject.onNext(.init(snsType: .normal, id: "", email: nil, phoneNumber: number))
   }
 }
 

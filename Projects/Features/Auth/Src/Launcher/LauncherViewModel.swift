@@ -18,7 +18,7 @@ import RxCocoa
 public final class LauncherViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: AuthUseCaseInterface
-  var onAuthResult: ((LaunchAction) -> Void)?
+  public var onAuthResult: ((LaunchAction) -> Void)?
 
   public struct Input {
     let viewDidLoad: Driver<Void>

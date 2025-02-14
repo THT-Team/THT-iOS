@@ -32,12 +32,9 @@ public protocol SignUpCoordinatorDelegate: AnyObject {
 
 public protocol SignUpCoordinating: Coordinator, SignUpAlertCoordinating {
   var delegate: SignUpCoordinatorDelegate? { get set }
-  var finishFlow: (() -> Void)? { get set }
+  var finishFlow: ((FinishSignUpOption) -> Void)? { get set }
 
-//  func start(_ option: SignUpOption)
   func start(_ userInfo: SNSUserInfo)
-
-  func finishFlow(_ option: FinishSignUpOption)
 
   func nicknameFlow(user: PendingUser)
   func emailFlow(user: PendingUser)

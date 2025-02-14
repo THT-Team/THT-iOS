@@ -16,13 +16,6 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
     super.init(nibName: nil, bundle: nil)
   }
 
-  deinit {
-    TFLogger.cycle(name: self)
-  }
-
-  public required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
   public override func bindViewModel() {
     let input = LauncherViewModel.Input(
       viewDidLoad: self.rx.viewDidAppear.asDriver().delay(.seconds(2)).map { _ in }

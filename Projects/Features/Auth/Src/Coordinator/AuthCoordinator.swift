@@ -18,8 +18,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   // MARK: Signal
   public var phoneNumberVerified: ((String) -> Void)?
 
-  public var finishFlow: (() -> Void)?
-  public var signUpFlow: ((SNSUserInfo) -> Void)?
+  public var finishFlow: ((AuthCoordinatorOutput) -> Void)?
 
   public let factory: PhoneNumberFactoryType
 
@@ -33,7 +32,22 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
-    rootFlow()
+    launchFlow()
+  }
+
+  public func launchFlow() {
+    let vm = LauncherViewModel(useCase: self.authUseCase)
+    let vc = TFAuthLauncherViewController(viewModel: vm)
+
+    vm.onAuthResult = { [weak self] result in
+      switch result {
+      case .needAuth:
+        self?.rootFlow()
+      case .toMain:
+        self?.finishFlow?(.toMain)
+      }
+    }
+    self.viewControllable.setViewControllers([vc])
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
@@ -48,25 +62,17 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
       self.phoneNumberInputFlow()
     }
 
-    viewModel.onSignUpFlow = { userInfo in
-      self.viewControllable.popViewController(animated: true)
-//      self?.viewControllable.popToRootViewController(animated: false)
-      self.signUpFlow?(userInfo)
+    viewModel.onSignUpFlow = { [weak self] userInfo in
+      self?.viewControllable.popViewController(animated: true)
+      self?.finishFlow?(.toSignUp(userInfo))
     }
 
-    viewModel.onMainFlow = {
-      self.viewControllable.popToRootViewController(animated: true)
-      self.finishFlow?()
+    viewModel.onMainFlow = { [weak self] in
+      self?.viewControllable.popToRootViewController(animated: true)
+      self?.finishFlow?(.toMain)
     }
 
     viewModel.onInquiryFlow = {
-      let nav = (UIWindow.keyWindow?.rootViewController as? UINavigationController)
-//      let uic = viewControllable.uiController
-      print("nav", nav)
-      print("topvc", nav?.topViewController)
-      print("visible", nav?.visibleViewController)
-      print("current vc", self.viewControllable)
-//      print(nav == uic)
       self.inquiryFlow()
     }
 
@@ -79,27 +85,15 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 }
 
 extension AuthCoordinator {
-  func inquiryFlow() {
-    let vm = InquiryViewModel()
-    vm.onBackButtonTap = { [weak self] in
-      self?.viewControllable.popViewController(animated: true)
-    }
-    let vc = InquiryViewController(viewModel: vm)
-
-    self.viewControllable.pushViewController(vc, animated: true)
-  }
-}
-
-extension AuthCoordinator {
 
   func phoneNumberInputFlow() {
     var (vc, vm) = factory.makePhoneNumberScene()
 
-    vm.onBackButtonTap = { [weak self] in
-      self?.viewControllable.popViewController(animated: true)
+    vm.onBackButtonTap = {
+      self.viewControllable.popViewController(animated: true)
     }
-    vm.onPhoneNumberInput = { [weak self] phoneNumber in
-      self?.phoneNumberAuthFlow(phoneNumber: phoneNumber)
+    vm.onPhoneNumberInput = { phoneNumber in
+      self.phoneNumberAuthFlow(phoneNumber: phoneNumber)
     }
 
     self.viewControllable.pushViewController(vc, animated: true)
@@ -108,9 +102,21 @@ extension AuthCoordinator {
   func phoneNumberAuthFlow(phoneNumber: String) {
     var (vc, vm) = factory.makePhoneAuthScene(phoneNumber: phoneNumber)
 
-    vm.onSuccess = { [weak self] phoneNumber in
-      self?.phoneNumberVerified?(phoneNumber)
+    vm.onSuccess = { phoneNumber in
+      self.phoneNumberVerified?(phoneNumber)
     }
+
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+}
+
+extension AuthCoordinator {
+  func inquiryFlow() {
+    let vm = InquiryViewModel()
+    vm.onBackButtonTap = {
+      self.viewControllable.popViewController(animated: true)
+    }
+    let vc = InquiryViewController(viewModel: vm)
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
