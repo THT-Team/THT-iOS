@@ -160,12 +160,14 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func signUpCompleteFlow(user: SignUpInterface.PendingUser, contacts: [ContactType]) {
-    let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user, contacts: contacts)
+  public func signUpCompleteFlow(user: SignUpInterface.PendingUser) {
+    let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user)
+
     vm.onNext = { [weak self] in
       self?.finishFlow?(.complete)
     }
     let vc = SignUpCompleteViewController(viewModel: vm)
+    
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
@@ -238,8 +240,8 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       webViewFlow(listener: listener)
     case .nextAtLocation:
       blockUserFlow(user: pendingUser)
-    case let .nextAtHideFriends(contacts):
-      signUpCompleteFlow(user: pendingUser, contacts: contacts)
+    case .nextAtHideFriends:
+      signUpCompleteFlow(user: pendingUser)
     case .nextAtSignUpComplete:
       finishFlow?(.complete)
     case let .agreementWebView(url):

@@ -56,7 +56,7 @@ final class SignUpCompleteView: TFBaseView {
     )
 
     containerView.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
+      $0.top.leading.trailing.equalToSuperview()
       $0.bottom.equalToSuperview()
     }
 

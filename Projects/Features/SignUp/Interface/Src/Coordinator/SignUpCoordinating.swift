@@ -52,5 +52,5 @@ public protocol SignUpCoordinating: Coordinator, SignUpAlertCoordinating {
   func introduceFlow(user: PendingUser)
   func locationFlow(user: PendingUser)
   func blockUserFlow(user: PendingUser)
-  func signUpCompleteFlow(user: PendingUser, contacts: [ContactType])
+  func signUpCompleteFlow(user: PendingUser)
 }

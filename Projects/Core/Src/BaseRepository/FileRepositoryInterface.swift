@@ -17,6 +17,7 @@ public protocol FileRepositoryInterface {
 
 public extension FileRepositoryInterface {
   func fetch(fileNames: [String]) -> [Data] {
+    print(fileNames)
     return fileNames.reduce([]) {
       guard let data = fetch(fileName: $1) else {
         return $0

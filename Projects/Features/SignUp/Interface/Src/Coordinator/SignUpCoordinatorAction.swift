@@ -33,7 +33,7 @@ public enum SignUpCoordinatingAction {
   case nextAtIntroduce
   case nextAtLocation
   
-  case nextAtHideFriends([ContactType])
+  case nextAtHideFriends
   case nextAtSignUpComplete
 
   

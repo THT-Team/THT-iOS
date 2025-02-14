@@ -17,12 +17,6 @@ import AuthInterface
 import Domain
 
 final class SignUpCompleteViewModel: BasePenddingViewModel, ViewModelType {
-  private let contacts: [ContactType]
-
-  required init(useCase: SignUpUseCaseInterface, pendingUser: PendingUser, contacts: [ContactType]) {
-    self.contacts = contacts
-    super.init(useCase: useCase, pendingUser: pendingUser)
-  }
 
   var onNext: (() -> Void)?
 
@@ -31,54 +25,33 @@ final class SignUpCompleteViewModel: BasePenddingViewModel, ViewModelType {
   }
 
   struct Output {
-    let loadTrigger: Driver<Bool>
     let toast: Signal<String>
     let profileImage: Driver<Data?>
   }
 
   func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
-    let loadTrigger = PublishRelay<Bool>()
+    let profileImage = BehaviorRelay<Data?>(value: nil)
 
-    let user = Driver.just(self.pendingUser)
 
-    let imagesData = user
-      .asObservable()
-      .observe(on: ConcurrentDispatchQueueScheduler.init(qos: .userInitiated))
-      .withUnretained(self)
-      .flatMapLatest { (ref, user) -> Observable<[Data]> in
-        ref.useCase.fetchUserPhotos(key: user.phoneNumber, fileNames: user.photos)
-          .asObservable()
-          .catch { error in
-            toast.accept("사진을 불러오는데 실패했습니다.")
-            return .empty()
-          }
-      }.asDriverOnErrorJustEmpty()
+    useCase.fetchUserPhotos(key: pendingUser.phoneNumber, fileNames: pendingUser.photos)
+      .subscribe { data in
+        profileImage.accept(data.first)
+      } onFailure: { error in
+        toast.accept(error.localizedDescription)
+      }
+      .disposed(by: disposeBag)
 
     input.nextBtnTap
       .throttle(.milliseconds(500), latest: false)
-      .withLatestFrom(imagesData)
-      .asObservable()
-      .withUnretained(self)
-      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
-      .flatMapLatest { owner, data in
-        owner.useCase.signUp(owner.pendingUser, imageData: data, contacts: owner.contacts)
-          .asObservable()
-          .catch { error in
-            toast.accept(error.localizedDescription)
-            return .empty()
-          }
-      }
-      .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, _ in
         owner.onNext?()
       }
       .disposed(by: disposeBag)
 
     return Output(
-      loadTrigger: loadTrigger.asDriverOnErrorJustEmpty(),
-      toast: toast.asSignal(onErrorSignalWith: .empty()),
-      profileImage: imagesData.map { $0.first }
+      toast: toast.asSignal(),
+      profileImage: profileImage.asDriver()
     )
   }
 }

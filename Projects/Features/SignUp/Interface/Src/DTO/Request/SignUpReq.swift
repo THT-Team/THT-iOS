@@ -10,7 +10,7 @@ import AuthInterface
 import Domain
 
 extension PendingUser {
-  public func toRequest(contacts: [ContactType], deviceKey: String) -> SignUpReq? {
+  public func toRequest(contacts: [ContactType], deviceKey: String, imageURL: [String]) -> SignUpReq? {
     guard
       let username = self.name,
       let email = self.email,
@@ -38,7 +38,7 @@ extension PendingUser {
       deviceKey: deviceKey,
       agreement: self.userAgreements,
       locationRequest: location,
-      photoList: photos,
+      photoList: imageURL,
       interestList: interestsList,
       idealTypeList: idealTypeList,
       snsType: SNSType.normal.rawValue,

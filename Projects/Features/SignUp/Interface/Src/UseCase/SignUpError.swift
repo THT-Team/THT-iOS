@@ -12,8 +12,11 @@ public enum SignUpError: Error {
   case duplicateNickname
   case invalidRequest
   case imageUploadFailed
+  case fetchContactsFailed(Error)
+}
 
-  var message: String {
+extension SignUpError: LocalizedError {
+  public var errorDescription: String? {
     switch self {
     case .alreadySignUp:
       return "이미 가입된 계정입니다"
@@ -23,6 +26,8 @@ public enum SignUpError: Error {
       return "잘못된 가입 요청입니다."
     case .imageUploadFailed:
       return "이미지 업로드에 실패하였습니다.\n다시 시도해주세요."
+    case let .fetchContactsFailed(error):
+      return "친구 목록을 가져오는데 실패하였습니다." + error.localizedDescription
     }
   }
 }
