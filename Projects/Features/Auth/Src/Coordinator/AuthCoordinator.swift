@@ -13,17 +13,15 @@ import Domain
 
 public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
-  @Injected private var authUseCase: AuthUseCaseInterface
-
   // MARK: Signal
   public var phoneNumberVerified: ((String) -> Void)?
 
   public var finishFlow: ((AuthCoordinatorOutput) -> Void)?
 
-  public let factory: PhoneNumberFactoryType
+  public let factory: AuthFactoryType
 
   public init(
-    factory: PhoneNumberFactoryType = PhoneNumberFactory(),
+    factory: AuthFactoryType = AuthFactory(),
     viewControllable: ViewControllable
   ) {
     self.factory = factory
@@ -36,8 +34,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
   }
 
   public func launchFlow() {
-    let vm = LauncherViewModel(useCase: self.authUseCase)
-    let vc = TFAuthLauncherViewController(viewModel: vm)
+    var (vc, vm) = factory.launchFlow()
 
     vm.onAuthResult = { [weak self] result in
       switch result {
@@ -52,35 +49,31 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
   // MARK: 인증 토큰 재발급 또는 가입 시
   public func rootFlow() {
+    var (vc, vm) = factory.rootFlow()
 
-    let viewModel = AuthRootViewModel(useCase: authUseCase)
-
-    let viewController = AuthRootViewController()
-    viewController.viewModel = viewModel
-
-    viewModel.onPhoneNumberAuthFlow = {
+    vm.onPhoneNumberAuthFlow = {
       self.phoneNumberInputFlow()
     }
 
-    viewModel.onSignUpFlow = { [weak self] userInfo in
-      self?.viewControllable.popViewController(animated: true)
+    vm.onSignUpFlow = { [weak self] userInfo in
+      self?.viewControllable.popViewController(animated: false)
       self?.finishFlow?(.toSignUp(userInfo))
     }
 
-    viewModel.onMainFlow = { [weak self] in
+    vm.onMainFlow = { [weak self] in
       self?.viewControllable.popToRootViewController(animated: true)
       self?.finishFlow?(.toMain)
     }
 
-    viewModel.onInquiryFlow = {
+    vm.onInquiryFlow = {
       self.inquiryFlow()
     }
 
-    self.phoneNumberVerified = { [weak viewModel] phoneNumber in
-      viewModel?.onPhoneNumberVerified(phoneNumber)
+    self.phoneNumberVerified = {
+      vm.onPhoneNumberVerified($0)
     }
 
-    self.viewControllable.setViewControllers([viewController])
+    self.viewControllable.setViewControllers([vc])
   }
 }
 
@@ -112,12 +105,10 @@ extension AuthCoordinator {
 
 extension AuthCoordinator {
   func inquiryFlow() {
-    let vm = InquiryViewModel()
+    var (vc, vm) = factory.inquiryFlow()
     vm.onBackButtonTap = {
       self.viewControllable.popViewController(animated: true)
     }
-    let vc = InquiryViewController(viewModel: vm)
-
     self.viewControllable.pushViewController(vc, animated: true)
   }
 }

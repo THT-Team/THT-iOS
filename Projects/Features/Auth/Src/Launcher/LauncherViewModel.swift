@@ -15,7 +15,10 @@ import Domain
 import RxSwift
 import RxCocoa
 
-public final class LauncherViewModel: ViewModelType {
+public protocol LaunchOutput {
+  var onAuthResult: ((LaunchAction) -> Void)? { get set }
+}
+public final class LauncherViewModel: ViewModelType, LaunchOutput {
   private var disposeBag = DisposeBag()
   private let useCase: AuthUseCaseInterface
   public var onAuthResult: ((LaunchAction) -> Void)?

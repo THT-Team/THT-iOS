@@ -16,22 +16,6 @@ import Domain
 
 public protocol AppRootDependency { }
 
-//final class AppRootComponent: AppRootDependency {
-//  lazy var inquiryBuildable: AuthInterface.InquiryBuildable = {
-//    InquiryBuilder()
-//  }()
-//
-//  lazy var authViewFactory: AuthInterface.AuthViewFactoryType = {
-//    AuthViewFactory()
-//  }()
-//
-//  private let dependency: AppRootDependency
-//
-//  init(dependency: AppRootDependency) {
-//    self.dependency = dependency
-//  }
-//}
-
 public protocol AppRootBuildable {
   func build() -> (LaunchCoordinating & URLHandling)
 }

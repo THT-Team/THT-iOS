@@ -14,7 +14,18 @@ import AuthInterface
 import Core
 import Domain
 
-final class AuthRootViewModel: ViewModelType {
+public protocol AuthRootOutput {
+  var onPhoneNumberVerified: ((String) -> Void)? { get set }
+
+  var onPhoneNumberAuthFlow: (() -> Void)? { get set }
+  var onSignUpFlow: ((SNSUserInfo) -> Void)? { get set }
+  var onMainFlow: (() -> Void)? { get set }
+  var onInquiryFlow: (() -> Void)? { get set }
+
+  func onPhoneNumberVerified(_ number: String)
+}
+
+final class AuthRootViewModel: ViewModelType, AuthRootOutput {
   private let useCase: AuthUseCaseInterface
 
   public var onPhoneNumberVerified: ((String) -> Void)?
