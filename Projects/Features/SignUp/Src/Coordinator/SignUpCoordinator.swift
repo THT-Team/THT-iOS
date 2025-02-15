@@ -22,7 +22,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
 
     guard let phoneNumber = userInfo.phoneNumber else { return }
 
-    guard let email = userInfo.email else {
+    guard let _ = userInfo.email else {
       emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
       return
     }
@@ -167,7 +167,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
       self?.finishFlow?(.complete)
     }
     let vc = SignUpCompleteViewController(viewModel: vm)
-    
+
     self.viewControllable.pushViewController(vc, animated: true)
   }
 

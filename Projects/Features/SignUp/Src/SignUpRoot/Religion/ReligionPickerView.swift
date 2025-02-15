@@ -77,7 +77,7 @@ extension ReligionPickerView: UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     let space = 16.adjustedH
     let itemsForLine: CGFloat = 3
-    let width = (collectionView.frame.width - (itemsForLine - 1) * space) / itemsForLine
+    let width = ((collectionView.frame.width - (itemsForLine + 1) * space)) / itemsForLine
     let height = 49.adjustedH
     return CGSize(width: width, height: height)
   }
