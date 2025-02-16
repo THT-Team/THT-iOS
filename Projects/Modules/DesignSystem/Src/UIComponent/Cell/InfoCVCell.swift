@@ -17,51 +17,38 @@ public final class InfoCVCell: TFBaseCollectionViewCell {
     return label
   }()
 
-  private lazy var contentContainerView: UIView = {
-    let view = UIView()
-    view.clipsToBounds = true
-    view.layer.masksToBounds = true
-    view.backgroundColor = DSKitAsset.Color.neutral700.color
-    view.layer.cornerRadius = 25
-    return view
-  }()
-
-  private lazy var contentLabel: UILabel = {
-    let label = UILabel()
+  private lazy var contentLabel: TFPaddingLabel = {
+    let label = TFPaddingLabel(padding: .init(top: 4, left: 10, bottom: 4, right: 10))
     label.font = .thtP2M
     label.textColor = DSKitAsset.Color.neutral50.color
-    label.text = "🍅"
     label.textAlignment = .center
+    label.backgroundColor = DSKitAsset.Color.neutral700.color
+    label.layer.cornerRadius = 10
+    label.layer.masksToBounds = true
     return label
   }()
 
   public override func makeUI() {
     contentView.backgroundColor = .clear
-    contentView.addSubviews(titleLabel, contentContainerView)
-    contentContainerView.addSubview(contentLabel)
+    contentView.addSubviews(titleLabel, contentLabel)
 
     titleLabel.snp.makeConstraints {
-      $0.top.leading.equalToSuperview()
+      $0.top.leading.trailing.equalToSuperview()
     }
 
-    contentContainerView.snp.makeConstraints {
+    contentLabel.snp.makeConstraints {
       $0.top.equalTo(titleLabel.snp.bottom).offset(14)
       $0.leading.equalToSuperview()
       $0.trailing.equalToSuperview().offset(-10)
       $0.bottom.equalToSuperview()
     }
-
-    contentLabel.snp.makeConstraints {
-      $0.top.equalToSuperview() //.offset(4)
-      $0.bottom.equalToSuperview() //.offset(-4)
-      $0.leading.equalToSuperview().offset(10)
-      $0.height.equalTo(30)
-      $0.trailing.equalToSuperview().offset(-10)
-    }
   }
-
+  
   public override func layoutSubviews() {
-    contentContainerView.layer.cornerRadius = contentContainerView.frame.height / 2
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.contentLabel.layer.cornerRadius = self.contentLabel.frame.height / 2
+    }
   }
 
   public func bind(_ title: String, _ content: String) {

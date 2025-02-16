@@ -151,11 +151,14 @@ private final class UIToastView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
+  override func layoutSubviews() {
+    layer.cornerRadius = self.frame.height / 2
+  }
+  
   private func configure() {
     backgroundColor = DSKitAsset.Color.neutral900.color
     layer.borderWidth = 1
     layer.borderColor = DSKitAsset.Color.neutral600.color.cgColor
-    layer.cornerRadius = 58 / 2
     layer.shadowColor =  DSKitAsset.Color.DimColor.signUpDim.color.cgColor
     layer.shadowOffset = CGSize(width: 2, height: 2)
     layer.shadowRadius = 16 / 2
