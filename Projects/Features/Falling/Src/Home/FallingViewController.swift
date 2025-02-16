@@ -79,7 +79,7 @@ final class FallingViewController: TFBaseViewController, View {
 
     reactor.pulse(\.$toast)
       .compactMap { $0 }
-      .bind(to: homeView.rx.makeToast)
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
   }
 

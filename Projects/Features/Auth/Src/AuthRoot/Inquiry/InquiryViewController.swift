@@ -91,8 +91,8 @@ public final class InquiryViewController: TFBaseViewController {
 
     output.toast
       .map(\.localizedDescription)
-      .drive(with: self) { owner, message in
-        owner.mainView.makeToast(message)
-      }.disposed(by: disposeBag)
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
+      .disposed(by: disposeBag)
   }
 }

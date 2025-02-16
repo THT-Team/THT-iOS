@@ -69,9 +69,7 @@ final class ChatRoomViewController: TFBaseViewController, View {
 
     reactor.pulse(\.$toast)
       .compactMap { $0 }
-      .subscribe(with: self) { owner, message in
-        owner.mainView.makeToast(message)
-      }
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
   }
 }
