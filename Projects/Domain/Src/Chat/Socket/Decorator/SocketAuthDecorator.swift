@@ -74,7 +74,7 @@ public final class SocketAuthDecorator: BaseSocketDecorator {
       self.publisher.send(messageType)
     }.store(in: &cancellables)
 
-    return publisher
+    return publisher.eraseToAnyPublisher()
   }
 
   public override func bind() {
