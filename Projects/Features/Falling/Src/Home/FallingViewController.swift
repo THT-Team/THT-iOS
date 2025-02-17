@@ -112,6 +112,10 @@ final class FallingViewController: TFBaseViewController, View {
         .map { shouldSHowPause, _ in !shouldSHowPause }
         .bind(to: cell.pauseViewRelay)
         .disposed(by: cell.disposeBag)
+      
+      reactor.pulse(\.$hideUserInfo)
+        .bind(to: cell.userDetailInfoRelay)
+        .disposed(by: cell.disposeBag)
 
       // MARK: Action Forwarding
       Observable<Reactor.Action>.merge(
