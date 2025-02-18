@@ -1,14 +1,11 @@
 //
-//  UserInfo.swift
-//  SignUpInterface
+//  PendingUser.swift
+//  Domain
 //
-//  Created by Kanghos on 2024/04/25.
+//  Created by Kanghos on 2/16/25.
 //
 
 import Foundation
-import Domain
-
-import AuthInterface
 
 public struct PendingUser: Codable {
   public var phoneNumber: String
@@ -47,11 +44,11 @@ public struct PendingUser: Codable {
     self.interestsList = interestsList
     self.photos = photos
     self.userAgreements = userAgreements
-    self.snsUserInfo = SNSUserInfo(snsType: .normal, id: "", email: email, phoneNumber: phoneNumber)
+    self.snsUserInfo = SNSUserInfo(snsType: .normal, id: "", email: email ?? "", phoneNumber: phoneNumber ?? "")
   }
 
   public init(_ snsUser: SNSUserInfo) {
-    self.phoneNumber = snsUser.phoneNumber ?? ""
+    self.phoneNumber = snsUser.phoneNumber
     self.email = snsUser.email
     self.name = nil
     self.birthday = nil
