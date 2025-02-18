@@ -9,6 +9,7 @@ import Foundation
 import SignUpInterface
 import DSKit
 import Core
+import Domain
 
 open class BasePenddingViewModel {
   var disposeBag = DisposeBag()

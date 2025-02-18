@@ -30,20 +30,40 @@ import Domain
 
 final class MainBuilder: MainBuildable {
   @Injected var talkUseCase: TalkUseCaseInterface
+  @Injected var myPageUseCase: MyPageUseCaseInterface
+  @Injected var chatUseCase: ChatUseCaseInterface
+  @Injected var likeUseCase: LikeUseCaseInterface
+  @Injected var userdomainUseCase: UserDomainUseCaseInterface
+  @Injected var locationUseCase: LocationUseCaseInterface
 
-  init() {
-  }
+  init() { }
 
-  func build() -> MainCoordinating {
-    let tabBar = TFTabBarController()
-    let chatRoomBuilder = ChatRoomBuilder(talkUseCase: talkUseCase)
+  func build(_ root: MainViewControllable) -> MainCoordinating {
+    let chatRoomBuilder = ChatRoomBuilder(ChatRoomFactory(
+      talkUseCase: talkUseCase,
+      userUseCase: userdomainUseCase,
+      chatUseCase: chatUseCase))
+
+    let likeBuilder = LikeBuilder(
+      chatRoomBuilder: chatRoomBuilder,
+      factory: LikeFactory(chatRoomBuilder: chatRoomBuilder, userUseCase: userdomainUseCase))
+
     let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
-    let likeBuilder = LikeBuilder(chatRoomBuilder: chatRoomBuilder)
-    let chatBuilder = ChatBuilder(chatRoomBuilder: chatRoomBuilder)
-    let myPageBuilder = MyPageBuilder(factory: MyPageFactory(userStore: UserStore(), inquiryBuilder: InquiryBuilder()))
+
+    let chatBuilder = ChatBuilder(
+      chatRoomBuilder: chatRoomBuilder,
+      factory: ChatFactory(chatRoomBuilder: chatRoomBuilder, chatUseCase: chatUseCase))
+
+    let myPageBuilder = MyPageBuilder(
+      factory: MyPageFactory(
+        userStore: UserStore(myPageUseCase),
+        myPageUseCase: myPageUseCase,
+        userDomainUseCase: userdomainUseCase,
+        locationUseCase: locationUseCase,
+        inquiryBuilder: InquiryBuilder()))
 
     let coordinator = MainCoordinator(
-      viewControllable: tabBar,
+      viewControllable: root,
       fallingBuildable: fallingBuilder,
       likeBuildable: likeBuilder,
       chatBuildable: chatBuilder,

@@ -9,7 +9,6 @@ import Foundation
 
 // AuthRootNavigation
 public enum AuthNavigation {
-  case phoneNumber(SNSUserInfo)
-  case signUp(SNSUserInfo)
+  case signUp(PendingUser)
   case main
 }

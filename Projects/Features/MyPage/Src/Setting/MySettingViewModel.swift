@@ -41,6 +41,10 @@ public final class MySettingViewModel: ViewModelType {
     self.userStore = userStore
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public func transform(input: Input) -> Output {
     let user: Driver<User> = userStore.binding.asDriverOnErrorJustEmpty().compactMap { $0 }
     let toast = PublishRelay<String>()

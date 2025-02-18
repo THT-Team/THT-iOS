@@ -14,8 +14,8 @@ import DSKit
 import ChatRoomInterface
 
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
-  
   @Injected var fallingUseCase: FallingUseCaseInterface
+
   private let chatRoomBuilder: ChatRoomBuildable
 
   public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {

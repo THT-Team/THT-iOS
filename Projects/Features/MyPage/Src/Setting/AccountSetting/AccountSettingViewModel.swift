@@ -18,7 +18,6 @@ import MyPageInterface
 public final class AccountSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
-  private let accountAlertSignal = PublishRelay<Void>()
 
   // MARK: Coordinator
   var showLogOutAlert: ((AlertHandler) -> Void)?
@@ -28,6 +27,10 @@ public final class AccountSettingViewModel: ViewModelType {
 
   public init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase
+  }
+
+  deinit {
+    TFLogger.cycle(name: self)
   }
 
   public struct Input {
@@ -41,13 +44,13 @@ public final class AccountSettingViewModel: ViewModelType {
 
   public func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
+    let accountAlertSignal = PublishRelay<Void>()
 
     input.tap
       .drive(with: self) { owner, _ in
         owner.showLogOutAlert? {
-          owner.accountAlertSignal.accept(())
+          accountAlertSignal.accept(())
         }
-//        owner.delegate?.invoke(.showLogoutAlert(self))
       }
       .disposed(by: disposeBag)
 
@@ -56,20 +59,18 @@ public final class AccountSettingViewModel: ViewModelType {
         owner.showDeactivateAlert? {
           owner.onWithDrawal?()
         }
-//        owner.delegate?.invoke(.showDeactivateAlert(self))
       }.disposed(by: disposeBag)
 
-    self.accountAlertSignal.asSignal()
-      .flatMap({ [weak self] _ -> Signal<Void> in
-        guard let self else { return Signal.empty() }
-        return self.useCase.logout()
-          .asSignal { error -> Signal<Void> in
-            return .just(())
-          }
-      })
-      .emit(with: self) { owner, _ in
-        owner.onRoot?()
-//        owner.delegate?.invoke(.toRoot)
+    accountAlertSignal
+      .withUnretained(self)
+      .flatMap { owner, _ in
+        owner.useCase.logout()
+          .debug()
+          .asObservable()
+      }
+      .asDriverOnErrorJustEmpty()
+      .drive(with: self) { owner, _ in
+        NotificationCenter.default.post(Notification(name: .needAuthLogout))
       }.disposed(by: disposeBag)
 
     return Output(toast: toast.asDriverOnErrorJustEmpty())

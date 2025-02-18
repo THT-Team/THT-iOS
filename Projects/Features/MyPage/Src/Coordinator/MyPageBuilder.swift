@@ -19,7 +19,7 @@ public final class MyPageBuilder: MyPageBuildable {
   public init(factory: MyPageDependency) {
     self.factory = factory
   }
-  public func build(rootViewControllable: any ViewControllable) -> any MyPageCoordinating {
+  public func build(rootViewControllable: (any ViewControllable)) -> any MyPageCoordinating {
     MyPageCoordinator(viewControllable: rootViewControllable, factory: factory)
   }
 }

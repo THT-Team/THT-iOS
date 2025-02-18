@@ -14,11 +14,10 @@ import AuthInterface
 import Core
 import Domain
 
-public protocol AuthRootOutput {
-  var onPhoneNumberVerified: ((String) -> Void)? { get set }
+public protocol AuthRootOutput: AnyObject {
 
   var onPhoneNumberAuthFlow: (() -> Void)? { get set }
-  var onSignUpFlow: ((SNSUserInfo) -> Void)? { get set }
+  var onSignUpFlow: ((PendingUser) -> Void)? { get set }
   var onMainFlow: (() -> Void)? { get set }
   var onInquiryFlow: (() -> Void)? { get set }
 
@@ -28,10 +27,8 @@ public protocol AuthRootOutput {
 final class AuthRootViewModel: ViewModelType, AuthRootOutput {
   private let useCase: AuthUseCaseInterface
 
-  public var onPhoneNumberVerified: ((String) -> Void)?
-
   public var onPhoneNumberAuthFlow: (() -> Void)?
-  public var onSignUpFlow: ((SNSUserInfo) -> Void)?
+  public var onSignUpFlow: ((PendingUser) -> Void)?
   public var onMainFlow: (() -> Void)?
   public var onInquiryFlow: (() -> Void)?
 
@@ -50,12 +47,12 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
     self.useCase = useCase
   }
 
-  let snsUserInfoSubject = PublishSubject<SNSUserInfo>()
+  let phoneNumberSubject = PublishSubject<String>()
 
   func transform(input: Input) -> Output {
     let toastPublisher = PublishRelay<String>()
     let buttonTap = input.buttonTap
-
+    let navigation = PublishSubject<AuthNavigation>()
 
     let btnTap = buttonTap
       .throttle(.milliseconds(500), latest: false)
@@ -69,35 +66,35 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
 
     btnTap
       .filter { $0 != .normal }
-      .flatMapLatest(with: self) { owner, snsType in
-        owner.useCase.auth(snsType)
-          .asDriver { error in
-            toastPublisher.accept(error.localizedDescription)
-            return .empty()
-          }
+      .compactMap { AuthType($0) }
+      .flatMapLatest(with: self) { owner, type in
+        owner.useCase.authenticate(type)
+          .asDriverOnErrorJustEmpty()
       }
-      .drive(snsUserInfoSubject)
+      .drive(navigation)
       .disposed(by: disposeBag)
 
-    snsUserInfoSubject
+    phoneNumberSubject
+      .map { AuthType.phoneNumber(number: $0) }
       .withUnretained(self)
-      .flatMap { owner, info -> Single<AuthResult> in
-        owner.useCase.authenticate(userInfo: info)
-      }
-      .withUnretained(self)
-      .flatMap { owner, result -> Observable<AuthNavigation> in
-        owner.useCase.processResult(result)
+      .flatMapLatest { owner, type in
+        owner.useCase.authenticate(type)
           .asObservable()
       }
-      .asDriverOnErrorJustEmpty()
+      .bind(to: navigation)
+      .disposed(by: disposeBag)
+
+    navigation
+      .asDriver { error in
+        toastPublisher.accept(error.localizedDescription)
+        return .empty()
+      }
       .drive(with: self) { owner, navigation in
         switch navigation {
         case .main:
           owner.onMainFlow?()
         case let .signUp(userInfo):
           owner.onSignUpFlow?(userInfo)
-        case .phoneNumber(_):
-          break
         }
       }
       .disposed(by: disposeBag)
@@ -112,11 +109,6 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
   }
 
   func onPhoneNumberVerified(_ number: String) {
-    snsUserInfoSubject.onNext(.init(snsType: .normal, id: "", email: nil, phoneNumber: number))
+    phoneNumberSubject.onNext(number)
   }
-}
-
-enum UserResult {
-  case signUp(SNSUserInfo)
-  case login(SNSUserInfo)
 }

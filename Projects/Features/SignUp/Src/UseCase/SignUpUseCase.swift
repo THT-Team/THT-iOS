@@ -55,32 +55,9 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
           .catch({ error in
             return .error(SignUpError.imageUploadFailed)
           })
-          .flatMap { [weak self] urls in
-            guard let self else { return .error(SignUpError.invalidRequest) }
-
-            guard
-              let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self),
-              let request = user.toRequest(contacts: contacts, deviceKey: deviceKey, imageURL: urls)
-            else {
-              return .error(SignUpError.invalidRequest)
-            }
-            return self.authService.signUp(request)
-              .map { token in
-                UserDefaultRepository.shared.remove(key: .pendingUser)
-                UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
-              }
-              .flatMap { _ in
-                if user.snsUserInfo.snsType == .normal {
-                  return .just(())
-                } else {
-                  return self.authService.signUpSNS(.init(email: request.email, phoneNumber: request.phoneNumber, snsUniqueId: user.snsUserInfo.id, snsType: user.snsUserInfo.snsType))
-                    .map { token in
-                      UserDefaultRepository.shared.remove(key: .pendingUser)
-                      UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
-                      return
-                    }
-                }
-              }
+          .flatMap { [unowned self] urls in
+            self.authService.signUp(user, contacts: contacts, urls: urls)
+              .map { _ in }
           }
       }
   }

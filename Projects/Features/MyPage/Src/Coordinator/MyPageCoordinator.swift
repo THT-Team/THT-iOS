@@ -34,7 +34,7 @@ public final class MyPageCoordinator: BaseCoordinator {
 extension MyPageCoordinator: MyPageCoordinating {
 
   public func homeFlow() {
-    var (vm, vc) = factory.makeMyPageHome()
+    let (vm, vc) = factory.makeMyPageHome()
     vm.onSetting = { [weak self] user in
       self?.runMySettingFlow(user)
     }
@@ -171,13 +171,7 @@ extension MyPageCoordinator {
     let coordinator = factory.build(rootViewControllable: self.viewControllable, user: user)
 
     coordinator.finishFlow = { [weak self, weak coordinator] option in
-      guard let coordinator else { return }
       self?.detachChild(coordinator)
-      switch option {
-      case .finish: break
-      case .toRoot:
-        self?.finishFlow?()
-      }
     }
 
     self.attachChild(coordinator)

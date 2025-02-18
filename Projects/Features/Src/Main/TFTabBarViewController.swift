@@ -33,10 +33,10 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     tabBar.frame.size.height = tabBarHeight + UIWindow.safeAreaInsetBottom
     tabBar.frame.origin.y = self.view.frame.height - tabBar.frame.size.height
   }
-  
-  func setViewController(_ viewControllables: [ViewControllable]) {
-    super.setViewControllers(viewControllables.map { $0.uiController }, animated: false)
+
+  func setViewController(_ viewControllables: [(ViewControllable)]) {
     setAppearance()
+    super.setViewControllers(viewControllables.map(\.uiController), animated: false)
   }
   
   private func setAppearance() {
@@ -62,58 +62,52 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
   }
 }
 
-extension UITabBarItem {
-  enum TabItem {
-    case falling
-    case like
-    case chat
-    case myPage
-    
-    var title: String {
-      switch self {
-      case .falling:
-        return "폴링"
-      case .like:
-        return "하트"
-      case .chat:
-        return "채팅"
-      case .myPage:
-        return "마이"
-      }
-    }
-    
-    var image: DSKitImages {
-      switch self {
-      case .falling:
-        return DSKitAsset.Image.Tab.falling
-      case .like:
-        return DSKitAsset.Image.Tab.heart
-      case .chat:
-        return DSKitAsset.Image.Tab.chat
-      case .myPage:
-        return DSKitAsset.Image.Tab.more
-      }
-    }
-    
-    var selectedImage: DSKitImages {
-      switch self {
-      case .falling:
-        return DSKitAsset.Image.Tab.fallingSelected
-      case .like:
-        return DSKitAsset.Image.Tab.heartSelected
-      case .chat:
-        return DSKitAsset.Image.Tab.chatSelected
-      case .myPage:
-        return DSKitAsset.Image.Tab.moreSelected
-      }
+enum TabItem {
+  case falling
+  case like
+  case chat
+  case myPage
+
+  var title: String {
+    switch self {
+    case .falling:
+      return "폴링"
+    case .like:
+      return "하트"
+    case .chat:
+      return "채팅"
+    case .myPage:
+      return "마이"
     }
   }
-  
-  static func makeTabItem(_ item: TabItem) -> UITabBarItem {
-    return UITabBarItem(
-      title: item.title,
-      image: item.image.image,
-      selectedImage: item.selectedImage.image.withRenderingMode(.alwaysOriginal)
-    )
+
+  var image: UIImage {
+    switch self {
+    case .falling:
+      return DSKitAsset.Image.Tab.falling.image
+    case .like:
+      return DSKitAsset.Image.Tab.heart.image
+    case .chat:
+      return DSKitAsset.Image.Tab.chat.image
+    case .myPage:
+      return DSKitAsset.Image.Tab.more.image
+    }
+  }
+
+  var selectedImage: UIImage {
+    switch self {
+    case .falling:
+      return DSKitAsset.Image.Tab.fallingSelected.image
+    case .like:
+      return DSKitAsset.Image.Tab.heartSelected.image
+    case .chat:
+      return DSKitAsset.Image.Tab.chatSelected.image
+    case .myPage:
+      return DSKitAsset.Image.Tab.moreSelected.image
+    }
+  }
+
+  var item: UITabBarItem {
+    return UITabBarItem(title: title, image: image, selectedImage: selectedImage.withRenderingMode(.alwaysOriginal))
   }
 }

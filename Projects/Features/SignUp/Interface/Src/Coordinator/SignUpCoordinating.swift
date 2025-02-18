@@ -34,7 +34,7 @@ public protocol SignUpCoordinating: Coordinator, SignUpAlertCoordinating {
   var delegate: SignUpCoordinatorDelegate? { get set }
   var finishFlow: ((FinishSignUpOption) -> Void)? { get set }
 
-  func start(_ userInfo: SNSUserInfo)
+  func start(_ user: PendingUser)
 
   func nicknameFlow(user: PendingUser)
   func emailFlow(user: PendingUser)

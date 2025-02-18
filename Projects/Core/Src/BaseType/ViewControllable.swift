@@ -24,6 +24,14 @@ public extension ViewControllable {
     }
   }
 
+  func releaseAll() {
+    if let nav = self.uiController as? UINavigationController {
+      nav.setViewControllers([], animated: true)
+    } else {
+      self.uiController.navigationController?.setViewControllers([], animated: true)
+    }
+  }
+
   func pushViewController(_ viewControllable: ViewControllable, animated: Bool) {
     if let nav = self.uiController as? UINavigationController {
       nav.pushViewController(viewControllable.uiController, animated: animated)

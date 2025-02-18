@@ -10,13 +10,8 @@ import Foundation
 import Core
 import Domain
 
-public enum AuthCoordinatorOutput {
-  case toMain
-  case toSignUp(SNSUserInfo)
-}
-
 public protocol AuthCoordinating: Coordinator {
-  var finishFlow: ((AuthCoordinatorOutput) -> Void)? { get set }
+  var finishFlow: (() -> Void)? { get set }
 
   var phoneNumberVerified: ((String) -> Void)? { get set }
 

@@ -36,6 +36,7 @@ extension MyPageTarget {
         "gender": "MALE",
         "tall": 145,
         "smoking": "NONE",
+      "birthDay": "2025-01-30",
         "drinking": "FREQUENTLY",
         "religion": "BUDDHISM",
         "idealTypeList": [

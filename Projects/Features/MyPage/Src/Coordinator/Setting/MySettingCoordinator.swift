@@ -25,20 +25,17 @@ public final class MySettingCoordinator: BaseCoordinator {
     self.factory = factory
     super.init(viewControllable: viewControllable)
   }
-
-  deinit {
-    TFLogger.cycle(name: self)
-  }
 }
 
 extension MySettingCoordinator: MySettingCoordinating {
   
   public func settingHomeFlow(_ user: User) {
-    var (vm, vc) = factory.makeHomeFlow()
+    let (vm, vc) = factory.makeHomeFlow()
     vm.onMenuItem = { [weak self] section, item in
       self?.navigate(section: section, item: item)
     }
     vm.onBackBtn = { [weak self] in
+      self?.viewControllable.popViewController(animated: true)
       self?.finishFlow?(.finish)
     }
 
@@ -113,9 +110,11 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func accountSettingFlow() {
-    var (vm, vc) = factory.makeAccountSetting()
+    let (vm, vc) = factory.makeAccountSetting()
     vm.onRoot = { [weak self] in
-      self?.finishFlow?(.toRoot)
+      DispatchQueue.main.async {
+        self?.finishFlow?(.toRoot)
+      }
     }
 
     vm.onWithDrawal = { [weak self] in

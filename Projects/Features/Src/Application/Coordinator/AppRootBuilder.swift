@@ -28,11 +28,10 @@ public final class AppRootBuilder: AppRootBuildable {
   }
 
   public func build() -> (LaunchCoordinating & URLHandling) {
-    AppCoordinator(
-      viewControllable: ProgressNavigationViewControllable(),
+    return AppCoordinator(
+      viewControllable: NavigationViewControllable(),
       mainBuildable:  MainBuilder(),
-      authBuildable: AuthBuilder(),
-      signUpBuildable: SignUpBuilder()
+      authBuildable: AuthBuilder(signUpBuilder: SignUpBuilder())
     )
   }
 }

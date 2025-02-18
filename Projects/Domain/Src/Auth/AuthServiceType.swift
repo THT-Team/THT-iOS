@@ -12,9 +12,10 @@ import RxSwift
 
 public protocol AuthServiceType {
   func clearToken()
-  func login(phoneNumber: String, deviceKey: String) -> Single<Token>
-  func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token>
-  func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
-  func signUpSNS(_ request: UserSNSSignUpRequest) -> Single<Token>
+  func login() -> Single<Token>
+  func loginSNS(_ user: SNSUserInfo) -> Single<Token>
+  func signUpSNS(_ user: SNSUserInfo) -> Single<Token>
+  func signUp(_ user: PendingUser, contacts: [ContactType], urls: [String]) -> Single<Token>
   func needAuth() -> Bool
+  func updateDeviceToken(_ token: String) -> Single<Void>
 }

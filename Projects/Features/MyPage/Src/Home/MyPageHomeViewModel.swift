@@ -43,6 +43,10 @@ public final class MyPageHomeViewModel: ViewModelType {
     self.userStore = userStore
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public func transform(input: Input) -> Output {
     let isDimHiddenTrigger = PublishRelay<Bool>()
     let selectedIndex = PublishRelay<Int>()
@@ -144,18 +148,19 @@ public final class MyPageHomeViewModel: ViewModelType {
         owner.userStore.send(action: .photos(values))
       }).disposed(by: disposeBag)
 
-    selectedPHResult.asSignal()
-      .flatMapLatest { [weak self] result -> Signal<Data> in
-        guard let self else { return .empty() }
-        return self.myPageUseCase.processImage(result)
-          .asSignal(onErrorSignalWith: .empty())
+    selectedPHResult
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, result -> Observable<Data> in
+        owner.myPageUseCase.processImage(result)
+          .asObservable()
       }
-      .withLatestFrom(selectedIndex.asSignal()) { ($0, $1) }
-      .flatMapLatest { [unowned self] data, index -> Signal<UserProfilePhoto> in
-        self.myPageUseCase.updateImage(data, priority: index + 1)
-          .asSignal(onErrorSignalWith: .empty())
+      .withLatestFrom(selectedIndex) { ($0, $1) }
+      .withUnretained(self) { ($0, $1.0, $1.1) }
+      .flatMapLatest { owner, data, index -> Observable<UserProfilePhoto> in
+        owner.myPageUseCase.updateImage(data, priority: index + 1)
+          .asObservable()
       }
-      .asDriver(onErrorDriveWith: .empty())
       .withLatestFrom(photos) { photo, array -> [UserProfilePhoto] in
         var mutable = array
         if let index = mutable.firstIndex(where: { photo.priority == $0.priority }) {
@@ -164,17 +169,23 @@ public final class MyPageHomeViewModel: ViewModelType {
           mutable.append(photo)
         }
         return mutable
-      }.drive(with: self, onNext: { owner, values in
+      }
+      .asDriverOnErrorJustEmpty()
+      .drive(with: self, onNext: { owner, values in
         owner.userStore.send(action: .photos(values))
       })
       .disposed(by: disposeBag)
 
-    let headerModel = user.map { user -> PhotoHeaderModel in
-      var array = Array.init(repeating: PhotoHeaderCellViewModel(cellType: .optional), count: 3)
-      user.userProfilePhotos.enumerated().forEach { index, photo in
-        array[index] = PhotoHeaderCellViewModel(
-          url: URL(string: photo.url),
-          cellType: photo.priority < 3 ? .required : .optional)}
+    let headerModel = user
+      .map { user -> PhotoHeaderModel in
+        var array = Array.init(repeating: PhotoHeaderCellViewModel(cellType: .optional), count: 3)
+
+        user.userProfilePhotos.enumerated()
+          .forEach { index, photo in
+          array[index] = PhotoHeaderCellViewModel(
+            url: URL(string: photo.url),
+            cellType: photo.priority < 3 ? .required : .optional)
+        }
 
       return PhotoHeaderModel(dataSource: array, nickname: user.username)
     }

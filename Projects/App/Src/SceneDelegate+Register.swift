@@ -21,11 +21,12 @@ extension AppDelegate {
 
   func registerDependencies() {
     let session = SessionProvider.create()
-    let authService: AuthServiceType = DefaultAuthService()
+    let authService: AuthServiceType = DefaultAuthService(tokenProvider: DefaultTokenProvider(.debug))
     let contactService = ContactService()
     let kakaoService = KakaoAPIService()
     let fileRepository = FileRepository()
     let imageService: ImageServiceType = ImageService()
+
     let socketInterface: SocketInterface = SocketComponent(config: ChatConfiguration(), header: ["Authorization": "\(UserDefaultTokenStore.shared.getToken()?.accessToken ?? "")"])
     let authSocket: SocketInterface = SocketAuthDecorator(socketInterface, tokenRefresher: DefaultTokenRefresher(), tokenStore: UserDefaultTokenStore.shared)
 
@@ -57,7 +58,10 @@ extension AppDelegate {
     container.register(
       interface: AuthUseCaseInterface.self,
       implement: {
-        AuthUseCase(authRepository: AuthRepository(authService: authService))
+        AuthUseCase(
+          authRepository: AuthRepository(.debug),
+          authService: authService,
+          socialService: SocialLoginRepository())
       }
     )
 
@@ -82,7 +86,7 @@ extension AppDelegate {
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(session: session),
+          repository: MyPageRepository(.debug),
           contactsService: contactService,
           authService: authService,
           imageService: imageService

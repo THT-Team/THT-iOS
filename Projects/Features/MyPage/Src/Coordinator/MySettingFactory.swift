@@ -26,7 +26,7 @@ public protocol MySettingFactoryType {
   func makeWithdrawalDetail(_ reason: WithdrawalReason) -> (WithdrawalDetailViewModel, ViewControllable)
   func makeWithdrawComplete() -> ViewControllable
 
-  func buildInquiryCoordinator(rootViewControllable: any ViewControllable) -> InquiryCoordinating
+  func buildInquiryCoordinator(rootViewControllable: (any ViewControllable)) -> InquiryCoordinating
   func buildMyPageCoordinator(rootViewControllable: ViewControllable) -> MyPageAlertCoordinating
 }
 
@@ -91,7 +91,7 @@ extension MyPageFactory: MySettingFactoryType {
     let vc = WithdrawalDetailViewController(viewModel: vm)
     return (vm, vc)
   }
-  public func makeWithdrawComplete() -> any Core.ViewControllable {
+  public func makeWithdrawComplete() -> (any Core.ViewControllable) {
     let vc = WithdrawalCompleteViewController()
     vc.modalPresentationStyle = .overFullScreen
     return vc
@@ -106,7 +106,7 @@ extension MyPageFactory {
     return coordinator
   }
 
-  public func buildInquiryCoordinator(rootViewControllable: any ViewControllable) -> InquiryCoordinating {
+  public func buildInquiryCoordinator(rootViewControllable: (any ViewControllable)) -> InquiryCoordinating {
     inquiryBuilder.build(rootViewControllable: rootViewControllable)
   }
 }

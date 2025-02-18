@@ -15,15 +15,17 @@ import Domain
 
 public final class ChatBuilder {
   private let chatRoomBuilder: ChatRoomBuildable
+  private let factory: ChatFactory
 
-  public init(chatRoomBuilder: ChatRoomBuildable) {
+  public init(chatRoomBuilder: ChatRoomBuildable, factory: ChatFactory) {
     self.chatRoomBuilder = chatRoomBuilder
+    self.factory = factory
   }
 }
 
 extension ChatBuilder: ChatBuildable {
   public func build(rootViewControllable: ViewControllable) -> ChatCoordinating {
-    let coordinator = ChatCoordinator(factory: ChatFactory(chatRoomBuilder: chatRoomBuilder), viewControllable: rootViewControllable)
+    let coordinator = ChatCoordinator(factory: factory, viewControllable: rootViewControllable)
 
     return coordinator
   }

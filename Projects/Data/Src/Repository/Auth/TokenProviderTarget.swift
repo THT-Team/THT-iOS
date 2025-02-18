@@ -16,10 +16,11 @@ import Domain
 
 public enum TokenProviderTarget {
   case login(phoneNumber: String, deviceKey: String)
-  case loginSNS(request: UserSNSLoginRequest)
+  case loginSNS(request: SNSUserInfo.LoginRequest)
   case refresh(Token)
   case signUp(SignUpReq)
-  case signUpSNS(UserSNSSignUpRequest)
+  case signUpSNS(SNSUserInfo.SignUpRequest)
+  case updateDeviceToken(deviceKey: String)
 }
 
 extension TokenProviderTarget: BaseTargetType {
@@ -36,11 +37,14 @@ extension TokenProviderTarget: BaseTargetType {
       return "users/join/signup"
     case .signUpSNS:
       return "users/join/signup/sns"
+    case .updateDeviceToken:
+      return "user/device-key"
     }
   }
 
   public var method: Moya.Method {
     switch self {
+    case .updateDeviceToken: return .patch
     default: return .post
     }
   }
@@ -59,6 +63,19 @@ extension TokenProviderTarget: BaseTargetType {
       return .requestJSONEncodable(request)
     case let .signUpSNS(request):
       return .requestJSONEncodable(request)
+    case .updateDeviceToken(let deviceKey):
+      return .requestParameters(parameters: ["deviceKey": deviceKey], encoding: JSONEncoding.default)
     }
+  }
+}
+
+extension TokenProviderTarget {
+  public var sampleData: Data {
+
+    Data("""
+{
+"accessToken":"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhdXRob3JpemF0aW9uIiwidXVpZCI6IjM5N2Q0MmYyNGEtYjdhMC00YmMzLThiYzctZGE4ZDE4ZjU2Mzc2Iiwicm9sZSI6Ik5PUk1BTCIsImlhdCI6MTczOTYxNTY3MywiZXhwIjoxNzQwMjIwNDczfQ.95D9xMr9CJ3xJiL_fpjWoYbGkEpRlMAvyQd9g0hUJyc","accessTokenExpiresIn":1740220473958,"userUuid":"397d42f24a-b7a0-4bc3-8bc7-da8d18f56376"
+}
+""".utf8)
   }
 }

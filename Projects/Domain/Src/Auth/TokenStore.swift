@@ -9,7 +9,6 @@ import Foundation
 
 import RxSwift
 public protocol TokenStore {
-  var cachedToken: Token? { get set }
   func saveToken(token: Token)
   func getToken() -> Token?
   func clearToken()

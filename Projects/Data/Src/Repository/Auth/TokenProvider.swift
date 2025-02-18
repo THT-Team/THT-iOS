@@ -16,19 +16,11 @@ import Networks
 import AuthInterface
 import Domain
 
-public final class DefaultTokenProvider: ProviderProtocol {
-  public typealias Target = TokenProviderTarget
-
-  public var provider: MoyaProvider<Target>
-
-  public init() {
-    provider = Self.makeProvider(session: SessionProvider.create())
-  }
-}
+public typealias DefaultTokenProvider = BaseRepository<TokenProviderTarget>
 
 extension DefaultTokenProvider: TokenProvider {
-  public func signUpSNS(_ userSNSSignUpRequest: UserSNSSignUpRequest) -> RxSwift.Single<Token> {
-    request(type: Token.self, target: .signUpSNS(userSNSSignUpRequest))
+  public func signUpSNS(_ signUpRequest: SNSUserInfo.SignUpRequest) -> RxSwift.Single<Token> {
+    request(type: Token.self, target:  .signUpSNS(signUpRequest))
   }
   
   public func signUp(_ signUpRequest: SignUpReq) -> Single<Token> {
@@ -39,8 +31,12 @@ extension DefaultTokenProvider: TokenProvider {
     request(type: Token.self, target: .login(phoneNumber: phoneNumber, deviceKey: deviceKey))
   }
 
-  public func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token> {
-    request(type: Token.self, target: .loginSNS(request: userSNSLoginRequest))
+  public func loginSNS(_ signUpRequest: SNSUserInfo.LoginRequest) -> Single<Token> {
+    request(type: Token.self, target: .loginSNS(request: signUpRequest))
+  }
+
+  public func updateDeviceToken(_ token: String) -> Single<Void> {
+    return requestWithNoContent(target: .updateDeviceToken(deviceKey: token))
   }
 }
 

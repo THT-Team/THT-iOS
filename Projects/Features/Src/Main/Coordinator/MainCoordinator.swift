@@ -23,7 +23,7 @@ import MyPageInterface
 import MyPage
 
 protocol MainViewControllable: ViewControllable {
-  func setViewController(_ viewControllables: [ViewControllable])
+  func setViewController(_ viewControllables: [(ViewControllable)])
 }
 
 final class MainCoordinator: BaseCoordinator, MainCoordinating {
@@ -56,47 +56,47 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
   }
   
   override func start() {
-    replaceWindowRootViewController(rootViewController: mainViewControllable)
+    replaceWindowRootViewController(rootViewController: self.mainViewControllable)
     attachTab()
   }
   
   func attachTab() {
     let fallingCoordinator = fallingBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(fallingCoordinator)
-    fallingCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.falling)
+    fallingCoordinator.viewControllable.uiController.tabBarItem = TabItem.falling.item
     fallingCoordinator.start()
-    
+
     let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(likeCoordinator)
-    likeCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.like)
+    likeCoordinator.viewControllable.uiController.tabBarItem = TabItem.like.item
     likeCoordinator.start()
-    
+
     let chatCoordinator = chatBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(chatCoordinator)
-    chatCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.chat)
+    chatCoordinator.viewControllable.uiController.tabBarItem = TabItem.chat.item
     chatCoordinator.start()
-    
+
     let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
     attachChild(myPageCoordinator)
-    myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
-    myPageCoordinator.finishFlow = { [weak self] in
-      self?.detachTab()
-    }
-    myPageCoordinator.start()
-    
-    let viewControllables = [
+    myPageCoordinator.viewControllable.uiController.tabBarItem = TabItem.myPage.item
+//    myPageCoordinator.finishFlow = { [weak self, weak myPageCoordinator] in
+//      self?.finishFlow?()
+//      self?.detachChild(myPageCoordinator)
+//    }
+//    myPageCoordinator.start()
+
+    self.mainViewControllable.setViewController([
       fallingCoordinator.viewControllable,
       likeCoordinator.viewControllable,
       chatCoordinator.viewControllable,
-      myPageCoordinator.viewControllable
-    ]
-    
-    self.mainViewControllable.setViewController(viewControllables)
+//      myPageCoordinator.viewControllable
+    ])
   }
   
   
   func detachTab() {
     self.childCoordinators.forEach { child in
+//      child.viewControllable.popToRootViewController(animated: false)
       child.viewControllable.setViewControllers([])
       detachChild(child)
     }
@@ -107,7 +107,9 @@ final class MainCoordinator: BaseCoordinator, MainCoordinating {
     NotificationCenter.default.publisher(for: .needAuthLogout)
       .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in
-        self?.detachTab()
+        self?.finishFlow?()
+        UserDefaultRepository.shared.removeUser()
+        UserDefaultRepository.shared.remove(key: .token)
       }
       .store(in: &cancellables)
   }
