@@ -59,10 +59,8 @@ final class UserContactSettingViewController: SettingBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.toast
-      .debug("vc toast")
-      .drive(with: self) { owner, message in
-        owner.mainView.makeToast(message)
-      }
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
 
     output.fetchedContactCount

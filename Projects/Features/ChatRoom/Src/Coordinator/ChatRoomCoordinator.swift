@@ -95,20 +95,20 @@ extension AlertHelper {
       messageText: "더 이상 채팅을 이어갈 수 없어요."
     )
 
-    alert.addActionToButton(title: "나가기") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "나가기") { [weak alert] in
+      alert?.dismiss(animated: false) {
         topAction?()
       }
     }
 
-    alert.addActionToButton(title: "취소", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "취소", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }

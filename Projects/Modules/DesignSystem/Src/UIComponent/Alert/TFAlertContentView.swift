@@ -20,10 +20,6 @@ public final class TFAlertContentView<MenuType>: TFBaseView where MenuType: Menu
     super.init(frame: .zero)
   }
 
-  deinit {
-    TFLogger.cycle(name: self)
-  }
-
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical

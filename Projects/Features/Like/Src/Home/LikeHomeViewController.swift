@@ -108,9 +108,8 @@ public final class LikeHomeViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.toast
-      .emit(with: self) { owner, message in
-        owner.mainView.makeToast(message, duration: 3.0, position: .bottom)
-      }
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
     }
 }

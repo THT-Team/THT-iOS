@@ -12,7 +12,7 @@ import Domain
 public final class AlertHelper {
   public static func userReportAlert(_ viewControllable: ViewControllable, _ handler: ((UserReportAction) -> Void)?) {
     let alert = TFAlertBuilder.makeUserReportAlert(
-      topAction: {
+      topAction: { [weak viewControllable] in
         let reportAlert = TFAlertBuilder.makeReportAlert(
           selectAction: { menu in
             handler?(.report(menu))
@@ -20,9 +20,9 @@ public final class AlertHelper {
           cancelAction: {
             handler?(.cancel)
           })
-        viewControllable.present(reportAlert, animated: true)
+        viewControllable?.present(reportAlert, animated: true)
       },
-      bottomAction: {
+      bottomAction: { [weak viewControllable] in
         let blockAlert = TFAlertBuilder.makeBlockAlert(
           topAction: {
             handler?(.block)
@@ -30,7 +30,7 @@ public final class AlertHelper {
           cancelAction: {
             handler?(.cancel)
           })
-        viewControllable.present(blockAlert, animated: true)
+        viewControllable?.present(blockAlert, animated: true)
       },
       cancelAction: {
         handler?(.cancel)

@@ -10,5 +10,5 @@ import Core
 import Domain
 
 protocol MainBuildable {
-  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating
+  func build() -> MainCoordinating
 }
