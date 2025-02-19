@@ -34,8 +34,8 @@ public class BaseSocketDecorator: SocketInterface {
     wrappee.unsubscribe(topic: topic, header: header)
   }
 
-  public func send<T: Encodable>(destination: String, message: T, header: [String : String]) {
-    wrappee.send(destination: destination, message: message, header: header)
+  public func send(destination: String, sender: ChatRoomInfo.Participant, message: String, receiptID: String, header: [String : String]) {
+    wrappee.send(destination: destination, sender: sender, message: message, receiptID: receiptID, header: header)
   }
 
   public func listen() -> AnyPublisher<ChatSignalType, Never> {

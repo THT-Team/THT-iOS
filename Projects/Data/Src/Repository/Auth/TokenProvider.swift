@@ -40,22 +40,20 @@ extension DefaultTokenProvider: TokenProvider {
   }
 }
 
-public final class DefaultTokenRefresher: ProviderProtocol, TokenRefresher {
-  
+public class DefaultTokenRefresher: ProviderProtocol {
   public typealias Target = TokenProviderTarget
-
+  
   public var provider: MoyaProvider<Target>
-  private let tokenStore: TokenStore
-
-  public init(tokenStore: TokenStore = UserDefaultTokenStore.shared) {
+  public init() {
     provider = Self.makeProvider()
-    self.tokenStore = tokenStore
   }
+}
+
+extension DefaultTokenRefresher: TokenRefresher {
 
   public func refresh(_ token: Token) async throws -> Token {
     do {
       let refreshToken: Token = try await request(target: .refresh(token))
-      tokenStore.saveToken(token: refreshToken)
       return refreshToken
     } catch {
       throw AuthError.tokenRefreshFailed

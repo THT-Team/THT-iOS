@@ -50,8 +50,8 @@ public final class SocketAuthDecorator: BaseSocketDecorator {
     cancellables.forEach { $0.cancel() }
   }
 
-  public override func send<T: Encodable>(destination: String, message: T, header: [String : String]) {
-    super.send(destination: destination, message: message, header: makeAuthHeader(header))
+  public override func send(destination: String, sender: ChatRoomInfo.Participant, message: String, receiptID: String, header: [String : String]) {
+    super.send(destination: destination, sender: sender, message: message, receiptID: receiptID, header: makeAuthHeader(header))
   }
 
   public override func subscribe(topic: String, header: [String : String]) {
@@ -88,6 +88,7 @@ extension SocketAuthDecorator {
     Task {
       do {
         let token = try await refreshToken()
+        tokenStore.saveToken(token: token)
         sendPendingFrames(token: token)
       } catch {
         NotificationCenter.default.post(name: .needAuthLogout, object: nil)
@@ -102,7 +103,13 @@ extension SocketAuthDecorator {
 
   func sendPendingFrames(token: Token) {
     batchPayload.forEach { payload in
-      self.send(destination: payload.destination, message: payload.message, header: self.makeAuthHeader(payload.headers, token: token))
+      self.send(
+        destination: payload.destination,
+        sender: payload.sender,
+        message: payload.message,
+        receiptID: payload.receiptID,
+        header: makeAuthHeader(payload.headers, token: token)
+      )
     }
     batchPayload.removeAll()
   }
@@ -120,7 +127,9 @@ extension SocketAuthDecorator {
 
   struct Payload {
     let destination: String
-    let message: Encodable
+    let sender: ChatRoomInfo.Participant
+    let message: String
+    let receiptID: String
     let headers: [String: String]
   }
 
@@ -140,5 +149,19 @@ extension SocketAuthDecorator {
     [
       "Authorization": "\(token)"
     ]
+  }
+}
+
+extension SocketAuthDecorator {
+  public static func createAuthSocket(
+    tokenStore: TokenStore,
+    tokenRefresher: TokenRefresher
+  ) -> SocketInterface {
+    let config = ChatConfiguration(initialToken: tokenStore.getToken()?.accessToken)
+
+    return SocketAuthDecorator(
+      SocketComponent(config: config),
+      tokenRefresher: tokenRefresher,
+      tokenStore: tokenStore)
   }
 }

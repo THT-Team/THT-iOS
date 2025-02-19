@@ -18,11 +18,11 @@ public class SocketComponent: SocketInterface {
   private let publisher = PassthroughSubject<ChatSignalType, Never>()
   private var client: SwiftStomp
   private var cancellable: Set<AnyCancellable> = []
-  public init(config: ChatConfiguration, header: [String: String]) {
+  public init(config: ChatConfiguration) {
     self.client = SwiftStomp(
       host: config.hostURL,
-      headers: header)
-    self.client.autoReconnect = true
+      headers: config.connectHeader)
+    self.client.autoReconnect = config.autoReconnect
     self.client.enableLogging = true
   }
 
@@ -50,8 +50,12 @@ public class SocketComponent: SocketInterface {
     client.unsubscribe(from: topic)
   }
 
-  public func send<T: Encodable>(destination: String, message: T, header: [String : String]) {
-    client.send(body: message, to: destination, receiptId: UUID().uuidString,headers: header)
+  public func send(destination: String, sender: ChatRoomInfo.Participant, message: String, receiptID: String, header: [String : String]) {
+    client.send(
+      body: ChatMessage.Request(participant: sender, message: message),
+      to: destination,
+      receiptId: receiptID,
+      headers: header)
   }
 
   public func listen() -> AnyPublisher<ChatSignalType, Never> {
