@@ -19,20 +19,20 @@ public final class TFAlertBuilder {
 
     let alert = TFAlertViewController(contentView: contentView, dimColor: DSKitAsset.Color.clear.color)
 
-    contentView.didSelectMenu = { menu in
-      alert.dismiss(animated: false) {
+    contentView.didSelectMenu = { [weak alert] menu in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.didTap(menu))
       }
     }
 
-    alert.addActionToButton(title: "취소", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "취소", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
@@ -43,19 +43,19 @@ public final class TFAlertBuilder {
     listener: BlockOrReportAlertListener
   ) -> TFAlertViewController {
     let alert = TFAlertViewController()
-    alert.addActionToButton(title: "신고하기") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "신고하기") { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.report)
       }
     }
-    alert.addActionToButton(title: "차단하기", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "차단하기", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.block)
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
@@ -69,20 +69,20 @@ public final class TFAlertBuilder {
       dimColor: DSKitAsset.Color.clear.color
     )
 
-    alert.addActionToButton(title: "차단하기") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "차단하기") { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.block)
       }
     }
 
-    alert.addActionToButton(title: "취소", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "취소", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
@@ -111,19 +111,19 @@ extension TFAlertBuilder {
     cancelAction: (() -> Void)?
   ) -> ViewControllable {
     let alert = TFAlertViewController()
-    alert.addActionToButton(title: topTitle) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: topTitle) { [weak alert] in
+      alert?.dismiss(animated: false) {
         topAction?()
       }
     }
-    alert.addActionToButton(title: bottomTitle, withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: bottomTitle, withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         bottomAction?()
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }
@@ -140,20 +140,20 @@ extension TFAlertBuilder {
       messageText: "해당 사용자와 서로 차단됩니다."
     )
 
-    alert.addActionToButton(title: "차단하기") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "차단하기") { [weak alert] in
+      alert?.dismiss(animated: false) {
         topAction?()
       }
     }
 
-    alert.addActionToButton(title: "취소", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "취소", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }
@@ -169,20 +169,20 @@ extension TFAlertBuilder {
 
     let alert = TFAlertViewController(contentView: contentView)
 
-    contentView.didSelectMenu = { menu in
-      alert.dismiss(animated: false) {
+    contentView.didSelectMenu = { [weak alert] menu in
+      alert?.dismiss(animated: false) {
         selectAction?(menu.key)
       }
     }
 
-    alert.addActionToButton(title: "취소", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "취소", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         cancelAction?()
       }
     }

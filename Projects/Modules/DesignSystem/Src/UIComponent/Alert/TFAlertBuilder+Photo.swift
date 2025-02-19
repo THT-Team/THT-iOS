@@ -14,19 +14,19 @@ public extension TFAlertBuilder {
     listener: TopBottomAlertListener
   ) -> TFAlertViewController {
     let alert = TFAlertViewController()
-    alert.addActionToButton(title: "사진 변경") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "사진 변경") { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.top)
       }
     }
-    alert.addActionToButton(title: "사진 삭제", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "사진 삭제", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.bottom)
       }
     }
     
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         listener.didTapAction(.cancel)
       }
     }
@@ -35,19 +35,19 @@ public extension TFAlertBuilder {
 
   static func makePhotoEditAlert(_ handler: TopBottomAlertHandler) -> TFAlertViewController {
     let alert = TFAlertViewController()
-    alert.addActionToButton(title: "사진 변경") {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "사진 변경") { [weak alert] in
+      alert?.dismiss(animated: false) {
         handler?(.top)
       }
     }
-    alert.addActionToButton(title: "사진 삭제", withSeparator: true) {
-      alert.dismiss(animated: false) {
+    alert.addActionToButton(title: "사진 삭제", withSeparator: true) { [weak alert] in
+      alert?.dismiss(animated: false) {
         handler?(.bottom)
       }
     }
 
-    alert.addActionToDim {
-      alert.dismiss(animated: false) {
+    alert.addActionToDim { [weak alert] in
+      alert?.dismiss(animated: false) {
         handler?(.cancel)
       }
     }
