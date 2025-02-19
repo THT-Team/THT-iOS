@@ -21,13 +21,13 @@ public final class FallingUseCase: FallingUseCaseInterface {
   }
   
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {
-//    self.repository.user(
-//      alreadySeenUserUUIDList: alreadySeenUserUUIDList,
-//      userDailyFallingCourserIdx: userDailyFallingCourserIdx,
-//      size: size
-//    )
-    .just(UserGenerator.userInfo(userDailyFallingCourserIdx: userDailyFallingCourserIdx, size: size))
-    .delay(.milliseconds(700), scheduler: MainScheduler())
+    self.repository.user(
+      alreadySeenUserUUIDList: alreadySeenUserUUIDList,
+      userDailyFallingCourserIdx: userDailyFallingCourserIdx,
+      size: size
+    )
+//    .just(UserGenerator.userInfo(userDailyFallingCourserIdx: userDailyFallingCourserIdx, size: size))
+//    .delay(.milliseconds(700), scheduler: MainScheduler())
     .retry(when: {
       $0.enumerated()
         .flatMap { attempt, error in
