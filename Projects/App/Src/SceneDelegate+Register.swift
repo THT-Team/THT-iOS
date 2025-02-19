@@ -20,29 +20,34 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-    let session = SessionProvider.create()
-    let authService: AuthServiceType = DefaultAuthService(tokenProvider: DefaultTokenProvider(.debug))
+
+    let tokenStore: TokenStore = UserDefaultTokenStore.shared
+    let tokenRefresher = DefaultTokenRefresher()
+
+    let session = SessionProvider.create(refresher: tokenRefresher, tokenStore: tokenStore)
+    let environment = RepositoryEnvironment.release(session)
+
+    // MARK: Service
+    let authService: AuthServiceType = DefaultAuthService(
+      tokenStore: tokenStore,
+      tokenProvider: DefaultTokenProvider(environment))
     let contactService = ContactService()
-    let kakaoService = KakaoAPIService()
-    let fileRepository = FileRepository()
     let imageService: ImageServiceType = ImageService()
 
-    let socketInterface: SocketInterface = SocketComponent(config: ChatConfiguration(), header: ["Authorization": "\(UserDefaultTokenStore.shared.getToken()?.accessToken ?? "")"])
-    let authSocket: SocketInterface = SocketAuthDecorator(socketInterface, tokenRefresher: DefaultTokenRefresher(), tokenStore: UserDefaultTokenStore.shared)
-
+    // MARK: UseCase
     container.register(
       interface: SignUpUseCaseInterface.self,
       implement: { SignUpUseCase(
-        repository: SignUpRepository(),
+        repository: SignUpRepository(environment),
         contactService: contactService,
         authService: authService,
-        fileRepository: fileRepository, imageService: imageService
+        fileRepository: FileRepository(), imageService: imageService
       )})
 
     container.register(
       interface: UserDomainUseCaseInterface.self,
       implement: { DefaultUserDomainUseCase(
-        repository: DefaultUserDomainRepository())
+        repository: DefaultUserDomainRepository(environment))
       })
 
     container.register(
@@ -50,59 +55,48 @@ extension AppDelegate {
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(session: session)
-        )
-      }
-    )
+            FallingRepository(environment))})
 
     container.register(
       interface: AuthUseCaseInterface.self,
       implement: {
         AuthUseCase(
-          authRepository: AuthRepository(.debug),
+          authRepository: AuthRepository(environment),
           authService: authService,
-          socialService: SocialLoginRepository())
-      }
-    )
+          socialService: SocialLoginRepository())})
 
     container.register(
       interface: LikeUseCaseInterface.self,
       implement: {
         LikeUseCase(
-          repository: LikeRepository(session: session)
-        )
-      }
-    )
+          repository: LikeRepository(environment))})
     
     container.register(
       interface: ChatUseCaseInterface.self,
       implement: {
         DefaultChatUseCase(
-          repository: ChatRepository(session: session))
-      }
-    )
+          repository: ChatRepository(environment))})
     
     container.register(
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(.debug),
+          repository: MyPageRepository(environment),
           contactsService: contactService,
           authService: authService,
-          imageService: imageService
-        )
-      }
-    )
+          imageService: imageService)})
 
     container.register(
       interface: LocationUseCaseInterface.self,
       implement: { LocationUseCase(
         locationService: LocationService(),
-        kakaoAPIService: kakaoService) }
-    )
+        kakaoAPIService: KakaoAPIService()) })
 
     container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(socketInterface: authSocket, userStore: UserDefaultRepository.shared)
-    }
+      DefaultTalkUseCase(
+        socketInterface: SocketAuthDecorator.createAuthSocket(
+          tokenStore: tokenStore,
+          tokenRefresher: tokenRefresher),
+        tokenStore: tokenStore)}
   }
 }

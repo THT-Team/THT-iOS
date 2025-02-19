@@ -136,7 +136,6 @@ extension MySettingCoordinator: MySettingCoordinating {
     let coordinator = factory.buildMyPageCoordinator(rootViewControllable: self.viewControllable)
 
     coordinator.finishFlow = { [weak self, weak coordinator] in
-      guard let coordinator else { return }
       self?.detachChild(coordinator)
     }
     attachChild(coordinator)
@@ -146,7 +145,6 @@ extension MySettingCoordinator: MySettingCoordinating {
   public func runFeedbackFlow() {
     var coordinator = factory.buildInquiryCoordinator(rootViewControllable: self.viewControllable)
     coordinator.finishFlow = { [weak self, weak coordinator] in
-      guard let coordinator else { return }
       self?.detachChild(coordinator)
     }
     attachChild(coordinator)
@@ -176,6 +174,7 @@ extension MySettingCoordinator: MySettingCoordinating {
 
   func compleflow() {
     var vc = factory.makeWithdrawComplete()
+    
     self.viewControllable.present(vc, animated: true)
   }
 }

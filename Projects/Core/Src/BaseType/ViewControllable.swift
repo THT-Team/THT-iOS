@@ -9,6 +9,7 @@ import UIKit
 
 public protocol ViewControllable: AnyObject {
   var uiController: UIViewController { get }
+  func setViewControllers(_ viewControllerables: [ViewControllable])
 }
 
 public extension ViewControllable where Self: UIViewController {

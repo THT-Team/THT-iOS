@@ -20,7 +20,7 @@ public final class AuthBuilder: AuthBuildable {
     self.signUpBuilder = signUpBuilder
   }
 
-  public func build(_ viewControllable: ViewControllable) -> AuthCoordinating {
-    AuthCoordinator(viewControllable: viewControllable, signUpBuilder: signUpBuilder)
+  public func build() -> AuthCoordinating {
+    AuthCoordinator(viewControllable: ProgressNavigationViewControllable(), signUpBuilder: signUpBuilder)
   }
 }

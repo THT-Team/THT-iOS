@@ -10,5 +10,5 @@ import Core
 import Domain
 
 protocol MainBuildable {
-  func build(_ root: MainViewControllable) -> MainCoordinating
+  func build() -> MainCoordinating
 }

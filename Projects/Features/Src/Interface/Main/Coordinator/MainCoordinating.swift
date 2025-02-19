@@ -9,14 +9,6 @@ import Foundation
 
 import Core
 
-public protocol MainCoordinatorDelegate: AnyObject {
-  func detachTab(_ coordinator: Coordinator)
-}
-
 protocol MainCoordinating: Coordinator {
-  var delegate: MainCoordinatorDelegate? { get set }
   var finishFlow: (() -> Void)? { get set }
-
-  func attachTab()
-  func detachTab()
 }

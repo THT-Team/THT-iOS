@@ -38,37 +38,53 @@ final class MainBuilder: MainBuildable {
 
   init() { }
 
-  func build(_ root: MainViewControllable) -> MainCoordinating {
+  func build() -> MainCoordinating {
+
+    let root = TFTabBarController()
+
     let chatRoomBuilder = ChatRoomBuilder(ChatRoomFactory(
       talkUseCase: talkUseCase,
       userUseCase: userdomainUseCase,
       chatUseCase: chatUseCase))
 
-    let likeBuilder = LikeBuilder(
+    let like = LikeBuilder(
       chatRoomBuilder: chatRoomBuilder,
       factory: LikeFactory(chatRoomBuilder: chatRoomBuilder, userUseCase: userdomainUseCase))
+      .build(rootViewControllable: NavigationViewControllable())
+    like.viewControllable.uiController.tabBarItem = TabItem.like.item
 
-    let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
+    let falling = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
+      .build(rootViewControllable: NavigationViewControllable())
+    falling.viewControllable.uiController.tabBarItem = TabItem.falling.item
 
-    let chatBuilder = ChatBuilder(
+    let chat = ChatBuilder(
       chatRoomBuilder: chatRoomBuilder,
       factory: ChatFactory(chatRoomBuilder: chatRoomBuilder, chatUseCase: chatUseCase))
+      .build(rootViewControllable: NavigationViewControllable())
+    chat.viewControllable.uiController.tabBarItem = TabItem.chat.item
 
-    let myPageBuilder = MyPageBuilder(
+    let myPage = MyPageBuilder(
       factory: MyPageFactory(
         userStore: UserStore(myPageUseCase),
         myPageUseCase: myPageUseCase,
         userDomainUseCase: userdomainUseCase,
         locationUseCase: locationUseCase,
-        inquiryBuilder: InquiryBuilder()))
+        inquiryBuilder: InquiryBuilder())
+    ).build(rootViewControllable: NavigationViewControllable())
+    myPage.viewControllable.uiController.tabBarItem = TabItem.myPage.item
 
-    let coordinator = MainCoordinator(
-      viewControllable: root,
-      fallingBuildable: fallingBuilder,
-      likeBuildable: likeBuilder,
-      chatBuildable: chatBuilder,
-      myPageBuildable: myPageBuilder
-    )
+    root.setViewControllers([
+      falling,
+      like,
+      chat,
+      myPage
+    ].map(\.viewControllable))
+
+    let coordinator = MainCoordinator(viewControllable: root)
+    coordinator.attachChild(falling)
+    coordinator.attachChild(like)
+    coordinator.attachChild(chat)
+    coordinator.attachChild(myPage)
 
     return coordinator
   }

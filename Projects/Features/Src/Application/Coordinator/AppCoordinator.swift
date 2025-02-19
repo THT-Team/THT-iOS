@@ -6,7 +6,7 @@
 //
 
 import UIKit
-import Foundation
+import Combine
 
 import Core
 import SignUpInterface
@@ -25,6 +25,7 @@ protocol AppCoordinating {
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   private let mainBuildable: MainBuildable
   private let authBuildable: AuthBuildable
+  private var cancellables = Set<AnyCancellable>()
 
   init(
     viewControllable: ViewControllable,
@@ -35,6 +36,8 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     self.authBuildable = authBuildable
 
     super.init(viewControllable: viewControllable)
+
+    bind()
   }
 
   public override func start() {
@@ -43,7 +46,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
   // MARK: - public
   func authFlow() {
-    let coordinator = self.authBuildable.build(ProgressNavigationViewControllable())
+    let coordinator = self.authBuildable.build()
     attachChild(coordinator)
 
     coordinator.finishFlow = { [weak self, weak coordinator] in
@@ -54,13 +57,8 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   func mainFlow() {
-    let coordinator = mainBuildable.build(TFTabBarController())
+    let coordinator = mainBuildable.build()
     attachChild(coordinator)
-
-    coordinator.finishFlow = { [weak self, weak coordinator] in
-      self?.authFlow()
-      self?.detachChild(coordinator)
-    }
     coordinator.start()
   }
 }
@@ -71,5 +69,15 @@ extension AppCoordinator: URLHandling {
       _ = AuthController.handleOpenUrl(url: url)
 
     }
+  }
+
+  func bind() {
+    NotificationCenter.default.publisher(for: .needAuthLogout)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        self?.childCoordinators.removeAll()
+        self?.authFlow()
+      }
+      .store(in: &cancellables)
   }
 }

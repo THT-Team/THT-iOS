@@ -73,7 +73,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
       self?.inquiryFlow()
     }
 
-    self.phoneNumberVerified = { [weak self, weak vm] number in
+    self.phoneNumberVerified = { [weak vm] number in
       vm?.onPhoneNumberVerified(number)
     }
 

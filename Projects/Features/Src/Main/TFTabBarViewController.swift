@@ -34,9 +34,10 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     tabBar.frame.origin.y = self.view.frame.height - tabBar.frame.size.height
   }
 
-  func setViewController(_ viewControllables: [(ViewControllable)]) {
+  func setViewControllers(_ viewControllerables: [ViewControllable]) {
     setAppearance()
-    super.setViewControllers(viewControllables.map(\.uiController), animated: false)
+
+    self.setViewControllers(viewControllerables.map(\.uiController), animated: false)
   }
   
   private func setAppearance() {
@@ -44,7 +45,7 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     tabBarAppearance.backgroundColor = DSKitAsset.Color.neutral700.color
     tabBarAppearance.shadowColor = DSKitAsset.Color.neutral600.color
     self.tabBar.isTranslucent = false
-    
+
     setTabItemAppearence(tabBarAppearance.stackedLayoutAppearance)
     self.tabBar.standardAppearance = tabBarAppearance
     self.tabBar.scrollEdgeAppearance = tabBarAppearance
