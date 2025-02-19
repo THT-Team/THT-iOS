@@ -23,9 +23,8 @@ public final class TFAuthLauncherViewController: TFLaunchViewController {
     let output = viewModel.transform(input: input)
 
     output.toast
-      .emit(with: self, onNext: { owner, message in
-        owner.view.makeToast(message)
-      })
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
   }
 }

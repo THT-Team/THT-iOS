@@ -54,11 +54,3 @@ open class TFBaseView: UIView {
     return view
   }
 }
-
-extension Reactive where Base: TFBaseView {
-  public var makeToast: Binder<String> {
-    Binder(self.base) { base, value in
-      base.makeToast(value, duration: 3.0, position: .bottom)
-    }
-  }
-}

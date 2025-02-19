@@ -46,6 +46,7 @@ extension FallingViewModel {
     @Pulse var shouldShowPause: Bool = false
     @Pulse var isLoading = false
     @Pulse var deleteAnimationUser: FallingUser? = nil
+    @Pulse var hideUserInfo: Bool = true
 
     var indexPath: IndexPath {
       IndexPath(row: index, section: 0)
@@ -92,6 +93,7 @@ extension FallingViewModel {
     // MARK: Cell
     case hidePause
     case showPause
+    case setHideUserInfo(Bool)
   }
 }
 

@@ -79,7 +79,7 @@ final class FallingViewController: TFBaseViewController, View {
 
     reactor.pulse(\.$toast)
       .compactMap { $0 }
-      .bind(to: homeView.rx.makeToast)
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
   }
 
@@ -111,6 +111,10 @@ final class FallingViewController: TFBaseViewController, View {
         .filter { _, isActive in isActive }
         .map { shouldSHowPause, _ in !shouldSHowPause }
         .bind(to: cell.pauseViewRelay)
+        .disposed(by: cell.disposeBag)
+      
+      reactor.pulse(\.$hideUserInfo)
+        .bind(to: cell.userDetailInfoRelay)
         .disposed(by: cell.disposeBag)
 
       // MARK: Action Forwarding

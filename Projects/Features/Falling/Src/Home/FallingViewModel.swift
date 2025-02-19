@@ -76,6 +76,8 @@ final class FallingViewModel: Reactor {
             .asObservable()
             .catch { .just($0.localizedDescription) }
             .map { Mutation.toast($0) },
+          .just(.hidePause),
+          .just(.setHideUserInfo(true)),
           .just(.resetTimer)
         )
       case let .report(reason):
@@ -85,9 +87,15 @@ final class FallingViewModel: Reactor {
             .asObservable()
             .catch { .just($0.localizedDescription) }
             .map { Mutation.toast($0) },
+          .just(.hidePause),
+          .just(.setHideUserInfo(true)),
           .just(.resetTimer)
         )
-      case .cancel: return .just(.startTimer)
+      case .cancel:
+        return .concat(
+          .just(.hidePause),
+          .just(.startTimer)
+        )
       }
     }
   }
@@ -177,6 +185,9 @@ final class FallingViewModel: Reactor {
       return newState
     case .showPause:
       newState.shouldShowPause = true
+      return newState
+    case let .setHideUserInfo(show):
+      newState.hideUserInfo = show
       return newState
     }
   }

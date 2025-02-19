@@ -15,7 +15,7 @@ final class FallingView: TFBaseView {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
     let collectionView = UICollectionView(frame: .zero,
                                           collectionViewLayout: flowLayout)
-    collectionView.isScrollEnabled = true
+    collectionView.isScrollEnabled = false
     collectionView.backgroundColor = DSKitAsset.Color.neutral700.color
     return collectionView
   }()
