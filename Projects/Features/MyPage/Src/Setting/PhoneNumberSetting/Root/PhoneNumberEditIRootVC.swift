@@ -17,7 +17,7 @@ struct SingleSettingModel {
   let content: String
 }
 
-final class PhoneNumberEditRootVC: TFBaseViewController {
+final class PhoneNumberEditRootVC: SettingBaseViewController {
   typealias ViewModel = PhoneNumberEditRootVM
   private let viewModel: ViewModel
   private var model: SingleSettingModel? {

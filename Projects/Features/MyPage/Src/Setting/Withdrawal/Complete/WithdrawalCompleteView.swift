@@ -10,6 +10,7 @@ import UIKit
 import DSKit
 
 import MyPageInterface
+import Core
 
 final class WithdrawalCompleteViewController: TFBaseViewController {
   weak var delegate: MySettingCoordinatingActionDelegate?
@@ -28,7 +29,7 @@ final class WithdrawalCompleteViewController: TFBaseViewController {
   override func bindViewModel() {
     mainView.button.rx.tap
       .bind(with: self) { owner, _ in
-        owner.delegate?.invoke(.toRoot)
+        NotificationCenter.default.post(Notification(name: .needAuthLogout))
       }.disposed(by: disposeBag)
   }
 }
