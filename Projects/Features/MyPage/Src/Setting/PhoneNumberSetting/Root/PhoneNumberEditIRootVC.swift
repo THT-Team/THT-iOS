@@ -75,9 +75,8 @@ final class PhoneNumberEditRootVC: SettingBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.toast
-      .emit(with: self) { owner, message in
-        owner.view.makeToast(message)
-      }
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
     output.model
       .drive(with: self) { owner, model in

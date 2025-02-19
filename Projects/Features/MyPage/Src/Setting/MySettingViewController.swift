@@ -65,9 +65,8 @@ final class MySettingsViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.toast
-      .drive(with: self) { owner, message in
-        owner.mainView.makeToast(message)
-      }
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
   }
 

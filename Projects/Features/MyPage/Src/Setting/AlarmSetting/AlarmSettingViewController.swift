@@ -71,9 +71,8 @@ final class AlarmSettingViewController: SettingBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.toast
-      .emit(with: self) { owner, message in
-        owner.mainView.makeToast(message)
-      }
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
 
     output.alarmSection
@@ -84,15 +83,6 @@ final class AlarmSettingViewController: SettingBaseViewController {
     output.marketingDescription
       .drive(footerDescription)
       .disposed(by: disposeBag)
-
-//    output.updateMarketingSection
-//      .drive(with: self) { owner, section in
-//        owner.sections[0] = section
-//        owner.mainView.tableView.beginUpdates()
-//        owner.mainView.tableView.reloadSections(IndexSet(integer: 0), with: .none)
-//        owner.mainView.tableView.endUpdates()
-//      }
-//      .disposed(by: disposeBag)
   }
 
   override func navigationSetting() {

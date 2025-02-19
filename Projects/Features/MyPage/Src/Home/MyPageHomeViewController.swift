@@ -68,9 +68,9 @@ final class MyPageHomeViewController: TFBaseViewController {
       .disposed(by: disposeBag)
 
     output.toast
-      .emit(with: self) { owner, toast in
-        owner.view.makeToast(toast)
-      }.disposed(by: disposeBag)
+      .asObservable()
+      .bind(to: TFToast.shared.rx.makeToast)
+      .disposed(by: disposeBag)
     
     output.isDimHidden
       .emit(with: self, onNext: { owner, isHidden in
