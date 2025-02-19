@@ -20,7 +20,7 @@ import Domain
 
 public enum RepositoryEnvironment {
   case debug
-  case release
+  case release(Moya.Session)
 }
 
 public class BaseRepository<Target: TargetType>: ProviderProtocol {
@@ -31,8 +31,8 @@ public class BaseRepository<Target: TargetType>: ProviderProtocol {
     switch environment {
     case .debug:
       self.provider = Self.makeStubProvider()
-    case .release:
-      self.provider = Self.makeProvider(session: SessionProvider.create())
+    case .release(let session):
+      self.provider = Self.makeProvider(session: session)
     }
   }
 }

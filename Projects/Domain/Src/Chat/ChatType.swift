@@ -10,14 +10,24 @@ import Foundation
 public struct ChatConfiguration {
   public var host: String
   public var autoReconnect: Bool
+  public let initialToken: String
 
-  public init (host: String = "ws://3.34.157.62/websocket-endpoint", autoReconnect: Bool = true) {
+  public init (
+    host: String = "ws://3.34.157.62/websocket-endpoint",
+    initialToken: String?,
+    autoReconnect: Bool = true
+  ) {
     self.host = host
     self.autoReconnect = autoReconnect
+    self.initialToken = initialToken ?? ""
   }
 
   public var hostURL: URL {
     URL(string: host)!
+  }
+
+  public var connectHeader: [String: String] {
+    ["Authorization": "\(initialToken)"]
   }
 }
 

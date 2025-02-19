@@ -13,7 +13,7 @@ public protocol SocketInterface {
   func disconnect()
   func subscribe(topic: String, header: [String: String])
   func unsubscribe(topic: String, header: [String: String])
-  func send<T: Encodable>(destination: String, message: T, header: [String: String])
+  func send(destination: String, sender: ChatRoomInfo.Participant, message: String, receiptID: String, header: [String: String])
   func listen() ->  AnyPublisher<ChatSignalType, Never>
   func bind()
   func replace(_ config: ChatConfiguration, header: [String: String])
@@ -28,7 +28,7 @@ extension SocketInterface {
     unsubscribe(topic: topic, header: [:])
   }
 
-  func send<T: Encodable>(destination: String, message: T) {
-    send(destination: destination, message: message, header: [:])
+  func send(destination: String, sender: ChatRoomInfo.Participant, message: String) {
+    send(destination: destination, sender: sender, message: message, receiptID: UUID().uuidString, header: [:])
   }
 }

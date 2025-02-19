@@ -17,14 +17,7 @@ import Moya
 
 import Core
 
-public final class DefaultUserDomainRepository: ProviderProtocol {
-  public typealias Target = UserDomainTarget
-  public var provider: MoyaProvider<Target>
-
-  public init() {
-    self.provider = Self.makeStubProvider()
-  }
-}
+public typealias DefaultUserDomainRepository = BaseRepository<UserDomainTarget>
 
 extension DefaultUserDomainRepository: UserDomainRepositoryInterface {
   public func fetchIdealTypeEmoji() -> Single<[Domain.EmojiType]> {

@@ -23,7 +23,7 @@ public final class DefaultAuthService: AuthServiceType {
   private let tokenProvider: TokenProvider
 
   public init(
-    tokenStore: TokenStore = UserDefaultTokenStore.shared,
+    tokenStore: TokenStore,
     tokenProvider: TokenProvider
   ) {
     self.tokenStore = tokenStore
@@ -110,12 +110,18 @@ public final class DefaultAuthService: AuthServiceType {
 public class SessionProvider {
   private static var session: Moya.Session?
 
-  public static func create() -> Moya.Session {
+  public static func create(
+    refresher: TokenRefresher,
+    tokenStore: TokenStore
+  ) -> Moya.Session {
     if let session { return session }
 
-    let token = UserDefaultTokenStore.shared.getToken()?.toAuthOCredential() ?? OAuthCredential(accessToken: "", accessTokenExpiresIn: Date().timeIntervalSince1970, userUuid: "")
-    let authenticator = OAuthAuthenticator()
-    let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: token)
+    let token = tokenStore.getToken() ?? Token(
+      accessToken: "",
+      accessTokenExpiresIn: Date().timeIntervalSince1970, userUuid: "")
+    let authenticator = OAuthAuthenticator(
+      refresher: refresher, tokenStore: tokenStore)
+    let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: token.toAuthOCredential())
     let session = Session(interceptor: interceptor)
     self.session = session
     return session

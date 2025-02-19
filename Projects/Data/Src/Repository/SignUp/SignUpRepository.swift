@@ -17,15 +17,7 @@ import Moya
 
 import Core
 
-public final class SignUpRepository: ProviderProtocol {
-
-  public typealias Target = SignUpTarget
-  public var provider: MoyaProvider<Target>
-
-  public init() {
-    self.provider = Self.makeStubProvider()
-  }
-}
+public typealias SignUpRepository = BaseRepository<SignUpTarget>
 
 extension SignUpRepository: SignUpRepositoryInterface {
 

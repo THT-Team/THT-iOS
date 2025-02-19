@@ -14,18 +14,7 @@ import RxMoya
 import Moya
 import Domain
 
-public final class ChatRepository: ProviderProtocol {
-  public typealias Target = ChatTarget
-  public var provider: MoyaProvider<Target>
-
-  public init(session: Moya.Session) {
-    self.provider = Self.makeProvider(session: session)
-  }
-
-  public init() {
-    self.provider = Self.makeStubProvider()
-  }
-}
+public typealias ChatRepository = BaseRepository<ChatTarget>
 
 extension ChatRepository: ChatRepositoryInterface {
 
