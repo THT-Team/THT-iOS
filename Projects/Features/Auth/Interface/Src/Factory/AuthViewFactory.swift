@@ -8,8 +8,6 @@
 import Foundation
 import Core
 
-//public typealias PhoneAuthScene = (PhoneAuthVC<T>, AuthViewModelType)
-
 public protocol AuthVCType: ViewControllable {
   associatedtype ViewModel: AuthViewModelType
 }

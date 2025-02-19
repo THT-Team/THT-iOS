@@ -9,6 +9,7 @@ import UIKit
 
 public protocol ViewControllable: AnyObject {
   var uiController: UIViewController { get }
+  func setViewControllers(_ viewControllerables: [ViewControllable])
 }
 
 public extension ViewControllable where Self: UIViewController {
@@ -21,6 +22,14 @@ public extension ViewControllable {
       nav.setViewControllers(viewControllerables.map(\.uiController), animated: true)
     } else {
       self.uiController.navigationController?.setViewControllers(viewControllerables.map(\.uiController), animated: true)
+    }
+  }
+
+  func releaseAll() {
+    if let nav = self.uiController as? UINavigationController {
+      nav.setViewControllers([], animated: true)
+    } else {
+      self.uiController.navigationController?.setViewControllers([], animated: true)
     }
   }
 

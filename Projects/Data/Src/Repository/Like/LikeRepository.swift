@@ -16,18 +16,7 @@ import Moya
 
 import Networks
 
-public final class LikeRepository: ProviderProtocol {
-  public typealias Target = LikeTarget
-  public var provider: MoyaProvider<Target>
-
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
-  }
-
-  public init(session: Session) {
-    self.provider = Self.makeProvider(session: session)
-  }
-}
+public typealias LikeRepository = BaseRepository<LikeTarget>
 
 extension LikeRepository: LikeRepositoryInterface {
 

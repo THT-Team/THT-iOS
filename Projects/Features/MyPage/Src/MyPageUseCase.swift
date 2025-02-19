@@ -109,9 +109,9 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
   }
 
   public func logout() -> Single<Void> {
+    removeUser()
     return repository.logout()
       .flatMap { [unowned self] _ in
-        removeUser()
         return .just(())
       }
   }

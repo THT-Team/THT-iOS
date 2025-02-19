@@ -32,6 +32,7 @@ final class WithdrawalDetailViewController: TFVC<WithdrawalDetailViewModel, With
   override func navigationSetting() {
     super.navigationSetting()
     self.title = "계정 탈퇴"
+    self.navigationController?.setNavigationBarHidden(false, animated: true)
   }
 
   private let otherTextRelay = PublishRelay<String>()

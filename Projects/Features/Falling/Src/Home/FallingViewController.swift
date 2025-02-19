@@ -7,7 +7,6 @@
 
 import UIKit
 
-import Core
 import DSKit
 import FallingInterface
 import Domain
@@ -40,12 +39,9 @@ final class FallingViewController: TFBaseViewController, View {
     
     navigationItem.title = "가치관"
     let mindImageView = UIImageView(image: DSKitAsset.Image.Icons.mind.image)
-    let mindImageItem = UIBarButtonItem(customView: mindImageView)
     
-    let notificationButtonItem = UIBarButtonItem.noti
-    
-    navigationItem.leftBarButtonItem = mindImageItem
-    navigationItem.rightBarButtonItem = notificationButtonItem
+    navigationItem.leftBarButtonItem = UIBarButtonItem(customView: mindImageView)
+    navigationItem.rightBarButtonItem = UIBarButtonItem.noti
   }
 
   func bind(reactor: FallingViewModel) {
@@ -65,64 +61,43 @@ final class FallingViewController: TFBaseViewController, View {
 
     reactor.state.map(\.snapshot)
       .distinctUntilChanged()
-//      .debounce(.milliseconds(500), scheduler: MainScheduler.asyncInstance)
-      .subscribe(with: self) { owner, list in
-        var snapshot = Snapshot()
-        snapshot.appendSections([.profile])
-        snapshot.appendItems(list, toSection: .profile)
-        owner.dataSource.apply(snapshot, animatingDifferences: true)
-      }
+      .subscribe(with: self) { $0.initialSnapshot($1, animated: true) }
       .disposed(by: disposeBag)
 
     reactor.pulse(\.$scrollAction)
       .distinctUntilChanged()
+      .compactMap { $0 }
       .asDriverOnErrorJustEmpty()
-      .drive(with: self, onNext: { owner, action in
-        switch action {
-        case .scroll(let indexPath):
-          owner.homeView.collectionView.scrollToItem(
-            at: indexPath,
-            at: .top,
-            animated: true
-          )
-          TFLogger.ui.debug("scroll to Item at: \(indexPath)")
-        case let .scrollAfterDelete(user):
-          owner.deleteItem(user)
-        default: break
-        }
-      })
+      .drive(with: self) { $0.homeView.scrollto($1) }
       .disposed(by: self.disposeBag)
+
+    reactor.pulse(\.$deleteAnimationUser)
+      .compactMap { $0 }
+      .observe(on: MainScheduler.instance)
+      .bind(with: self) { $0.deleteItem($1) }
+      .disposed(by: disposeBag)
 
     reactor.pulse(\.$toast)
       .compactMap { $0 }
-      .bind(with: self, onNext: { owner, message in
-        owner.homeView.makeToast(message, duration: 3.0, position: .bottom)
-      })
+      .bind(to: homeView.rx.makeToast)
       .disposed(by: disposeBag)
   }
 
   func setUpCellResitration(_ reactor: FallingViewModel) {
-    let currentIdentifier = reactor.state
-      .distinctUntilChanged(\.scrollAction)
-      .compactMap(\.user?.id)
-      .debug("indexPath: ")
+    let userCardRegistration = ProfileCellRegistration { cell, indexPath, item in
 
-    let userProfileCellRegistration = ProfileCellRegistration { cell, indexPath, item in
+      cell.bind(item)
 
-      let timerActiveTrigger = currentIdentifier
+      let timerActiveTrigger = reactor.state
+        .distinctUntilChanged(\.scrollAction)
+        .compactMap(\.user?.id)
+        .debug("indexPath: ")
         .map { $0 == item.id }
 
-      // MARK: State Binding
       timerActiveTrigger
         .debug("\(indexPath) active")
         .bind(to: cell.activateCardSubject)
         .disposed(by: cell.disposeBag)
-
-      Driver.just(item)
-        .drive(cell.rx.user)
-        .disposed(by: cell.disposeBag)
-
-      cell.userInfoView.sections = item.toUserCardSection()
 
       reactor.pulse(\.$timeState)
         .withLatestFrom(timerActiveTrigger) { ($0, $1) }
@@ -139,23 +114,21 @@ final class FallingViewController: TFBaseViewController, View {
         .disposed(by: cell.disposeBag)
 
       // MARK: Action Forwarding
-      Driver.merge(
-        cell.rx.likeBtnTap.asDriver(),
-        cell.rx.reportBtnTap.asDriver(),
-        cell.rx.rejectBtnTap.asDriver(),
-        cell.rx.cardDoubleTap.asDriver(),
-        cell.rx.pauseDoubleTap.asDriver()
+      Observable<Reactor.Action>.merge(
+        cell.rx.likeBtnTap.map { _ in .likeTap(item) },
+        cell.rx.reportBtnTap.map { _ in .reportTap(item) },
+        cell.rx.rejectBtnTap.map { _ in .rejectTap(item) },
+        cell.rx.cardDoubleTap.map { .pauseTap(true) },
+        cell.rx.pauseDoubleTap.map { .pauseTap(false) }
       )
-      .map(Reactor.Action.cellButtonAction)
-      .drive(reactor.action)
+      .bind(to: reactor.action)
       .disposed(by: cell.disposeBag)
     }
 
     let noticeRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action> { cell, indexPath, item in
       cell.configure(type: item)
 
-      cell.summitButton.rx.tap.map { item }
-        .map(Reactor.Action.noticeButtonAction)
+      cell.summitButton.rx.tap.map { item.toFallingAction() }
         .bind(to: reactor.action)
         .disposed(by: cell.disposeBag)
     }
@@ -166,13 +139,13 @@ final class FallingViewController: TFBaseViewController, View {
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       switch itemIdentifier {
       case .fallingUser(let user):
-        return collectionView.dequeueConfiguredReusableCell(
-          using: userProfileCellRegistration,
+        collectionView.dequeueConfiguredReusableCell(
+          using: userCardRegistration,
           for: indexPath,
           item: user
         )
-      case .notice(let type, let id):
-        return collectionView.dequeueConfiguredReusableCell(
+      case .notice(let type, _):
+        collectionView.dequeueConfiguredReusableCell(
           using: noticeRegistration,
           for: indexPath,
           item: type
@@ -180,14 +153,12 @@ final class FallingViewController: TFBaseViewController, View {
       }
     })
 
-    dataSource.supplementaryViewProvider = { (view, kind, index) in
-      return view.dequeueConfiguredReusableSupplementary(
+    dataSource.supplementaryViewProvider = { (view, _, index) in
+      view.dequeueConfiguredReusableSupplementary(
         using: footerRegistration,
         for: index
       )
     }
-
-    initialSnapshot()
   }
 }
 
@@ -201,10 +172,11 @@ extension FallingViewController {
   typealias ProfileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser>
   typealias NoticeCellRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action>
 
-  func initialSnapshot() {
+  func initialSnapshot(_ items: [ModelType], animated: Bool) {
     var snapshot = Snapshot()
     snapshot.appendSections([.profile])
-    self.dataSource.apply(snapshot, animatingDifferences: false)
+    snapshot.appendItems(items, toSection: .profile)
+    self.dataSource.apply(snapshot, animatingDifferences: animated)
   }
   
   private func deleteItem(_ user: FallingUser) {
@@ -219,18 +191,3 @@ extension FallingViewController {
     }
   }
 }
-
-enum FallingDataModel: Hashable, Equatable {
-  case fallingUser(FallingUser)
-  case notice(NoticeViewCell.Action, UUID)
-
-  func hash(into hasher: inout Hasher) {
-    switch self {
-    case .fallingUser(let fallingUser):
-      hasher.combine(fallingUser)
-    case let .notice(_, id):
-      hasher.combine(id)
-    }
-  }
-}
-

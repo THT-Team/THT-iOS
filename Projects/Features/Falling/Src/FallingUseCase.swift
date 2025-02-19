@@ -21,12 +21,22 @@ public final class FallingUseCase: FallingUseCaseInterface {
   }
   
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {
-//    self.repository.user(
-//      alreadySeenUserUUIDList: alreadySeenUserUUIDList,
-//      userDailyFallingCourserIdx: userDailyFallingCourserIdx,
-//      size: size
-//    )
-    .just(UserGenerator.userInfo(userDailyFallingCourserIdx: userDailyFallingCourserIdx, size: size))
+    self.repository.user(
+      alreadySeenUserUUIDList: alreadySeenUserUUIDList,
+      userDailyFallingCourserIdx: userDailyFallingCourserIdx,
+      size: size
+    )
+//    .just(UserGenerator.userInfo(userDailyFallingCourserIdx: userDailyFallingCourserIdx, size: size))
+//    .delay(.milliseconds(700), scheduler: MainScheduler())
+    .retry(when: {
+      $0.enumerated()
+        .flatMap { attempt, error in
+          attempt < 2
+          ? Observable<Int>.just(attempt)
+            .delay(.seconds(3), scheduler: MainScheduler.instance)
+          : Observable.error(error)
+        }
+    })
   }
 
   public func block(userUUID: String) -> Single<String> {

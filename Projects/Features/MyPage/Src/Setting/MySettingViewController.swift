@@ -32,10 +32,13 @@ final class MySettingsViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
 
-    self.navigationController?.setNavigationBarHidden(true, animated: false)
 
-//    self.title = "설정 관리"
-//    self.navigationItem.leftBarButtonItem = self.backButton
+    setBackButton()
+  }
+
+  override func viewWillAppear(_ animated: Bool) {
+    self.navigationController?.setNavigationBarHidden(true, animated: false)
+    super.viewWillAppear(animated)
   }
 
   override func bindViewModel() {
@@ -52,7 +55,7 @@ final class MySettingsViewController: TFBaseViewController {
     let input = MySettingViewModel.Input(
       viewDidLoad: self.rx.viewDidAppear.asDriver().map { _ in },
       indexPath: itemSelected, 
-      backBtnTap: self.mainView.backButton.rx.tap.asSignal()
+      backBtnTap: self.backButton.rx.tap.asSignal()
     )
 
     let output = viewModel.transform(input: input)

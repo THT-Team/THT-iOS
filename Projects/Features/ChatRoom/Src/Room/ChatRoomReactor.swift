@@ -24,46 +24,6 @@ public protocol ChatRoomOutputType {
 public final class ChatRoomReactor: ChatRoomOutputType, Reactor {
   public var initialState: State
 
-  public enum Action {
-    // MARK: Socket
-    case send(String)
-    case subscribe
-
-    case viewDidLoad
-    case paging
-
-    case onBackBtnTap
-
-    case onExitBtnTap
-    case onExit
-
-    case onReportBtnTap
-    case blockTap
-    case reportTap(String)
-    case onProfile(String)
-    case onCancel // Sheet에서 Cancel 누른 액션
-    case showToast(String)
-  }
-
-  public enum Mutation {
-    case addMessage(ChatMessageType)
-    case insertMessage([ChatMessageType])
-    case setInfo(ChatRoomInfo)
-    case changeBlurHidden(Bool)
-    case showProfile(ProfileItem, ProfileOutputHandler?)
-    case showUserReportAlert(UserReportHandler?)
-    case showExitAlert(ConfirmHandler?)
-    case setToast(String)
-    case dismiss(String?)
-  }
-
-  public struct State {
-    var sections: [ChatViewSection]
-    var info: ChatRoomInfo?
-    var isBlurHidden: Bool = true
-    @ReactorKit.Pulse var toast: String?
-  }
-
   // MARK: Cooridnator
 
   public var onExit: ((ConfirmHandler?) -> Void)?
@@ -99,12 +59,21 @@ extension ChatRoomReactor {
   public func mutate(action: Action) -> Observable<Mutation> {
     switch action {
     case .viewDidLoad:
+      talkUseCase.bind()
+      talkUseCase.connect()
       return .concat([
         self.chatUsecase.room(id)
           .map(Mutation.setInfo),
         self.chatUsecase.history(roomIdx: id, chatIdx: nil, size: 10)
           .map(Mutation.insertMessage)
       ])
+    case .willEnterForeground:
+      talkUseCase.bind()
+      talkUseCase.connect()
+      return .empty()
+    case .didEnterBackground:
+      talkUseCase.disconnect()
+      return .empty()
     case .paging: return .empty()
     case .onExitBtnTap:
       return .from([
@@ -117,6 +86,7 @@ extension ChatRoomReactor {
         }
       ])
     case .onExit:
+      talkUseCase.disconnect()
       return .concat([
         .just(.changeBlurHidden(true)),
         chatUsecase.out(id)
@@ -136,69 +106,69 @@ extension ChatRoomReactor {
         }
       ])
     case let .reportTap(reason):
+      talkUseCase.disconnect()
       return .concat([
         .just(.changeBlurHidden(true)),
         userUseCase.userReport(.report(self.id, reason))
           .asObservable()
-          .map(Mutation.setToast)])
+          .map(Mutation.dismiss)])
     case .blockTap:
+      talkUseCase.disconnect()
       return .concat([
         .just(.changeBlurHidden(true)),
         userUseCase.userReport(.block(self.id))
           .asObservable()
-          .map(Mutation.setToast)])
+          .map(Mutation.dismiss)])
     case .onCancel:
       return .just(.changeBlurHidden(true))
     case .onBackBtnTap:
-      self.onBack?(nil)
-      return .empty()
+      talkUseCase.disconnect()
+      return .just(.dismiss(nil))
     case let .onProfile(id):
-      guard let info = self.currentState.info else {
-        return .empty()
-      }
-      let item = ProfileItem(id: id, topic: info.talkSubject, issue: info.talkIssue)
       return .from([
         .changeBlurHidden(false),
-        .showProfile(item) { [weak self] select in
+        .showProfile(id: id) { [weak self] select in
           guard let self else { return }
           switch select {
           case .cancel:
             self.action.onNext(.onCancel)
           case .toast(let msg):
             self.action.onNext(.onCancel)
-            self.action.onNext(.showToast(msg))
+            self.action.onNext(.dismissWithMessage(msg))
           }
         }
       ])
+    case let .dismissWithMessage(msg):
+      talkUseCase.disconnect()
+      return .just(.dismiss(msg))
     case .subscribe:
       talkUseCase.subscribe(topic: "/sub/chat/\(id)")
       return .empty()
-    case let .send(message):
-      guard let participants = self.currentState.info?.participants else {
-        return .empty()
-      }
+    case let .send(message, info):
       talkUseCase.send(
         destination: "/pub/chat/\(id)",
-        message: .init(participant: participants[0], message: message)
-      )
+        message: message, participant: info.participants)
       return .empty()
-    case let .showToast(message):
-      return .just(.setToast(message))
     }
-  }
-
-  public func transform(action: Observable<Action>) -> Observable<Action> {
-    let chatAction = talkUseCase.listen()
-      .filter { $0 == .some(.stompConnected) }
-      .map { _ in Action.subscribe }
-    return Observable.merge(action, chatAction)
   }
 
   public func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
     let chatEvent = talkUseCase.listen()
+      .debug("ChatReactor:")
       .compactMap { type -> Mutation? in
-        guard case let .message(msg) = type else { return nil }
-        return Mutation.addMessage(msg)
+        switch type {
+        case .message(let message):
+          return Mutation.addMessage(message)
+        case .stompConnected:
+          return Mutation.subscribe
+        case .stompDisconnected:
+          return nil
+        case .receipt(let id):
+          print("receipt id: \(id)")
+          return nil
+        case .needAuth:
+          return nil
+        }
       }
     return Observable.merge(mutation, chatEvent)
   }
@@ -206,20 +176,18 @@ extension ChatRoomReactor {
   public func reduce(state: State, mutation: Mutation) -> State {
     var state = state
     switch mutation {
+    case .subscribe:
+      action.onNext(.subscribe)
     case let .showExitAlert(handler):
       self.onExit?(handler)
     case let .showUserReportAlert(handler):
       self.onReport?(handler)
     case let .dismiss(toast):
       self.onBack?(toast)
-    case let .showProfile(item, handler):
-      self.onProfile?(item, handler)
+    case let .showProfile(id, handler):
+      self.onProfile?(ProfileItem(id: id, topic: state.info.talkSubject, issue: state.info.talkIssue), handler)
     case let .addMessage(message):
-      print(message)
-      print(message.message)
-      let item = ChatViewSectionItem.create(from: message, actionSubject: self.action)
-      print(item)
-      state.sections[0].items.append(ChatViewSectionItem.create(from: message, actionSubject: self.action))
+      state.sections[0].items.append(.create(from: message, actionSubject: self.action))
     case let .setInfo(info):
       state.info = info
     case let .changeBlurHidden(isHidden):
@@ -230,8 +198,6 @@ extension ChatRoomReactor {
         return ChatViewSectionItem.create(from: type, actionSubject: self.action)
       }
       state.sections[0].items.insert(items)
-    case let .setToast(msg):
-      self.onBack?(msg)
     }
     return state
   }

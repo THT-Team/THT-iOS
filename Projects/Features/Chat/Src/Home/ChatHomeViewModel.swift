@@ -75,7 +75,8 @@ extension ChatHomeViewModel: ViewModelType {
 
     input.notiTap
       .drive(with: self, onNext: { owner, _ in
-        owner.delegate?.invoke(.notiTapped)
+        NotificationCenter.default.post(Notification(name: .needAuthLogout))
+//        owner.delegate?.invoke(.notiTapped)
       }).disposed(by: disposeBag)
 
     return Output(

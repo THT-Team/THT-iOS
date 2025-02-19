@@ -9,84 +9,75 @@ import Foundation
 
 import Core
 import AuthInterface
+import SignUpInterface
 import Domain
+import DSKit
 
 public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
-
-  @Injected private var authUseCase: AuthUseCaseInterface
 
   // MARK: Signal
   public var phoneNumberVerified: ((String) -> Void)?
 
   public var finishFlow: (() -> Void)?
-  public var signUpFlow: ((SNSUserInfo) -> Void)?
 
-  public let factory: PhoneNumberFactoryType
+  public let factory: AuthFactoryType
+  private let signUpBuilder: SignUpBuildable
 
   public init(
-    factory: PhoneNumberFactoryType = PhoneNumberFactory(),
-    viewControllable: ViewControllable
+    factory: AuthFactoryType = AuthFactory(),
+    viewControllable: ViewControllable,
+    signUpBuilder: SignUpBuildable
   ) {
     self.factory = factory
+    self.signUpBuilder = signUpBuilder
     super.init(viewControllable: viewControllable)
   }
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
-    rootFlow()
+    launchFlow()
+  }
+
+  public func launchFlow() {
+    var (vc, vm) = factory.launchFlow()
+
+    vm.onAuthResult = { [weak self] result in
+      switch result {
+      case .needAuth:
+        self?.rootFlow()
+      case .toMain:
+        self?.finishFlow?()
+      }
+    }
+    self.viewControllable.setViewControllers([vc])
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
   public func rootFlow() {
+    let (vc, vm) = factory.rootFlow()
 
-    let viewModel = AuthRootViewModel(useCase: authUseCase)
-
-    let viewController = AuthRootViewController()
-    viewController.viewModel = viewModel
-
-    viewModel.onPhoneNumberAuthFlow = {
-      self.phoneNumberInputFlow()
+    vm.onPhoneNumberAuthFlow = { [weak self] in
+      self?.phoneNumberInputFlow()
     }
 
-    viewModel.onSignUpFlow = { userInfo in
-      self.viewControllable.popViewController(animated: true)
-//      self?.viewControllable.popToRootViewController(animated: false)
-      self.signUpFlow?(userInfo)
+    vm.onSignUpFlow = { [weak self] user in
+      self?.viewControllable.popViewController(animated: false)
+      self?.runSignUPFlow(user)
     }
 
-    viewModel.onMainFlow = {
-      self.viewControllable.popToRootViewController(animated: true)
-      self.finishFlow?()
+    vm.onMainFlow = { [weak self] in
+      self?.finishFlow?()
     }
 
-    viewModel.onInquiryFlow = {
-      let nav = (UIWindow.keyWindow?.rootViewController as? UINavigationController)
-//      let uic = viewControllable.uiController
-      print("nav", nav)
-      print("topvc", nav?.topViewController)
-      print("visible", nav?.visibleViewController)
-      print("current vc", self.viewControllable)
-//      print(nav == uic)
-      self.inquiryFlow()
+    vm.onInquiryFlow = { [weak self] in
+      self?.inquiryFlow()
     }
 
-    self.phoneNumberVerified = { [weak viewModel] phoneNumber in
-      viewModel?.onPhoneNumberVerified(phoneNumber)
+    self.phoneNumberVerified = { [weak vm] number in
+      vm?.onPhoneNumberVerified(number)
     }
 
-    self.viewControllable.setViewControllers([viewController])
-  }
-}
-
-extension AuthCoordinator {
-  func inquiryFlow() {
-    let vm = InquiryViewModel()
-    vm.onBackButtonTap = { [weak self] in
-      self?.viewControllable.popViewController(animated: true)
-    }
-    let vc = InquiryViewController(viewModel: vm)
-
-    self.viewControllable.pushViewController(vc, animated: true)
+    self.viewControllable.setViewControllers([vc])
   }
 }
 
@@ -113,5 +104,41 @@ extension AuthCoordinator {
     }
 
     self.viewControllable.pushViewController(vc, animated: true)
+  }
+}
+
+extension AuthCoordinator {
+  func inquiryFlow() {
+    var (vc, vm) = factory.inquiryFlow()
+    vm.onBackButtonTap = { [weak self] in
+      self?.viewControllable.popViewController(animated: true)
+    }
+    self.viewControllable.pushViewController(vc, animated: true)
+  }
+}
+
+// MARK: SignUp
+
+extension AuthCoordinator {
+  func runSignUPFlow(_ user: PendingUser) {
+    let coordinator = signUpBuilder.build(rootViewControllable: self.viewControllable)
+    coordinator.finishFlow = { [weak self, weak coordinator] option in
+      switch option {
+      case .complete:
+        self?.finishFlow?()
+        self?.detachChild(coordinator)
+      case .back:
+        self?.detachChild(coordinator)
+      }
+    }
+    attachChild(coordinator)
+    coordinator.start(user)
+  }
+
+  func detach() {
+    self.childCoordinators.forEach { child in
+      child.viewControllable.setViewControllers([])
+      detachChild(child)
+    }
   }
 }

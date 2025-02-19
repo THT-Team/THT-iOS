@@ -18,14 +18,26 @@ import RxMoya
 import Moya
 import Domain
 
-public final class MyPageRepository: ProviderProtocol {
-  public typealias Target = MyPageTarget
+public enum RepositoryEnvironment {
+  case debug
+  case release(Moya.Session)
+}
+
+public class BaseRepository<Target: TargetType>: ProviderProtocol {
+
   public var provider: MoyaProvider<Target>
 
-  public init(session: Session) {
-    self.provider = Self.makeProvider(session: session)
+  public init(_ environment: RepositoryEnvironment) {
+    switch environment {
+    case .debug:
+      self.provider = Self.makeStubProvider()
+    case .release(let session):
+      self.provider = Self.makeProvider(session: session)
+    }
   }
 }
+
+public typealias MyPageRepository = BaseRepository<MyPageTarget>
 
 extension MyPageRepository: MyPageRepositoryInterface {
   public func updateReligion(_ religion: Religion) -> RxSwift.Single<Void> {

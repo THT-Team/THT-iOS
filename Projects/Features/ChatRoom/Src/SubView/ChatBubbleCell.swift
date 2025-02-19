@@ -42,6 +42,7 @@ final class IncomingBubbleCell: BaseBubbleCell {
 
     contentLabel.backgroundColor = DSKitAsset.Color.neutral600.color
     contentLabel.textColor = DSKitAsset.Color.neutral50.color
+    contentLabel.textAlignment = .center
     dateLabel.textAlignment = .left
 
     profileImageView.snp.makeConstraints {

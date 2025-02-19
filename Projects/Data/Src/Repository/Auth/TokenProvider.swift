@@ -16,19 +16,11 @@ import Networks
 import AuthInterface
 import Domain
 
-public final class DefaultTokenProvider: ProviderProtocol {
-  public typealias Target = TokenProviderTarget
-
-  public var provider: MoyaProvider<Target>
-
-  public init() {
-    provider = Self.makeProvider(session: SessionProvider.create())
-  }
-}
+public typealias DefaultTokenProvider = BaseRepository<TokenProviderTarget>
 
 extension DefaultTokenProvider: TokenProvider {
-  public func signUpSNS(_ userSNSSignUpRequest: UserSNSSignUpRequest) -> RxSwift.Single<Token> {
-    request(type: Token.self, target: .signUpSNS(userSNSSignUpRequest))
+  public func signUpSNS(_ signUpRequest: SNSUserInfo.SignUpRequest) -> RxSwift.Single<Token> {
+    request(type: Token.self, target:  .signUpSNS(signUpRequest))
   }
   
   public func signUp(_ signUpRequest: SignUpReq) -> Single<Token> {
@@ -39,30 +31,32 @@ extension DefaultTokenProvider: TokenProvider {
     request(type: Token.self, target: .login(phoneNumber: phoneNumber, deviceKey: deviceKey))
   }
 
-  public func loginSNS(_ userSNSLoginRequest: UserSNSLoginRequest) -> Single<Token> {
-    request(type: Token.self, target: .loginSNS(request: userSNSLoginRequest))
+  public func loginSNS(_ signUpRequest: SNSUserInfo.LoginRequest) -> Single<Token> {
+    request(type: Token.self, target: .loginSNS(request: signUpRequest))
+  }
+
+  public func updateDeviceToken(_ token: String) -> Single<Void> {
+    return requestWithNoContent(target: .updateDeviceToken(deviceKey: token))
   }
 }
 
-public protocol TokenRefresher {
-  func refresh(_ token: Token) async throws -> Token
-}
-
-public final class DefaultTokenRefresher: ProviderProtocol, TokenRefresher {
-  
+public class DefaultTokenRefresher: ProviderProtocol {
   public typealias Target = TokenProviderTarget
-
+  
   public var provider: MoyaProvider<Target>
-  private let tokenStore: TokenStore
-
-  public init(tokenStore: TokenStore = UserDefaultTokenStore.shared) {
+  public init() {
     provider = Self.makeProvider()
-    self.tokenStore = tokenStore
   }
+}
+
+extension DefaultTokenRefresher: TokenRefresher {
 
   public func refresh(_ token: Token) async throws -> Token {
-    let refreshToken: Token = try await request(target: .refresh(token))
-    tokenStore.saveToken(token: refreshToken)
-    return refreshToken
+    do {
+      let refreshToken: Token = try await request(target: .refresh(token))
+      return refreshToken
+    } catch {
+      throw AuthError.tokenRefreshFailed
+    }
   }
 }

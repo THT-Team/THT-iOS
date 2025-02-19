@@ -6,13 +6,11 @@
 //
 import Foundation
 
-import Domain
 import Core
 
 public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
   private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
-  private let echoRelay = PublishRelay<ChatSignalType>()
-  private var chatIndex = 0
+  private static var chatIndex = 0
   private var disposeBag = DisposeBag()
 
   public init() {
@@ -36,13 +34,13 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
   }
 
   @MainActor
-  public func send(destination: String, message: Domain.ChatMessage.Request) {
-    chatIndex += 1
-    let domain = ChatMessage(chatIdx: String(chatIndex), sender: message.sender, senderUuid: message.senderUUID, msg: message.message, imgUrl: message.imageURL, dataTime: Date())
-    chatIndex += 1
-    let echo = ChatMessage(chatIdx: String(chatIndex), sender: "echo", senderUuid: message.senderUUID + "1", msg: message.message, imgUrl: message.imageURL, dataTime: Date())
-    messagePublisher.onNext(.message(.outgoing(domain)))
-    echoRelay.accept(.message(.incoming(echo)))
+  public func send(destination: String, message: String, participant: [ChatRoomInfo.Participant]) {
+    messagePublisher.onNext(.message(.outgoing(Self.makeChatMessage(name: "me", message: message))))
+
+    Task {
+      try? await Task.sleep(nanoseconds: 1000)
+      messagePublisher.onNext(.message(.incoming(Self.makeChatMessage(name: "echo", message: message))))
+    }
   }
   
   public func send(destination: String, text: String) {
@@ -53,10 +51,22 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
     messagePublisher.asObservable()
   }
 
-  private func bind() {
-    echoRelay
-      .delay(.seconds(1), scheduler: MainScheduler.instance)
-      .subscribe(messagePublisher)
-      .disposed(by: disposeBag)
+  public func bind() {
+  }
+
+  private static func makeChatMessage(name: String, message: String) -> ChatMessage {
+    chatIndex += 1
+    let user = ChatRoomInfo.Participant(id: "asdf", name: name, profileURL: "https://firebasestorage.googleapis.com/v0/b/tht-android-a954a.appspot.com/o/1736064955156_1?alt=media&token=2224203d-1ebe-4586-92a6-5ba248a02f18")
+    return ChatMessage(chatIndex, user: user, message: message)
+  }
+}
+
+fileprivate extension ChatMessage {
+  init(_ id: Int, user: ChatRoomInfo.Participant, message: String) {
+    self.init(chatIdx: String(id), sender: user.name, senderUuid: user.id, msg: message, imgUrl: user.profileURL, dataTime: Date())
+  }
+
+  static func echo(_ message: ChatMessage, id: Int) -> ChatMessage {
+    self.init(id, user: .init(id: message.senderUuid + "echo", name: "echo", profileURL: message.imgUrl), message: message.msg)
   }
 }

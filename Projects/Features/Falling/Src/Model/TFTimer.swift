@@ -50,3 +50,14 @@ final class TFTimer {
     start()
   }
 }
+
+extension TFTimer {
+  var seconds: Observable<Double> {
+    currentTime.share()
+  }
+  var timeOut: Observable<Void> {
+    seconds
+      .filter { $0 == .zero }
+      .mapToVoid()
+  }
+}

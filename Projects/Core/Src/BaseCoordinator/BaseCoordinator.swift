@@ -10,14 +10,14 @@ import UIKit
 public protocol Coordinator: AnyObject {
   var viewControllable: ViewControllable { get }
   var childCoordinators: [Coordinator] { get set }
-  
+
   func start()
   func attachChild(_ child: Coordinator)
-  func detachChild(_ child: Coordinator)
+  func detachChild(_ child: Coordinator?)
 }
 
 open class BaseCoordinator: Coordinator {
-  public let viewControllable: ViewControllable
+  public var viewControllable: ViewControllable
   public var childCoordinators: [Coordinator]
   public init(viewControllable: ViewControllable) {
     self.viewControllable = viewControllable
@@ -36,8 +36,8 @@ open class BaseCoordinator: Coordinator {
     self.childCoordinators.append(child)
   }
 
-  public func detachChild(_ child: Coordinator) {
-    self.childCoordinators = self.childCoordinators.filter { $0 !== child }
+  public func detachChild(_ child: Coordinator?) {
+    self.childCoordinators.removeAll(where: { $0 === child })
   }
 
   public func replaceWindowRootViewController(rootViewController: ViewControllable) {

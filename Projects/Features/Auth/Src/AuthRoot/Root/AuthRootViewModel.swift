@@ -14,13 +14,21 @@ import AuthInterface
 import Core
 import Domain
 
-final class AuthRootViewModel: ViewModelType {
+public protocol AuthRootOutput: AnyObject {
+
+  var onPhoneNumberAuthFlow: (() -> Void)? { get set }
+  var onSignUpFlow: ((PendingUser) -> Void)? { get set }
+  var onMainFlow: (() -> Void)? { get set }
+  var onInquiryFlow: (() -> Void)? { get set }
+
+  func onPhoneNumberVerified(_ number: String)
+}
+
+final class AuthRootViewModel: ViewModelType, AuthRootOutput {
   private let useCase: AuthUseCaseInterface
 
-  public var onPhoneNumberVerified: ((String) -> Void)?
-
   public var onPhoneNumberAuthFlow: (() -> Void)?
-  public var onSignUpFlow: ((SNSUserInfo) -> Void)?
+  public var onSignUpFlow: ((PendingUser) -> Void)?
   public var onMainFlow: (() -> Void)?
   public var onInquiryFlow: (() -> Void)?
 
@@ -39,63 +47,54 @@ final class AuthRootViewModel: ViewModelType {
     self.useCase = useCase
   }
 
-  // error toast
-  //
-  let phoneNumberVerifiedSubject = PublishSubject<String>()
+  let phoneNumberSubject = PublishSubject<String>()
+
   func transform(input: Input) -> Output {
     let toastPublisher = PublishRelay<String>()
     let buttonTap = input.buttonTap
+    let navigation = PublishSubject<AuthNavigation>()
 
-    let snsUserInfoSubject = PublishSubject<SNSUserInfo>()
-
-    buttonTap
+    let btnTap = buttonTap
       .throttle(.milliseconds(500), latest: false)
-      .flatMapLatest(with: self) { owner, type -> Driver<SNSUserInfo> in
-        owner.useCase.auth(type)
-          .asDriver { error in
-            toastPublisher.accept(error.localizedDescription)
-            return .empty()
-          }
-      }
-      .drive(snsUserInfoSubject)
-      .disposed(by: disposeBag)
 
-    snsUserInfoSubject
-      .subscribe(with: self, onNext: { owner, userInfo in
-        guard let phoneNumber = userInfo.phoneNumber else {
-          owner.onPhoneNumberAuthFlow?()
-          return
-        }
-        owner.phoneNumberVerifiedSubject.onNext(phoneNumber)
+    btnTap
+      .filter { $0 == .normal }
+      .drive(with: self, onNext: { owner, type in
+        owner.onPhoneNumberAuthFlow?()
       })
       .disposed(by: disposeBag)
 
-
-//    phoneNumberVerifiedSubject
-//      .withLatestFrom(snsUserInfoSubject) { ($0, $1) }
-//
-    Observable.zip(phoneNumberVerifiedSubject, snsUserInfoSubject)
-      .withUnretained(self)
-      .flatMap { owner, info -> Single<AuthResult> in
-        let (phoneNumber, snsUserInfo) = info
-        var userInfo = snsUserInfo
-        userInfo.phoneNumber = phoneNumber
-        return owner.useCase.authenticate(userInfo: userInfo)
+    btnTap
+      .filter { $0 != .normal }
+      .compactMap { AuthType($0) }
+      .flatMapLatest(with: self) { owner, type in
+        owner.useCase.authenticate(type)
+          .asDriverOnErrorJustEmpty()
       }
+      .drive(navigation)
+      .disposed(by: disposeBag)
+
+    phoneNumberSubject
+      .map { AuthType.phoneNumber(number: $0) }
       .withUnretained(self)
-      .flatMap { owner, result -> Observable<AuthNavigation> in
-        owner.useCase.processResult(result)
+      .flatMapLatest { owner, type in
+        owner.useCase.authenticate(type)
           .asObservable()
       }
-      .asDriverOnErrorJustEmpty()
+      .bind(to: navigation)
+      .disposed(by: disposeBag)
+
+    navigation
+      .asDriver { error in
+        toastPublisher.accept(error.localizedDescription)
+        return .empty()
+      }
       .drive(with: self) { owner, navigation in
         switch navigation {
         case .main:
           owner.onMainFlow?()
         case let .signUp(userInfo):
           owner.onSignUpFlow?(userInfo)
-        case .phoneNumber(_):
-          break
         }
       }
       .disposed(by: disposeBag)
@@ -110,11 +109,6 @@ final class AuthRootViewModel: ViewModelType {
   }
 
   func onPhoneNumberVerified(_ number: String) {
-    phoneNumberVerifiedSubject.onNext(number)
+    phoneNumberSubject.onNext(number)
   }
-}
-
-enum UserResult {
-  case signUp(SNSUserInfo)
-  case login(SNSUserInfo)
 }

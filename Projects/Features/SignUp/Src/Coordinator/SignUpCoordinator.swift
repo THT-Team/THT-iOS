@@ -18,58 +18,25 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 }
 
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
-  public func start(_ userInfo: SNSUserInfo) {
-
-    guard let phoneNumber = userInfo.phoneNumber else { return }
-
-    guard let email = userInfo.email else {
-      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
+  @Injected var useCase: SignUpUseCaseInterface
+  @Injected var locationUseCase: LocationUseCaseInterface
+  @Injected var userDomainUseCase: UserDomainUseCaseInterface
+  public func start(_ user: PendingUser) {
+    guard let email = user.email, !email.isEmpty else {
+      emailFlow(user: user)
       return
     }
-    policyFlow(user: initPendingUser(with: userInfo))
+    policyFlow(user: user)
   }
-  
-
-  @Injected private var useCase: SignUpUseCaseInterface
-  @Injected private var locationUseCase: LocationUseCaseInterface
-  @Injected private var userDomainUseCase: UserDomainUseCaseInterface
 
   public weak var delegate: SignUpCoordinatorDelegate?
-  public var finishFlow: (() -> Void)?
-
-//  // TODO: UserDefaultStorage이용해서 어느 화면 띄워줄건지 결정
-//  public func start(_ option: SignUpOption) {
-////    replaceWindowRootViewController(rootViewController: viewControllable)
-//
-//    switch option {
-//    case .start(let phoneNumber):
-//      emailFlow(user: initPendingUser(phoneNumber: phoneNumber))
-//    case .startPolicy(let snsUser):
-//      policyFlow(user: initPendingUser(with: snsUser))
-//    }
-//  }
-
-  private func initPendingUser(phoneNumber: String) -> PendingUser {
-    var pendingUser = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self) ?? PendingUser(phoneNumber: phoneNumber)
-    pendingUser.phoneNumber = phoneNumber
-    return pendingUser
-  }
-
-  private func initPendingUser(with snsUser: SNSUserInfo) -> PendingUser {
-    var pendingUser = PendingUser(snsUser)
-    return pendingUser
-  }
+  public var finishFlow: ((FinishSignUpOption) -> Void)?
 
   public func locationFlow(user: PendingUser) {
     let viewModel = LocationInputViewModel(useCase: useCase, locationUseCase: locationUseCase, pendingUser: user)
     viewModel.delegate = self
     let viewController = LocationInputViewController(viewModel: viewModel)
     self.viewControllable.pushViewController(viewController, animated: true)
-  }
-
-  public func finishFlow(_ option: FinishSignUpOption) {
-
-    self.delegate?.detachSignUp(self, option)
   }
 
   public func emailFlow(user: PendingUser) {
@@ -147,7 +114,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func drinkAndSmokeFlow(user: SignUpInterface.PendingUser) {
+  public func drinkAndSmokeFlow(user: PendingUser) {
     let vm = AlcoholTobaccoPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
 
@@ -155,14 +122,14 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func religionFlow(user: SignUpInterface.PendingUser) {
+  public func religionFlow(user: PendingUser) {
     let vm = ReligionPickerViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = ReligionPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func introduceFlow(user: SignUpInterface.PendingUser) {
+  public func introduceFlow(user: PendingUser) {
     let vm = IntroduceInputViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
 
@@ -170,19 +137,21 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func blockUserFlow(user: SignUpInterface.PendingUser) {
+  public func blockUserFlow(user: PendingUser) {
     let vm = UserContactViewModel(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = UserContactViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
-  public func signUpCompleteFlow(user: SignUpInterface.PendingUser, contacts: [ContactType]) {
-    let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user, contacts: contacts)
+  public func signUpCompleteFlow(user: PendingUser) {
+    let vm = SignUpCompleteViewModel(useCase: useCase, pendingUser: user)
+
     vm.onNext = { [weak self] in
-      self?.finishFlow?()
+      self?.finishFlow?(.complete)
     }
     let vc = SignUpCompleteViewController(viewModel: vm)
+
     self.viewControllable.pushViewController(vc, animated: true)
   }
 
@@ -214,8 +183,7 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
     case let .loginType(snsType):
       print(snsType)
     case .backAtEmail:
-      finishFlow?()
-//      finishFlow(.back)
+      self.finishFlow?(.back)
     case .nextAtEmail:
       policyFlow(user: pendingUser)
     case .nextAtPolicy:
@@ -256,11 +224,10 @@ extension SignUpCoordinator: SignUpCoordinatingActionDelegate {
       webViewFlow(listener: listener)
     case .nextAtLocation:
       blockUserFlow(user: pendingUser)
-    case let .nextAtHideFriends(contacts):
-      signUpCompleteFlow(user: pendingUser, contacts: contacts)
+    case .nextAtHideFriends:
+      signUpCompleteFlow(user: pendingUser)
     case .nextAtSignUpComplete:
-      finishFlow?()
-//      finishFlow(.complete)
+      finishFlow?(.complete)
     case let .agreementWebView(url):
       agreementWebViewFlow(url: url)
 

@@ -29,13 +29,15 @@ final class UserContactViewModel: BasePenddingViewModel, ViewModelType {
   
   struct Output {
     let toast: Signal<String>
+    let buttonEnabled: Driver<Bool>
   }
   
   func transform(input: Input) -> Output {
     let toast = PublishSubject<String>()
-    let nextTrigger = PublishSubject<Void>()
+    let imageUploadTrigger = PublishSubject<Void>()
     let blockTrigger = PublishSubject<Void>()
-    let fetchedContacts = BehaviorRelay<[ContactType]>(value: [])
+    let fetchedContacts = PublishRelay<[ContactType]>()
+    let buttonEnabled = BehaviorRelay<Bool>(value: true)
 
     input.actionTrigger
       .drive(onNext: { action in
@@ -43,42 +45,55 @@ final class UserContactViewModel: BasePenddingViewModel, ViewModelType {
         case .block:
           blockTrigger.onNext(())
         case .skip:
-          nextTrigger.onNext(())
+          fetchedContacts.accept([])
         }
       })
       .disposed(by: disposeBag)
     
-    blockTrigger
+    input.actionTrigger
+      .throttle(.milliseconds(1000), latest: false)
+      .do(onNext: { _ in
+        buttonEnabled.accept(false)
+      })
+      .asObservable()
       .observe(on: ConcurrentDispatchQueueScheduler(qos: .background))
-      .flatMapLatest { [unowned self] _ in
-        self.useCase.block()
-          .flatMap { contacts in
-            fetchedContacts.accept(contacts)
-            toast.onNext("\(contacts.count)개의 연락처를 차단했습니다.")
-            return .just(true)
-          }
+      .withUnretained(self)
+      .flatMap { owner, action -> Observable<[ContactType]> in
+        switch action {
+        case .block:
+          return owner.useCase.block()
+            .asObservable()
+            .map { contacts in
+              toast.onNext("\(contacts.count)개의 연락처를 차단했습니다.")
+              return contacts
+            }
+            .catch { error in
+              toast.onNext(error.localizedDescription)
+              return .empty()
+            }
+        case .skip:
+          return .just([])
+        }
+      }
+      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
+      .withUnretained(self)
+      .flatMap { owner, contacts in
+        owner.useCase.signUp(owner.pendingUser, contacts: contacts)
+          .asObservable()
           .catch { error in
-            toast.onNext("친구 목록을 불러오는데 실패했습니다. 다시 시도해주세요.")
-            return .just(false)
+            toast.onNext(error.localizedDescription)
+            return .empty()
           }
       }
-      .asDriver(onErrorJustReturn: false)
-      .filter { $0 }
-      .map { _ in }
-      .delay(.seconds(2))
-      .drive(nextTrigger)
-      .disposed(by: disposeBag)
-    
-    nextTrigger
-      .withLatestFrom(fetchedContacts)
       .asDriverOnErrorJustEmpty()
-      .drive(with: self) { owner, contacts in
-        owner.delegate?.invoke(.nextAtHideFriends(contacts), owner.pendingUser)
+      .drive(with: self) { owner, _ in
+        owner.delegate?.invoke(.nextAtHideFriends, owner.pendingUser)
       }
       .disposed(by: disposeBag)
     
     return Output(
-      toast: toast.asSignal(onErrorJustReturn: "")
+      toast: toast.asSignal(onErrorJustReturn: ""),
+      buttonEnabled: buttonEnabled.asDriver()
     )
   }
 }

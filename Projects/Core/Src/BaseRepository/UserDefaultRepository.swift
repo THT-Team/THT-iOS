@@ -7,7 +7,6 @@
 
 import Foundation
 
-// TODO: Singletone 으로 변경
 public final class UserDefaultRepository: PersistentRepositoryInterface {
   private let userDefault: UserDefaults
   private init() {

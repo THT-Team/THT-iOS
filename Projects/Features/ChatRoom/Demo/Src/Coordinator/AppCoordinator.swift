@@ -43,7 +43,7 @@ final class AppCoordinator: LaunchCoordinator {
 
   // MARK: - public
   func runChatRoomFlow(_ id: String) {
-    var coordinator = self.chatRoomBuilder.build(id, rootViewControllable: viewControllable, talkUseCase: talkLifeCycleUseCase)
+    var coordinator = self.chatRoomBuilder.build(rootViewControllable: viewControllable)
 
     coordinator.finishFlow = { [weak self, weak coordinator] message in
       guard let coordinator else { return }
@@ -67,11 +67,15 @@ final class SimpleVC: TFBaseViewController {
   override func loadView() {
     self.view = mainView
 
-    let button = UIButton(frame: CGRect(x: 0, y: 0, width: 150, height: 60))
+    let button = UIButton()
     button.setTitle("버튼", for: .normal)
 
     self.view.addSubview(button)
-    button.center = view.center
+    button.snp.makeConstraints {
+      $0.width.equalTo(100)
+      $0.height.equalTo(60)
+      $0.center.equalToSuperview()
+    }
 
     button.addAction(UIAction { [weak self] _ in
       self?.onClick?()

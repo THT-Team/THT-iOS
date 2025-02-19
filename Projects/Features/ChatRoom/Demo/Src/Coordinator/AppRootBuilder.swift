@@ -11,16 +11,20 @@ import DSKit
 
 import ChatRoom
 import ChatRoomInterface
+import Domain
+import Auth
+import Data
 
 public protocol AppRootBuildable {
   func build() -> LaunchCoordinating
 }
 
 public final class AppRootBuilder: AppRootBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
   public init() { }
 
   lazy var chatRoomBuilder: ChatRoomBuildable = {
-    ChatRoomBuilder()
+    ChatRoomBuilder(talkUseCase: talkUseCase)
   }()
 
   public func build() -> LaunchCoordinating {

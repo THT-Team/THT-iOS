@@ -13,6 +13,7 @@ import DSKit
 import Falling
 import FallingInterface
 import ChatRoomInterface
+import ChatRoom
 import Domain
 
 public protocol AppRootBuildable {

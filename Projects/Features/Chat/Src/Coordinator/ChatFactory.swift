@@ -15,10 +15,14 @@ import ChatInterface
 
 public final class ChatFactory {
   private let chatRoomBuilder: ChatRoomBuildable
-  @Injected private var chatUseCase: ChatUseCaseInterface
+  private let chatUseCase: ChatUseCaseInterface
 
-  public init(chatRoomBuilder: ChatRoomBuildable) {
+  public init(
+    chatRoomBuilder: ChatRoomBuildable,
+    chatUseCase: ChatUseCaseInterface
+  ) {
     self.chatRoomBuilder = chatRoomBuilder
+    self.chatUseCase = chatUseCase
   }
 
   func makeChatHomeFlow() -> (ViewControllable, ChatHomeViewModel) {

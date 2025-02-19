@@ -43,54 +43,23 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func block() -> Single<[ContactType]> {
     self.contactService.fetchContact()
-  }
-
-  public func signUp(_ user: PendingUser, imageData: [Data], contacts: [ContactType]) -> Single<Void> {
-    imageService.uploadImages(imageDataArray: imageData, bucket: .profile)
-      .catch({ error in
-        return .error(SignUpError.imageUploadFailed)
-      })
-      .flatMap { [weak self] urls in
-        guard let self else { return .error(SignUpError.invalidRequest) }
-        var user = user
-        user.photos = urls
-
-        guard
-          let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self),
-          let request = user.toRequest(contacts: contacts, deviceKey: deviceKey)
-        else {
-          return .error(SignUpError.invalidRequest)
-        }
-        return self.authService.signUp(request)
-          .map { token in
-            UserDefaultRepository.shared.remove(key: .pendingUser)
-            UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
-          }
-          .flatMap { _ in
-            if user.snsUserInfo.snsType == .normal {
-              return .just(())
-            } else {
-              return self.authService.signUpSNS(.init(email: request.email, phoneNumber: request.phoneNumber, snsUniqueId: user.snsUserInfo.id, snsType: user.snsUserInfo.snsType))
-                .map { token in
-                  UserDefaultRepository.shared.remove(key: .pendingUser)
-                  UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
-                  return
-                }
-            }
-          }
+      .catch { error in
+        return .error(SignUpError.fetchContactsFailed(error))
       }
   }
 
-  public func signUp(request: PendingUser, contacts: [ContactType]) -> Single<Void> {
-    guard
-      let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self),
-      let request = request.toRequest(contacts: contacts, deviceKey: deviceKey) else {
-      return .error(SignUpError.invalidRequest)
-    }
-    return authService.signUp(request).map { _ in
-      UserDefaultRepository.shared.remove(key: .pendingUser)
-      UserDefaultRepository.shared.save(request.phoneNumber, key: .phoneNumber)
-    }
+  public func signUp(_ user: PendingUser, contacts: [ContactType]) -> Single<Void> {
+    fetchUserPhotos(key: user.phoneNumber, fileNames: user.photos)
+      .flatMap { [unowned self] imageData -> Single<Void> in
+        self.imageService.uploadImages(imageDataArray: imageData, bucket: .profile)
+          .catch({ error in
+            return .error(SignUpError.imageUploadFailed)
+          })
+          .flatMap { [unowned self] urls in
+            self.authService.signUp(user, contacts: contacts, urls: urls)
+              .map { _ in }
+          }
+      }
   }
 
   public func savePendingUser(_ userInfo: PendingUser) {
@@ -134,7 +103,7 @@ extension SignUpUseCase {
 
 // MARK: Image
 extension SignUpUseCase {
-  
+
   public func uploadImage(_ user: PendingUser, data: [Data]) -> Single<PendingUser> {
     imageService.uploadImages(imageDataArray: data, bucket: .profile)
       .map { urls in
@@ -151,13 +120,12 @@ extension SignUpUseCase {
   public func fetchUserPhotos(key: String, fileNames: [String]) -> Single<[Data]> {
     .create { [weak self] observer in
       guard
-        let user = UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self),
-        let imageData = self?.fileRepository.fetch(fileNames: user.photos.map { key + "/" + $0 })
+        let imageData = self?.fileRepository.fetch(fileNames: fileNames.map { key + "/" + $0 }),
+        !imageData.isEmpty
       else {
         observer(.failure(StorageError.notExisted))
         return Disposables.create()
       }
-      print(user)
       observer(.success(imageData))
       return Disposables.create()
     }

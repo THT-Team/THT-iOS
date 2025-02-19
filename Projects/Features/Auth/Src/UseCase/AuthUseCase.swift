@@ -13,80 +13,27 @@ import RxSwift
 import Core
 import Domain
 
-public final class AuthUseCase: AuthUseCaseInterface {
-  public func authenticate(userInfo: SNSUserInfo) -> RxSwift.Single<AuthResult> {
-    guard let phoneNumber = userInfo.phoneNumber else {
-      return .just(.needPhoneNumber)
-    }
-
-    return repository.checkUserExist(phoneNumber: phoneNumber)
-      .flatMap { result -> Single<AuthResult> in
-        // 가입 이력
-        if result.isSignUp {
-          // 선택한 SNS도 가입 이력이 있음
-          if result.typeList.contains(userInfo.snsType) {
-            let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "1"
-            let request = UserSNSLoginRequest(email: userInfo.email ?? "", snsType: userInfo.snsType, snsUniqueId: userInfo.id, deviceKey: deviceKey)
-            return userInfo.snsType == .normal
-            ? .just(.login)
-            : .just(.loginSNS(request))
-          } else {
-            let request = UserSNSSignUpRequest.init(email: userInfo.email ?? "", phoneNumber: phoneNumber, snsUniqueId: userInfo.id, snsType: userInfo.snsType)
-            return .just(.signUpSNS(request))
-          }
-        } else {
-          // 선택한 SNS로 회원가입
-          let snsRequest = UserSNSSignUpRequest(email: userInfo.email ?? "", phoneNumber: phoneNumber, snsUniqueId: userInfo.id, snsType: userInfo.snsType)
-          return userInfo.snsType == .normal
-          ? .just(.signUp(userInfo))
-          : .just(.signUpSNS(snsRequest))
-        }
-      }
-  }
-
-  public func processResult(_ result: AuthResult) -> Single<AuthNavigation> {
-    switch result {
-    case .login:
-      return login()
-        .map { AuthNavigation.main }
-    case let .loginSNS(user):
-      return loginSNS(user)
-        .map { AuthNavigation.main }
-    case let .signUp(user):
-      return .just(AuthNavigation.signUp(user))
-    case let .signUpSNS(request):
-      return repository.signUpSNS(request)
-        .map { _ in AuthNavigation.main }
-    case .needPhoneNumber:
-      return .error(AuthError.canNotOpenSNSURL)
-    }
-  }
-
-  
-  public func handleLogin(snsUserInfo: SNSUserInfo) -> Single<AuthNavigation> {
-    switch snsUserInfo.snsType {
-    case .normal:
-      return login()
-        .map { AuthNavigation.main }
-    case .kakao, .naver, .google, .apple:
-      guard let email = snsUserInfo.email, let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) else {
-        return .error(AuthError.invalidSNSUser)
-      }
-      return loginSNS(.init(email: email, snsType: snsUserInfo.snsType, snsUniqueId: snsUserInfo.id, deviceKey: deviceKey))
-        .map { AuthNavigation.main }
-    }
-  }
-  
+public final class AuthUseCase {
   private let repository: AuthRepositoryInterface
+  private let authService: AuthServiceType
+  private let socialService: SocialLoginRepositoryInterface
 
-  public init(authRepository: AuthRepositoryInterface) {
+  public init(
+    authRepository: AuthRepositoryInterface,
+    authService: AuthServiceType,
+    socialService: SocialLoginRepositoryInterface
+  ) {
     self.repository = authRepository
+    self.authService = authService
+    self.socialService = socialService
   }
 
   deinit {
     TFLogger.cycle(name: self)
   }
+}
 
+extension AuthUseCase: AuthUseCaseInterface {
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
     repository.certificate(phoneNumber: phoneNumber)
   }
@@ -100,32 +47,38 @@ public final class AuthUseCase: AuthUseCaseInterface {
   }
 
   public func login() -> Single<Void> {
-    guard let phoneNumber = UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self) else {
-      return .error(AuthError.tokenNotFound)
-    }
-    let token = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) ?? "1"
-    TFLogger.dataLogger.debug("\(token)")
-    // TODO: deviceKey 변경 필요
-    return repository.login(phoneNumber: phoneNumber, deviceKey: token)
+    return authService.login()
       .map { _ in }
   }
 
   public func needAuth() -> Bool {
-    repository.needAuth()
+    authService.needAuth()
   }
 
-  public func loginSNS(_ request: UserSNSLoginRequest) -> Single<Void> {
-    return repository.loginSNS(request)
-      .map { _ in }
+  private func saveSNSType(_ sns: SNSType) {
+    UserDefaultRepository.shared.saveModel(sns, key: .snsType)
   }
+}
 
-  public func updateDeviceToken() -> Single<Void> {
-    return repository.updateDeviceToken()
-  }
+extension AuthUseCase {
+  public func authenticate(_ type: AuthType) -> Single<AuthNavigation> {
+    saveSNSType(type.snsType)
 
-  public func saveSNSType(type snsTYpe: SNSType, snsUUID: String?) {
-    UserDefaultRepository.shared.save(snsTYpe.rawValue, key: .snsType)
-    UserDefaultRepository.shared.save(snsUUID, key: .snsUUID)
+    switch type {
+    case .apple:
+      return .error(AuthError.invalidSNSUser)
+    case .google:
+      return .error(AuthError.invalidSNSUser)
+    case .naver:
+      return .error(AuthError.invalidSNSUser)
+    case .kakao:
+      return socialService.kakaoLogin()
+        .flatMap { [unowned self] user in
+          self.authenticate(user: user)
+        }
+    case .phoneNumber(let number):
+      return authenticate(number: number)
+    }
   }
 
   public func saveDeviceKey(_ deviceKey: String) {
@@ -140,28 +93,41 @@ public final class AuthUseCase: AuthUseCaseInterface {
     UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self)
   }
 
-  public func auth(_ snsType: SNSType) -> Single<SNSUserInfo> {
-    UserDefaultRepository.shared.saveModel(snsType, key: .snsType)
-    var snsUserInfo = SNSUserInfo(snsType: snsType, id: "", email: nil, phoneNumber: nil)
-    switch snsType {
-    case .normal:
-      return .just(snsUserInfo)
-    case .kakao:
-      return repository.kakaoLogin()
-    case .naver, .apple, .google:
-      return .just(snsUserInfo)
+  public func updateDeviceToken() -> Single<Void> {
+    guard let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
+    else {
+      return .error(AuthError.tokenNotFound)
     }
-  }
-
-  public func handleLogin(snsUserInfo: SNSUserInfo) -> Single<Void> {
-    if snsUserInfo.snsType == .normal {
-      return login()
-    } else {
-      guard let email = snsUserInfo.email, let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self) else {
-        return .error(AuthError.invalidSNSUser)
-      }
-      return loginSNS(.init(email: email, snsType: snsUserInfo.snsType, snsUniqueId: snsUserInfo.id, deviceKey: deviceKey))
-    }
+    return authService.updateDeviceToken(deviceKey)
   }
 }
 
+extension AuthUseCase {
+  private func authenticate(number: String) -> Single<AuthNavigation> {
+
+    repository.checkUserExist(phoneNumber: number)
+      .flatMap { [weak self] result -> Single<AuthNavigation> in
+        guard let self else { return .error(AuthError.internalError) }
+
+        return result.isSignUp
+        ? authService.login().map { _ in .main }
+        : .just(.signUp(PendingUser(phoneNumber: number)))
+      }
+  }
+
+  private func authenticate(user: SNSUserInfo) -> Single<AuthNavigation> {
+
+    repository.checkUserExist(phoneNumber: user.phoneNumber)
+      .flatMap { [weak self] result -> Single<AuthNavigation> in
+        guard let self else { return .error(AuthError.internalError) }
+
+        if result.isSignUp {
+          return result.typeList.contains(user.snsType)
+          ? authService.loginSNS(user).map { _ in .main }
+          : authService.signUpSNS(user).map { _ in .main }
+        } else {
+          return .just(.signUp(PendingUser(user)))
+        }
+      }
+  }
+}

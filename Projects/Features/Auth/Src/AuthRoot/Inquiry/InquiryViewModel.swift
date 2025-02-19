@@ -13,7 +13,11 @@ import Core
 import RxCocoa
 import RxSwift
 
-public final class InquiryViewModel: ViewModelType {
+public protocol DefaultOutput {
+  var onBackButtonTap: (() -> Void)? { get set }
+}
+
+public final class InquiryViewModel: ViewModelType, DefaultOutput {
   private var disposeBag = DisposeBag()
 
   public var onBackButtonTap: (() -> Void)?

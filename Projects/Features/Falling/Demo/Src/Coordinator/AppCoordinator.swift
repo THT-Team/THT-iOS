@@ -38,16 +38,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
     let fallingCoordinator = self.fallingBuildable.build(rootViewControllable: rootViewControllable)
     
     attachChild(fallingCoordinator)
-    fallingCoordinator.delegate = self
     
     fallingCoordinator.start()
-  }
-}
-
-extension AppCoordinator: FallingCoordinatorDelegate {
-  func test(_ coordinator: Core.Coordinator) {
-    detachChild(coordinator)
-    
-    TFLogger.dataLogger.debug("test")
   }
 }

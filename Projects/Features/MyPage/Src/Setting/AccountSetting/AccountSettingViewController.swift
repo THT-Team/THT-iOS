@@ -49,7 +49,6 @@ final class AccountSettingViewController: TFBaseViewController {
     let output = viewModel.transform(input: input)
 
     output.toast
-      .debug("vc toast")
       .drive(with: self) { owner, message in
         let alert = UIAlertController(title: message, message: nil, preferredStyle: .alert)
 
@@ -64,6 +63,7 @@ final class AccountSettingViewController: TFBaseViewController {
   override func navigationSetting() {
     super.navigationSetting()
     self.title = "계정 관리"
+    self.navigationController?.setNavigationBarHidden(false, animated: true)
   }
 }
 

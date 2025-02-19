@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 import Core
 
@@ -22,83 +23,37 @@ import MyPageInterface
 import MyPage
 
 protocol MainViewControllable: ViewControllable {
-  func setViewController(_ viewControllables: [ViewControllable])
+//  func setViewController(_ viewControllables: [(ViewControllable)])
 }
 
 final class MainCoordinator: BaseCoordinator, MainCoordinating {
-  var finishFlow: (() -> Void)?
   
-  public weak var delegate: MainCoordinatorDelegate?
+  var finishFlow: (() -> Void)?
+  var cancellables = Set<AnyCancellable>()
+
   private let mainViewControllable: MainViewControllable
-  private let fallingBuildable: FallingBuildable
-  private let likeBuildable: LikeBuildable
-  private let chatBuildable: ChatBuildable
-  private let myPageBuildable: MyPageBuildable
   
   init(
-    viewControllable: MainViewControllable,
-    fallingBuildable: FallingBuildable,
-    likeBuildable: LikeBuildable,
-    chatBuildable: ChatBuildable,
-    myPageBuildable: MyPageBuildable
+    viewControllable: MainViewControllable
   ) {
     self.mainViewControllable = viewControllable
-    self.fallingBuildable = fallingBuildable
-    self.likeBuildable = likeBuildable
-    self.chatBuildable = chatBuildable
-    self.myPageBuildable = myPageBuildable
-    
+
     super.init(viewControllable: self.mainViewControllable)
+//    bind()
   }
-  
+
   override func start() {
-    replaceWindowRootViewController(rootViewController: mainViewControllable)
-    attachTab()
+    replaceWindowRootViewController(rootViewController: self.mainViewControllable)
+    childCoordinators.forEach { child in
+      child.start()
+    }
   }
   
   func attachTab() {
-    let fallingCoordinator = fallingBuildable.build(rootViewControllable: NavigationViewControllable())
-    attachChild(fallingCoordinator)
-    fallingCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.falling)
-    fallingCoordinator.start()
-    
-    let likeCoordinator = likeBuildable.build(rootViewControllable: NavigationViewControllable())
-    attachChild(likeCoordinator)
-    likeCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.like)
-    likeCoordinator.start()
-    
-    let chatCoordinator = chatBuildable.build(rootViewControllable: NavigationViewControllable())
-    attachChild(chatCoordinator)
-    chatCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.chat)
-    chatCoordinator.delegate = self
-    chatCoordinator.start()
-    
-    let myPageCoordinator = myPageBuildable.build(rootViewControllable: NavigationViewControllable())
-    attachChild(myPageCoordinator)
-    myPageCoordinator.viewControllable.uiController.tabBarItem = .makeTabItem(.myPage)
-    myPageCoordinator.finishFlow = { [weak self] in
-      self?.detachTab()
-    }
-    myPageCoordinator.start()
-    
-    let viewControllables = [
-      fallingCoordinator.viewControllable,
-      likeCoordinator.viewControllable,
-      chatCoordinator.viewControllable,
-      myPageCoordinator.viewControllable
-    ]
-    
-    self.mainViewControllable.setViewController(viewControllables)
-  }
-  
-  func detachTab() {
-    self.childCoordinators.forEach { child in
-      child.viewControllable.setViewControllers([])
-      detachChild(child)
-    }
-    finishFlow?()
-  }
-}
 
-extension MainCoordinator: ChatCoordinatorDelegate {
+  }
+
+  func detachTab() {
+
+  }
 }

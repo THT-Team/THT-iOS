@@ -15,13 +15,14 @@ import Domain
 public final class LikeBuilder: LikeBuildable {
 
   private let chatRoomBuilder: ChatRoomBuildable
+  private let factory: LikeFactory
 
-  public init(chatRoomBuilder: ChatRoomBuildable) {
+  public init(chatRoomBuilder: ChatRoomBuildable, factory: LikeFactory) {
     self.chatRoomBuilder = chatRoomBuilder
+    self.factory = factory
   }
   
   public func build(rootViewControllable: ViewControllable) -> LikeCoordinating {
-    let factory = LikeFactory(chatRoomBuilder: chatRoomBuilder)
     let coordinator = LikeCoordinator(factory: factory, viewControllable: rootViewControllable)
 
     return coordinator

@@ -11,12 +11,12 @@ import ChatRoomInterface
 import Domain
 
 public final class ChatRoomBuilder: ChatRoomBuildable {
+  private let factory: ChatRoomFactory
 
-  private let talkUseCase: TalkUseCaseInterface
-  public init(talkUseCase: TalkUseCaseInterface) {
-    self.talkUseCase = talkUseCase
+  public init(_ factory: ChatRoomFactory) {
+    self.factory = factory
   }
-  public func build(rootViewControllable: any Core.ViewControllable) -> any ChatRoomInterface.ChatRoomCoordinating {
-    return ChatRoomCoordinator(factory: ChatRoomFactory(talkUseCase: talkUseCase), rootViewControllable)
+  public func build(rootViewControllable: (any ViewControllable)) -> any ChatRoomInterface.ChatRoomCoordinating {
+    return ChatRoomCoordinator(factory: factory, rootViewControllable)
   }
 }

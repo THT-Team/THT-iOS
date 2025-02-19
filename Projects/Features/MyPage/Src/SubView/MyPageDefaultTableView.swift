@@ -20,21 +20,19 @@ class MyPageDefaultTableView<CellType: MyPageDefaultTableViewCell>: TFBaseView {
     $0.register(cellType: CellType.self)
   }
 
-  lazy var backButton = UIButton.makeBackButton()
-
-  lazy var titleLabel = UILabel().then {
-    $0.font = UIFont.thtH4Sb
-    $0.textColor = DSKitAsset.Color.neutral50.color
-    $0.text = "설정관리"
-  }
-
-  private lazy var headerView = UIStackView(arrangedSubviews: [backButton, titleLabel]).then {
-    $0.axis = .horizontal
-    $0.alignment = .center
-    $0.backgroundColor = DSKitAsset.Color.neutral700.color
-    $0.distribution = .equalSpacing
-    $0.spacing = 12
-  }
+//  lazy var titleLabel = UILabel().then {
+//    $0.font = UIFont.thtH4Sb
+//    $0.textColor = DSKitAsset.Color.neutral50.color
+//    $0.text = "설정관리"
+//  }
+//
+//  private lazy var headerView = UIStackView(arrangedSubviews: [backButton, titleLabel]).then {
+//    $0.axis = .horizontal
+//    $0.alignment = .center
+//    $0.backgroundColor = DSKitAsset.Color.neutral700.color
+//    $0.distribution = .equalSpacing
+//    $0.spacing = 12
+//  }
 
   lazy var emptyView = UIView().then {
     $0.backgroundColor = .clear
@@ -46,18 +44,13 @@ class MyPageDefaultTableView<CellType: MyPageDefaultTableViewCell>: TFBaseView {
   }
 
   override func makeUI() {
-    addSubviews(headerView, tableView)
+    self.backgroundColor = DSKitAsset.Color.neutral700.color
+    addSubviews(tableView)
 
     emptyView.addSubview(cardView)
 
-    headerView.snp.makeConstraints {
-      $0.top.equalTo(self.safeAreaLayoutGuide)
-      $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(56)
-    }
-
     tableView.snp.makeConstraints {
-      $0.top.equalTo(headerView.snp.bottom)
+      $0.top.equalTo(safeAreaLayoutGuide).offset(56.adjustedH)
       $0.leading.trailing.bottom.equalToSuperview()
     }
 

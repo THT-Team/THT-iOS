@@ -10,12 +10,15 @@ import Alamofire
 import RxSwift
 import AuthInterface
 import Core
+import Domain
 
 final class OAuthAuthenticator: Authenticator {
   private let refresher: TokenRefresher
+  private let tokenStore: TokenStore
 
-  public init(refresher: TokenRefresher = DefaultTokenRefresher()) {
+  public init(refresher: TokenRefresher, tokenStore: TokenStore) {
     self.refresher = refresher
+    self.tokenStore = tokenStore
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
@@ -36,8 +39,9 @@ final class OAuthAuthenticator: Authenticator {
 
     Task {
       do {
-        let refreshToken = try await refresher.refresh(credential.toToken()).toAuthOCredential()
-        completion(.success(refreshToken))
+        let refreshToken = try await refresher.refresh(credential.toToken())
+        tokenStore.saveToken(token: refreshToken)
+        completion(.success(refreshToken.toAuthOCredential()))
       } catch {
         completion(.failure(error))
       }

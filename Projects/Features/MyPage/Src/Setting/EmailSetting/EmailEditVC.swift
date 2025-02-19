@@ -9,7 +9,7 @@ import UIKit
 
 import DSKit
 
-final class EmailEditVC: TFBaseViewController {
+final class EmailEditVC: SettingBaseViewController {
   typealias ViewModel = EmailEdittVM
 
   private lazy var titleLable = UILabel().then {

@@ -13,18 +13,7 @@ import Networks
 import RxSwift
 import Moya
 
-public final class FallingRepository: ProviderProtocol {
-  public typealias Target = FallingTarget
-  public var provider: MoyaProvider<Target>
-//  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Moya.Endpoint)?) {
-//    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
-//  }
-  
-  public init(session: Session) {
-    self.provider = Self.makeProvider(session: session)
-  }
-}
-
+public typealias FallingRepository = BaseRepository<FallingTarget>
 
 extension FallingRepository: FallingRepositoryInterface {
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {

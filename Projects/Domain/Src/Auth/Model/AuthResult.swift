@@ -6,12 +6,11 @@
 //
 
 import Foundation
-import Domain
 
 public enum AuthResult {
   case signUp(SNSUserInfo)
-  case signUpSNS(UserSNSSignUpRequest)
+  case signUpSNS(SNSUserInfo)
   case login
-  case loginSNS(UserSNSLoginRequest)
+  case loginSNS(SNSUserInfo.LoginRequest)
   case needPhoneNumber
 }

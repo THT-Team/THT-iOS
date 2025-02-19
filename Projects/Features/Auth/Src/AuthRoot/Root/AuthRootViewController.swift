@@ -85,7 +85,7 @@ final class AuthRootViewController: TFBaseViewController {
 
     let input = AuthRootViewModel.Input(
       buttonTap: buttonTap,
-      inquiryTap: feedbackBtn.rx.tap.asSignal().debug()
+      inquiryTap: feedbackBtn.rx.tap.asSignal()
     )
 
     let _ = viewModel.transform(input: input)

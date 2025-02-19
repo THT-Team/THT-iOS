@@ -19,7 +19,7 @@ import UIKit
 import Core
 import DSKit
 
-final class EmailEditRootVC: TFBaseViewController {
+final class EmailEditRootVC: SettingBaseViewController {
   typealias ViewModel = EmailEditRootVM
   private let viewModel: ViewModel
   private var model: SingleSettingModel? {

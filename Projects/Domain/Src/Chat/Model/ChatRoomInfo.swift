@@ -14,6 +14,7 @@ public struct ChatRoomInfo {
   public let startDate: String
   public let isChatAble: Bool
   public let participants: [Participant]
+  public var title: String? = nil
 
   public init(chatRoomIdx: Int, talkSubject: String, talkIssue: String, startDate: String, isChatAble: Bool,
               participants: [Participant]
@@ -37,4 +38,8 @@ public struct ChatRoomInfo {
       self.profileURL = profileURL
     }
   }
+}
+
+extension ChatRoomInfo {
+  public static let empty = ChatRoomInfo(chatRoomIdx: -1, talkSubject: "", talkIssue: "", startDate: Date().toDateString(), isChatAble: false, participants: [])
 }

@@ -32,7 +32,6 @@ final class SignUpCompleteView: TFBaseView {
   private lazy var gradientView = TFShimmerGradientView()
 
   lazy var imageView = UIImageView().then {
-//    $0.image = DSKitAsset.Image.Test.test1.image
     $0.contentMode = .scaleAspectFill
     $0.clipsToBounds = true
     $0.layer.cornerRadius = 20 * Metric.wRatio
@@ -56,12 +55,11 @@ final class SignUpCompleteView: TFBaseView {
     )
 
     containerView.snp.makeConstraints {
-      $0.top.leading.trailing.equalTo(safeAreaLayoutGuide)
-      $0.bottom.equalToSuperview()
+      $0.edges.equalToSuperview()
     }
 
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(76)
+      $0.top.equalToSuperview().offset(140.adjustedH)
       $0.leading.trailing.equalToSuperview().inset(38)
     }
 
@@ -99,6 +97,8 @@ struct SignUpCompleteViewPreview: PreviewProvider {
   static var previews: some View {
     UIViewPreview {
       let component = SignUpCompleteView()
+      component.imageView.image =  DSKitAsset.Image.Test.test1.image
+
       return component
     }
     .previewLayout(.sizeThatFits)

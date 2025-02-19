@@ -9,8 +9,11 @@ import Foundation
 
 import RxSwift
 public protocol TokenStore {
-  var cachedToken: Token? { get set }
   func saveToken(token: Token)
   func getToken() -> Token?
   func clearToken()
+}
+
+public protocol TokenRefresher {
+  func refresh(_ token: Token) async throws -> Token
 }

@@ -21,7 +21,7 @@ extension ChatTarget {
       {
         "chatRoomIdx": 1,
         "partnerName": "채팅상대방이름",
-        "partnerProfileUrl": "상대방프로필 url",
+        "partnerProfileUrl": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2023/07/14/bdb0ca50-5057-41e2-a024-8243c6f06279.jpg",
         "currentMessage": "최근 메세지",
         "messageTime": "2023-03-21T12:13:04.000000001",
         "isAvailableChat": true
@@ -29,7 +29,7 @@ extension ChatTarget {
           {
             "chatRoomIdx": 2,
             "partnerName": "채팅상대방이름",
-            "partnerProfileUrl": "상대방프로필 url",
+            "partnerProfileUrl": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2023/07/14/bdb0ca50-5057-41e2-a024-8243c6f06279.jpg",
             "currentMessage": "최근 메세지",
             "messageTime": "2023-03-21T12:13:04.000000001",
             "isAvailableChat": false
@@ -37,7 +37,7 @@ extension ChatTarget {
           {
             "chatRoomIdx": 3,
             "partnerName": "채팅상대방이름",
-            "partnerProfileUrl": "상대방프로필 url",
+            "partnerProfileUrl": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2023/07/14/bdb0ca50-5057-41e2-a024-8243c6f06279.jpg",
             "currentMessage": "최근 메세지",
             "messageTime": "2023-03-21T12:13:04.000000001",
             "isAvailableChat": true
@@ -59,7 +59,7 @@ extension ChatTarget {
       "profileUrl": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2023/07/14/bdb0ca50-5057-41e2-a024-8243c6f06279.jpg"
     },
     {
-      "userUuid": "397d42f24a-b7a0-4bc3-8bc7-da8d18f56376",
+      "userUuid": "471383b57f-0715-4949-a5b2-ae816353438b",
       "userName": "2번 참가자 이름",
       "profileUrl": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2023/07/14/bdb0ca50-5057-41e2-a024-8243c6f06279.jpg"
     }

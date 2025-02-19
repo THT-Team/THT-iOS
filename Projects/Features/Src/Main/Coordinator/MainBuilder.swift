@@ -29,25 +29,62 @@ import ChatRoomInterface
 import Domain
 
 final class MainBuilder: MainBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
+  @Injected var myPageUseCase: MyPageUseCaseInterface
+  @Injected var chatUseCase: ChatUseCaseInterface
+  @Injected var likeUseCase: LikeUseCaseInterface
+  @Injected var userdomainUseCase: UserDomainUseCaseInterface
+  @Injected var locationUseCase: LocationUseCaseInterface
 
-  init() {
-  }
+  init() { }
 
-  func build(talkUseCase: TalkUseCaseInterface) -> MainCoordinating {
-    let tabBar = TFTabBarController()
-    let chatRoomBuilder = ChatRoomBuilder(talkUseCase: talkUseCase)
-    let fallingBuilder = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
-    let likeBuilder = LikeBuilder(chatRoomBuilder: chatRoomBuilder)
-    let chatBuilder = ChatBuilder(chatRoomBuilder: chatRoomBuilder)
-    let myPageBuilder = MyPageBuilder(factory: MyPageFactory(userStore: UserStore(), inquiryBuilder: InquiryBuilder()))
+  func build() -> MainCoordinating {
 
-    let coordinator = MainCoordinator(
-      viewControllable: tabBar,
-      fallingBuildable: fallingBuilder,
-      likeBuildable: likeBuilder,
-      chatBuildable: chatBuilder,
-      myPageBuildable: myPageBuilder
-    )
+    let root = TFTabBarController()
+
+    let chatRoomBuilder = ChatRoomBuilder(ChatRoomFactory(
+      talkUseCase: talkUseCase,
+      userUseCase: userdomainUseCase,
+      chatUseCase: chatUseCase))
+
+    let like = LikeBuilder(
+      chatRoomBuilder: chatRoomBuilder,
+      factory: LikeFactory(chatRoomBuilder: chatRoomBuilder, userUseCase: userdomainUseCase))
+      .build(rootViewControllable: NavigationViewControllable())
+    like.viewControllable.uiController.tabBarItem = TabItem.like.item
+
+    let falling = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
+      .build(rootViewControllable: NavigationViewControllable())
+    falling.viewControllable.uiController.tabBarItem = TabItem.falling.item
+
+    let chat = ChatBuilder(
+      chatRoomBuilder: chatRoomBuilder,
+      factory: ChatFactory(chatRoomBuilder: chatRoomBuilder, chatUseCase: chatUseCase))
+      .build(rootViewControllable: NavigationViewControllable())
+    chat.viewControllable.uiController.tabBarItem = TabItem.chat.item
+
+    let myPage = MyPageBuilder(
+      factory: MyPageFactory(
+        userStore: UserStore(myPageUseCase),
+        myPageUseCase: myPageUseCase,
+        userDomainUseCase: userdomainUseCase,
+        locationUseCase: locationUseCase,
+        inquiryBuilder: InquiryBuilder())
+    ).build(rootViewControllable: NavigationViewControllable())
+    myPage.viewControllable.uiController.tabBarItem = TabItem.myPage.item
+
+    root.setViewControllers([
+      falling,
+      like,
+      chat,
+      myPage
+    ].map(\.viewControllable))
+
+    let coordinator = MainCoordinator(viewControllable: root)
+    coordinator.attachChild(falling)
+    coordinator.attachChild(like)
+    coordinator.attachChild(chat)
+    coordinator.attachChild(myPage)
 
     return coordinator
   }

@@ -14,7 +14,7 @@ import Core
 import MyPageInterface
 
 public final class UserStore {
-  @Injected private var myPageUseCase: MyPageUseCaseInterface
+  private let myPageUseCase: MyPageUseCaseInterface
 
   var disposeBag = DisposeBag()
 
@@ -61,7 +61,8 @@ public final class UserStore {
     toastPublisher.asObservable()
   }
 
-  public init() {
+  public init(_ myPageUseCase: MyPageUseCaseInterface) {
+    self.myPageUseCase = myPageUseCase
     bind()
   }
 

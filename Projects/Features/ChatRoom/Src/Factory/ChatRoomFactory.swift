@@ -10,12 +10,19 @@ import Core
 import Domain
 
 public final class ChatRoomFactory {
-  @Injected var chatUseCase: ChatUseCaseInterface
-  @Injected var userUseCase: UserDomainUseCaseInterface
 
   private let talkUseCase: TalkUseCaseInterface
-  public init(talkUseCase: TalkUseCaseInterface) {
+  private let userUseCase: UserDomainUseCaseInterface
+  private let chatUseCase: ChatUseCaseInterface
+
+  public init(
+    talkUseCase: TalkUseCaseInterface,
+    userUseCase: UserDomainUseCaseInterface,
+    chatUseCase: ChatUseCaseInterface
+  ) {
     self.talkUseCase = talkUseCase
+    self.userUseCase = userUseCase
+    self.chatUseCase = chatUseCase
   }
 
   public func makeChatRoom(_ id: String) -> (ViewControllable, ChatRoomReactor) {

@@ -10,7 +10,15 @@ import UIKit
 import Core
 import DSKit
 
-final class AlarmSettingViewController: TFBaseViewController {
+public class SettingBaseViewController: TFBaseViewController {
+  public override func navigationSetting() {
+    super.navigationSetting()
+
+    self.navigationController?.setNavigationBarHidden(false, animated: true)
+  }
+}
+
+final class AlarmSettingViewController: SettingBaseViewController {
   typealias CellType = MyPageDefaultTableViewCell
   typealias VMType = AlarmSettingViewModel
 

@@ -30,7 +30,14 @@ let project = Project(
       demo: .ChatRoom,
       dependencies: [
         .feature(implementation: .ChatRoom),
+        .feature(implementation: .Auth),
         .data
+      ]
+    ),
+    .unitTest(
+      feature: .ChatRoom,
+      dependencies: [
+        .feature(implementation: .ChatRoom)
       ]
     )
   ]

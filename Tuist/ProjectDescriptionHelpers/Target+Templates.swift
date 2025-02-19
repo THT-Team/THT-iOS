@@ -11,38 +11,9 @@ import MyPlugin
 private func makeBundleID(with addition: String) -> String {
 	(rootPackagesName + addition).lowercased()
 }
-//
+
 public extension Target {
-//	
-//	
-//	static func makeApp(
-//		name: String,
-//		dependencies: [ProjectDescription.TargetDependency]
-//	) -> Target {
-//    .target(
-//      name: name,
-//      destinations: .iOS,
-//      product: .app,
-//      bundleId: rootPackagesName,
-//      deploymentTargets: basicDeployment,
-//      infoPlist: .default,
-//      sources: ["Src/**"],
-//      resources: ["Resources/**"],
-//      dependencies: dependencies,
-//      settings: <#T##Settings?#>, coreDataModels: <#T##[CoreDataModel]#>, environmentVariables: <#T##[String : EnvironmentVariable]#>, launchArguments: <#T##[LaunchArgument]#>, additionalFiles: <#T##[FileElement]#>, buildRules: <#T##[BuildRule]#>, mergedBinaryType: <#T##MergedBinaryType#>, mergeable: <#T##Bool#>, onDemandResourcesTags: <#T##OnDemandResourcesTags?#>
-//			name: name,
-//      destinations: .iOS,
-//			product: .app,
-//			bundleId: makeBundleID(with: "app"),
-//			deploymentTarget: basicDeployment,
-//			infoPlist: .extendingDefault(with: infoPlistExtension(name: name)),
-//			sources: sources,
-//			resources:  [.glob(pattern: .relativeToRoot("Projects/App/Resources/**"))],
-//			dependencies: dependencies
-////			settings: projectSettings
-//		)
-//	}
-//
+
   private static func makeDemoApp(
     name: String,
     sources: SourceFilesList,
@@ -61,20 +32,8 @@ public extension Target {
       resources: resources,
       dependencies: dependencies
     )
-//    Target(
-//      name: name,
-//      platform: .iOS,
-//      product: .app,
-//      bundleId: makeBundleID(with: "demo." + name + "app"),
-//      deploymentTarget: basicDeployment,
-//      infoPlist: .extendingDefault(with: infoPlistExtension(name: "Demo\(name)")),
-//      sources: sources,
-//      resources:  resources,
-//      dependencies: dependencies
-////      settings: projectSettings
-//    )
   }
-//
+
 	static func makeFramework(
 		name: String,
 		sources: ProjectDescription.SourceFilesList,
@@ -106,7 +65,7 @@ public extension Target {
 			resources: resources
 		)
 	}
-//
+
 	private static func feature(
 		interface featureName: String,
 		dependencies: [ProjectDescription.TargetDependency] = [],
@@ -119,7 +78,7 @@ public extension Target {
 			resources: resources
 		)
 	}
-//
+
   private static func feature(
     demo featureName: String,
     dependencies: [TargetDependency] = [],
@@ -132,7 +91,7 @@ public extension Target {
       dependencies: dependencies
     )
   }
-//
+
 	static func feature(
 		implementation featureName: Feature,
 		dependencies: [ProjectDescription.TargetDependency] = [],
@@ -144,7 +103,7 @@ public extension Target {
 			resources: resources
 		)
 	}
-//
+
 	static func feature(
 		interface featureName: Feature,
 		dependencies: [ProjectDescription.TargetDependency] = [],
@@ -156,7 +115,7 @@ public extension Target {
 			resources: resources
 		)
 	}
-//
+
   static func feature(
     demo featureName: Feature,
     dependencies: [TargetDependency] = [],
@@ -178,6 +137,28 @@ public extension Target {
 			dependencies: dependencies
 		)
 	}
+
+  static func unitTest(
+    feature: Feature,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    .makeFramework(
+      name: feature.rawValue + "Test",
+      sources: [ "Test/Src/**" ],
+      dependencies: dependencies,
+      product: .unitTests
+    )
+  }
+
+  static func testing(
+    feature: Feature,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    .makeFramework(
+      name: feature.rawValue + "Testing",
+      sources: [ "Testing/Src/**" ],
+      dependencies: dependencies,
+      product: .framework
+    )
+  }
 }
-//
-//

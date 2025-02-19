@@ -36,6 +36,10 @@ public final class PhoneNumberInputVM: PhoneNumberViewModelType {
     self.useCase = useCase
   }
 
+  deinit {
+    TFLogger.cycle(name: self)
+  }
+
   public func transform(input: Input) -> Output {
     let initialPhoneNumber = Driver.just(useCase.fetchPhoneNumber() ?? "")
       .debug("saved phoneNumber")

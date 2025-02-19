@@ -33,17 +33,24 @@ public protocol SignUpBottomSheetFactoryType {
 
 public struct MyPageFactory: SignUpBottomSheetFactoryType {
   public let userStore: UserStore
-  @Injected var myPageUseCase: MyPageUseCaseInterface
-  @Injected var userDomainUseCase: UserDomainUseCaseInterface
-  @Injected var locationUseCase: LocationUseCaseInterface
-  @Injected var authUseCase: AuthUseCaseInterface
+  public let myPageUseCase: MyPageUseCaseInterface
+  private let userDomainUseCase: UserDomainUseCaseInterface
+  public let locationUseCase: LocationUseCaseInterface
 
   public var inquiryBuilder: any AuthInterface.InquiryBuildable
 
-  public init(userStore: UserStore, inquiryBuilder: any AuthInterface.InquiryBuildable) {
-    self.userStore = userStore
-    self.inquiryBuilder = inquiryBuilder
-  }
+  public init(
+    userStore: UserStore,
+    myPageUseCase: MyPageUseCaseInterface,
+    userDomainUseCase: UserDomainUseCaseInterface,
+    locationUseCase: LocationUseCaseInterface,
+    inquiryBuilder: any AuthInterface.InquiryBuildable) {
+      self.userStore = userStore
+      self.myPageUseCase = myPageUseCase
+      self.userDomainUseCase = userDomainUseCase
+      self.locationUseCase = locationUseCase
+      self.inquiryBuilder = inquiryBuilder
+    }
 
   public func makeGenderSheet(gender: Gender) -> BottomSheetPresentable {
     let vm = PreferGenderVM(initialValue: .text(text: gender.rawValue), useCase: myPageUseCase, userStore: userStore)
@@ -59,21 +66,21 @@ public struct MyPageFactory: SignUpBottomSheetFactoryType {
 
   public func editSmokingBottomSheetFlow(frequency: Frequency) -> BottomSheetPresentable {
     let vm = SmokingEditVM(initialValue: .text(text: frequency.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
+                           userStore: userStore)
     let vc = SmokingEditVC(viewModel: vm)
     return (vm, vc)
   }
 
   public func editDrinkingBottomSheetFlow(frequency: Frequency) -> BottomSheetPresentable {
     let vm = DrinkingEditVM(initialValue: .text(text: frequency.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
+                            userStore: userStore)
     let vc = DrinkingEditVC(viewModel: vm)
     return (vm, vc)
   }
 
   public func editReligionBottomSheetFlow(religion: Religion) -> BottomSheetPresentable {
     let vm = ReligionEditVM(initialValue: .text(text: religion.rawValue), useCase: myPageUseCase,
-    userStore: userStore)
+                            userStore: userStore)
     let vc = ReligionEditVC(viewModel: vm)
     return (vm, vc)
   }
@@ -119,7 +126,7 @@ extension MyPageFactory: MyPageFactoryType {
 }
 
 extension MyPageFactory: MySettingBuildable {
-  public func build(rootViewControllable: any ViewControllable, user: User) -> any MySettingCoordinating {
+  public func build(rootViewControllable: (any ViewControllable), user: User) -> any MySettingCoordinating {
     MySettingCoordinator(viewControllable: rootViewControllable, factory: self)
   }
 }

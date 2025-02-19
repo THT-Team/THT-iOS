@@ -157,7 +157,7 @@ final class PhotoInputViewModel: BasePenddingViewModel, ViewModelType {
       .debug("saved filed URLS:")
       .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, user in
-        owner.onNext?(owner.pendingUser)
+        owner.onNext?(user)
       }.disposed(by: disposeBag)
 
     return Output(

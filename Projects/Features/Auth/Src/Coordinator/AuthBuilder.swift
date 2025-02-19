@@ -14,12 +14,13 @@ import DSKit
 import Core
 
 public final class AuthBuilder: AuthBuildable {
+  private let signUpBuilder: SignUpBuildable
 
-  public init() { }
+  public init(signUpBuilder: SignUpBuildable) {
+    self.signUpBuilder = signUpBuilder
+  }
 
-  public func build(rootViewController: ViewControllable) -> AuthCoordinating {
-    let coordinator = AuthCoordinator(viewControllable: rootViewController)
-
-    return coordinator
+  public func build() -> AuthCoordinating {
+    AuthCoordinator(viewControllable: ProgressNavigationViewControllable(), signUpBuilder: signUpBuilder)
   }
 }

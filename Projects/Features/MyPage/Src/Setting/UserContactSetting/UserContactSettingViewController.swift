@@ -10,7 +10,7 @@ import UIKit
 import Core
 import DSKit
 
-final class UserContactSettingViewController: TFBaseViewController {
+final class UserContactSettingViewController: SettingBaseViewController {
   private let mainView = UserContactSettingView()
   private let viewModel: UserContactSettingViewModel
 
