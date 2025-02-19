@@ -24,11 +24,11 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   private var cancellable = Set<AnyCancellable>()
   private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
   private let client: SocketInterface
-  private let userStore: UserDefaultRepository
+  private let tokenStore: TokenStore
 
-  public init(socketInterface: SocketInterface, userStore: UserDefaultRepository) {
+  public init(socketInterface: SocketInterface, tokenStore: TokenStore) {
     self.client = socketInterface
-    self.userStore = userStore
+    self.tokenStore = tokenStore
   }
 
   public func connect() {
@@ -51,11 +51,11 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
   }
   
   public func send(destination: String, message: String, participant: [ChatRoomInfo.Participant]) {
-    guard let currentID = userStore.fetchModel(for: .token, type: Token.self)?.userUuid,
+    guard let currentID = tokenStore.getToken()?.userUuid,
           let currentUser = participant.first(where: { $0.id == currentID }) else {
       return
     }
-    client.send(destination: destination, message: ChatMessage.Request(participant: currentUser, message: message))
+    client.send(destination: destination, sender: currentUser, message: message)
   }
 
   public func listen() -> RxSwift.Observable<ChatSignalType> {
