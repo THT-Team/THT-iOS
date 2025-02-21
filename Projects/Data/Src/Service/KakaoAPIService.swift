@@ -15,19 +15,7 @@ import Domain
 import Moya
 import RxSwift
 
-public final class KakaoAPIService: ProviderProtocol {
-  public typealias Target = KakaoAPITarget
-  public var provider: MoyaProvider<Target>
-
-  public init(isStub: Bool, sampleStatusCode: Int, customEndpointClosure: ((Target) -> Endpoint)?) {
-    self.provider = Self.consProvider(isStub, sampleStatusCode, customEndpointClosure)
-  }
-
-  public convenience init() {
-    self.init(isStub: false, sampleStatusCode: 200, customEndpointClosure: nil)
-  }
-}
-
+public typealias KakaoAPIService = BaseRepository<KakaoAPITarget>
 
 extension KakaoAPIService: KakaoAPIServiceType {  
   public func fetchLocationByAddress(address: String) -> Single<LocationReq?> {
