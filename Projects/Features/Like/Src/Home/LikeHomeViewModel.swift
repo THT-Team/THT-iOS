@@ -14,7 +14,7 @@ import Domain
 import RxSwift
 import RxCocoa
 
-public typealias LikeTopicSection = (topic: String, [Like])
+public typealias LikeTopicSection = (key: String, [Like])
 
 public final class LikeHomeViewModel: ViewModelType {
   private let likeUseCase: LikeUseCaseInterface
@@ -185,19 +185,19 @@ extension LikeHomeViewModel {
 
     deleteItem
       .withLatestFrom(snapshot) { item, snapshot in
-        let section: LikeTopicSection? = snapshot.first(where: { (topic, _) in
-          topic == item.topic
+        let section: LikeTopicSection? = snapshot.first(where: { (key, _) in
+          key == item.key
         }) ?? nil
         guard var (_, items) = section else { return snapshot }
         items.removeAll { $0.identifier == item.identifier }
 
-        let index = snapshot.firstIndex { (topic, _) in
-          topic == item.topic
+        let index = snapshot.firstIndex { (key, _) in
+          key == item.key
         }
         guard let index else { return snapshot }
 
         var mutable = snapshot
-        mutable[index] = (item.topic, items)
+        mutable[index] = (item.key, items)
 
         return mutable
       }

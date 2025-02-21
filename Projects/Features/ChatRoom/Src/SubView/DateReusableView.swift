@@ -8,7 +8,7 @@
 import UIKit
 import DSKit
 
-public final class DateReusableView: TFCollectionReusableView {
+public final class DateReusableView: TFBaseCollectionReusableView {
 
   private let dateLabel: UILabel = {
     let label = UILabel()
@@ -18,7 +18,7 @@ public final class DateReusableView: TFCollectionReusableView {
     return label
   }()
 
-  public override func setUpViews() {
+  public override func makeUI() {
     addSubviews(dateLabel)
 
     dateLabel.snp.makeConstraints {

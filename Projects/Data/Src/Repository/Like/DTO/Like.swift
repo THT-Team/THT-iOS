@@ -16,7 +16,8 @@ extension Like {
     let topic, issue, userUUID, username: String
     let profileURL: String
     let age: Int
-    let address, receivedTime: String
+    let address: String
+    let receivedTime: Date
 
     enum CodingKeys: String, CodingKey {
       case dailyFallingIdx, likeIdx, topic, issue

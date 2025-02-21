@@ -73,5 +73,9 @@ final class LikeProfileViewController: TFBaseViewController {
     output.isBlurHidden
       .drive(visualEffectView.rx.isHidden)
       .disposed(by: disposeBag)
+
+    output.toast
+      .bind(to: TFToast.shared.rx.makeToast)
+      .disposed(by: disposeBag)
   }
 }
