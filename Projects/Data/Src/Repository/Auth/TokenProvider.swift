@@ -40,15 +40,17 @@ extension DefaultTokenProvider: TokenProvider {
   }
 }
 
+public enum AppEnvironment {
+  case debug
+  case release
+}
+
 public class DefaultTokenRefresher: ProviderProtocol {
-  public enum Environment {
-    case debug
-    case release
-  }
+
   public typealias Target = TokenProviderTarget
   
   public var provider: MoyaProvider<Target>
-  public init(_ environment: Environment) {
+  public init(_ environment: AppEnvironment) {
     switch environment {
     case .debug:
       provider = Self.makeProvider()

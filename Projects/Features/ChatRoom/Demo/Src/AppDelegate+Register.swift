@@ -33,7 +33,7 @@ extension AppDelegate {
       })
 
     container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(tokenStore: UserDefaultTokenStore.shared)
+      DefaultTalkUseCase(tokenStore: tokenStore)
     }
 
     container.register(

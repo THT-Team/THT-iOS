@@ -14,6 +14,8 @@ import Feature
 import Networks
 import Domain
 
+import Moya
+
 extension AppDelegate {
   var container: DIContainer {
     DIContainer.shared
@@ -21,12 +23,12 @@ extension AppDelegate {
 
   func registerDependencies() {
 
-    let tokenStore: TokenStore = UserDefaultTokenStore.shared
-    let tokenRefresher = DefaultTokenRefresher(.debug)
+    // MARK: Envrionment
+    let provider = EnvironmentProvider(.debug)
+    let environment = provider.environment
 
-    let session = SessionProvider.create(refresher: tokenRefresher, tokenStore: tokenStore)
-//    let environment = RepositoryEnvironment.release(session)
-    let environment = RepositoryEnvironment.debug
+    let tokenStore: TokenStore = provider.tokenStore
+    let tokenRefresher = provider.tokenRefresher
 
     // MARK: Service
     let authService: AuthServiceType = DefaultAuthService(
