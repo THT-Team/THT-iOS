@@ -22,6 +22,9 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
     let userSignUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)
     
     return [
+      SectionModel(
+        type: .banner,
+        items: [.item(MySetting.Item(title: ""))]),
       createAccountMenus(signUpInfo: userSignUpInfo, user: user),
       SectionModel(
         type: .activity,
@@ -218,7 +221,7 @@ extension MyPageUseCase {
         .item(MySetting.Item(title: "핸드폰 번호", content: user.phoneNumber)),
         .item(MySetting.Item(title: "이메일", content: user.email)),
       ])
-    if let signUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self), let signUpType =  signUpInfo.typeList.first {
+    if let signUpInfo, let signUpType =  signUpInfo.typeList.first {
       switch signUpType {
       case .kakao:
         return SectionModel(

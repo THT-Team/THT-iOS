@@ -25,6 +25,7 @@ public protocol MenuType {
 
 public enum MySetting {
   public enum Section: Int, CaseIterable {
+    case banner
     case account
     case activity
     case location
@@ -33,8 +34,9 @@ public enum MySetting {
     case law
     case accoutSetting
 
-    public var header: String {
+    public var header: String? {
       switch self {
+      case .banner: return nil
       case .account:
         return "계정"
       case .activity:

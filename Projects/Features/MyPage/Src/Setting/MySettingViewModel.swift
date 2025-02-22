@@ -25,7 +25,6 @@ public final class MySettingViewModel: ViewModelType {
   var onBackBtn: (() -> Void)?
 
   public struct Input {
-    let viewDidLoad: Driver<Void>
     let indexPath: Driver<IndexPath>
     let backBtnTap: Signal<Void>
   }

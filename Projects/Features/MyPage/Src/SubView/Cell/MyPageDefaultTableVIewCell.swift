@@ -34,11 +34,23 @@ final class MyPageDefaultTableViewCell: TFBaseTableViewCell {
       containerView.isSelected = selected
     })
   }
-}
 
-enum MyPageDefaultTableVIewCellStyle {
-  case alarmCell
-  case normal
+  func bind(type: MySetting.Section, item: MySetting.MenuItem) {
+    switch type {
+    case .account:
+      containerView.accessoryType = nil
+      containerView.isEditable = false
+    case .location:
+      containerView.accessoryType = .pin
+      containerView.isEditable = true
+    default:
+      containerView.accessoryType = .rightArrow
+    }
+    containerView.text = item.title
+    containerView.contentText = item.content
+
+    setNeedsDisplay()
+  }
 }
 
 #if canImport(SwiftUI) && DEBUG

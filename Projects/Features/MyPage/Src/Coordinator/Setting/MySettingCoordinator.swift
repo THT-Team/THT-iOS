@@ -45,6 +45,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   private func navigate(section: MySetting.Section, item: MySetting.MenuItem) {
     switch section {
     // TODO: email, phoneNumber 분리하기
+    case .banner: break
     case .account:
       item.title == "핸드폰 번호"
       ? self.editPhoneNumberRootFlow(phoneNumber: "")
