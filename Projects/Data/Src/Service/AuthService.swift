@@ -107,23 +107,38 @@ public final class DefaultAuthService: AuthServiceType {
   }
 }
 
-public class SessionProvider {
-  private static var session: Moya.Session?
+public class EnvironmentProvider {
+  private let _environemnt: RepositoryEnvironment
+
+  public var environment: RepositoryEnvironment {
+    _environemnt
+  }
+  public let tokenRefresher: TokenRefresher
+  public let tokenStore: TokenStore
+
+  public init(_ environment: AppEnvironment) {
+    self.tokenRefresher = DefaultTokenRefresher(environment)
+    self.tokenStore = UserDefaultTokenStore.shared
+
+    switch environment {
+    case .debug:
+      self._environemnt = .debug
+    case .release:
+      self._environemnt = .release(EnvironmentProvider.create(
+        refresher: tokenRefresher,
+        tokenStore: tokenStore))
+    }
+  }
 
   public static func create(
     refresher: TokenRefresher,
     tokenStore: TokenStore
   ) -> Moya.Session {
-    if let session { return session }
-
-    let token = tokenStore.getToken() ?? Token(
-      accessToken: "",
-      accessTokenExpiresIn: Date().timeIntervalSince1970, userUuid: "")
     let authenticator = OAuthAuthenticator(
       refresher: refresher, tokenStore: tokenStore)
-    let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: token.toAuthOCredential())
-    let session = Session(interceptor: interceptor)
-    self.session = session
-    return session
+    let interceptor = AuthenticationInterceptor(
+      authenticator: authenticator,
+      credential: tokenStore.getToken()?.toAuthOCredential())
+    return Session(interceptor: interceptor)
   }
 }

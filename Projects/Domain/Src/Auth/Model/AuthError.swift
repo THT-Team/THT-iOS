@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum AuthError: Error {
+public enum AuthError: Error, LocalizedError {
   case invalidToken
   case tokenNotFound
   case invalidDeviceKey
@@ -17,8 +17,9 @@ public enum AuthError: Error {
   case phoneNumberNotFound
 
   case internalError
+  case custom(String)
 
-  var message: String {
+  public var errorDescription: String? {
     switch self {
     case .invalidToken:
       return "올바르지 않은 토큰입니다."
@@ -36,6 +37,7 @@ public enum AuthError: Error {
       return "휴대폰 번호를 찾을 수 없습니다."
     case .internalError:
       return "Unknown Internal Error"
+    case .custom(let msg): return msg
     }
   }
 }

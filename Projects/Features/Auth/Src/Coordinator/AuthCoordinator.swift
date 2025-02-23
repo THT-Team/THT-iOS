@@ -35,21 +35,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
-    launchFlow()
-  }
-
-  public func launchFlow() {
-    var (vc, vm) = factory.launchFlow()
-
-    vm.onAuthResult = { [weak self] result in
-      switch result {
-      case .needAuth:
-        self?.rootFlow()
-      case .toMain:
-        self?.finishFlow?()
-      }
-    }
-    self.viewControllable.setViewControllers([vc])
+    rootFlow()
   }
 
   // MARK: 인증 토큰 재발급 또는 가입 시
@@ -76,8 +62,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
     self.phoneNumberVerified = { [weak vm] number in
       vm?.onPhoneNumberVerified(number)
     }
-
-    self.viewControllable.setViewControllers([vc])
+    self.viewControllable.pushViewController(vc, animated: true)
   }
 }
 

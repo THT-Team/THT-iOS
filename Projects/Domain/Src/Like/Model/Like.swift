@@ -13,10 +13,11 @@ public struct Like {
   public let topic, issue, userUUID, username: String
   public let profileURL: String
   public let age: Int
-  public let address, receivedTime: String
+  public let address: String
+  public let receivedTime: Date
   public var isNew: Bool
 
-  public init(dailyFallingIdx: Int, likeIdx: Int, topic: String, issue: String, userUUID: String, username: String, profileURL: String, age: Int, address: String, receivedTime: String) {
+  public init(dailyFallingIdx: Int, likeIdx: Int, topic: String, issue: String, userUUID: String, username: String, profileURL: String, age: Int, address: String, receivedTime: Date) {
     self.dailyFallingIdx = dailyFallingIdx
     self.likeIdx = likeIdx
     self.topic = topic
@@ -42,5 +43,11 @@ extension Like: Hashable {
 
   public static func == (lhs: Like, rhs: Like) -> Bool {
     lhs.identifier == rhs.identifier
+  }
+}
+
+extension Like {
+  public var key: String {
+    receivedTime.key()
   }
 }

@@ -29,7 +29,7 @@ public final class AppRootBuilder: AppRootBuildable {
 
   public func build() -> (LaunchCoordinating & URLHandling) {
     return AppCoordinator(
-      viewControllable: NavigationViewControllable(),
+      viewControllable: ProgressNavigationViewControllable(),
       mainBuildable:  MainBuilder(),
       authBuildable: AuthBuilder(signUpBuilder: SignUpBuilder())
     )

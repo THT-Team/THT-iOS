@@ -9,7 +9,7 @@ import UIKit
 
 import Domain
 
-public class TFBaseCollectionReusableView: UICollectionReusableView {
+open class TFBaseCollectionReusableView: UICollectionReusableView {
 
   override public init(frame: CGRect) {
     super.init(frame: frame)
@@ -17,7 +17,7 @@ public class TFBaseCollectionReusableView: UICollectionReusableView {
   }
 
   public enum Metric {
-    static let horizontalPadding: CGFloat = 16
+    public static let horizontalPadding: CGFloat = 16
   }
 
   @available(*, unavailable)
@@ -25,7 +25,7 @@ public class TFBaseCollectionReusableView: UICollectionReusableView {
     fatalError("init(coder:) has not been implemented")
   }
 
-  public func makeUI() {
+  open func makeUI() {
     fatalError()
   }
 }

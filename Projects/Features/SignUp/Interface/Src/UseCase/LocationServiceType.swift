@@ -17,10 +17,21 @@ public protocol LocationServiceType {
   func requestLocation() -> Single<LocationCoordinate2D>
 }
 
-public enum LocationError: Error {
+public enum LocationError: Error, LocalizedError {
   case denied
   case invalidLocation
   case notDetermined
+
+  public var errorDescription: String? {
+    switch self {
+    case .denied:
+      return "위치 권한을 허용해주세요."
+    case .invalidLocation:
+      return "올바르지 않은 위치입니다."
+    case .notDetermined:
+      return nil
+    }
+  }
 }
 
 public struct LocationCoordinate2D {

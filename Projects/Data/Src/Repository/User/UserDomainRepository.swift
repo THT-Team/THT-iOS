@@ -41,18 +41,6 @@ extension DefaultUserDomainRepository: UserDomainRepositoryInterface {
   public func user(_ id: String) -> Single<User> {
     request(type: User.Res.self, target: .user(id))
       .map { $0.toDomain() }
-      .debug()
-      .catch { error in
-        if let moyaError = error as? MoyaError,
-           case let .objectMapping(error, response) = moyaError {
-          do {
-            let result = try JSONDecoder().decode(User.Res.self, from: response.data)
-          } catch {
-            print(error)
-          }
-        }
-        return .error(error)
-      }
   }
 }
 

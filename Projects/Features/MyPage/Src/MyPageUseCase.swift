@@ -16,42 +16,13 @@ import Domain
 import Core
 
 public final class MyPageUseCase: MyPageUseCaseInterface {
-  
+
   public func createSettingMenu(user: User) -> [MyPageInterface.SectionModel<MyPageInterface.MySetting.MenuItem>] {
 
-    let userSignUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)
-    
-    return [
-      createAccountMenus(signUpInfo: userSignUpInfo, user: user)
-      ,
-      SectionModel(
-        type: .activity,
-        items: [.item(MySetting.Item(title: "저장된 연락처 차단하기"))]),
-      SectionModel(
-        type: .location,
-        items: [.item(MySetting.Item(title: "위치 설정", content: user.address))]),
-      SectionModel(
-        type: .notification,
-        items: [.item(MySetting.Item(title: "알림 설정"))]),
-      SectionModel(
-        type: .support,
-        items: [
-          .linkItem(MySetting.LinkItem(title: "자주 묻는 질문", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .item(MySetting.Item(title: "문의 및 피드백 보내기"))]),
-      SectionModel(
-        type: .law,
-        items: [
-          .linkItem(MySetting.LinkItem(title: "서비스 이용약관", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "개인정보 처리방침", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "위치정보 이용약관", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "라이센스", url: URL(string: "https://www.notion.so/janechoi/46bf7dbf13da4ca5a2e8dc44a5fb9236?pvs=4")!)),
-          .linkItem(MySetting.LinkItem(title: "사업자 정보", url: URL(string: "http://www.ftc.go.kr/bizCommPop.do?wrkr_no=6806400545")!))]),
-      SectionModel(
-        type: .accoutSetting,
-        items: [.item(MySetting.Item(title: "계정 설정"))]),
-    ]
+    SectionGenerator.createMySettingSections(
+      user: user,
+      list: UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)?.typeList ?? [])
   }
-  
 
   private let repository: MyPageRepositoryInterface
   private let authService: AuthServiceType
@@ -79,7 +50,7 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
 
   public func saveAlarmSetting(_ alarmSetting: AlarmSetting) -> Completable {
     repository.updateAlarmSetting(alarmSetting.settings)
-      .flatMapCompletable { 
+      .flatMapCompletable {
         .create { observer in
           UserDefaultRepository.shared.saveModel(alarmSetting, key: .alarmSetting)
           observer(.completed)
@@ -111,9 +82,7 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
   public func logout() -> Single<Void> {
     removeUser()
     return repository.logout()
-      .flatMap { [unowned self] _ in
-        return .just(())
-      }
+      .map { _ in }
   }
 
   public func withdrawal(reason: String, feedback: String) -> RxSwift.Single<Void> {
@@ -143,23 +112,23 @@ extension MyPageUseCase {
   public func updateIntroduce(_ introduce: String) -> Single<Void> {
     repository.updateIntroduction(introduce)
   }
-  
+
   public func updateHeight(_ height: Int) -> Single<Void> {
     repository.updateHeight(height)
   }
-  
+
   public func updatePreferGender(_ gender: Gender) -> Single<Void> {
     repository.updatePreferGender(gender)
   }
-  
+
   public func updateSmoking(_ frequency: Frequency) -> Single<Void> {
     repository.updateSmoking(frequency)
   }
-  
+
   public func updateDrinking(_ frequency: Frequency) -> Single<Void> {
     repository.updateDrinking(frequency)
   }
-  
+
   public func updateReligion(_ religion: Religion) -> Single<Void> {
     repository.updateReligion(religion)
   }
@@ -193,61 +162,5 @@ extension MyPageUseCase {
 
   public func processImage(_ result: PhotoItem) -> Single<Data> {
     imageService.bind(result, imageSize: .profile)
-  }
-}
-
-public enum MyPageError: Error, LocalizedError {
-  case invalidNickname
-  case duplicateNickname
-
-  public var errorDescription: String? {
-    switch self {
-    case .invalidNickname:
-      return "닉네임은 5자 이상 입력해주세요."
-    case .duplicateNickname:
-      return "중복된 닉네임입니다."
-    }
-  }
-}
-
-
-extension MyPageUseCase {
-  private func createAccountMenus(signUpInfo: UserSignUpInfoRes?, user: User) -> SectionModel<MySetting.MenuItem> {
-    let defaultSection = SectionModel<MySetting.MenuItem>(
-      type: .account,
-      items: [
-        .item(MySetting.Item(title: "핸드폰 번호", content: user.phoneNumber)),
-        .item(MySetting.Item(title: "이메일", content: user.email)),
-      ])
-    if let signUpInfo = UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self), let signUpType =  signUpInfo.typeList.first {
-      switch signUpType {
-      case .kakao:
-        return SectionModel(
-          type: .account,
-          items: [
-            .item(MySetting.Item(title: "연동된 SNS", content: "카카오")),
-          ])
-      case .naver:
-        return SectionModel(
-          type: .account,
-          items: [
-            .item(MySetting.Item(title: "연동된 SNS", content: "네이버")),
-          ])
-      case .google:
-        return SectionModel(
-          type: .account,
-          items: [
-            .item(MySetting.Item(title: "연동된 SNS", content: "Google")),
-          ])
-      case .apple:
-        return SectionModel(
-          type: .account,
-          items: [
-            .item(MySetting.Item(title: "연동된 SNS", content: "Apple")),
-          ])
-      case .normal: return defaultSection
-      }
-    }
-    return defaultSection
   }
 }

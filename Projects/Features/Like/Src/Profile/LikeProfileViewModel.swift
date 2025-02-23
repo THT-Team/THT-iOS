@@ -41,6 +41,7 @@ public final class LikeProfileViewModel: ViewModelType {
     let topic: Driver<TopicViewModel>
     let sections: Driver<[ProfileDetailSection]>
     let isBlurHidden: Driver<Bool>
+    let toast: Observable<String>
   }
 
   public func transform(input: Input) -> Output {
@@ -49,6 +50,7 @@ public final class LikeProfileViewModel: ViewModelType {
     let errorSubject = PublishSubject<Error>()
     let isBlurHidden = BehaviorRelay<Bool>(value: true)
     let profileAction = PublishSubject<LikeProfileAction>()
+    let toastPublisher = PublishSubject<String>()
 
     let userInfo = input.trigger
       .asObservable()
@@ -56,6 +58,10 @@ public final class LikeProfileViewModel: ViewModelType {
       .flatMap { owner -> Observable<User> in
         owner.userUseCase.user(owner.like.userUUID)
           .asObservable()
+          .catch { error in
+            toastPublisher.onNext(error.localizedDescription)
+            return .empty()
+          }
       }
       .asDriverOnErrorJustEmpty()
       .map { $0.toProfileSection() }
@@ -128,7 +134,8 @@ public final class LikeProfileViewModel: ViewModelType {
     return Output(
       topic: Driver.just(self.like).map { TopicViewModel(topic: $0.topic, issue: $0.issue) },
       sections: userInfo,
-      isBlurHidden: isBlurHidden.asDriver()
+      isBlurHidden: isBlurHidden.asDriver(),
+      toast: toastPublisher
     )
   }
 }

@@ -14,6 +14,8 @@ import Feature
 import Networks
 import Domain
 
+import Moya
+
 extension AppDelegate {
   var container: DIContainer {
     DIContainer.shared
@@ -21,11 +23,12 @@ extension AppDelegate {
 
   func registerDependencies() {
 
-    let tokenStore: TokenStore = UserDefaultTokenStore.shared
-    let tokenRefresher = DefaultTokenRefresher()
+    // MARK: Envrionment
+    let provider = EnvironmentProvider(.debug)
+    let environment = provider.environment
 
-    let session = SessionProvider.create(refresher: tokenRefresher, tokenStore: tokenStore)
-    let environment = RepositoryEnvironment.release(session)
+    let tokenStore: TokenStore = provider.tokenStore
+    let tokenRefresher = provider.tokenRefresher
 
     // MARK: Service
     let authService: AuthServiceType = DefaultAuthService(
@@ -69,7 +72,7 @@ extension AppDelegate {
       interface: LikeUseCaseInterface.self,
       implement: {
         LikeUseCase(
-          repository: LikeRepository(environment))})
+          repository: LikeRepository(.debug))})
     
     container.register(
       interface: ChatUseCaseInterface.self,
@@ -90,7 +93,7 @@ extension AppDelegate {
       interface: LocationUseCaseInterface.self,
       implement: { LocationUseCase(
         locationService: LocationService(),
-        kakaoAPIService: KakaoAPIService()) })
+        kakaoAPIService: KakaoAPIService(environment)) })
 
     container.register(interface: TalkUseCaseInterface.self) {
       DefaultTalkUseCase(

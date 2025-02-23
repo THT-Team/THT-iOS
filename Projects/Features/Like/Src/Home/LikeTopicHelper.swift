@@ -11,23 +11,23 @@ import Domain
 
 public struct LikeHelper {
   public static func preprocess(initial: [LikeTopicSection] = [], _ raws: [Like]) -> [LikeTopicSection] {
-    var topics: [String] = initial.map { $0.topic }
+    var keys: [String] = initial.map { $0.key }
     var sections: [String: [Like]] = [:]
     initial.forEach { (key, items) in
       sections[key] = items
     }
 
     raws.forEach { item in
-      if sections[item.topic] == nil {
-        topics.append(item.topic)
+      if sections[item.key] == nil {
+        keys.append(item.key)
       }
-      sections[item.topic, default: []].append(item)
+      sections[item.key, default: []].append(item)
     }
 
-    return topics
-      .compactMap { topic -> LikeTopicSection? in
-        guard let value = sections[topic] else { return nil }
-        return (topic, value)
+    return keys
+      .compactMap { key -> LikeTopicSection? in
+        guard let value = sections[key] else { return nil }
+        return (key, value)
     }
   }
 }
