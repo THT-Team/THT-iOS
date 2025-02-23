@@ -20,17 +20,31 @@ public extension Target {
     resources: ResourceFileElements? = [],
     dependencies: [TargetDependency]
   ) -> Target {
-    .target(
+    let settings: Settings = .settings(
+      base: .init()
+        .manualCodeSigning()
+        .bitcodeEnabled(false)
+        .otherLinkerFlags(["-ObjC"])
+      ,
+      configurations: [
+        .debug,
+        .release
+      ],
+      defaultSettings: .recommended)
+    
+    return .target(
       name: name,
       destinations: .iOS,
       product: .app,
       productName: name,
-      bundleId: makeBundleID(with: name),
+//      bundleId: makeBundleID(with: name),
+      bundleId: "com.tht.demo.fallingdemoapp",
       deploymentTargets: basicDeployment,
       infoPlist: infoPlistExtension,
       sources: sources,
       resources: resources,
-      dependencies: dependencies
+      dependencies: dependencies,
+      settings: settings
     )
   }
 
