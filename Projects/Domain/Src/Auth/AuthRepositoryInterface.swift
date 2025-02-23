@@ -16,5 +16,5 @@ public protocol AuthRepositoryInterface {
 
 public protocol SocialLoginRepositoryInterface {
   func kakaoLogin() -> Single<SNSUserInfo>
-  func appleLogin() -> Single<SNSUserInfo>
+//  func appleLogin() -> Single<SNSUserInfo>
 }
