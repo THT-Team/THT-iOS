@@ -1,4 +1,4 @@
-git_url("git@github.com:THT-Team/iOSCertificate.git")
+git_url("https://github.com/THT-Team/iOSCertificate.git")
 
 storage_mode("git")
 
