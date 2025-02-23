@@ -21,10 +21,16 @@ public protocol AppRootBuildable {
 }
 
 public final class AppRootBuilder: AppRootBuildable {
+  @Injected var talkUseCase: TalkUseCaseInterface
+  @Injected var userdomainUseCase: UserDomainUseCaseInterface
+  @Injected var chatUseCase: ChatUseCaseInterface
   public init() { }
 
   lazy var fallingBuildable: FallingBuildable = {
-    FallingBuilder(chatRoomBuilder: ChatRoomBuilder(talkUseCase: MockTalkUseCase()))
+    FallingBuilder(chatRoomBuilder: ChatRoomBuilder(ChatRoomFactory(
+      talkUseCase: talkUseCase,
+      userUseCase: userdomainUseCase,
+      chatUseCase: chatUseCase)))
   }()
 
   public func build() -> LaunchCoordinating {
