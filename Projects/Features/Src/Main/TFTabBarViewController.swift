@@ -63,52 +63,9 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
   }
 }
 
-enum TabItem {
-  case falling
-  case like
-  case chat
-  case myPage
-
-  var title: String {
-    switch self {
-    case .falling:
-      return "폴링"
-    case .like:
-      return "하트"
-    case .chat:
-      return "채팅"
-    case .myPage:
-      return "마이"
-    }
+extension UITabBarItem {
+  static let falling = UITabBarItem(title: "폴링", image: DSKitAsset.Image.Tab.falling.image, selectedImage: DSKitAsset.Image.Tab.fallingSelected.image.withRenderingMode(.alwaysOriginal))
+  static let like = UITabBarItem(title: "하트", image: DSKitAsset.Image.Tab.heart.image, selectedImage: DSKitAsset.Image.Tab.heartSelected.image.withRenderingMode(.alwaysOriginal))
+  static let chat = UITabBarItem(title: "채팅", image: DSKitAsset.Image.Tab.chat.image, selectedImage: DSKitAsset.Image.Tab.chatSelected.image.withRenderingMode(.alwaysOriginal))
+  static let myPage = UITabBarItem(title: "마이", image: DSKitAsset.Image.Tab.more.image, selectedImage: DSKitAsset.Image.Tab.moreSelected.image.withRenderingMode(.alwaysOriginal))
   }
-
-  var image: UIImage {
-    switch self {
-    case .falling:
-      return DSKitAsset.Image.Tab.falling.image
-    case .like:
-      return DSKitAsset.Image.Tab.heart.image
-    case .chat:
-      return DSKitAsset.Image.Tab.chat.image
-    case .myPage:
-      return DSKitAsset.Image.Tab.more.image
-    }
-  }
-
-  var selectedImage: UIImage {
-    switch self {
-    case .falling:
-      return DSKitAsset.Image.Tab.fallingSelected.image
-    case .like:
-      return DSKitAsset.Image.Tab.heartSelected.image
-    case .chat:
-      return DSKitAsset.Image.Tab.chatSelected.image
-    case .myPage:
-      return DSKitAsset.Image.Tab.moreSelected.image
-    }
-  }
-
-  var item: UITabBarItem {
-    return UITabBarItem(title: title, image: image, selectedImage: selectedImage.withRenderingMode(.alwaysOriginal))
-  }
-}

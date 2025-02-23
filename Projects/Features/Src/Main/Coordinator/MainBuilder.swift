@@ -49,19 +49,23 @@ final class MainBuilder: MainBuildable {
 
     let like = LikeBuilder(
       chatRoomBuilder: chatRoomBuilder,
-      factory: LikeFactory(chatRoomBuilder: chatRoomBuilder, userUseCase: userdomainUseCase))
+      factory: LikeFactory(
+        chatRoomBuilder: chatRoomBuilder,
+        userUseCase: userdomainUseCase,
+        likeUseCase: likeUseCase
+      ))
       .build(rootViewControllable: NavigationViewControllable())
-    like.viewControllable.uiController.tabBarItem = TabItem.like.item
+    like.viewControllable.uiController.tabBarItem = .like
 
     let falling = FallingBuilder(chatRoomBuilder: chatRoomBuilder)
       .build(rootViewControllable: NavigationViewControllable())
-    falling.viewControllable.uiController.tabBarItem = TabItem.falling.item
+    falling.viewControllable.uiController.tabBarItem = .falling
 
     let chat = ChatBuilder(
       chatRoomBuilder: chatRoomBuilder,
       factory: ChatFactory(chatRoomBuilder: chatRoomBuilder, chatUseCase: chatUseCase))
       .build(rootViewControllable: NavigationViewControllable())
-    chat.viewControllable.uiController.tabBarItem = TabItem.chat.item
+    chat.viewControllable.uiController.tabBarItem = .chat
 
     let myPage = MyPageBuilder(
       factory: MyPageFactory(
@@ -71,7 +75,7 @@ final class MainBuilder: MainBuildable {
         locationUseCase: locationUseCase,
         inquiryBuilder: InquiryBuilder())
     ).build(rootViewControllable: NavigationViewControllable())
-    myPage.viewControllable.uiController.tabBarItem = TabItem.myPage.item
+    myPage.viewControllable.uiController.tabBarItem = .myPage
 
     root.setViewControllers([
       falling,
