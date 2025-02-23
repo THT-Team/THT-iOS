@@ -72,7 +72,6 @@ final class AuthRootViewController: TFBaseViewController {
     }
 
     [startPhoneBtn, startKakaoButton, startAppleBtn,
-//     startGoogleBtn, startNaverBtn,
     ]
       .forEach {
         buttonStackView.addArrangedSubview($0)

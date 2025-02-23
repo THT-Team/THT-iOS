@@ -49,7 +49,7 @@ extension AuthTarget: BaseTargetType {
       return Data()
     case .checkExistence(let phoneNumber):
       return Data("""
-{"isSignUp":false,"typeList":["NORMAL","KAKAO", "APPLE"]}
+{"isSignUp":true,"typeList":["NORMAL","KAKAO", "APPLE"]}
 """.utf8)
     }
   }

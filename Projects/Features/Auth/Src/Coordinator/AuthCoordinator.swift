@@ -38,20 +38,6 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
     rootFlow()
   }
 
-  public func launchFlow() {
-    var (vc, vm) = factory.launchFlow()
-
-    vm.onAuthResult = { [weak self] result in
-      switch result {
-      case .needAuth:
-        self?.rootFlow()
-      case .toMain:
-        self?.finishFlow?()
-      }
-    }
-    self.viewControllable.setViewControllers([vc])
-  }
-
   // MARK: 인증 토큰 재발급 또는 가입 시
   public func rootFlow() {
     let (vc, vm) = factory.rootFlow()

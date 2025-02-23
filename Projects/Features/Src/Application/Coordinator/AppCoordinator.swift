@@ -48,6 +48,8 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   public func launchFlow() {
     let vm = LauncherViewModel(useCase: useCase)
     let vc = TFAuthLauncherViewController(viewModel: vm)
+    self.viewControllable = vc
+    replaceWindowRootViewController(rootViewController: self.viewControllable)
 
     vm.onAuthResult = { [weak self] result in
       switch result {
@@ -57,8 +59,6 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
         self?.mainFlow()
       }
     }
-    self.viewControllable = vc
-    replaceWindowRootViewController(rootViewController: self.viewControllable)
   }
 
   // MARK: - public
