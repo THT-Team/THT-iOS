@@ -103,7 +103,7 @@ open class TFBaseViewController: UIViewController, ViewControllable {
 
     backButton.snp.makeConstraints {
       $0.top.equalTo(self.view.safeAreaLayoutGuide).offset(4)
-      $0.leading.equalTo(self.view)//.offset(16.adjusted)
+      $0.leading.equalTo(self.view)
       $0.size.equalTo(56.adjustedH)
     }
   }

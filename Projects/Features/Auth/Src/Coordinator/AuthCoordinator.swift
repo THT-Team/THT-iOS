@@ -35,7 +35,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
 
   public override func start() {
     replaceWindowRootViewController(rootViewController: self.viewControllable)
-    launchFlow()
+    rootFlow()
   }
 
   public func launchFlow() {
@@ -76,8 +76,7 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
     self.phoneNumberVerified = { [weak vm] number in
       vm?.onPhoneNumberVerified(number)
     }
-
-    self.viewControllable.setViewControllers([vc])
+    self.viewControllable.pushViewController(vc, animated: true)
   }
 }
 

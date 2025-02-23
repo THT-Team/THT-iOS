@@ -61,8 +61,7 @@ extension AuthUseCase: AuthUseCaseInterface {
 }
 
 extension AuthUseCase {
-  public func authenticate(_ type: AuthType) -> Single<AuthNavigation> {
-    saveSNSType(type.snsType)
+  public func authenticate(_ type: Domain.AuthType) -> Single<AuthNavigation> {
 
     switch type {
     case .apple:
@@ -104,11 +103,10 @@ extension AuthUseCase {
 
 extension AuthUseCase {
   private func authenticate(number: String) -> Single<AuthNavigation> {
-
     repository.checkUserExist(phoneNumber: number)
       .flatMap { [weak self] result -> Single<AuthNavigation> in
         guard let self else { return .error(AuthError.internalError) }
-
+        UserDefaultRepository.shared.saveModel(result, key: .sign_up_info)
         return result.isSignUp
         ? authService.login().map { _ in .main }
         : .just(.signUp(PendingUser(phoneNumber: number)))
@@ -116,7 +114,6 @@ extension AuthUseCase {
   }
 
   private func authenticate(user: SNSUserInfo) -> Single<AuthNavigation> {
-
     repository.checkUserExist(phoneNumber: user.phoneNumber)
       .flatMap { [weak self] result -> Single<AuthNavigation> in
         guard let self else { return .error(AuthError.internalError) }

@@ -15,13 +15,18 @@ import Domain
 
 public final class LikeFactory {
 
-  @Injected var likeUseCase: LikeUseCaseInterface
   private let chatRoomBuilder: ChatRoomBuildable
   private let userUseCase: UserDomainUseCaseInterface
+  private let likeUseCase: LikeUseCaseInterface
 
-  public init(chatRoomBuilder: ChatRoomBuildable, userUseCase: UserDomainUseCaseInterface) {
+  public init(
+    chatRoomBuilder: ChatRoomBuildable,
+    userUseCase: UserDomainUseCaseInterface,
+    likeUseCase: LikeUseCaseInterface
+  ) {
     self.chatRoomBuilder = chatRoomBuilder
     self.userUseCase = userUseCase
+    self.likeUseCase = likeUseCase
   }
 
   public func makeLikeHome() -> (ViewControllable, LikeHomeViewModel) {

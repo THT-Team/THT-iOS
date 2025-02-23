@@ -47,64 +47,46 @@ public final class MySettingViewModel: ViewModelType {
   public func transform(input: Input) -> Output {
     let user: Driver<User> = userStore.binding.asDriverOnErrorJustEmpty().compactMap { $0 }
     let toast = PublishRelay<String>()
-    let errorTracker = PublishSubject<Error>()
 
-    let sections = user
-      .map { [weak self] user in
+    let sections = user.map { [weak self] user in
       self?.useCase.createSettingMenu(user: user) ?? []
     }
 
-    input.indexPath
-      .compactMap { MySetting.Section(rawValue: $0.section) }
-      .filter { $0 == .location }
-      .throttle(.milliseconds(600), latest: false)
-      .withLatestFrom(user.map { $0.address })
-      .flatMapLatest(with: self) { owner, _ in
-        owner.locationUseCase.fetchLocation()
-          .map { location in
-            toast.accept("현재 위치가 업데이트 되었습니다.")
-            return location
-          }
-          .asDriver(onErrorRecover: { error in
-            errorTracker.onNext(error)
-            return .empty()
-          })
-      }
-      .flatMapLatest(with: self) { owner, location in
-        owner.useCase.updateLocation(location)
-          .asDriver(onErrorRecover: { error in
-            errorTracker.onNext(error)
-            return .empty()
-          })
-      }
-      .drive()
-      .disposed(by: disposeBag)
-
-    errorTracker
-      .compactMap { error -> String? in
-        if let error = error as? LocationError {
-          switch error {
-          case .denied:
-            return "위치 권한을 허용해주세요."
-          case .invalidLocation:
-            return "올바르지 않은 위치입니다."
-          case .notDetermined:
-            return nil
-          }
-        } else {
-          return "알 수 없는 에러."
-        }
-      }
-      .asSignal(onErrorSignalWith: .empty())
-      .emit(to: toast)
-      .disposed(by: disposeBag)
-
-    input.indexPath
+    let selectedItem = input.indexPath
       .withLatestFrom(sections) { indexPath, sections in
         let section = sections[indexPath.section].type
         let menu = sections[indexPath.section].items[indexPath.item]
         return (section: section, item: menu)
       }
+      .asObservable()
+
+    selectedItem
+      .filter { $0.0 == .location }
+      .withLatestFrom(user.map { $0.address })
+      .withUnretained(self)
+      .flatMap { owner, address in
+        owner.locationUseCase.fetchLocation()
+          .asObservable()
+          .catch({ error in
+            toast.accept(error.localizedDescription)
+            return .empty()
+          })
+      }
+      .withUnretained(self)
+      .flatMap { owner, request in
+        owner.useCase.updateLocation(request)
+          .asObservable()
+          .catch({ error in
+            toast.accept(error.localizedDescription)
+            return .empty()
+          })
+      }
+      .map { _ in "현재 위치가 업데이트 되었습니다." }
+      .bind(to: toast)
+      .disposed(by: disposeBag)
+
+    selectedItem
+      .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, component -> Void in
         owner.onMenuItem?(component.section, component.item)
       }.disposed(by: disposeBag)

@@ -35,7 +35,8 @@ extension AuthFactory: AuthFactoryType {
     let vm = AuthRootViewModel(useCase: useCase)
     let vc = AuthRootViewController()
     vc.viewModel = vm
-
+    vc.modalPresentationStyle = .fullScreen
+    vc.modalTransitionStyle = .crossDissolve
     return (vc, vm)
   }
 

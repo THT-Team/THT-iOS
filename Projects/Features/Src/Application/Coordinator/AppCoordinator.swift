@@ -25,6 +25,7 @@ protocol AppCoordinating {
 final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   private let mainBuildable: MainBuildable
   private let authBuildable: AuthBuildable
+  @Injected var useCase: AuthUseCaseInterface
   private var cancellables = Set<AnyCancellable>()
 
   init(
@@ -41,15 +42,33 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public override func start() {
-    authFlow()
+    launchFlow()
+  }
+
+  public func launchFlow() {
+    let vm = LauncherViewModel(useCase: useCase)
+    let vc = TFAuthLauncherViewController(viewModel: vm)
+
+    vm.onAuthResult = { [weak self] result in
+      switch result {
+      case .needAuth:
+        self?.authFlow()
+      case .toMain:
+        self?.mainFlow()
+      }
+    }
+    self.viewControllable = vc
+    replaceWindowRootViewController(rootViewController: self.viewControllable)
   }
 
   // MARK: - public
   func authFlow() {
     let coordinator = self.authBuildable.build()
+    self.viewControllable.present(coordinator.viewControllable, animated: true)
     attachChild(coordinator)
 
     coordinator.finishFlow = { [weak self, weak coordinator] in
+      self?.viewControllable.dismiss()
       self?.mainFlow()
       self?.detachChild(coordinator)
     }

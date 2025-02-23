@@ -30,7 +30,11 @@ final class MySettingsViewController: TFBaseViewController {
 
     setBackButton()
 
-    let label = UILabel.setH4TargetBold(text: "설정 관리", target: "")
+    let label = UILabel().then {
+      $0.text = "설정 관리"
+      $0.textColor = DSKitAsset.Color.neutral50.color
+      $0.font = .thtH4Sb
+    }
     self.view.addSubview(label)
 
     label.snp.makeConstraints {
