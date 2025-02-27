@@ -15,8 +15,7 @@ import Alamofire
 
 struct ErrorMaper {
   static func map(_ error: Error) -> APIError {
-    guard case let MoyaError.underlying(error, response) = error,
-          let data = response?.data else {
+    guard case let MoyaError.underlying(error, response) = error else {
       return APIError.unknown(error)
     }
     // Case 401 Refresh failed
@@ -28,6 +27,9 @@ struct ErrorMaper {
       return APIError.tokenRefreshFailed
     } else {
       do {
+        guard let data = response?.data else {
+          return APIError.unknown(error)
+        }
         let errorResponse = try JSONDecoder.customDeocder.decode(APIError.Response.self, from: data)
         return APIError.withResponse(errorResponse)
       } catch {
