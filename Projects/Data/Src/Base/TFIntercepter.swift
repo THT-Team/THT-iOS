@@ -22,7 +22,11 @@ final class OAuthAuthenticator: Authenticator {
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
-
+    if let token = tokenStore.getToken()?.accessToken {
+      urlRequest.headers.add(.authorization(bearerToken: token))
+    } else {
+      urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
+    }
   }
 
   func refresh(_ credential: OAuthCredential,

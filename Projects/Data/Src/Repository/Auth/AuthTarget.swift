@@ -34,6 +34,10 @@ extension AuthTarget: BaseTargetType {
     }
   }
 
+  public var headers: [String : String]? {
+    return nil
+  }
+
   // Request의 파라미터를 결정한다.
   public var task: Task {
     switch self {

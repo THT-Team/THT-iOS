@@ -16,9 +16,25 @@ import Moya
 import Core
 import Domain
 
-public typealias AuthRepository = BaseRepository<AuthTarget>
+public class AuthRepository: ProviderProtocol {
+  public typealias Target = AuthTarget
+  public var provider: Moya.MoyaProvider<AuthTarget>
+
+
+  public init(_ environment: RepositoryEnvironment) {
+    switch environment {
+    case .debug:
+      self.provider = Self.makeStubProvider()
+    case .release:
+      self.provider = Self.makeProvider()
+    }
+  }
+}
+
+
 
 extension AuthRepository: AuthRepositoryInterface {
+
   public func checkUserExist(phoneNumber: String) -> RxSwift.Single<UserSignUpInfoRes> {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
   }
