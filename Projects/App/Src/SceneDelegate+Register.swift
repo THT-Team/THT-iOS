@@ -24,7 +24,7 @@ extension AppDelegate {
   func registerDependencies() {
 
     // MARK: Envrionment
-    let provider = EnvironmentProvider(.debug)
+    let provider = EnvironmentProvider(.release)
     let environment = provider.environment
 
     let tokenStore: TokenStore = provider.tokenStore

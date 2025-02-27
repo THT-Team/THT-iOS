@@ -20,6 +20,7 @@ public enum PersistentKey: String, CaseIterable {
   case sign_up_info
   case token = "Token"
   case currentUUID = "current_uuid"
+  case appleID = "appleID"
 }
 
 public protocol KeyValueStorageInterface {
