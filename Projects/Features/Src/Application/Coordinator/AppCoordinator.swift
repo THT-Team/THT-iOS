@@ -95,6 +95,7 @@ extension AppCoordinator: URLHandling {
       .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in
         self?.childCoordinators.removeAll()
+        UserDefaultRepository.shared.removeUser()
         self?.authFlow()
       }
       .store(in: &cancellables)

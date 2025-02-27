@@ -13,6 +13,7 @@ import AuthInterface
 
 import Core
 import Domain
+import Networks
 
 public protocol AuthRootOutput: AnyObject {
 
@@ -20,6 +21,7 @@ public protocol AuthRootOutput: AnyObject {
   var onSignUpFlow: ((PendingUser) -> Void)? { get set }
   var onMainFlow: (() -> Void)? { get set }
   var onInquiryFlow: (() -> Void)? { get set }
+  var onError: (() -> Void)? { get set }
 
   func onPhoneNumberVerified(_ number: String)
 }
@@ -31,6 +33,7 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
   public var onSignUpFlow: ((PendingUser) -> Void)?
   public var onMainFlow: (() -> Void)?
   public var onInquiryFlow: (() -> Void)?
+  public var onError: (() -> Void)?
 
   struct Input {
     let buttonTap: Driver<SNSType>
@@ -53,6 +56,7 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
     let toastPublisher = PublishRelay<String>()
     let buttonTap = input.buttonTap
     let navigation = PublishSubject<AuthNavigation>()
+    let errorSubject = PublishSubject<Error>()
 
     let btnTap = buttonTap
       .throttle(.milliseconds(500), latest: false)
@@ -69,7 +73,10 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
       .compactMap { AuthType($0) }
       .flatMapLatest(with: self) { owner, type in
         owner.useCase.authenticate(type)
-          .asDriverOnErrorJustEmpty()
+          .asDriver { error in
+            errorSubject.onNext(error)
+            return .empty()
+          }
       }
       .drive(navigation)
       .disposed(by: disposeBag)
@@ -80,13 +87,17 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
       .flatMapLatest { owner, type in
         owner.useCase.authenticate(type)
           .asObservable()
+          .catch {
+            errorSubject.onNext($0)
+            return .empty()
+          }
       }
       .bind(to: navigation)
       .disposed(by: disposeBag)
 
     navigation
       .asDriver { error in
-        toastPublisher.accept(error.localizedDescription)
+        errorSubject.onNext(error)
         return .empty()
       }
       .drive(with: self) { owner, navigation in
@@ -103,6 +114,16 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
       .emit(with: self) { owner, _ in
         owner.onInquiryFlow?()
       }
+      .disposed(by: disposeBag)
+
+    errorSubject
+      .subscribe(onNext: { [weak self] error in
+        if case APIError.unknown = error {
+          self?.onError?()
+        } else {
+          toastPublisher.accept(error.localizedDescription)
+        }
+      })
       .disposed(by: disposeBag)
 
     return Output(toast: toastPublisher.asSignal(onErrorSignalWith: .empty()))

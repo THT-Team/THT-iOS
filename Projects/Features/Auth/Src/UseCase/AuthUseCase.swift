@@ -65,7 +65,10 @@ extension AuthUseCase {
 
     switch type {
     case .apple:
-      return .error(AuthError.invalidSNSUser)
+      return socialService.appleLogin()
+        .flatMap { [unowned self] user in
+          self.authenticate(user: user)
+        }
     case .google:
       return .error(AuthError.invalidSNSUser)
     case .naver:
@@ -114,7 +117,10 @@ extension AuthUseCase {
   }
 
   private func authenticate(user: SNSUserInfo) -> Single<AuthNavigation> {
-    repository.checkUserExist(phoneNumber: user.phoneNumber)
+    guard !user.phoneNumber.isEmpty else {
+      return .just(.signUp(PendingUser(user)))
+    }
+    return repository.checkUserExist(phoneNumber: user.phoneNumber)
       .flatMap { [weak self] result -> Single<AuthNavigation> in
         guard let self else { return .error(AuthError.internalError) }
 
