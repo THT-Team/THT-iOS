@@ -18,9 +18,8 @@ public final class PhoneNumberAuthVC: TFBaseViewController {
   }
 
   private(set) lazy var blurView: UIVisualEffectView = {
-    let effect = UIBlurEffect(style: .dark)
+    let effect = UIBlurEffect(style: .regular)
     let visualEffectView = UIVisualEffectView(effect: effect)
-    visualEffectView.alpha = 0
     return visualEffectView
   }()
 
@@ -46,7 +45,7 @@ public final class PhoneNumberAuthVC: TFBaseViewController {
     $0.updateAppearance { style in
       style.textColor = DSKitAsset.Color.primary500.color
       style.font = UIFont(name: "Menlo-Bold", size: 30)!//UIFont.thtH1B
-      style.backActiveColor = DSKitAsset.Color.primary500.color
+      style.backActiveColor = DSKitAsset.Color.neutral300.color
       style.backBorderColor = DSKitAsset.Color.neutral300.color
       style.backFocusColor = DSKitAsset.Color.neutral300.color
 
@@ -177,53 +176,49 @@ public final class PhoneNumberAuthVC: TFBaseViewController {
       publishSubject.onNext($0)
     }
 
+    let sendButtonTap = resendButton.rx.tap.asSignal()
+      .do(onNext: { [weak self] in
+        self?.codeInputTextField.text = ""
+        self?.codeInputTextField.setNeedsDisplay()
+      })
+
     let input = ViewModel.Input(
-      viewWillAppear: rx.viewWillAppear.asSignal().map { _ in },
+      trigger: .merge(
+        rx.viewWillAppear.asSignal().map { _ in },
+        sendButtonTap
+      ),
       codeInput: publishSubject.asDriverOnErrorJustEmpty(),
-      finishAnimationTrigger: animationFinish.asSignal(),
-      resendBtnTap: resendButton.rx.tap.asSignal()
-        .do(onNext: { [weak self] in
-          self?.codeInputTextField.text = ""
-        })
+      finishAnimationTrigger: animationFinish.asSignal()
     )
 
     let output = viewModel.transform(input: input)
 
     output.description
-      .drive(codeInputDescLabel.rx.text)
+      .bind(to: codeInputDescLabel.rx.text)
       .disposed(by: disposeBag)
-
-    output.error
-      .drive(with: self, onNext: { owner, error in
-        print(error.localizedDescription)
-      })
-      .disposed(by: disposeBag)
-
-    output.certificateSuccess
-      .drive(with: self) { owner, _ in
-        DispatchQueue.main.async {
-          owner.codeInputTextField.resignFirstResponder()
-        }
-      }.disposed(by: disposeBag)
-
-    output.certificateSuccess
-      .drive(with: self) { owner, _ in
-        owner.blurView.alpha = 1
-        owner.successPopup.isHidden = false
-        owner.successPopup.animationPlay {
-          animationFinish.accept(())
-        }
-      }
-      .disposed(by: disposeBag)
-
-    output.certificateFailuer
-      .drive(with: self) { owner, _ in
-        owner.codeInputErrDesc.isHidden = false
-        owner.codeInputTextField.onError()
-      }.disposed(by: disposeBag)
 
     output.timestamp
+      .asDriver(onErrorJustReturn: "")
       .drive(timerLabel.rx.text)
+      .disposed(by: disposeBag)
+
+    output.toast
+      .bind(to: TFToast.shared.rx.makeToast)
+      .disposed(by: disposeBag)
+
+    output.isCertificated
+      .asDriver(onErrorJustReturn: false)
+      .drive(with: self) { owner, isCertificated in
+        owner.blurView.isHidden = !isCertificated
+        owner.successPopup.isHidden = !isCertificated
+        if isCertificated {
+          owner.successPopup.animationPlay {
+            animationFinish.accept(())
+          }
+        } else {
+          owner.codeInputTextField.onError()
+        }
+      }
       .disposed(by: disposeBag)
   }
 }

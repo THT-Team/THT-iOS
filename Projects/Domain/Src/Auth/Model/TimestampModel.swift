@@ -9,8 +9,7 @@ import Foundation
 
 import Core
 
-public struct AuthCodeWithTimeStamp {
-  public let authCode: Int
+public struct TimeStamp {
   public let timeStamp: Date
   public let timeDuration: Int
   public var timeString: String {
@@ -22,15 +21,13 @@ public struct AuthCodeWithTimeStamp {
     ? String(format: "%02d:%02d", min, sec)
     : String(format: "%02d:%02d", 0, 0)
   }
-  public init(authCode: Int, timeDuration: Int) {
-    self.authCode = authCode
-    self.timeDuration = timeDuration
-    self.timeStamp = Date()
+
+  public var isAvailable: Bool {
+    abs(Int(timeStamp.timeIntervalSinceNow)) < timeDuration
   }
 
-  public func isAvailableCode() -> Bool {
-    let timeInterval = timeStamp.timeIntervalSinceNow
-    let sec = Int(timeInterval)
-    return abs(sec) < timeDuration
+  public init(timeDuration: Int) {
+    self.timeDuration = timeDuration
+    self.timeStamp = Date()
   }
 }
