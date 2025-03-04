@@ -12,7 +12,7 @@ import RxCocoa
 
 import Core
 
-import MyPageInterface
+import Domain
 
 public final class SelectWithdrawalViewModel: ViewModelType {
   var onSelect: ((WithdrawalReason) -> Void)?

@@ -12,6 +12,7 @@ import Core
 
 import RxCocoa
 import RxSwift
+import Domain
 
 final class NicknameInputViewModel: BasePenddingViewModel, ViewModelType {
 

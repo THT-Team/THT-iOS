@@ -22,7 +22,6 @@ let project = Project(
 			implementation: .Falling,
 			dependencies: [
 				.feature(interface: .Falling),
-				.feature(interface: .Auth),
         .dsKit,
 			]
 		),

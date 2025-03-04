@@ -12,8 +12,6 @@ import Moya
 import RxSwift
 
 import Networks
-
-import AuthInterface
 import Domain
 
 public typealias DefaultTokenProvider = BaseRepository<TokenProviderTarget>

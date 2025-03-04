@@ -9,6 +9,7 @@ import UIKit
 
 import DSKit
 import SignUpInterface
+import Domain
 
 final class ServiceAgreementRowView: UITableViewCell {
 

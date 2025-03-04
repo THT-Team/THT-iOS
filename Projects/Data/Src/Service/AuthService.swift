@@ -10,9 +10,6 @@ import Foundation
 import Core
 import Domain
 
-import AuthInterface
-import SignUpInterface
-
 import Moya
 import Alamofire
 import RxSwift

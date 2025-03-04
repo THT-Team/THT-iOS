@@ -10,7 +10,6 @@ import Foundation
 import Networks
 
 import Moya
-import AuthInterface
 
 public enum AuthTarget {
   case certificate(phoneNumber: String)

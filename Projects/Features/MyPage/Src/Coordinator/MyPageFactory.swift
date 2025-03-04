@@ -8,8 +8,6 @@
 import Core
 import DSKit
 import MyPageInterface
-import SignUpInterface
-import AuthInterface
 import Domain
 
 public protocol MyPageFactoryType {
@@ -37,14 +35,14 @@ public struct MyPageFactory: SignUpBottomSheetFactoryType {
   private let userDomainUseCase: UserDomainUseCaseInterface
   public let locationUseCase: LocationUseCaseInterface
 
-  public var inquiryBuilder: any AuthInterface.InquiryBuildable
+  public var inquiryBuilder: any InquiryBuildable
 
   public init(
     userStore: UserStore,
     myPageUseCase: MyPageUseCaseInterface,
     userDomainUseCase: UserDomainUseCaseInterface,
     locationUseCase: LocationUseCaseInterface,
-    inquiryBuilder: any AuthInterface.InquiryBuildable) {
+    inquiryBuilder: any InquiryBuildable) {
       self.userStore = userStore
       self.myPageUseCase = myPageUseCase
       self.userDomainUseCase = userDomainUseCase

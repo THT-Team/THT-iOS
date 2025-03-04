@@ -12,7 +12,6 @@ import RxSwift
 import RxCocoa
 import DSKit
 import MyPageInterface
-import SignUpInterface
 import Domain
 
 struct PreferGenderItemVM {
@@ -22,10 +21,12 @@ struct PreferGenderItemVM {
 
 final class PreferGenderVM: TFBaseCollectionVM<Gender, TFSimpleItemVM<Gender>> {
 
+
+
   override func processUseCase(value: Gender) -> Driver<Gender> {
     self.useCase.updatePreferGender(value)
       .map { _ in value }
-      .asDriver { error in
+      .asDriver { error -> Driver<Gender> in
 
         return .empty()
       }

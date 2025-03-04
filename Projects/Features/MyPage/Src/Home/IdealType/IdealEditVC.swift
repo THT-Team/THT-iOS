@@ -10,7 +10,6 @@ import DSKit
 
 import RxSwift
 import RxCocoa
-import SignUpInterface
 import MyPageInterface
 import Domain
 

@@ -11,7 +11,7 @@ import DSKit
 
 import Then
 import SnapKit
-import MyPageInterface
+import Domain
 
 final class MyPageDefaultTableViewCell: TFBaseTableViewCell {
 

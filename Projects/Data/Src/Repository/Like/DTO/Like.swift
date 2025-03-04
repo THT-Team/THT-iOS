@@ -7,7 +7,6 @@
 
 import Foundation
 
-import LikeInterface
 import Domain
 
 extension Like {

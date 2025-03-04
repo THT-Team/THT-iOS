@@ -7,7 +7,6 @@
 
 import Foundation
 
-import LikeInterface
 import Domain
 
 import RxSwift

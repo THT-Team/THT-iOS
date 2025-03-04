@@ -12,6 +12,7 @@ import Networks
 import RxSwift
 import RxMoya
 import Moya
+
 import Domain
 
 public typealias ChatRepository = BaseRepository<ChatTarget>

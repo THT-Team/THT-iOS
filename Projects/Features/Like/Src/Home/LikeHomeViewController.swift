@@ -162,7 +162,7 @@ extension LikeHomeViewController {
     else {
       return
     }
-    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [self] in
       cell.frame = CGRect(
         origin: .init(x: cell.frame.minX - self.mainView.collectionView.frame.width, y: cell.frame.minY),
         size: cell.frame.size)

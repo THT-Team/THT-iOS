@@ -9,8 +9,6 @@ import Foundation
 
 import Core
 
-public typealias AlertHandler = (() -> Void)?
-
 public protocol MyPageAlertCoordinating: Coordinator {
   var finishFlow: (() -> Void)? { get set }
   func showAlert(_ handler: AlertHandler, alertType: MyPageAlertType)

@@ -12,6 +12,7 @@ import RxSwift
 import RxCocoa
 import DSKit
 import MyPageInterface
+import Domain
 
 public protocol BottomSheetViewModelType {
   var handler: BottomSheetHandler? { get set }

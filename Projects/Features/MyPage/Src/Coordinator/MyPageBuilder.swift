@@ -8,7 +8,6 @@
 import Foundation
 
 import MyPageInterface
-import AuthInterface
 import Core
 
 public typealias MyPageDependency = SignUpBottomSheetFactoryType & MyPageFactoryType & MySettingBuildable

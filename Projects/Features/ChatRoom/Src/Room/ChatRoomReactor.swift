@@ -13,13 +13,7 @@ import Domain
 import RxSwift
 import RxCocoa
 import ReactorKit
-
-public protocol ChatRoomOutputType {
-  var onExit: ((ConfirmHandler?) -> Void)? { get set }
-  var onReport: ((UserReportHandler?) -> Void)? { get set }
-  var onBack: ((String?) -> Void)? { get set }
-  var onProfile: ((ProfileItem, ProfileOutputHandler?) -> Void)? { get set }
-}
+import ChatRoomInterface
 
 public final class ChatRoomReactor: ChatRoomOutputType, Reactor {
   public var initialState: State
@@ -213,25 +207,5 @@ extension ChatViewSectionItem {
         .disposed(by: reactor.disposeBag)
 
       return ChatViewSectionItem.transfrom(from: type, reactor: reactor)
-  }
-}
-
-extension Array where Element == ChatViewSectionItem {
-  mutating func appendItem(_ item: Element) {
-    var mutable = self
-    mutable.append(item)
-    self = mutable
-  }
-
-  mutating func append(_ items: [Element]) {
-    var mutable = self
-    mutable.append(contentsOf: items)
-    self = mutable
-  }
-
-  mutating func insert(_ items: [Element]) {
-    var mutable = items
-    mutable.append(contentsOf: self)
-    self = mutable
   }
 }

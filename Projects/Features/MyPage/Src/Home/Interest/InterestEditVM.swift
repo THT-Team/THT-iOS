@@ -12,7 +12,6 @@ import RxSwift
 import RxCocoa
 
 import Domain
-import SignUpInterface
 import MyPageInterface
 
 final class InterestEditVM: TFBaseEmojiEditVM {

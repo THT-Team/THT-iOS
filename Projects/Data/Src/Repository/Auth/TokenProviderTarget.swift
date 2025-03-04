@@ -10,8 +10,6 @@ import Foundation
 import Networks
 
 import Moya
-import AuthInterface
-import SignUpInterface
 import Domain
 
 public enum TokenProviderTarget {

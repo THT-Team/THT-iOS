@@ -10,7 +10,6 @@ import Foundation
 import Networks
 
 import Moya
-import SignUpInterface
 
 public enum SignUpTarget {
   case checkNickname(nickname: String)

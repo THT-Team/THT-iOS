@@ -13,9 +13,7 @@ import Core
 import RxSwift
 import RxCocoa
 
-import MyPageInterface
-
-
+import Domain
 
 final class WithdrawalDetailViewController: TFVC<WithdrawalDetailViewModel, WithdrawalDetailView> {
   typealias ViewModel = WithdrawalDetailViewModel

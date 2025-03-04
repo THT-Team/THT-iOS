@@ -38,7 +38,7 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
     messagePublisher.onNext(.message(.outgoing(Self.makeChatMessage(name: "me", message: message))))
 
     Task {
-      try? await Task.sleep(nanoseconds: 1000)
+      try? await Task.sleep(nanoseconds: 300)
       messagePublisher.onNext(.message(.incoming(Self.makeChatMessage(name: "echo", message: message))))
     }
   }

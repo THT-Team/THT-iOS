@@ -8,11 +8,8 @@
 import Foundation
 import CoreLocation
 
-import SignUpInterface
-import AuthInterface
-
 import RxSwift
-import Core
+import Domain
 
 extension CLLocationCoordinate2D {
   func toDTO() -> LocationCoordinate2D {

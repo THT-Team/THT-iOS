@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import SignUpInterface
-import MyPageInterface
 import DSKit
+import Domain
 
 struct MyPageInfoCollectionViewCellViewModel {
   let model: MyPageSection

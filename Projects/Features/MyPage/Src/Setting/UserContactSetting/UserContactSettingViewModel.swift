@@ -12,12 +12,11 @@ import Core
 import RxSwift
 import RxCocoa
 
-import MyPageInterface
+import Domain
 
 public final class UserContactSettingViewModel: ViewModelType {
   private var disposeBag = DisposeBag()
   private let useCase: MyPageUseCaseInterface
-  weak var delegate: MySettingCoordinatingActionDelegate?
 
   init(useCase: MyPageUseCaseInterface) {
     self.useCase = useCase

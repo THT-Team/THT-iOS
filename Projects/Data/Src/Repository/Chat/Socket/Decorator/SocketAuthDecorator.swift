@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import Core
-
 import Domain
 
 public final class SocketAuthDecorator: BaseSocketDecorator {

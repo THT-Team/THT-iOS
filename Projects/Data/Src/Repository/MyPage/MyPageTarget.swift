@@ -11,7 +11,6 @@ import Domain
 import Networks
 
 import Moya
-import AuthInterface
 
 public enum MyPageTarget {
   case fetchUserContacts

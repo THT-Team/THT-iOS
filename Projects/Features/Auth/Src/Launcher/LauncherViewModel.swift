@@ -8,7 +8,6 @@
 import Foundation
 
 import AuthInterface
-import SignUpInterface
 import Core
 import Domain
 
