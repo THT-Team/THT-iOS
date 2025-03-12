@@ -55,8 +55,7 @@ final class FallingViewController: TFBaseViewController, View {
     .disposed(by: disposeBag)
 
     reactor.pulse(\.$isLoading)
-      .map { !$0 }
-      .bind(to: loadingView.rx.isHidden)
+      .bind(to: loadingView.rx.isLoading)
       .disposed(by: disposeBag)
 
     reactor.state.map(\.snapshot)
