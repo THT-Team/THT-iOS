@@ -5,17 +5,11 @@
 //  Created by Kanghos on 2023/12/06.
 //
 
+import Foundation
 import UIKit
-import Combine
-
-import Core
-import SignUpInterface
-import AuthInterface
-import Auth
-import KakaoSDKAuth
-import KakaoSDKUser
-import DSKit
 import Domain
+import Combine
+import Feature
 
 protocol AppCoordinating {
   func authFlow()
@@ -27,6 +21,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   private let authBuildable: AuthBuildable
   @Injected var useCase: AuthUseCaseInterface
   private var cancellables = Set<AnyCancellable>()
+  private let notificationHandler = NotificationHandler()
 
   init(
     viewControllable: ViewControllable,
@@ -46,7 +41,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public func launchFlow() {
-    let vm = LauncherViewModel(useCase: useCase)
+    let vm = LauncherViewModel()
     let vc = TFAuthLauncherViewController(viewModel: vm)
     self.viewControllable = vc
     replaceWindowRootViewController(rootViewController: self.viewControllable)
@@ -84,10 +79,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
 
 extension AppCoordinator: URLHandling {
   func handle(_ url: URL) {
-    if (AuthApi.isKakaoTalkLoginUrl(url)) {
-      _ = AuthController.handleOpenUrl(url: url)
-
-    }
+    
   }
 
   func bind() {
@@ -96,7 +88,17 @@ extension AppCoordinator: URLHandling {
       .sink { [weak self] _ in
         self?.childCoordinators.removeAll()
         UserDefaultRepository.shared.removeUser()
+        self?.notificationHandler.unregisterRemoteNotifications()
         self?.authFlow()
+      }
+      .store(in: &cancellables)
+
+    NotificationCenter.default.publisher(for: .requestPushNotification)
+      .receive(on: RunLoop.main)
+      .sink { [weak self] _ in
+        guard let self else { return }
+        self.notificationHandler.registerForRemoteNotifications()
+        self.notificationHandler.registerFirebaseMessaging()
       }
       .store(in: &cancellables)
   }

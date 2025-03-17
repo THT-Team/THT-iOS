@@ -18,7 +18,6 @@ public enum TokenProviderTarget {
   case refresh(Token)
   case signUp(SignUpReq)
   case signUpSNS(SNSUserInfo.SignUpRequest)
-  case updateDeviceToken(deviceKey: String)
 }
 
 extension TokenProviderTarget: BaseTargetType {
@@ -35,14 +34,11 @@ extension TokenProviderTarget: BaseTargetType {
       return "users/join/signup"
     case .signUpSNS:
       return "users/join/signup/sns"
-    case .updateDeviceToken:
-      return "user/device-key"
     }
   }
 
   public var method: Moya.Method {
     switch self {
-    case .updateDeviceToken: return .patch
     default: return .post
     }
   }
@@ -61,8 +57,6 @@ extension TokenProviderTarget: BaseTargetType {
       return .requestJSONEncodable(request)
     case let .signUpSNS(request):
       return .requestJSONEncodable(request)
-    case .updateDeviceToken(let deviceKey):
-      return .requestParameters(parameters: ["deviceKey": deviceKey], encoding: JSONEncoding.default)
     }
   }
 }

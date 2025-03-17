@@ -16,7 +16,7 @@ import Moya
 
 import Core
 
-public typealias DefaultUserDomainRepository = BaseRepository<UserDomainTarget>
+public typealias DefaultUserDomainRepository = BaseProvider<UserDomainTarget>
 
 extension DefaultUserDomainRepository: UserDomainRepositoryInterface {
   public func fetchIdealTypeEmoji() -> Single<[Domain.EmojiType]> {

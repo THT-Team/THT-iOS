@@ -20,15 +20,15 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
       list: UserDefaultRepository.shared.fetchModel(for: .sign_up_info, type: UserSignUpInfoRes.self)?.typeList ?? [])
   }
 
-  private let repository: MyPageRepositoryInterface
-  private let authService: AuthServiceType
+  private let repository: UserRepositoryInterface
+  private let authService: TokenServiceType
   private let contactsService: ContactServiceType
   private let imageService: ImageServiceType
 
   public init(
-    repository: MyPageRepositoryInterface,
+    repository: UserRepositoryInterface,
     contactsService: ContactServiceType,
-    authService: AuthServiceType,
+    authService: TokenServiceType,
     imageService: ImageServiceType
   ) {
     self.repository = repository
@@ -87,7 +87,7 @@ public final class MyPageUseCase: MyPageUseCaseInterface {
   }
 
   private func removeUser() {
-    authService.clearToken()
+    authService.clear()
     UserDefaultRepository.shared.removeUser()
   }
 }

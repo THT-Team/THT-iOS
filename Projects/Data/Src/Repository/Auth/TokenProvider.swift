@@ -14,7 +14,26 @@ import RxSwift
 import Networks
 import Domain
 
-public typealias DefaultTokenProvider = BaseRepository<TokenProviderTarget>
+public enum AppEnvironment {
+  case debug
+  case release
+}
+
+public class BaseProvider<Target: TargetType>: ProviderProtocol {
+
+  public var provider: MoyaProvider<Target>
+
+  public init(_ environment: AppEnvironment) {
+    switch environment {
+    case .debug:
+      self.provider = Self.makeStubProvider()
+    case .release:
+      self.provider = Self.makeProvider()
+    }
+  }
+}
+
+public typealias DefaultTokenProvider = BaseProvider<TokenProviderTarget>
 
 extension DefaultTokenProvider: TokenProvider {
   public func signUpSNS(_ signUpRequest: SNSUserInfo.SignUpRequest) -> RxSwift.Single<Token> {
@@ -33,39 +52,7 @@ extension DefaultTokenProvider: TokenProvider {
     request(type: Token.self, target: .loginSNS(request: signUpRequest))
   }
 
-  public func updateDeviceToken(_ token: String) -> Single<Void> {
-    return requestWithNoContent(target: .updateDeviceToken(deviceKey: token))
-  }
-}
-
-public enum AppEnvironment {
-  case debug
-  case release
-}
-
-public class DefaultTokenRefresher: ProviderProtocol {
-
-  public typealias Target = TokenProviderTarget
-  
-  public var provider: MoyaProvider<Target>
-  public init(_ environment: AppEnvironment) {
-    switch environment {
-    case .debug:
-      provider = Self.makeProvider()
-    case .release:
-      provider = Self.makeStubProvider()
-    }
-  }
-}
-
-extension DefaultTokenRefresher: TokenRefresher {
-
   public func refresh(_ token: Token) async throws -> Token {
-    do {
-      let refreshToken: Token = try await request(target: .refresh(token))
-      return refreshToken
-    } catch {
-      throw AuthError.tokenRefreshFailed
-    }
+    try await request(target: .refresh(token))
   }
 }

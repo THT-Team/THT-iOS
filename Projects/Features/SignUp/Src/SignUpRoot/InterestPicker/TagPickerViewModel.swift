@@ -21,7 +21,8 @@ public protocol EmojiPickerProtocol {
   func saveEmoji(_ emoji: [EmojiType])
 }
 
-open class TFBaseEmojiVM: BaseTagPickerViewModel, ViewModelType, EmojiPickerProtocol {
+open class TFBaseEmojiVM: BasePenddingViewModel, ViewModelType, EmojiPickerProtocol {
+
   public typealias ItemVMType = InputTagItemViewModel
 
   public struct Input {
@@ -83,32 +84,6 @@ open class TFBaseEmojiVM: BaseTagPickerViewModel, ViewModelType, EmojiPickerProt
       }.drive(snapshot)
       .disposed(by: disposeBag)
 
-//    .drive(chips)
-//    .disposed(by: disposeBag)
-
-//    input.chipTap.map { $0.item }
-//      .withLatestFrom(chips.asDriver()) { index, chips in
-//        var prev = chips.enumerated().filter { $0.element.isSelected }.map { $0.offset }
-//
-//        if prev.contains(index) {
-//          prev.removeAll { $0 == index }
-//        } else if prev.count < 3 {
-//          prev.append(index)
-//        }
-//        var mutable = chips.map {
-//          var model = $0
-//          model.isSelected = false
-//          return model
-//        }
-//
-//        prev.forEach { index in
-//          mutable[index].isSelected = true
-//        }
-//
-//        return mutable
-//      }.drive(chips)
-//      .disposed(by: disposeBag)
-
     let isNextBtnEnabled = selectedItems
       .map { $0.current().count == 3 }
 
@@ -147,7 +122,7 @@ open class TFBaseEmojiVM: BaseTagPickerViewModel, ViewModelType, EmojiPickerProt
 
 final class InterestPickerVM: TFBaseEmojiVM {
   override func fetch(initial: [Int]) -> Driver<[TFBaseEmojiVM.ItemVMType]> {
-    userDomainUseCase.fetchEmoji(initial: initial, type: .interest)
+    useCase.fetchEmoji(initial: initial, type: .interest)
       .asDriver(onErrorJustReturn: [])
   }
 
@@ -167,7 +142,7 @@ final class InterestPickerVM: TFBaseEmojiVM {
 
 final class IdealTypePickerVM: TFBaseEmojiVM {
   override func fetch(initial: [Int]) -> Driver<[TFBaseEmojiVM.ItemVMType]> {
-    userDomainUseCase.fetchEmoji(initial: initial, type: .idealType)
+    useCase.fetchEmoji(initial: initial, type: .idealType)
       .asDriver(onErrorJustReturn: [])
   }
   override func fetchInitialEmojiIndex() -> Driver<[Int]> {

@@ -7,12 +7,8 @@
 
 import UIKit
 
-import Feature
 import Core
-
-final class AppComponent: AppRootDependency {
-  public init() { }
-}
+import Feature
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -24,7 +20,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     guard let windowScene = (scene as? UIWindowScene) else { return }
 
     let window = UIWindow(windowScene: windowScene)
-    let appCoordinator = AppRootBuilder(dependency: AppComponent()).build()
+    let appCoordinator = AppRootBuilder().build()
     self.launcher = appCoordinator
     self.linkHandler = appCoordinator
     self.launcher?.launch(window: window)

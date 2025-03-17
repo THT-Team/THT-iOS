@@ -19,7 +19,6 @@ public protocol LaunchOutput {
 }
 public final class LauncherViewModel: ViewModelType, LaunchOutput {
   private var disposeBag = DisposeBag()
-  private let useCase: AuthUseCaseInterface
   public var onAuthResult: ((LaunchAction) -> Void)?
 
   public struct Input {
@@ -30,8 +29,7 @@ public final class LauncherViewModel: ViewModelType, LaunchOutput {
     let toast: Signal<String>
   }
 
-  public init(useCase: AuthUseCaseInterface) {
-    self.useCase = useCase
+  public init() {
   }
 
   deinit {
@@ -41,32 +39,15 @@ public final class LauncherViewModel: ViewModelType, LaunchOutput {
   public func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
 
-    let needAuth = Driver.just(useCase.needAuth())
-
-    let load = Driver.zip(needAuth, input.viewDidLoad) { needAuth, _ in needAuth }
-
-    load
-      .filter { $0 }
-      .drive(with: self) { owner, needAuth in
-        owner.onAuthResult?(.needAuth)
-      }.disposed(by: disposeBag)
-
-    load
-      .filter { !$0 }
-      .flatMapLatest(with: self) { owner, _ in
-        owner.useCase.updateDeviceToken() // login()
-          .debug("login")
-          .asDriver(onErrorRecover: { error in
-            TFLogger.dataLogger.error("\(error.localizedDescription)")
-            toast.accept("로그인에 실패하였습니다. 다시 시도해주시기 바랍니다.\n\(error.localizedDescription)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-              owner.onAuthResult?(.needAuth)
-            }
-            return .empty()
-          })
-      }.drive(with: self) { owner, _ in
-        owner.onAuthResult?(.toMain)
-      }.disposed(by: disposeBag)
+    input.viewDidLoad.map {
+      let token = UserDefaultRepository.shared.fetchModel(for: .token, type: Token.self)
+      return (token != nil)
+    }
+    .drive(with: self) { owner, hasToken in
+      hasToken
+      ? owner.onAuthResult?(.toMain)
+      : owner.onAuthResult?(.needAuth)
+    }.disposed(by: disposeBag)
 
     return Output(
       toast: toast.asSignal()

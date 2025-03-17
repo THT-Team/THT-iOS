@@ -20,7 +20,7 @@ protocol SignUpCoordinatingActionDelegate: AnyObject {
 public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   @Injected var useCase: SignUpUseCaseInterface
   @Injected var locationUseCase: LocationUseCaseInterface
-  @Injected var userDomainUseCase: UserDomainUseCaseInterface
+
   public func start(_ user: PendingUser) {
     guard let email = user.email, !email.isEmpty else {
       emailFlow(user: user)
@@ -108,7 +108,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func interestFlow(user: PendingUser) {
-    let vm = InterestPickerVM(useCase: useCase, pendingUser: user, userDomainUseCase: userDomainUseCase)
+    let vm = InterestPickerVM(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = InterestPickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)
@@ -156,7 +156,7 @@ public final class SignUpCoordinator: BaseCoordinator, SignUpCoordinating {
   }
 
   public func idealTypeFlow(user: PendingUser) {
-    let vm = IdealTypePickerVM(useCase: useCase, pendingUser: user, userDomainUseCase: userDomainUseCase)
+    let vm = IdealTypePickerVM(useCase: useCase, pendingUser: user)
     vm.delegate = self
     let vc = IdealTypePickerViewController(viewModel: vm)
     self.viewControllable.pushViewController(vc, animated: true)

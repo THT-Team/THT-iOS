@@ -15,16 +15,7 @@ import RxCocoa
 import DSKit
 import Domain
 
-open class BaseTagPickerViewModel: BasePenddingViewModel {
-  let userDomainUseCase: UserDomainUseCaseInterface
-
-  init(useCase: SignUpUseCaseInterface, pendingUser: PendingUser, userDomainUseCase: UserDomainUseCaseInterface) {
-    self.userDomainUseCase = userDomainUseCase
-    super.init(useCase: useCase, pendingUser: pendingUser)
-  }
-}
-
-final class IdealTypeTagPickerViewModel: BaseTagPickerViewModel, ViewModelType {
+final class IdealTypeTagPickerViewModel: BasePenddingViewModel, ViewModelType {
 
   struct Input {
     var chipTap: Driver<IndexPath>
@@ -40,7 +31,7 @@ final class IdealTypeTagPickerViewModel: BaseTagPickerViewModel, ViewModelType {
 
     let chips = BehaviorRelay<[InputTagItemViewModel]>(value: [])
 
-    userDomainUseCase.fetchEmoji(initial: pendingUser.idealTypeList, type: .idealType)
+    useCase.fetchEmoji(initial: pendingUser.idealTypeList, type: .idealType)
       .asDriver(onErrorJustReturn: [])
       .drive(chips)
       .disposed(by: disposeBag)

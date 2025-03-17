@@ -25,7 +25,6 @@ let project = Project.makeModule(
     .SPM.KakaoSDKAuth,
     .SPM.KakaoSDKUser,
     .SPM.KakaoSDKCommon,
-    .XCFramework.NaverThirdPartyLogin,
     .SPM.FirebaseStorage,
     .SPM.SwiftStomp,
     .SPM.RealmSwift,

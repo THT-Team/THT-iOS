@@ -17,6 +17,7 @@ public enum MyPageTarget {
   case user
   case updateUserContacts([ContactType])
   case updateAlarmSetting([String:Bool])
+  case updateDeviceToken(deviceKey: String)
   case withdrawal(reason: String, feedback: String)
   case logout
 
@@ -47,6 +48,8 @@ extension MyPageTarget: BaseTargetType {
       return "user/account-withdrawal"
     case .logout:
       return "user/logout"
+    case .updateDeviceToken:
+      return "user/device-key"
 
     case .idealType:
       return "user/ideal-type"
@@ -75,7 +78,7 @@ extension MyPageTarget: BaseTargetType {
     switch self {
     case .user, .fetchUserContacts:
       return .get
-    case .updateAlarmSetting, .location, .introduction, .profilePhoto, .nickname, .email, .phoneNumber, .preferGender:
+    case .updateAlarmSetting, .location, .introduction, .profilePhoto, .nickname, .email, .phoneNumber, .preferGender, .updateDeviceToken:
       return .patch
     case .updateUserContacts, .logout:
       return .post
@@ -100,6 +103,8 @@ extension MyPageTarget: BaseTargetType {
       return .requestJSONEncodable(location)
     case let .introduction(introduction): return
         .requestJSONEncodable(IntroductionReq(introduction: introduction)) /*.requestParameters(parameters: ["introduction": introduction], encoding: JSONEncoding.default)*/
+    case .updateDeviceToken(let deviceKey):
+      return .requestParameters(parameters: ["deviceKey": deviceKey], encoding: JSONEncoding.default)
     case let .idealType(emojies): return .requestParameters(parameters: ["idealTypeList": emojies], encoding: JSONEncoding.default)
     case let .interests(emojies): return .requestParameters(parameters: ["interestList": emojies], encoding: JSONEncoding.default)
     case let .profilePhoto(photos): return .requestJSONEncodable(PhotoReq(photos))

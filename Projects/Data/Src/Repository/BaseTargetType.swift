@@ -17,16 +17,9 @@ public extension BaseTargetType {
   }
   
   var headers: [String: String]? {
-    if let accessToken =  UserDefaultTokenStore.shared.getToken()?.accessToken {
-      return [
-        "Content-Type": "application/json",
-        "Authorization": "Bearer \(accessToken)"
-      ]
-    } else {
-      return [
-        "Content-Type": "application/json"
-      ]
-    }
+    return [
+      "Content-Type": "application/json"
+    ]
   }
 
   var validationType: ValidationType {

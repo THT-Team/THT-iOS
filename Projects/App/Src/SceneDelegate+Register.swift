@@ -24,28 +24,32 @@ extension AppDelegate {
   func registerDependencies() {
 
     // MARK: Envrionment
-    let provider = EnvironmentProvider(.release)
-    let environment = provider.environment
 
-    let tokenStore: TokenStore = provider.tokenStore
-    let tokenRefresher = provider.tokenRefresher
-
-    // MARK: Service
-    let authService: AuthServiceType = DefaultAuthService(
-      tokenStore: tokenStore,
-      tokenProvider: DefaultTokenProvider(environment))
-    let contactService = ContactService()
-    let imageService: ImageServiceType = ImageService()
+    let environment: AppEnvironment = .release
+    let provider = ServiceProvider(environment)
 
     // MARK: UseCase
     container.register(
       interface: SignUpUseCaseInterface.self,
       implement: { SignUpUseCase(
         repository: SignUpRepository(environment),
-        contactService: contactService,
-        authService: authService,
-        fileRepository: FileRepository(), imageService: imageService
+        emojiRepository: DefaultUserDomainRepository(environment),
+        contactService: provider.contactService,
+        authService: provider.tokenService,
+        fileRepository: FileRepository(),
+        imageService: provider.imageService
       )})
+
+    container.register(
+      interface: AuthUseCaseInterface.self,
+      implement: {
+        AuthUseCase(
+          authRepository: AuthRepository(environment),
+          tokenService: provider.tokenService,
+          socialService: SocialLoginRepository()
+        )})
+
+    // MARK: Main Feature
 
     container.register(
       interface: UserDomainUseCaseInterface.self,
@@ -58,48 +62,39 @@ extension AppDelegate {
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(environment))})
+            FallingRepository(provider.environment))})
 
-    container.register(
-      interface: AuthUseCaseInterface.self,
-      implement: {
-        AuthUseCase(
-          authRepository: AuthRepository(environment),
-          authService: authService,
-          socialService: SocialLoginRepository())})
 
     container.register(
       interface: LikeUseCaseInterface.self,
       implement: {
         LikeUseCase(
-          repository: LikeRepository(.debug))})
-    
+          repository: LikeRepository(provider.environment))})
+
     container.register(
       interface: ChatUseCaseInterface.self,
       implement: {
         DefaultChatUseCase(
-          repository: ChatRepository(environment))})
-    
+          repository: ChatRepository(provider.environment))})
+
     container.register(
       interface: MyPageUseCaseInterface.self,
       implement: {
         MyPageUseCase(
-          repository: MyPageRepository(environment),
-          contactsService: contactService,
-          authService: authService,
-          imageService: imageService)})
+          repository: UserRepository(provider.environment),
+          contactsService: provider.contactService,
+          authService: provider.tokenService,
+          imageService: provider.imageService) })
 
     container.register(
       interface: LocationUseCaseInterface.self,
       implement: { LocationUseCase(
-        locationService: LocationService(),
+        locationService: provider.locationService,
         kakaoAPIService: KakaoAPIService(environment)) })
 
     container.register(interface: TalkUseCaseInterface.self) {
       DefaultTalkUseCase(
-        socketInterface: SocketAuthDecorator.createAuthSocket(
-          tokenStore: tokenStore,
-          tokenRefresher: tokenRefresher),
-        tokenStore: tokenStore)}
+        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
+        tokenService: provider.tokenService)}
   }
 }

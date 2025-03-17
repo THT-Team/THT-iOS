@@ -13,5 +13,5 @@ public protocol TokenProvider {
   func loginSNS(_ loginRequest: SNSUserInfo.LoginRequest) -> Single<Token>
   func signUp(_ signUpRequest: SignUpReq) -> Single<Token>
   func signUpSNS(_ signUpRequest: SNSUserInfo.SignUpRequest) -> Single<Token>
-  func updateDeviceToken(_ token: String) -> Single<Void>
+  func refresh(_ token: Token) async throws -> Token
 }

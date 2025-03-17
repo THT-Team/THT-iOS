@@ -7,25 +7,17 @@
 
 import UIKit
 
-import Core
-import DSKit
-import Auth
-import SignUp
-import MyPage
 import Domain
-
-public protocol AppRootDependency { }
+import Feature
+import DSKit
 
 public protocol AppRootBuildable {
   func build() -> (LaunchCoordinating & URLHandling)
 }
 
 public final class AppRootBuilder: AppRootBuildable {
-  private let dependency: AppRootDependency
 
-  public init(dependency: AppRootDependency) {
-    self.dependency = dependency
-  }
+  public init() { }
 
   public func build() -> (LaunchCoordinating & URLHandling) {
     return AppCoordinator(

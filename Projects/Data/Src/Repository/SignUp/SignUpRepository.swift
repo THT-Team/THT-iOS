@@ -15,7 +15,7 @@ import Moya
 
 import Domain
 
-public typealias SignUpRepository = BaseRepository<SignUpTarget>
+public typealias SignUpRepository = BaseProvider<SignUpTarget>
 
 extension SignUpRepository: SignUpRepositoryInterface {
 

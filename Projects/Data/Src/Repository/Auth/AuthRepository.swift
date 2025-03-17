@@ -16,22 +16,7 @@ import Moya
 import Core
 import Domain
 
-public class AuthRepository: ProviderProtocol {
-  public typealias Target = AuthTarget
-  public var provider: Moya.MoyaProvider<AuthTarget>
-
-
-  public init(_ environment: RepositoryEnvironment) {
-    switch environment {
-    case .debug:
-      self.provider = Self.makeStubProvider()
-    case .release:
-      self.provider = Self.makeProvider()
-    }
-  }
-}
-
-
+public typealias AuthRepository = BaseProvider<AuthTarget>
 
 extension AuthRepository: AuthRepositoryInterface {
 

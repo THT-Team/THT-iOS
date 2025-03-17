@@ -8,9 +8,8 @@
 import Foundation
 
 import RxSwift
-import RxCocoa
 
-public protocol MyPageRepositoryInterface {
+public protocol UserRepositoryInterface {
   func fetchUser() -> Single<User>
   func fetchUserContacts() -> Single<Int>
   func updateUserContacts(contacts: [ContactType]) -> Single<Int>
@@ -31,4 +30,5 @@ public protocol MyPageRepositoryInterface {
   func updateProfilePhotos(_ photos: [UserProfilePhoto]) -> Single<Void>
   func updatePhoneNumber(_ phoneNumber: String) -> Single<Void>
   func updateEmail(_ email: String) -> Single<Void>
+  func updateDeviceToken(_ deviceKey: String) -> Single<Void>
 }

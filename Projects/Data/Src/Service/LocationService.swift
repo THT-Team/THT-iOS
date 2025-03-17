@@ -36,7 +36,7 @@ public final class LocationService: NSObject, LocationServiceType {
     location
       .map(\.coordinate)
       .map { $0.toDTO() }
-      .bind(to: publisher)
+      .subscribe(publisher)
       .disposed(by: disposeBag)
   }
 

@@ -33,9 +33,9 @@ public class BaseRepository<Target: TargetType>: ProviderProtocol {
   }
 }
 
-public typealias MyPageRepository = BaseRepository<MyPageTarget>
+public typealias UserRepository = BaseRepository<MyPageTarget>
 
-extension MyPageRepository: MyPageRepositoryInterface {
+extension UserRepository: UserRepositoryInterface {
   public func updateReligion(_ religion: Religion) -> RxSwift.Single<Void> {
     return .just(())
   }
@@ -114,5 +114,8 @@ extension MyPageRepository: MyPageRepositoryInterface {
 
   public func updateLocation(_ location: LocationReq) -> Single<Void> {
     requestWithNoContent(target: .location(location))
+  }
+  public func updateDeviceToken(_ token: String) -> Single<Void> {
+    return requestWithNoContent(target: .updateDeviceToken(deviceKey: token))
   }
 }

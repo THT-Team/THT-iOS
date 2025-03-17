@@ -153,14 +153,9 @@ extension ChatRoomReactor {
         switch type {
         case .message(let message):
           return Mutation.addMessage(message)
-        case .stompConnected:
+        case .connected:
           return Mutation.subscribe
-        case .stompDisconnected:
-          return nil
-        case .receipt(let id):
-          print("receipt id: \(id)")
-          return nil
-        case .needAuth:
+        case .disconnected:
           return nil
         }
       }

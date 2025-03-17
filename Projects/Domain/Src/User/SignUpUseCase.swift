@@ -13,20 +13,23 @@ import Core
 public final class SignUpUseCase: SignUpUseCaseInterface {
 
   private let repository: SignUpRepositoryInterface
+  private let emojiRepository: UserDomainRepositoryInterface
   private let fileRepository: FileRepositoryInterface
 
   private let contactService: ContactServiceType
-  private let authService: AuthServiceType
+  private let authService: TokenServiceType
   private let imageService: ImageServiceType
 
   public init(
     repository: SignUpRepositoryInterface,
+    emojiRepository: UserDomainRepositoryInterface,
     contactService: ContactServiceType,
-    authService: AuthServiceType,
+    authService: TokenServiceType,
     fileRepository: FileRepositoryInterface,
     imageService: ImageServiceType
   ) {
     self.repository = repository
+    self.emojiRepository = emojiRepository
     self.fileRepository = fileRepository
     self.contactService = contactService
     self.authService = authService
@@ -64,6 +67,28 @@ public final class SignUpUseCase: SignUpUseCaseInterface {
 
   public func fetchPendingUser() -> PendingUser? {
     UserDefaultRepository.shared.fetchModel(for: .pendingUser, type: PendingUser.self)
+  }
+
+  public func fetchEmoji(initial: [Int], type domain: DomainType) -> Single<[InputTagItemViewModel]> {
+    let emoji: Single<[EmojiType]>
+
+    switch domain {
+    case .idealType:
+      emoji = emojiRepository.fetchIdealTypeEmoji()
+    case .interest:
+      emoji = emojiRepository.fetchInterestEmoji()
+    }
+    return emoji
+      .map { $0.map { InputTagItemViewModel(item: $0, isSelected: false) }}
+      .map { remote in
+        var mutable = remote
+        initial.forEach { index in
+          if let index = mutable.firstIndex(where: { $0.emojiType.idx == index }) {
+            mutable[index].isSelected = true
+          }
+        }
+        return mutable
+      }
   }
 }
 

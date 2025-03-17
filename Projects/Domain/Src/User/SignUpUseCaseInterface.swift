@@ -31,4 +31,6 @@ public protocol SignUpUseCaseInterface {
   func saveUserPhotos(_ user: PendingUser, datas: [Data]) -> Single<PendingUser>
 
   func processImage(_ result: PhotoItem) -> Single<Data>
+
+  func fetchEmoji(initial: [Int], type domain: DomainType) -> Single<[InputTagItemViewModel]>
 }

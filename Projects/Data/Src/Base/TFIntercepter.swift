@@ -12,16 +12,14 @@ import Core
 import Domain
 
 final class OAuthAuthenticator: Authenticator {
-  private let refresher: TokenRefresher
-  private let tokenStore: TokenStore
+  private let tokenService: TokenServiceType
 
-  public init(refresher: TokenRefresher, tokenStore: TokenStore) {
-    self.refresher = refresher
-    self.tokenStore = tokenStore
+  public init(_ tokenService: TokenServiceType) {
+    self.tokenService = tokenService
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
-    if let token = tokenStore.getToken()?.accessToken {
+    if let token = tokenService.getToken()?.accessToken {
       urlRequest.headers.add(.authorization(bearerToken: token))
     } else {
       urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
@@ -42,9 +40,8 @@ final class OAuthAuthenticator: Authenticator {
 
     Task {
       do {
-        let refreshToken = try await refresher.refresh(credential.toToken())
-        tokenStore.saveToken(token: refreshToken)
-        completion(.success(refreshToken.toAuthOCredential()))
+        let token = try await tokenService.refreshToken()
+        completion(.success(token.toAuthOCredential()))
       } catch {
         completion(.failure(error))
       }
