@@ -1,4 +1,4 @@
-app_identifier("com.tht.demo.fallingdemoapp") # The bundle identifier of your app
+app_identifier("com.tht.app.ios") # The bundle identifier of your app
 apple_id(ENV["APPLE_ID"]) # Your Apple Developer Portal username
 
 
