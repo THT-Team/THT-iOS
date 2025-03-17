@@ -34,9 +34,15 @@ public struct ChatConfiguration {
 public enum ChatSignalType {
   case stompConnected
   case stompDisconnected
-  case message(ChatMessageType)
+  case message(ChatMessage)
   case receipt(String)
   case needAuth
+}
+
+public enum MessageType {
+  case connected
+  case disconnected
+  case message(ChatMessageType)
 }
 
 extension ChatSignalType: Equatable {
@@ -45,7 +51,7 @@ extension ChatSignalType: Equatable {
     case (.stompConnected, .stompConnected):
       return true
     case let (.message(lhsMessage), .message(rhsMessage)):
-      return lhsMessage.message.chatIdx == rhsMessage.message.chatIdx
+      return lhsMessage.chatIdx == rhsMessage.chatIdx
     case let (.receipt(lhsReceipt), receipt(rhsReceipt)):
       return lhsReceipt == rhsReceipt
     default: return false

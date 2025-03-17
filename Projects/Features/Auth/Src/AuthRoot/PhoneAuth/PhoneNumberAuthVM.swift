@@ -19,18 +19,16 @@ public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
   private var disposeBag = DisposeBag()
 
   public struct Input {
-    public let viewWillAppear: Signal<Void>
+    public let trigger: Signal<Void>
     public let codeInput: Driver<String>
     public let finishAnimationTrigger: Signal<Void>
-    public let resendBtnTap: Signal<Void>
   }
 
   public struct Output {
-    public let description: Driver<String>
-    public let error: Driver<Error>
-    public let certificateSuccess: Driver<Bool>
-    public let certificateFailuer: Driver<Bool>
-    public let timestamp: Driver<String>
+    public let description: Observable<String>
+    public let toast: Observable<String>
+    public let isCertificated: Observable<Bool>
+    public let timestamp: Observable<String>
   }
 
   public init(phoneNumber: String, useCase: AuthUseCaseInterface) {
@@ -48,48 +46,45 @@ public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
   let tickTrigger = PublishSubject<Void>()
 
   public func transform(input: Input) -> Output {
+    let duration: Int = 180
     let errorTracker = PublishSubject<Error>()
 
-    let authNumber = Signal.merge(input.resendBtnTap, input.viewWillAppear)
-      .do(onNext: { [weak self] in
-        self?.startTimer()
+    let trigger = input.trigger
+      .do(onNext:  { [weak self] in
+        self?.releaseTimer()
+        self?.startTimer(duration: duration)
       })
-      .flatMapLatest { [weak self] _ -> Driver<Int> in
-        guard let self else { return .empty() }
 
-        return self.useCase.certificate(phoneNumber: self.phoneNumber)
-          .debug()
-          .asDriver { error in
-            errorTracker.onNext(error)
+    let timeStamp = trigger.map { TimeStamp(timeDuration: duration) }
+      .asObservable()
+
+    let code = trigger
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, _ in
+        owner.useCase.certificate(phoneNumber: owner.phoneNumber)
+          .asObservable()
+          .catch { errorTracker.onNext($0)
+            owner.releaseTimer()
             return .empty()
           }
       }
+      .map(String.init)
 
-    let timestampModel = authNumber
-      .map { AuthCodeWithTimeStamp(
-        authCode: $0,
-        timeDuration: 180)}
-
-    let isValidate = input.codeInput
+    let inputCode = input.codeInput
+      .debounce(.milliseconds(300))
       .distinctUntilChanged()
       .filter { $0.count == 6 }
-      .withLatestFrom(timestampModel) { code, authNumber in
-        guard authNumber.isAvailableCode() else {
-          return false
-        }
-        return code == String(authNumber.authCode)
-      }
+      .asObservable()
 
-    let validatePass = isValidate
-      .filter { $0 }
-      .mapToVoid()
-      .asSignal(onErrorSignalWith: .empty())
+    let isValidate = Observable.combineLatest(inputCode, timeStamp, code) { input, time, code -> Bool in
+      time.isAvailable ? input == code : false
+    }
 
-    let timestamp = tickTrigger
-      .withLatestFrom(timestampModel) { $1.timeString }
-      .asDriverOnErrorJustEmpty()
-
-    Signal.zip(validatePass, input.finishAnimationTrigger)
+    input.finishAnimationTrigger
+      .do(onNext: { [weak self] _ in
+        self?.releaseTimer()
+      })
       .emit(with: self, onNext: { owner, _ in
         owner.onSuccess?(owner.phoneNumber)
       })
@@ -97,24 +92,19 @@ public final class PhoneNumberAuthVM: PhoneNumberAuthViewModelType {
 
     return Output(
       description: .just(phoneNumber + "으로\n전송된 코드를 입력해주세요."),
-      error: errorTracker.asDriver(onErrorDriveWith: .empty()),
-      certificateSuccess: isValidate.filter { $0 },
-      certificateFailuer: isValidate.filter { !$0},
-      timestamp: timestamp
+      toast: errorTracker.map(\.localizedDescription),
+      isCertificated: isValidate,
+      timestamp: tickTrigger
+        .withLatestFrom(timeStamp).map(\.timeString)
     )
   }
 }
 
 extension PhoneNumberAuthVM {
-  private func startTimer() {
-
-    self.releaseTimer()
-
-    let timeDuration = 180
+  private func startTimer(duration: Int) {
     self.timerDisposable = Observable<Int>
       .timer(.seconds(0), period: .seconds(1), scheduler: MainScheduler.instance)
-      .take(timeDuration + 1)
-      .debug("tick")
+      .take(duration + 1)
       .mapToVoid()
       .bind(to: tickTrigger)
   }

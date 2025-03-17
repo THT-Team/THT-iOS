@@ -9,18 +9,7 @@ import Foundation
 import ReactorKit
 import DSKit
 import Domain
-
-public protocol ProfileOutput {
-  var onDismiss: ((Bool) -> Void)? { get set }
-  var handler: ProfileOutputHandler? { get set }
-}
-
-public enum ProfileOutputAction {
-  case toast(String)
-  case cancel
-}
-
-public typealias ProfileOutputHandler = ((ProfileOutputAction) -> Void)
+import ChatRoomInterface
 
 public final class ProfileReactor: Reactor, ProfileOutput {
 

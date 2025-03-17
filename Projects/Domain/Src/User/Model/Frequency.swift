@@ -28,6 +28,15 @@ public enum Frequency: String, Codable {
       return nil
     }
   }
+
+  public init?(rawValue: String) {
+    switch rawValue {
+    case "안 함": self = .none
+    case "자주": self = .frequently
+    case "가끔": self = .sometimes
+    default: return nil
+    }
+  }
 }
 
 extension Frequency: TFTitlePropertyType {

@@ -8,7 +8,6 @@
 import Foundation
 
 import RxSwift
-import RxCocoa
 
 public protocol UserDomainRepositoryInterface {
   func fetchIdealTypeEmoji() -> Single<[EmojiType]>

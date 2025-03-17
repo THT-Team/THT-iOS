@@ -8,7 +8,7 @@
 import UIKit
 
 import DSKit
-import MyPageInterface
+import Domain
 
 final class SelectWithdrawViewController: SettingBaseViewController {
   typealias ViewModel = SelectWithdrawalViewModel

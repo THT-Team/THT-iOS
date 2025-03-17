@@ -92,6 +92,7 @@ public extension TargetDependency {
     public static let ReactorKit = TargetDependency.external(name: "ReactorKit")
     public static let SwiftStomp =
     TargetDependency.external(name: "SwiftStomp")
+    public static let RealmSwift = TargetDependency.external(name: "RealmSwift")
 
     public static let KingFisher = TargetDependency.external(name: External.Kingfisher.rawValue)
     public static let Moya  = TargetDependency.external(name: External.Moya.rawValue)

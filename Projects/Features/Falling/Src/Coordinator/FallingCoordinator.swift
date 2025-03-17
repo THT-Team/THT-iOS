@@ -12,6 +12,7 @@ import Core
 
 import DSKit
 import ChatRoomInterface
+import Domain
 
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   @Injected var fallingUseCase: FallingUseCaseInterface

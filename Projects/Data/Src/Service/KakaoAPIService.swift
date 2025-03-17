@@ -7,15 +7,13 @@
 
 import Foundation
 
-import SignUpInterface
-import AuthInterface
 import Networks
 import Domain
 
 import Moya
 import RxSwift
 
-public typealias KakaoAPIService = BaseRepository<KakaoAPITarget>
+public typealias KakaoAPIService = BaseProvider<KakaoAPITarget>
 
 extension KakaoAPIService: KakaoAPIServiceType {  
   public func fetchLocationByAddress(address: String) -> Single<LocationReq?> {

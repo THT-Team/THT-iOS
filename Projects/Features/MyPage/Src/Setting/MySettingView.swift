@@ -9,7 +9,7 @@ import UIKit
 
 import DSKit
 
-import MyPageInterface
+import Domain
 
 final class MySettingView: TFBaseView {
   var sections: [SectionModel<MySetting.MenuItem>] = [] {

@@ -10,6 +10,7 @@ import Foundation
 import Core
 
 import MyPageInterface
+import Domain
 
 import RxSwift
 import RxCocoa

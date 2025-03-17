@@ -19,6 +19,5 @@ let project = Project.makeModule(
     .feature(implementation: .Chat),
     .feature(implementation: .ChatRoom),
     .feature(implementation: .MyPage),
-    .module(implementation: .Data, pathName: .Data)
   ],
   product: .staticFramework)

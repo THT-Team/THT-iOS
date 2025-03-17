@@ -13,7 +13,6 @@ import Domain
 
 public protocol AuthFactoryType: PhoneNumberFactoryType {
   func rootFlow() -> (ViewControllable, AuthRootOutput)
-  func launchFlow() -> (ViewControllable, LaunchOutput)
   func inquiryFlow() -> (ViewControllable, DefaultOutput)
 }
 
@@ -24,12 +23,6 @@ public final class AuthFactory {
 }
 
 extension AuthFactory: AuthFactoryType {
-  public func launchFlow() -> (ViewControllable, LaunchOutput) {
-    let vm = LauncherViewModel(useCase: useCase)
-    let vc = TFAuthLauncherViewController(viewModel: vm)
-
-    return (vc, vm)
-  }
 
   public func rootFlow() -> (ViewControllable, AuthRootOutput) {
     let vm = AuthRootViewModel(useCase: useCase)

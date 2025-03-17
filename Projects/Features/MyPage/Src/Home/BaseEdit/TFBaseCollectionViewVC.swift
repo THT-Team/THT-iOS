@@ -11,7 +11,6 @@ import DSKit
 
 import RxSwift
 import RxCocoa
-import SignUpInterface
 import Domain
 
 public protocol TFCellSizeCalculable {

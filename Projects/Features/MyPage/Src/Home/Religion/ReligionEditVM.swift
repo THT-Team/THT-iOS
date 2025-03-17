@@ -7,8 +7,6 @@
 
 import Foundation
 
-import SignUpInterface
-
 import RxCocoa
 import RxSwift
 import Domain

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SignUpInterface
 
 import Core
 import Domain

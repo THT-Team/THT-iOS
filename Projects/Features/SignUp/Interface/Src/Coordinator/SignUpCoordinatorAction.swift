@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AuthInterface
 import Core
 import Domain
 

@@ -7,7 +7,6 @@
 
 import Foundation
 
-import SignUpInterface
 import Domain
 import RxSwift
 import Core

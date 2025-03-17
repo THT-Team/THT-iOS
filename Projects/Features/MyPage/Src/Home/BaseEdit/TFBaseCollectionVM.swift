@@ -14,6 +14,7 @@ import RxCocoa
 
 import DSKit
 import MyPageInterface
+import Domain
 
 public protocol ProcessUseCaseProtocol {
   associatedtype ModelType: RawRepresentable & CaseIterable where ModelType.RawValue == String

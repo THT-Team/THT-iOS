@@ -10,12 +10,14 @@ import Foundation
 import RxSwift
 
 
-public protocol AuthServiceType {
-  func clearToken()
-  func login() -> Single<Token>
-  func loginSNS(_ user: SNSUserInfo) -> Single<Token>
-  func signUpSNS(_ user: SNSUserInfo) -> Single<Token>
-  func signUp(_ user: PendingUser, contacts: [ContactType], urls: [String]) -> Single<Token>
-  func needAuth() -> Bool
-  func updateDeviceToken(_ token: String) -> Single<Void>
+public protocol TokenServiceType {
+  func clear()
+  func login() -> Single<Void>
+  func loginSNS(_ user: SNSUserInfo) -> Single<Void>
+  func signUpSNS(_ user: SNSUserInfo) -> Single<Void>
+  func signUp(_ user: PendingUser, contacts: [ContactType], urls: [String]) -> Single<Void>
+  func getToken() -> Token?
+
+  @discardableResult
+  func refreshToken() async throws -> Token
 }

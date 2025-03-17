@@ -57,6 +57,7 @@ let targets: [Target] = [
             entitlements: .file(path: .relativeToRoot("Projects/App/Falling-iOS.entitlements")),
             dependencies: [
               .feature,
+              .data,
             ]),
     .target(name: ProductName.devApp,
             destinations: .iOS,
@@ -68,7 +69,8 @@ let targets: [Target] = [
             sources: ["src/**"],
             resources: ["Resources/**"],
             dependencies: [
-              .feature
+              .feature,
+              .data,
             ]),
 ]
 

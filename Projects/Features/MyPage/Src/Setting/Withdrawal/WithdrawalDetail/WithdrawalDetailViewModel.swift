@@ -12,7 +12,7 @@ import Core
 import RxSwift
 import RxCocoa
 import DSKit
-import MyPageInterface
+import Domain
 
 public final class WithdrawalDetailViewModel: ViewModelType {
   let withdrawalDetail: WithdrawalReasonDetail

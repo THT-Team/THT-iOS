@@ -7,7 +7,6 @@
 
 import Foundation
 import MyPageInterface
-import SignUpInterface
 
 import Core
 

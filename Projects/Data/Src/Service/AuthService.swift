@@ -10,15 +10,12 @@ import Foundation
 import Core
 import Domain
 
-import AuthInterface
-import SignUpInterface
-
 import Moya
 import Alamofire
 import RxSwift
 
 /// 유저와 직접 상호작용하는 객체
-public final class DefaultAuthService: AuthServiceType {
+public final class TokenService: TokenServiceType {
   private let tokenStore: TokenStore
   private let tokenProvider: TokenProvider
 
@@ -35,66 +32,58 @@ public final class DefaultAuthService: AuthServiceType {
     TFLogger.cycle(name: self)
   }
 
-  public func clearToken() {
+  public func clear() {
     tokenStore.clearToken()
   }
 
-  public func signUp(_ user: PendingUser, contacts: [ContactType], urls: [String]) -> Single<Token> {
+  public func signUp(_ user: PendingUser, contacts: [ContactType], urls: [String]) -> Single<Void> {
     guard
-      let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self),
-      let request = user.toRequest(contacts: contacts, deviceKey: deviceKey, imageURL: urls)
+      let request = user.toRequest(contacts: contacts, deviceKey: "-1", imageURL: urls)
     else {
       return .error(SignUpError.invalidRequest)
     }
 
     return tokenProvider.signUp(request)
-      .flatMap { [unowned self] token in
+      .do(onSuccess: { [weak self] token in
         UserDefaultRepository.shared.remove(key: .pendingUser)
         UserDefaultRepository.shared.save(user.phoneNumber, key: .phoneNumber)
-        self.tokenStore.saveToken(token: token)
-        return .just(token)
-      }
-      .flatMap { [unowned self] token in
+        self?.tokenStore.saveToken(token: token)
+      })
+      .flatMap { [unowned self] _ in
         user.snsUserInfo.snsType != .normal
         ? self.signUpSNS(user.snsUserInfo)
-        : .just(token)
+        : .just(())
       }
   }
 
-  public func signUpSNS(_ user: SNSUserInfo) -> Single<Token> {
+  public func signUpSNS(_ user: SNSUserInfo) -> Single<Void> {
     UserDefaultRepository.shared.remove(key: .pendingUser)
     UserDefaultRepository.shared.save(user.phoneNumber, key: .phoneNumber)
     return tokenProvider.signUpSNS(SNSUserInfo.SignUpRequest(info: user))
-  }
-
-  public func needAuth() -> Bool {
-    return tokenStore.getToken() == nil
-  }
-
-  public func login() -> Single<Token> {
-    guard
-      let phoneNumber = UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self),
-      let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
-    else {
-      return .error(AuthError.tokenNotFound)
-    }
-    return tokenProvider.login(phoneNumber: phoneNumber, deviceKey: deviceKey)
-      .flatMap { [unowned self] token in
-        self.tokenStore.saveToken(token: token)
-        return .just(token)
+      .flatMap { [weak self] token in
+        self?.tokenStore.saveToken(token: token)
+        return .just(())
       }
   }
 
-  public func loginSNS(_ user: SNSUserInfo) -> Single<Token> {
+  public func login() -> Single<Void> {
     guard
-      let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
+      let phoneNumber = UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self)
     else {
       return .error(AuthError.tokenNotFound)
     }
-    return tokenProvider.loginSNS(SNSUserInfo.LoginRequest(info: user, deviceKey: deviceKey))
+    return tokenProvider.login(phoneNumber: phoneNumber, deviceKey: "-1")
+      .flatMap { [weak self] token in
+        self?.tokenStore.saveToken(token: token)
+        return .just(())
+      }
+  }
+
+  public func loginSNS(_ user: SNSUserInfo) -> Single<Void> {
+    tokenProvider.loginSNS(SNSUserInfo.LoginRequest(info: user, deviceKey: "-1"))
       .flatMap { [unowned self] token in
       self.tokenStore.saveToken(token: token)
-      return .just(token)
+      return .just(())
     }
   }
 
@@ -102,43 +91,8 @@ public final class DefaultAuthService: AuthServiceType {
     tokenStore.getToken()
   }
 
-  public func updateDeviceToken(_ token: String) -> Single<Void> {
-    tokenProvider.updateDeviceToken(token)
-  }
-}
-
-public class EnvironmentProvider {
-  private let _environemnt: RepositoryEnvironment
-
-  public var environment: RepositoryEnvironment {
-    _environemnt
-  }
-  public let tokenRefresher: TokenRefresher
-  public let tokenStore: TokenStore
-
-  public init(_ environment: AppEnvironment) {
-    self.tokenRefresher = DefaultTokenRefresher(environment)
-    self.tokenStore = UserDefaultTokenStore.shared
-
-    switch environment {
-    case .debug:
-      self._environemnt = .debug
-    case .release:
-      self._environemnt = .release(EnvironmentProvider.create(
-        refresher: tokenRefresher,
-        tokenStore: tokenStore))
-    }
-  }
-
-  public static func create(
-    refresher: TokenRefresher,
-    tokenStore: TokenStore
-  ) -> Moya.Session {
-    let authenticator = OAuthAuthenticator(
-      refresher: refresher, tokenStore: tokenStore)
-    let interceptor = AuthenticationInterceptor(
-      authenticator: authenticator,
-      credential: tokenStore.getToken()?.toAuthOCredential())
-    return Session(interceptor: interceptor)
+  public func refreshToken() async throws -> Token {
+    guard let token = tokenStore.getToken() else { throw AuthError.tokenNotFound }
+    return try await tokenProvider.refresh(token)
   }
 }

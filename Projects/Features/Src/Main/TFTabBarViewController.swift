@@ -34,10 +34,10 @@ final class TFTabBarController: UITabBarController, MainViewControllable {
     tabBar.frame.origin.y = self.view.frame.height - tabBar.frame.size.height
   }
 
-  func setViewControllers(_ viewControllerables: [ViewControllable]) {
+  func setViewController(_ viewControllables: [(ViewControllable)]) {
     setAppearance()
 
-    self.setViewControllers(viewControllerables.map(\.uiController), animated: false)
+    self.setViewControllers(viewControllables.map(\.uiController), animated: false)
   }
   
   private func setAppearance() {

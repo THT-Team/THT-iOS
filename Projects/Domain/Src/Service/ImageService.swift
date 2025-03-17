@@ -8,7 +8,6 @@
 import Foundation
 
 import RxSwift
-import RxCocoa
 
 public protocol ImageServiceType: PHPickerHandler {
   func uploadImages(imageDataArray: [Data], bucket: Bucket) -> Single<[String]>

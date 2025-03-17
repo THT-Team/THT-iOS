@@ -7,7 +7,7 @@
 
 import UIKit
 
-import MyPageInterface
+import Domain
 import DSKit
 
 final class WithdrawalDetailCollectionViewCell: TFBaseCollectionViewCell {

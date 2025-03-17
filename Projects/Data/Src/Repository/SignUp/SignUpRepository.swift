@@ -7,17 +7,15 @@
 
 import Foundation
 
-import SignUpInterface
-import AuthInterface
 import Networks
 
 import RxSwift
 import RxMoya
 import Moya
 
-import Core
+import Domain
 
-public typealias SignUpRepository = BaseRepository<SignUpTarget>
+public typealias SignUpRepository = BaseProvider<SignUpTarget>
 
 extension SignUpRepository: SignUpRepositoryInterface {
 

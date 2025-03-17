@@ -8,8 +8,6 @@
 import Foundation
 
 import MyPageInterface
-import SignUpInterface
-import AuthInterface
 import Core
 import DSKit
 import PhotosUI

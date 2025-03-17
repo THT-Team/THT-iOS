@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import Core
-
 import Domain
 
 public final class SocketAuthDecorator: BaseSocketDecorator {
@@ -26,13 +25,11 @@ public final class SocketAuthDecorator: BaseSocketDecorator {
   private let publisher = PassthroughSubject<ChatSignalType, Never>()
   private var cancellables: Set<AnyCancellable> = []
 
-  private let tokenRefresher: TokenRefresher
-  private let tokenStore: TokenStore
+  private let tokenService: TokenServiceType
   private let wrappee: SocketInterface
 
-  public init(_ wrappee: SocketInterface, tokenRefresher: TokenRefresher, tokenStore: TokenStore) {
-    self.tokenRefresher = tokenRefresher
-    self.tokenStore = tokenStore
+  public init(_ wrappee: SocketInterface, _ tokenService: TokenServiceType) {
+    self.tokenService = tokenService
     self.wrappee = wrappee
     super.init(wrappee)
   }
@@ -87,18 +84,12 @@ extension SocketAuthDecorator {
   func resend() {
     Task {
       do {
-        let token = try await refreshToken()
-        tokenStore.saveToken(token: token)
+        let token = try await tokenService.refreshToken()
         sendPendingFrames(token: token)
       } catch {
         NotificationCenter.default.post(name: .needAuthLogout, object: nil)
       }
     }
-  }
-
-  func refreshToken() async throws -> Token {
-    guard let token = tokenStore.getToken() else { throw AuthError.tokenNotFound }
-    return try await tokenRefresher.refresh(token)
   }
 
   func sendPendingFrames(token: Token) {
@@ -134,7 +125,7 @@ extension SocketAuthDecorator {
   }
 
   func makeAuthHeader(_ base: [String: String]) -> [String: String] {
-    guard let token = tokenStore.getToken() else {
+    guard let token = tokenService.getToken() else {
       return base
     }
 
@@ -154,14 +145,10 @@ extension SocketAuthDecorator {
 
 extension SocketAuthDecorator {
   public static func createAuthSocket(
-    tokenStore: TokenStore,
-    tokenRefresher: TokenRefresher
+    tokenService: TokenServiceType
   ) -> SocketInterface {
-    let config = ChatConfiguration(initialToken: tokenStore.getToken()?.accessToken)
-
-    return SocketAuthDecorator(
-      SocketComponent(config: config),
-      tokenRefresher: tokenRefresher,
-      tokenStore: tokenStore)
+    SocketAuthDecorator(
+      SocketComponent(config: ChatConfiguration(initialToken: tokenService.getToken()?.accessToken)),
+      tokenService)
   }
 }

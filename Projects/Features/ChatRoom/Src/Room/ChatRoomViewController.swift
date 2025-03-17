@@ -96,8 +96,7 @@ extension ChatRoomViewController {
       cell.bind(reactor: item)
     }
 
-    let myBubbleRegistration = IncomingCellRegistration { [weak self] cell, _, item in
-      guard let self else { return }
+    let myBubbleRegistration = IncomingCellRegistration { cell, _, item in
       cell.bind(reactor: item)
     }
 

@@ -11,7 +11,7 @@ import Core
 
 import RxSwift
 import RxCocoa
-import MyPageInterface
+import Domain
 
 public final class EmailEdittVM: ViewModelType {
   private let email: String

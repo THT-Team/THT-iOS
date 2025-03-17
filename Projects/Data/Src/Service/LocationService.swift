@@ -8,11 +8,8 @@
 import Foundation
 import CoreLocation
 
-import SignUpInterface
-import AuthInterface
-
 import RxSwift
-import Core
+import Domain
 
 extension CLLocationCoordinate2D {
   func toDTO() -> LocationCoordinate2D {
@@ -39,7 +36,7 @@ public final class LocationService: NSObject, LocationServiceType {
     location
       .map(\.coordinate)
       .map { $0.toDTO() }
-      .bind(to: publisher)
+      .subscribe(publisher)
       .disposed(by: disposeBag)
   }
 

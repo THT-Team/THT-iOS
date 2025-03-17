@@ -9,7 +9,6 @@ import UIKit
 
 import DSKit
 
-import SignUpInterface
 import MyPageInterface
 
 import RxCocoa

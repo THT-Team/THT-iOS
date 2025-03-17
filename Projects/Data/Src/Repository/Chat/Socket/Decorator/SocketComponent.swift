@@ -97,14 +97,11 @@ struct StompMessageMapper {
 
   private static func transform(_ data: Data) -> ChatSignalType? {
     guard
-      let response = try? JSONDecoder.customDeocder .decode(ChatMessage.Response.self, from: data),
-      let id = UserDefaultTokenStore.shared.getToken()?.userUuid
+      let response = try? JSONDecoder.customDeocder .decode(ChatMessage.Response.self, from: data)
     else {
       return nil
     }
-    return response.senderUUID == id
-    ? .message(.outgoing(ChatMessage(response)))
-    : .message(.incoming(ChatMessage(response)))
+    return .message(ChatMessage(response))
   }
 
   static func event(_ event: StompUpstreamEvent) -> ChatSignalType? {

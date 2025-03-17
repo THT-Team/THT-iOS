@@ -7,7 +7,6 @@
 //
 
 import Foundation
-
 import Domain
 
 extension ChatRoomInfo {

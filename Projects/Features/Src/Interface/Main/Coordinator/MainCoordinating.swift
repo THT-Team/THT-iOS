@@ -9,6 +9,6 @@ import Foundation
 
 import Core
 
-protocol MainCoordinating: Coordinator {
+public protocol MainCoordinating: Coordinator {
   var finishFlow: (() -> Void)? { get set }
 }

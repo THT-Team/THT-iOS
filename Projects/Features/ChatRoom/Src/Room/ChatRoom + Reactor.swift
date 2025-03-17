@@ -8,6 +8,7 @@
 import Foundation
 import ReactorKit
 import Domain
+import ChatRoomInterface
 
 extension ChatRoomReactor {
   public enum Action {

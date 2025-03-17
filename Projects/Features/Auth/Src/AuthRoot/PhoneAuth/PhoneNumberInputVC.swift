@@ -10,7 +10,7 @@ import UIKit
 import AuthInterface
 import DSKit
 
-public final class PhoneNumberInputVC: TFBaseViewController, PhoneNumberVCType {
+public final class PhoneNumberInputVC: TFBaseViewController {
   public typealias ViewModel = PhoneNumberInputVM
 
   private lazy var titleLabel: UILabel = UILabel().then {

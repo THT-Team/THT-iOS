@@ -15,7 +15,7 @@ let project = Project(
 		.feature(
 			interface: .MyPage,
 			dependencies: [
-        .feature(interface: .SignUp),
+        .domain
 			]
 		),
 		.feature(

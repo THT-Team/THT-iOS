@@ -8,7 +8,6 @@
 import UIKit
 
 import DSKit
-import RxGesture
 
 final class LocationInputViewController: BaseSignUpVC<LocationInputViewModel>, StageProgressable {
   var stage: Float = 11

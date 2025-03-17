@@ -8,8 +8,6 @@
 import Foundation
 import Core
 
-import AuthInterface
-
 public final class InquiryBuilder: InquiryBuildable {
 
   public init() {}

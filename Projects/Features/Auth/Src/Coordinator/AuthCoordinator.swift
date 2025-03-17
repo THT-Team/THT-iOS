@@ -62,6 +62,13 @@ public final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
     self.phoneNumberVerified = { [weak vm] number in
       vm?.onPhoneNumberVerified(number)
     }
+
+    vm.onError = { [weak self] in
+      let vc = TransferErrorCardVC(nibName: nil, bundle: nil)
+      vc.modalTransitionStyle = .crossDissolve
+      vc.modalPresentationStyle = .fullScreen
+      self?.viewControllable.present(vc, animated: true)
+    }
     self.viewControllable.pushViewController(vc, animated: true)
   }
 }

@@ -8,7 +8,6 @@
 import Foundation
 
 import RxSwift
-import RxCocoa
 
 public enum DomainType {
   case idealType

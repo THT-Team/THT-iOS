@@ -16,9 +16,10 @@ import Moya
 import Core
 import Domain
 
-public typealias AuthRepository = BaseRepository<AuthTarget>
+public typealias AuthRepository = BaseProvider<AuthTarget>
 
 extension AuthRepository: AuthRepositoryInterface {
+
   public func checkUserExist(phoneNumber: String) -> RxSwift.Single<UserSignUpInfoRes> {
     request(type: UserSignUpInfoRes.self, target: .checkExistence(phoneNumber: phoneNumber))
   }

@@ -10,7 +10,6 @@ import Foundation
 import Networks
 
 import Moya
-import AuthInterface
 
 public enum AuthTarget {
   case certificate(phoneNumber: String)
@@ -32,6 +31,10 @@ extension AuthTarget: BaseTargetType {
     switch self {
     case .certificate, .checkExistence: return .get
     }
+  }
+
+  public var headers: [String : String]? {
+    return nil
   }
 
   // Request의 파라미터를 결정한다.

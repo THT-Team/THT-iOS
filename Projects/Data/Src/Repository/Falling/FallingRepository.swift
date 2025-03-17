@@ -6,12 +6,12 @@
 //
 
 import Foundation
-
-import Domain
 import Networks
 
 import RxSwift
 import Moya
+
+import Domain
 
 public typealias FallingRepository = BaseRepository<FallingTarget>
 

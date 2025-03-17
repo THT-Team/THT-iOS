@@ -8,7 +8,6 @@
 import Foundation
 
 import Core
-import ChatInterface
 import Domain
 
 // MARK: - ChatRoomsResponseElement

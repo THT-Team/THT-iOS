@@ -9,7 +9,7 @@ import Foundation
 import Core
 
 public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
-  private let messagePublisher = RxSwift.PublishSubject<ChatSignalType>()
+  private let messagePublisher = RxSwift.PublishSubject<MessageType>()
   private static var chatIndex = 0
   private var disposeBag = DisposeBag()
 
@@ -18,7 +18,7 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
   }
 
   public func connect() {
-    messagePublisher.onNext(.stompConnected)
+    messagePublisher.onNext(.connected)
   }
   
   public func disconnect() {
@@ -38,7 +38,7 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
     messagePublisher.onNext(.message(.outgoing(Self.makeChatMessage(name: "me", message: message))))
 
     Task {
-      try? await Task.sleep(nanoseconds: 1000)
+      try? await Task.sleep(nanoseconds: 300)
       messagePublisher.onNext(.message(.incoming(Self.makeChatMessage(name: "echo", message: message))))
     }
   }
@@ -47,7 +47,7 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
 
   }
   
-  public func listen() -> RxSwift.Observable<Domain.ChatSignalType> {
+  public func listen() -> RxSwift.Observable<Domain.MessageType> {
     messagePublisher.asObservable()
   }
 

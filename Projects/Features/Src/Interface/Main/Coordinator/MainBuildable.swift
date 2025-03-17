@@ -9,6 +9,6 @@ import Foundation
 import Core
 import Domain
 
-protocol MainBuildable {
+public protocol MainBuildable {
   func build() -> MainCoordinating
 }

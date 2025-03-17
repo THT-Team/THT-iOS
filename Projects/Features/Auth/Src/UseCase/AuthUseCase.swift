@@ -14,17 +14,17 @@ import Core
 import Domain
 
 public final class AuthUseCase {
-  private let repository: AuthRepositoryInterface
-  private let authService: AuthServiceType
+  private let authRepository: AuthRepositoryInterface
+  private let tokenService: TokenServiceType
   private let socialService: SocialLoginRepositoryInterface
 
   public init(
     authRepository: AuthRepositoryInterface,
-    authService: AuthServiceType,
+    tokenService: TokenServiceType,
     socialService: SocialLoginRepositoryInterface
   ) {
-    self.repository = authRepository
-    self.authService = authService
+    self.authRepository = authRepository
+    self.tokenService = tokenService
     self.socialService = socialService
   }
 
@@ -35,11 +35,11 @@ public final class AuthUseCase {
 
 extension AuthUseCase: AuthUseCaseInterface {
   public func certificate(phoneNumber: String) -> RxSwift.Single<Int> {
-    repository.certificate(phoneNumber: phoneNumber)
+    authRepository.certificate(phoneNumber: phoneNumber)
   }
 
   public func checkUserExists(phoneNumber: String) -> Single<UserSignUpInfoRes> {
-    return repository.checkUserExist(phoneNumber: phoneNumber)
+    authRepository.checkUserExist(phoneNumber: phoneNumber)
       .flatMap { info in
         UserDefaultRepository.shared.saveModel(info, key: .sign_up_info)
         return .just(info)
@@ -47,16 +47,7 @@ extension AuthUseCase: AuthUseCaseInterface {
   }
 
   public func login() -> Single<Void> {
-    return authService.login()
-      .map { _ in }
-  }
-
-  public func needAuth() -> Bool {
-    authService.needAuth()
-  }
-
-  private func saveSNSType(_ sns: SNSType) {
-    UserDefaultRepository.shared.saveModel(sns, key: .snsType)
+    tokenService.login()
   }
 }
 
@@ -65,7 +56,10 @@ extension AuthUseCase {
 
     switch type {
     case .apple:
-      return .error(AuthError.invalidSNSUser)
+      return socialService.appleLogin()
+        .flatMap { [unowned self] user in
+          self.authenticate(user: user)
+        }
     case .google:
       return .error(AuthError.invalidSNSUser)
     case .naver:
@@ -80,10 +74,6 @@ extension AuthUseCase {
     }
   }
 
-  public func saveDeviceKey(_ deviceKey: String) {
-    UserDefaultRepository.shared.save(deviceKey, key: .deviceKey)
-  }
-
   public func savePhoneNumber(_ phoneNumber: String) {
     UserDefaultRepository.shared.save(phoneNumber, key: .phoneNumber)
   }
@@ -91,37 +81,32 @@ extension AuthUseCase {
   public func fetchPhoneNumber() -> String? {
     UserDefaultRepository.shared.fetch(for: .phoneNumber, type: String.self)
   }
-
-  public func updateDeviceToken() -> Single<Void> {
-    guard let deviceKey = UserDefaultRepository.shared.fetch(for: .deviceKey, type: String.self)
-    else {
-      return .error(AuthError.tokenNotFound)
-    }
-    return authService.updateDeviceToken(deviceKey)
-  }
 }
 
 extension AuthUseCase {
   private func authenticate(number: String) -> Single<AuthNavigation> {
-    repository.checkUserExist(phoneNumber: number)
+    authRepository.checkUserExist(phoneNumber: number)
       .flatMap { [weak self] result -> Single<AuthNavigation> in
         guard let self else { return .error(AuthError.internalError) }
         UserDefaultRepository.shared.saveModel(result, key: .sign_up_info)
         return result.isSignUp
-        ? authService.login().map { _ in .main }
+        ? tokenService.login().map { .main }
         : .just(.signUp(PendingUser(phoneNumber: number)))
       }
   }
 
   private func authenticate(user: SNSUserInfo) -> Single<AuthNavigation> {
-    repository.checkUserExist(phoneNumber: user.phoneNumber)
+    guard !user.phoneNumber.isEmpty else {
+      return .just(.signUp(PendingUser(user)))
+    }
+    return authRepository.checkUserExist(phoneNumber: user.phoneNumber)
       .flatMap { [weak self] result -> Single<AuthNavigation> in
         guard let self else { return .error(AuthError.internalError) }
 
         if result.isSignUp {
           return result.typeList.contains(user.snsType)
-          ? authService.loginSNS(user).map { _ in .main }
-          : authService.signUpSNS(user).map { _ in .main }
+          ? tokenService.loginSNS(user).map { .main }
+          : tokenService.signUpSNS(user).map { .main }
         } else {
           return .just(.signUp(PendingUser(user)))
         }

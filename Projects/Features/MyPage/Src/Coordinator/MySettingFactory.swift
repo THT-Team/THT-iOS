@@ -7,10 +7,9 @@
 
 import UIKit
 
-import MyPageInterface
-import SignUpInterface
-import AuthInterface
 import DSKit
+import Domain
+import MyPageInterface
 
 public protocol MySettingFactoryType {
   var userStore: UserStore { get }

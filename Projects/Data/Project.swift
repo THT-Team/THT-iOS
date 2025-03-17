@@ -20,20 +20,14 @@ let firebase: ProjectDescription.SettingsDictionary = [
 let project = Project.makeModule(
   name: Feature.Data.rawValue,
   dependencies: [
-    .feature(interface: .Like),
-    .feature(interface: .Chat),
-    .feature(interface: .ChatRoom),
-    .feature(interface: .MyPage),
-    .feature(interface: .Falling),
+    .domain,
     .module(implementation: .Network, pathName: .Modules(.Network)),
-//    .SPM.Moya,
-//    .SPM.RxMoya,
-    
     .SPM.KakaoSDKAuth,
     .SPM.KakaoSDKUser,
     .SPM.KakaoSDKCommon,
-    .XCFramework.NaverThirdPartyLogin,
     .SPM.FirebaseStorage,
+    .SPM.SwiftStomp,
+    .SPM.RealmSwift,
   ],
   product: .staticFramework
 )
