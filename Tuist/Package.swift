@@ -10,15 +10,15 @@ let packageSettings = PackageSettings(
     "RxCocoa": .framework,
 //    "RxSwift": .framework,
     "RxGesture": .framework,
-    "SnapKit": .framework,
+//    "SnapKit": .framework,
     "Kingfisher": .framework,
-    "Then": .framework,
+//    "Then": .framework,
     "RxRelay": .framework,
     "RxCocoaRuntime": .framework,
     "Lottie": .framework,
-    "ReactorKit": .framework,
-    "SwiftStomp": .framework,
-    "RealmSwift": .framework,
+//    "ReactorKit": .framework,
+//    "SwiftStomp": .framework,
+//    "RealmSwift": .framework,
   ]
 )
 #endif

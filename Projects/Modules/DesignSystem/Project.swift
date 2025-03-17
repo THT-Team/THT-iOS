@@ -26,6 +26,7 @@ let target = Target.target(
     .SPM.SnapKit,
     .SPM.Then,
     .SPM.RxGesture,
+    .SPM.RxCocoa,
     .SPM.KingFisher,
     .SPM.Lottie,
   ]

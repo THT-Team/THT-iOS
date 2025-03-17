@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxCocoa
 
 public enum InputError: Error {
   case validate(text: String)

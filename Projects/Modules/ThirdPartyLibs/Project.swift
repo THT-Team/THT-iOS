@@ -13,7 +13,6 @@ let project = Project.makeModule(
   name: Feature.ThirdPartyLibs.rawValue,
   dependencies: [
     .SPM.RxSwfit,
-    .SPM.RxCocoa,
     .SPM.ReactorKit,
     .SPM.FirebaseMessaging,
   ],
