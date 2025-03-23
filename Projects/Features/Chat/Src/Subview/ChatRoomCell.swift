@@ -111,7 +111,7 @@ import SwiftUI
 
 struct ChatRoomCellViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let model = ChatRoom(
         chatRoomIndex: 1,

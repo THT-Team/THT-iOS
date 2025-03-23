@@ -6,11 +6,19 @@
 //
 
 import UIKit
+import SwiftUI
 
 import Core
 import DSKit
 
 final class FallingView: TFBaseView {
+  let topicView: UIView = {
+    let vc = UIHostingController(rootView: TopicView())
+    guard let view = vc.view else { return UIView() }
+    view.backgroundColor = DSKitAsset.Color.neutral700.color
+    return view
+  }()
+  
   let collectionView: UICollectionView = {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
     let collectionView = UICollectionView(frame: .zero,
@@ -23,7 +31,16 @@ final class FallingView: TFBaseView {
   override func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral700.color
     
+    
+    self.addSubview(topicView)
     self.addSubview(collectionView)
+    
+    collectionView.isHidden = true
+    
+    self.topicView.snp.makeConstraints {
+      $0.verticalEdges.equalToSuperview()
+      $0.horizontalEdges.equalToSuperview().inset(16)
+    }
     
     self.collectionView.snp.makeConstraints {
       $0.top.equalTo(self.safeAreaLayoutGuide).inset(8)

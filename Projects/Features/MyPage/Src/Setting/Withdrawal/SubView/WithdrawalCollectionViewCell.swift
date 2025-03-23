@@ -93,7 +93,7 @@ struct WithdrawalReasonModel {
 //
 //struct WithdrawalViewPreview: PreviewProvider {
 //
-//  static var previews: some View {
+//  static var previews: some SwiftUI.View {
 //    UIViewPreview {
 //      let comp = WithdrawalCollectionViewCell()
 //      comp.bind(.init(emoji: "🔴", text: "당분간 폴링 사용을\n중단하려고 함"))

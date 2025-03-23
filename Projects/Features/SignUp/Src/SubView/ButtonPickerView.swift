@@ -121,7 +121,7 @@ import DSKit
 
 struct ButtonPickerViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let text = "성별, 생일을 입력해주세요"
       let target = "성별, 생일"

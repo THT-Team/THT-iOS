@@ -58,7 +58,7 @@ import SwiftUI
 
 struct MyPageDefaultTableViewCellPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let cmp = MyPageDefaultTableViewCell()
       return cmp

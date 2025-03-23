@@ -11,7 +11,7 @@ import MyPageInterface
 //import SwiftUI
 //
 //struct ViewController_Preview: PreviewProvider {
-//  static var previews: some View {
+//  static var previews: some SwiftUI.View {
 //    let vm = PhotoInputViewModel()
 //    let vc = PhotoInputViewController(viewModel: vm)
 //    return vc.showPreview()

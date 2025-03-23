@@ -54,7 +54,7 @@ import SwiftUI
 
 struct NicknameViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return NicknameView()
     }

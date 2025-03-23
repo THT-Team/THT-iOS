@@ -133,7 +133,7 @@ import SwiftUI
 
 struct ViewPreview: PreviewProvider {
   
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let comp = PreferGenderCell(frame: .zero)
       return comp

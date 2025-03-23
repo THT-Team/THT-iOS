@@ -63,7 +63,7 @@ import SwiftUI
 
 struct HeightViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return HeightPickerView()
     }

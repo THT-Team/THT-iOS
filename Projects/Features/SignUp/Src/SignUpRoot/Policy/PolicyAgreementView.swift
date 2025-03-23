@@ -95,7 +95,7 @@ import SwiftUI
 
 struct TFCheckButtonwPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       PolicyAgreementView()
     }

@@ -88,7 +88,7 @@ import SwiftUI
 
 struct ReligionPickerViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return ReligionPickerView()
     }

@@ -118,7 +118,7 @@ import SwiftUI
 
 struct TFCardViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return TFCardView()
     }

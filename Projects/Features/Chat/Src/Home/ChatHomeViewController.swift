@@ -98,7 +98,7 @@ extension ChatHomeViewController {
 //import SwiftUI
 //
 //struct ViewController_Preview: PreviewProvider {
-//    static var previews: some View {
+//    static var previews: some SwiftUI.View {
 //      let useCase = ChatUseCase(repository: ChatRepository(isStub: true, sampleStatusCode: 200, customEndpointClosure: nil))
 //
 //      let viewModel = ChatHomeViewModel(chatUseCase: <#T##ChatUseCaseInterface#>)

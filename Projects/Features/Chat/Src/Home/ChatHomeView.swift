@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 import Core
 import DSKit
@@ -45,7 +46,7 @@ import SwiftUI
 
 struct ChatListEmptyViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return ChatHomeView()
     }
