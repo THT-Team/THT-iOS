@@ -10,7 +10,6 @@ import DSKit
 import Core
 import ChatRoomInterface
 import ChatRoom
-import ChatInterface
 import Domain
 
 final class AppCoordinator: LaunchCoordinator {
@@ -29,16 +28,8 @@ final class AppCoordinator: LaunchCoordinator {
   }
 
   public override func start() {
-    let vc = SimpleVC(nibName: nil, bundle: nil)
-    vc.onClick = { [weak self] in
-      self?.runChatRoomFlow("1")
-    }
 
-    self.toastHandler = { [weak vc] message in
-      vc?.toastHandler?(message)
-    }
-
-    viewControllable.pushViewController(vc, animated: true)
+//    viewControllable.pushViewController(vc, animated: true)
   }
 
   // MARK: - public

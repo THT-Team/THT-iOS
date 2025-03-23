@@ -191,16 +191,16 @@ public extension Reactive where Base: TFCounterTextField {
 #if canImport(SwiftUI) && DEBUG
 import SwiftUI
 
-struct TFCounterFieldPreview: PreviewProvider {
-
-  static var previews: some View {
-    UIViewPreview {
-      let component = TFCounterTextField(description: "ㅁㄴㅇㄹㄴㅁㅇ", maxLength: 10, placeholder: "ㅁㄴㅇㄹ")
-      return component
-    }
-    .frame(width: .infinity, height: 100)
-    .previewLayout(.sizeThatFits)
-  }
-}
+//struct TFCounterFieldPreview: PreviewProvider {
+//
+//  static var previews: some SwiftUI.View {
+//    UIViewPreview {
+//      let component = TFCounterTextField(description: "ㅁㄴㅇㄹㄴㅁㅇ", maxLength: 10, placeholder: "ㅁㄴㅇㄹ")
+//      return component
+//    }
+//    .frame(width: .infinity, height: 100)
+//    .previewLayout(.sizeThatFits)
+//  }
+//}
 #endif
 

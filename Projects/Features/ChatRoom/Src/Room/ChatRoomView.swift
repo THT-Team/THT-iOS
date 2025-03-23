@@ -65,7 +65,7 @@ import SwiftUI
 
 struct ChatRoomViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
       UIViewPreview {
         let view = ChatRoomView()
         view.topicBind("반려동물", "asdfjsadlfkjasld")

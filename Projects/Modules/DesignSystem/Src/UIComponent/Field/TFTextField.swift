@@ -126,7 +126,7 @@ import SwiftUI
 
 struct TFTextFieldPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let component = TFTextField(description: "닉네임 입력해줘", placeholder: "a")
       return component

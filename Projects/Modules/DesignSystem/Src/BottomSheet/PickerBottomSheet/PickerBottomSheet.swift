@@ -58,7 +58,7 @@ public final class PickerBottomSheet: TFBaseViewController {
 import SwiftUI
 
 struct ViewController_Preview: PreviewProvider {
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     let vm = PickerBottomSheetViewModel(initialValue: .date(date: Date()))
     let vc = PickerBottomSheet(viewModel: vm)
     return vc.showPreview()

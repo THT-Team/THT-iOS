@@ -237,7 +237,7 @@ import SwiftUI
 
 struct InquiryViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let cmp = InquiryView()
       return cmp

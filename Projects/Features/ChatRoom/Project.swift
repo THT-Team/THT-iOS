@@ -36,7 +36,9 @@ let project = Project(
     .unitTest(
       feature: .ChatRoom,
       dependencies: [
-        .feature(implementation: .ChatRoom)
+        .feature(implementation: .ChatRoom),
+        .feature(implementation: .Auth),
+        .data,
       ]
     )
   ]

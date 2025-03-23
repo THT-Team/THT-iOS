@@ -129,7 +129,7 @@ import SwiftUI
 
 struct ChatInputViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
       UIViewPreview {
         let view = ChatInputView()
 

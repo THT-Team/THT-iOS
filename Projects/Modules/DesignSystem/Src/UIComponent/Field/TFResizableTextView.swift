@@ -295,7 +295,7 @@ import SwiftUI
 
 struct TFResizableTextViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let component = TFResizableTextView()
       return component

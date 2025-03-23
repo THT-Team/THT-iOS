@@ -44,7 +44,7 @@ public extension UIViewController {
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
   }
 
-  func showPreview(_ deviceType: DeviceType = .iPhone15Pro) -> some View {
+  func showPreview(_ deviceType: DeviceType = .iPhone15Pro) -> some SwiftUI.View {
     PreView(viewController: self).previewDevice(PreviewDevice(rawValue: deviceType.name()))
   }
 }
