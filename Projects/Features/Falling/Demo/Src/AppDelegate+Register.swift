@@ -18,18 +18,8 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
-    let provider = EnvironmentProvider(.debug)
-    let environment = provider.environment
-    
-    let tokenStore: TokenStore = provider.tokenStore
-    let tokenRefresher = provider.tokenRefresher
-    
-    container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(
-        socketInterface: SocketAuthDecorator.createAuthSocket(
-          tokenStore: tokenStore,
-          tokenRefresher: tokenRefresher),
-        tokenStore: tokenStore)}
+    let environment: AppEnvironment = .release
+    let provider = ServiceProvider(environment)
     
     container.register(
       interface: UserDomainUseCaseInterface.self,
@@ -38,16 +28,21 @@ extension AppDelegate {
       })
     
     container.register(
-      interface: ChatUseCaseInterface.self,
-      implement: {
-        DefaultChatUseCase(
-          repository: ChatRepository(environment))})
-    
-    container.register(
       interface: FallingUseCaseInterface.self,
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(environment))})
+            FallingRepository(provider.environment))})
+    
+    container.register(
+      interface: ChatUseCaseInterface.self,
+      implement: {
+        DefaultChatUseCase(
+          repository: ChatRepository(provider.environment))})
+    
+    container.register(interface: TalkUseCaseInterface.self) {
+      DefaultTalkUseCase(
+        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
+        tokenService: provider.tokenService)}
   }
 }
