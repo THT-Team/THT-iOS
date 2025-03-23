@@ -20,8 +20,8 @@ struct BubbleView: SwiftUI.View {
   
   var body: some SwiftUI.View {
     Text(text)
-      .font(DSKitFontFamily.Pretendard.medium.swiftUIFont(size: 12))
-      .foregroundStyle(DSKitAsset.Color.neutral900.swiftUIColor)
+      .font(weight: 500, size: 12, lineSpacingPercent: 140)
+      .foregroundStyle(Color.neutral900)
       .padding(.horizontal, horizontalPadding)
       .padding(.vertical, verticalPadding)
       .background(
@@ -31,7 +31,7 @@ struct BubbleView: SwiftUI.View {
           tailHeight: tailHeight,
           tailRadius: tailRadius
         )
-        .fill(DSKitAsset.Color.neutral50.swiftUIColor)
+        .fill(Color.neutral50)
       )
       .padding(.bottom, tailHeight + tailRadius)
   }
