@@ -219,7 +219,7 @@
 //
 //  struct TFTextViewPreview: PreviewProvider {
 //
-//    static var previews: some View {
+//    static var previews: some SwiftUI.View {
 //      UIViewPreview {
 //        let component = TFTextView()
 //        //      component.render(state: .error(error: .validate(text: "중복된 닉네임입니다.")))

@@ -73,7 +73,7 @@ import SwiftUI
 
 struct InputViewPreview: PreviewProvider {
   
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let component = UserContactView()
       return component

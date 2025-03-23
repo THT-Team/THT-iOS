@@ -103,7 +103,7 @@ import SwiftUI
 
 struct PhotoInputViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return PhotoInputView()
     }

@@ -77,7 +77,7 @@ import SwiftUI
 
 struct PickerBottomSheetViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return PickerBottomSheetView()
     }

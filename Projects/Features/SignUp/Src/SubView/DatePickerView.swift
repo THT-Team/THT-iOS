@@ -59,7 +59,7 @@
 //
 //struct DatePickerViewPreview: PreviewProvider {
 //
-//  static var previews: some View {
+//  static var previews: some SwiftUI.View {
 //    UIViewPreview {
 //      return DatePickerView()
 //    }

@@ -131,7 +131,7 @@ struct UserInfoBoxViewRepresentable: UIViewRepresentable {
   }
 }
 struct UserInfoBoxViewPreview: PreviewProvider {
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     Group {
       UserInfoBoxViewRepresentable()
         .frame(width: UIScreen.main.bounds.width, height: 600)

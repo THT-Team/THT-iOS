@@ -53,7 +53,7 @@ import SwiftUI
 
 struct IntroduceInputViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let view = IntroduceInputView()
 //      view.introduceInputField.render(state: .text(text: "입력"))

@@ -108,7 +108,7 @@ import SwiftUI
 
 struct InputTagCellViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let component =  InputTagCollectionViewCell()
       component.bind(.init(item: .init(idx: 1, name: "샘플", emojiCode: "U+1F457"), isSelected: false))

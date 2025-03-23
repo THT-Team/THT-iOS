@@ -48,7 +48,7 @@ import SwiftUI
 
 struct LocationInputViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       let component = LocationInputView()
       component.locationField.bind("서울시 성북구 성북동")

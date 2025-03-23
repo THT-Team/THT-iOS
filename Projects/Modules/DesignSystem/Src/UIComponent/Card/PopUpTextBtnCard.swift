@@ -95,7 +95,7 @@ import SwiftUI
 
 struct PopUpTextBtnViewPreview: PreviewProvider {
 
-  static var previews: some View {
+  static var previews: some SwiftUI.View {
     UIViewPreview {
       return TFPopUpTextBtnCard(title: "문의하기 완료", description: "답변에는 하루 정도의 시간이 걸릴 수 있어요.\n답변이 안온다면, 스팸 메일함을 확인해주세요."
 , btnTitle: "돌아가기")
