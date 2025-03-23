@@ -7,7 +7,7 @@
 
 import ProjectDescription
 
-public enum BuildType {
+public enum BuildType: Sendable {
     case debug
     case release
 }
@@ -16,7 +16,7 @@ public let buildType: BuildType = {
     Environment.buildTypeRelease.getBoolean(default: false) ? .release : .debug
 }()
 
-public var defaultPackageType: ProjectDescription.Product = {
+public let defaultPackageType: ProjectDescription.Product = {
   return .staticLibrary
 //    buildType == .release ? .staticFramework : .framework
 }()
