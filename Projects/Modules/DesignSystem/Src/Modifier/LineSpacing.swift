@@ -96,16 +96,16 @@ public enum AppFont {
       case extrabold = 800
 //      case heavy = 900
       
-      var name: String {
+      var converter: DSKitFontConvertible {
         switch self {
 //        case .thin: "Thin"
 //        case .extraLight: "ExtraLight"
 //        case .light: "Light"
-        case .regular: DSKitFontFamily.Pretendard.regular.name
-        case .medium: DSKitFontFamily.Pretendard.medium.name
-        case .semibold: DSKitFontFamily.Pretendard.semiBold.name
-        case .bold: DSKitFontFamily.Pretendard.bold.name
-        case .extrabold: DSKitFontFamily.Pretendard.extraBold.name
+        case .regular: DSKitFontFamily.Pretendard.regular
+        case .medium: DSKitFontFamily.Pretendard.medium
+        case .semibold: DSKitFontFamily.Pretendard.semiBold
+        case .bold: DSKitFontFamily.Pretendard.bold
+        case .extrabold: DSKitFontFamily.Pretendard.extraBold
 //        case .heavy: "Heavy"
         }
       }
@@ -119,13 +119,13 @@ public extension Font {
     weight: AppFont.Pretendard.Weight,
     size: CGFloat
   ) -> Font {
-    return .custom(weight.name, size: size)
+    return weight.converter.swiftUIFont(size: size)
   }
   
   static func pretendard(
     weight: Int,
     size: CGFloat
   ) -> Font {
-    return .custom(AppFont.Pretendard.Weight(rawValue: weight)!.name, size: size)
+    return AppFont.Pretendard.Weight(rawValue: weight)!.converter.swiftUIFont(size: size)
   }
 }
