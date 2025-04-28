@@ -19,7 +19,7 @@ public enum ChatMessageType {
   }
 }
 
-public struct ChatMessage {
+public struct ChatMessage: Equatable {
   public let chatIdx: String
   public let sender: String
   public let senderUuid: String

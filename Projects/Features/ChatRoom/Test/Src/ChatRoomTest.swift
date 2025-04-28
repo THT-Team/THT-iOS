@@ -1,40 +1,199 @@
-//
-//  ChatRoomTest.swift
-//  ChatRoomTest
-//
-//  Created by Kanghos on 3/23/25.
-//
-
+import Foundation
 import XCTest
 import Domain
+import Data
 
-//class ChatStore {
-//  func fetch() -> [Chat]
-//}
+public struct MessageViewModel: Equatable {
+  public enum Align {
+    case left
+    case right
+  }
 
-final class ChatRoomTest: XCTestCase {
+  var showDate: Bool
+  var showProfile: Bool
+  var showName: Bool
+  let model: ChatMessage
+  let align: Align
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+  public init(showDate: Bool, showProfile: Bool, showName: Bool, model: ChatMessage, align: MessageViewModel.Align) {
+    self.showDate = showDate
+    self.showProfile = showProfile
+    self.showName = showName
+    self.model = model
+    self.align = align
+  }
+
+  public init(model: ChatMessage, isMe: Bool) {
+    self.showDate = true
+    self.showProfile = !isMe
+    self.showName = !isMe
+    self.model = model
+    self.align = isMe ? .right : .left
+  }
+}
+private enum MessageSpliter {
+  typealias Key = Date
+  static func map(_ messages: [ChatMessage]) -> [Key: [ChatMessage]] {
+    var dict = [Key: [ChatMessage]]()
+    let formatter = DateFormatter()
+    formatter.dateStyle = .short
+
+    messages.forEach { message in
+      let key = Calendar.current.startOfDay(for: message.dateTime)
+      dict[key, default: []].append(message)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    return dict
+  }
+}
+
+private enum MessageMapper {
+  enum MessageType {
+    case dateHeader(Date)
+    case message(MessageViewModel)
+  }
+  // 1. [Date: [Message]] 프로세싱
+
+  /// 메세지 블록 처리
+  static func map(_ messages: [ChatMessage], ownerID: String) -> [MessageViewModel] {
+    var mutable = messages
+      .map { message in
+        let isMe = message.senderUuid == ownerID
+
+        return MessageViewModel(
+          showDate: true,
+          showProfile: !isMe,
+          showName: !isMe, model: message,
+          align: isMe ? .right : .left
+        )
+      }
+    var lastIndex: Int = 0
+
+    mutable.enumerated().forEach { index, message in
+      if index == 0 { return }
+      lastIndex = index - 1
+      var last = mutable[lastIndex]
+
+      // Case: same sender && same minute
+      if MessageMapper.isSameSenderAndSameTime(last, message) {
+        last.showDate = false
+        mutable[lastIndex] = last
+      }
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
+    return mutable
+  }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+  private static func isSameSenderAndSameTime(_ lhs: MessageViewModel, _ rhs: MessageViewModel) -> Bool {
+    lhs.model.senderUuid == rhs.model.senderUuid && MessageMapper.isSameTime(lhs: lhs.model.dateTime, rhs: rhs.model.dateTime)
+  }
 
+  private static func isSameTime(lhs: Date, rhs: Date) -> Bool {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyyMMddHHmm"
+
+    return  formatter.string(from: lhs) == formatter.string(from: rhs)
+  }
+}
+
+class ChatRoomTest: XCTestCase {
+  func testSameSenderSameTime() throws {
+    let me = UUID().uuidString
+    let current = Date(timeIntervalSince1970: 1745708953)
+
+    let messages = [
+      createChatMessage(me, date: current), // false
+      createChatMessage(me, date: current), // true
+    ]
+
+    let result = MessageMapper.map(messages, ownerID: me)
+
+    XCTAssertEqual(result.map(\.showDate), [false, true])
+  }
+
+  func testSameSenderDifferentTime() throws {
+    let me = UUID().uuidString
+    let current = Date(timeIntervalSince1970: 1745708953)
+    let oneMinuteAfter = current.addingTimeInterval(60)
+
+    let messages = [
+      createChatMessage(me, date: current), // true
+      createChatMessage(me, date: oneMinuteAfter), // true
+    ]
+
+    let result = MessageMapper.map(messages, ownerID: me)
+
+    XCTAssertEqual(result.map(\.showDate), [true, true])
+  }
+
+  func testDifferentSenderSameTime() throws {
+    let me = UUID().uuidString
+    let you = UUID().uuidString
+    let current = Date(timeIntervalSince1970: 1745708953)
+
+    let messages = [
+      createChatMessage(me, date: current),
+      createChatMessage(you, date: current),
+    ]
+
+    let result = MessageMapper.map(messages, ownerID: me)
+
+    XCTAssertEqual(result.map(\.showDate), [true, true])
+  }
+
+  func testDifferentSenderDifferentTime() throws {
+    let me = UUID().uuidString
+    let you = UUID().uuidString
+    let current = Date(timeIntervalSince1970: 1745708953)
+    let oneMinuteAfter = current.addingTimeInterval(60)
+
+    let messages = [
+      createChatMessage(me, date: current),
+      createChatMessage(you, date: oneMinuteAfter),
+    ]
+
+    let result = MessageMapper.map(messages, ownerID: me)
+
+    XCTAssertEqual(result.map(\.showDate), [true, true])
+  }
+
+  func testDifferentDayKey() throws {
+
+    let me = UUID().uuidString
+    let calendar = Calendar.current
+    let current = Date()
+    let tommorow = calendar.date(byAdding: .day, value: 1, to: current)!
+
+    let messages = [
+      createChatMessage(me, date: current),
+      createChatMessage(me, date: tommorow),
+    ]
+
+    let result = MessageSpliter.map(messages)
+
+    XCTAssertEqual(result.keys.count, 2)
+  }
+
+  func testSameDay() throws {
+
+    let me = UUID().uuidString
+    let calendar = Calendar.current
+    let current = Date()
+
+    let messages = [
+      createChatMessage(me, date: current),
+      createChatMessage(me, date: current),
+    ]
+
+    let result = MessageSpliter.map(messages)
+
+    XCTAssertEqual(result.keys.count, 1)
+  }
+
+  // MARK: - Helpers
+
+  private func createChatMessage(_ senderID: String, date: Date) -> ChatMessage {
+    ChatMessage(chatIdx: UUID().uuidString, sender: "any", senderUuid: senderID
+                , msg: "any message", imgUrl: "http://message.com", dataTime: date)
+  }
 }
