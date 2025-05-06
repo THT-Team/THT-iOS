@@ -15,7 +15,6 @@ let project = Project.makeModule(
     .SPM.RxSwfit,
     .SPM.ReactorKit,
     .SPM.FirebaseMessaging,
-  ],
-
-  product: .staticLibrary
-  )
+    .SPM.ComposableArchitecture
+  ]
+)
