@@ -13,10 +13,10 @@ platform :ios do
       type: "development",
       readonly: true
     )
-    match(
-      type: "appstore",
-      readonly: true
-    )
+#    match(
+#      type: "appstore",
+#      readonly: true
+#    )
     app_store_connect_api_key(is_key_content_base64: true)
   end
 

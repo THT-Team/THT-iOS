@@ -12,9 +12,11 @@ import RxSwift
 public final class FallingUseCase: FallingUseCaseInterface {
 
   private let repository: FallingRepositoryInterface
-  
-  public init(repository: FallingRepositoryInterface) {
+  private let likeRepository: LikeRepositoryInterface
+
+  public init(repository: FallingRepositoryInterface, likeRepository: LikeRepositoryInterface) {
     self.repository = repository
+    self.likeRepository = likeRepository
   }
   
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {
@@ -23,8 +25,6 @@ public final class FallingUseCase: FallingUseCaseInterface {
       userDailyFallingCourserIdx: userDailyFallingCourserIdx,
       size: size
     )
-//    .just(UserGenerator.userInfo(userDailyFallingCourserIdx: userDailyFallingCourserIdx, size: size))
-//    .delay(.milliseconds(700), scheduler: MainScheduler())
     .retry(when: {
       $0.enumerated()
         .flatMap { attempt, error in
@@ -45,9 +45,10 @@ public final class FallingUseCase: FallingUseCaseInterface {
   }
 
   public func like(userUUID: String, topicIndex: String) -> RxSwift.Single<MatchResponse> {
-    let randomIsMatched = [true, false].randomElement() ?? false
-
-    return .just(MatchResponse(isMatched: randomIsMatched, chatIndex: "1"))
+    likeRepository.like(id: userUUID, topicID: topicIndex)
+      .map {
+        MatchResponse(isMatched: $0.isMatching, chatIndex: "\($0.chatRoomIdx ?? -1)")
+      }
   }
 
   public func reject(userUUID: String, topicIndex: String) -> RxSwift.Single<Void> {

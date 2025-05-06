@@ -18,6 +18,7 @@ public final class LikeHomeViewController: TFBaseViewController {
   private lazy var mainView = HeartListView()
   private var dataSource: DataSource!
   private let cellUpdateTrigger = PublishRelay<Like>()
+  private let cellCaptureRelay = PublishRelay<Int>()
 
   private let viewModel: LikeHomeViewModel
 
@@ -49,7 +50,6 @@ public final class LikeHomeViewController: TFBaseViewController {
     // FIXME: 프로필 닫을때 ViewWillAppear 호출됨
     let initialTrigger = Driver.just(())
 
-
     let refreshControl = self.mainView.refreshControl.rx.controlEvent(.valueChanged)
       .asDriver()
 
@@ -64,11 +64,11 @@ public final class LikeHomeViewController: TFBaseViewController {
 
     let input = LikeHomeViewModel.Input(
       trigger: Driver.merge(initialTrigger, refreshControl),
-      viewWillAppear: self.rx.viewWillAppear.asDriver().mapToVoid(),
       cellButtonAction: cellButtonSubject.asDriverOnErrorJustEmpty(),
       pagingTrigger: pagingTrigger,
       cellUpdateTrigger: cellUpdateTrigger.asSignal(),
-      deleteAnimationComplete: deleteAnimationCompleteRelay.asDriverOnErrorJustEmpty()
+      deleteAnimationComplete: deleteAnimationCompleteRelay.asDriverOnErrorJustEmpty(),
+      captureReadItem: cellCaptureRelay.asDriverOnErrorJustEmpty()
     )
 
     let output = viewModel.transform(input: input)
@@ -205,4 +205,10 @@ extension LikeHomeViewController: UICollectionViewDelegateFlowLayout {
     ? CGSize(width: collectionView.frame.width, height: 100)
     : CGSize(width: collectionView.frame.width, height: 44)
   }
+
+//  public func collectionView(_ collectionView: UICollectionView, did cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//
+//    guard let item = self.dataSource.itemIdentifier(for: indexPath) else { return }
+//    cellCaptureRelay.accept(item.likeIdx)
+//  }
 }

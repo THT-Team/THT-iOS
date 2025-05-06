@@ -45,11 +45,11 @@ extension LikeHomeViewModel {
 
   public struct Input {
     let trigger: Driver<Void>
-    let viewWillAppear: Driver<Void>
     let cellButtonAction: Driver<LikeCellButtonAction>
     let pagingTrigger: Driver<Void>
     let cellUpdateTrigger: Signal<Like>
     let deleteAnimationComplete: Driver<Like>
+    let captureReadItem: Driver<Int>
   }
 
   public struct Output {
@@ -99,11 +99,6 @@ extension LikeHomeViewModel {
         currentCursor.accept(CursorInfo(info.lastFallingTopicIdx, info.lastLikeIdx))
         snapshot.accept(LikeHelper.preprocess(initial: snapshot.value, info.likeList))
       })
-      .disposed(by: disposeBag)
-
-    input.viewWillAppear
-      .withLatestFrom(snapshot.asDriver())
-      .drive()
       .disposed(by: disposeBag)
 
     input.cellUpdateTrigger
@@ -203,6 +198,14 @@ extension LikeHomeViewModel {
       }
       .asDriverOnErrorJustEmpty()
       .drive(snapshot)
+      .disposed(by: disposeBag)
+
+    // TODO: willAppear 때 Local에 있던 index가져와서 업데이트
+    // TODO: local에 index 저장
+    changeItem.map(\.likeIdx)
+      .bind(with: self) { owner, id in
+        owner.likeUseCase.save(id: id)
+      }
       .disposed(by: disposeBag)
 
     let headerLabel = snapshot

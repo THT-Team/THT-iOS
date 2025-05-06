@@ -13,7 +13,6 @@ import AuthInterface
 
 import Core
 import Domain
-import Networks
 
 public protocol AuthRootOutput: AnyObject {
 
@@ -117,12 +116,8 @@ final class AuthRootViewModel: ViewModelType, AuthRootOutput {
       .disposed(by: disposeBag)
 
     errorSubject
-      .subscribe(onNext: { [weak self] error in
-        if case APIError.unknown = error {
-          self?.onError?()
-        } else {
+      .subscribe(onNext: { error in
           toastPublisher.accept(error.localizedDescription)
-        }
       })
       .disposed(by: disposeBag)
 

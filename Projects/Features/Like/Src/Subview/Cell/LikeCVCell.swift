@@ -137,6 +137,7 @@ final class LikeCVCell: TFBaseCollectionViewCell {
     nickNameLabel.text = like.username
     locationLabel.text = like.address
     newArriavalView.isHidden = !like.isNew
+    newArriavalView.setNeedsDisplay()
 
     nextTimeButton.rx.tap
       .map { LikeCellButtonAction.reject(like) }
