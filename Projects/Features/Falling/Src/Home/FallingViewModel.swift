@@ -16,19 +16,30 @@ final class FallingViewModel: Reactor {
   var onReport: ((UserReportHandler?) -> Void)?
   var onMatch: ((String, String) -> Void)?
 
+  // MARK: Properties
+  private let topicUseCase: TopicUseCaseInterface
   private let fallingUseCase: FallingUseCaseInterface
   private let timer = TFTimer(startTime: 15.0)
+  private let cancelFetchUserSubject = PublishSubject<Void>()
+  
   let initialState = State()
 
-  init(fallingUseCase: FallingUseCaseInterface) {
+  init(
+    topicUseCase: TopicUseCaseInterface,
+    fallingUseCase: FallingUseCaseInterface
+  ) {
+    self.topicUseCase = topicUseCase
     self.fallingUseCase = fallingUseCase
   }
 
-  func mutate(action: Action) -> Observable<Mutation> {
+  func mutate(action: Action) async -> Observable<Mutation> {
     switch action {
-    case .viewDidLoad: return .just(.addFirstMetNoticeCard)
+    case .viewDidLoad:
+      self.action.onNext(.checkIsChooseDailyTopic)
+      return .empty()
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
     case .selectedFirstTap: return .from([.triggerFetchUser, .updateIndexPath(1)])
+      
     case .allMetTap: return .from([
       .addUser([.notice(.find, UUID())]),
       .triggerFetchUser,
@@ -51,7 +62,25 @@ final class FallingViewModel: Reactor {
         .catch { .just(.toast($0.localizedDescription)) }
     case .reportTap: return .from([.selectAlert, .stopTimer])
     case .pauseTap(let isPause): return isPause ? .just(.stopTimer) : .just(.startTimer)
-    case let .fetchUser(currentDailyIndex):
+      
+    case .checkIsChooseDailyTopic:
+      return self.topicUseCase.getCheckIsChooseDailyTopic()
+        .asObservable()
+        .flatMapLatest { isChoose -> Observable<Mutation> in
+            return .concat([
+              .just(.setIsChooseDailyTopic(isChoose)),
+              Observable.deferred { [weak self] in
+                guard let self = self else { return .empty() }
+                isChoose ? self.action.onNext(.reloadUser) :  self.action.onNext(.fetchDailyTopics)
+                return .empty()
+              }
+            ])
+        }
+        
+    case .topicTap(let topicKeyword): break
+      
+    case .reloadUser:
+      let currentDailyIndex = currentState.dailyUserCursorIndex
       return .concat(
         .just(.setLoading(true)),
         self.fallingUseCase.user(
@@ -59,6 +88,7 @@ final class FallingViewModel: Reactor {
           userDailyFallingCourserIdx: currentDailyIndex,
           size: 5)
         .asObservable()
+        .take(until: cancelFetchUserSubject)
         .flatMap({ page -> Observable<Mutation> in
             .from([
               .setRecentUserInfo(page),
@@ -96,30 +126,44 @@ final class FallingViewModel: Reactor {
           .just(.hidePause),
           .just(.startTimer)
         )
-      }
     }
+    case .closeButtonTap:
+      cancelFetchUserSubject.onNext(())
+      return .empty()
+    case .fetchDailyTopics:
+        self.topicUseCase.getDailyKeyword()
+          .asObservable()
+          .map { Mutation.addTopics(FallingDataModel.dailyKeyword($0)) }
+          .catch { error in
+            .just(.toast(error.localizedDescription))
+          }
+    }
+    return .empty()
   }
 
   func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
     case .applySnapshot:
-      newState.snapshot.append(contentsOf: newState.userInfo.cards)
-      if newState.userInfo.isLast { // Server값: 마지막 유저이면 미리 카드 넣어두기
+      newState.snapshot.append(contentsOf: newState.userInfo?.cards ?? [])
+      if newState.userInfo?.isLast ?? false { // Server값: 마지막 유저이면 미리 카드 넣어두기
         newState.snapshot.append(.notice(.allMet, UUID()))
       }
       return newState
     case .triggerFetchUser:
-      self.action.onNext(.fetchUser(currentIndex: newState.dailyUserCursorIndex))
+      self.action.onNext(.reloadUser)
       return newState
     case .addFirstMetNoticeCard: // TODO: 토픽 로직
-      if !newState.isAlreadyTopicSelected { // 처음
+      if !newState.isChooseDailyTopic { // 처음
         newState.snapshot = [.notice(.selectedFirst, UUID()),
                              .notice(.find, UUID())]
         newState.dailyUserCursorIndex = 0
       }
       return newState
-    case let .addUser(userInfos):
+    case .addTopics(let dailyKeyword):
+      newState.snapshot.append(dailyKeyword)
+      return newState
+    case .addUser(let userInfos):
       newState.snapshot += userInfos
       timer.start()
       return newState
@@ -140,11 +184,10 @@ final class FallingViewModel: Reactor {
       newState.scrollAction = newState.indexPath
       timer.reset()
 
-      // 마지막 카드이면? 아래 조건식 이해 필요
+      // 마지막 카드가 보일 때, reload
       if newState.index % newState.snapshot.count == newState.snapshot.count - 1 {
-        guard !newState.userInfo.isLast else { return newState }
-        timer.pause()
-        self.action.onNext(.fetchUser(currentIndex: newState.dailyUserCursorIndex))
+        guard !(newState.userInfo?.isLast ?? false) else { return newState }
+        self.action.onNext(.reloadUser)
       }
       return newState
     case .selectAlert:
@@ -173,6 +216,9 @@ final class FallingViewModel: Reactor {
       return newState
     case .resetTimer:
       self.timer.reset()
+      return newState
+    case .setIsChooseDailyTopic(let isChoose):
+      newState.isChooseDailyTopic = isChoose
       return newState
     case .setTimeState(let timeState):
       newState.timeState = timeState

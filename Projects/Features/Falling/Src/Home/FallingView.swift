@@ -13,7 +13,7 @@ import DSKit
 
 final class FallingView: TFBaseView {
   let topicView: UIView = {
-    let vc = UIHostingController(rootView: TopicView())
+    let vc = UIHostingController(rootView: TopicView(viewModel: TopicViewModel()))
     guard let view = vc.view else { return UIView() }
     view.isHidden = true
     view.backgroundColor = DSKitAsset.Color.neutral700.color

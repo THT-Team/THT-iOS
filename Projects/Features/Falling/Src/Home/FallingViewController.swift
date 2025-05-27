@@ -11,8 +11,9 @@ import DSKit
 import FallingInterface
 import Domain
 import ReactorKit
+import SwiftUI
 
-final class FallingViewController: TFBaseViewController, View {
+final class FallingViewController: TFBaseViewController, ReactorKit.View {
   private var dataSource: DataSource!
   
   private let homeView = FallingView()
@@ -33,7 +34,7 @@ final class FallingViewController: TFBaseViewController, View {
       navigationController.view.addSubview(loadingView)
     }
   }
-
+  
   override func navigationSetting() {
     super.navigationSetting()
     
@@ -43,68 +44,73 @@ final class FallingViewController: TFBaseViewController, View {
     navigationItem.leftBarButtonItem = UIBarButtonItem(customView: mindImageView)
     navigationItem.rightBarButtonItem = UIBarButtonItem.noti
   }
-
+  
   func bind(reactor: FallingViewModel) {
     setUpCellResitration(reactor)
-
+    
     Observable<Reactor.Action>.merge(
       rx.viewDidLoad.map { .viewDidLoad },
       rx.viewWillDisAppear.mapToVoid().map { .viewWillDisappear }
     )
     .bind(to: reactor.action)
     .disposed(by: disposeBag)
-
+    
     reactor.pulse(\.$isLoading)
       .bind(to: loadingView.rx.isLoading)
       .disposed(by: disposeBag)
-
+    
     reactor.state.map(\.snapshot)
       .distinctUntilChanged()
       .subscribe(with: self) { $0.initialSnapshot($1, animated: true) }
       .disposed(by: disposeBag)
-
+    
     reactor.pulse(\.$scrollAction)
       .distinctUntilChanged()
       .compactMap { $0 }
       .asDriverOnErrorJustEmpty()
       .drive(with: self) { $0.homeView.scrollto($1) }
       .disposed(by: self.disposeBag)
-
+    
     reactor.pulse(\.$deleteAnimationUser)
       .compactMap { $0 }
       .observe(on: MainScheduler.instance)
       .bind(with: self) { $0.deleteItem($1) }
       .disposed(by: disposeBag)
-
+    
     reactor.pulse(\.$toast)
       .compactMap { $0 }
       .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
+    
+    loadingView.closeButton.rx.tap
+      .map { Reactor.Action.closeButtonTap }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
   }
-
+  
   func setUpCellResitration(_ reactor: FallingViewModel) {
     let userCardRegistration = ProfileCellRegistration { cell, indexPath, item in
-
+      
       cell.bind(item)
-
+      
       let timerActiveTrigger = reactor.state
         .distinctUntilChanged(\.scrollAction)
         .compactMap(\.user?.id)
         .debug("indexPath: ")
         .map { $0 == item.id }
-
+      
       timerActiveTrigger
         .debug("\(indexPath) active")
         .bind(to: cell.activateCardSubject)
         .disposed(by: cell.disposeBag)
-
+      
       reactor.pulse(\.$timeState)
         .withLatestFrom(timerActiveTrigger) { ($0, $1) }
         .filter { _, isActive in isActive }
         .map { timeState, _ in timeState }
         .bind(to: cell.rx.timeState)
         .disposed(by: cell.disposeBag)
-
+      
       reactor.pulse(\.$shouldShowPause)
         .withLatestFrom(timerActiveTrigger) { ($0, $1) }
         .filter { _, isActive in isActive }
@@ -115,7 +121,7 @@ final class FallingViewController: TFBaseViewController, View {
       reactor.pulse(\.$hideUserInfo)
         .bind(to: cell.userDetailInfoRelay)
         .disposed(by: cell.disposeBag)
-
+      
       // MARK: Action Forwarding
       Observable<Reactor.Action>.merge(
         cell.rx.likeBtnTap.map { _ in .likeTap(item) },
@@ -127,20 +133,33 @@ final class FallingViewController: TFBaseViewController, View {
       .bind(to: reactor.action)
       .disposed(by: cell.disposeBag)
     }
-
-    let noticeRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action> { cell, indexPath, item in
+    
+    let noticeRegistration = NoticeCellRegistration { cell, indexPath, item in
       cell.configure(type: item)
-
+      
       cell.summitButton.rx.tap.map { item.toFallingAction() }
         .bind(to: reactor.action)
         .disposed(by: cell.disposeBag)
     }
-
+    
+    let dailyKeywordRegistration = DailyKeywordRegistration { [weak self] cell, indexPath, item in
+      let viewModel = TopicViewModel(delegate: self, dailyTopicKeyword: item)
+      cell.contentConfiguration = UIHostingConfiguration {
+        TopicView(viewModel: viewModel)
+      }
+    }
+    
     let footerRegistration = UICollectionView.SupplementaryRegistration
     <DummyFooterView>(elementKind: UICollectionView.elementKindSectionFooter) { _,_,_ in }
-
+    
     dataSource = DataSource(collectionView: homeView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       switch itemIdentifier {
+      case .dailyKeyword(let dailyKeyword):
+        collectionView.dequeueConfiguredReusableCell(
+          using: dailyKeywordRegistration,
+          for: indexPath,
+          item: dailyKeyword
+        )
       case .fallingUser(let user):
         collectionView.dequeueConfiguredReusableCell(
           using: userCardRegistration,
@@ -155,7 +174,7 @@ final class FallingViewController: TFBaseViewController, View {
         )
       }
     })
-
+    
     dataSource.supplementaryViewProvider = { (view, _, index) in
       view.dequeueConfiguredReusableSupplementary(
         using: footerRegistration,
@@ -172,9 +191,10 @@ extension FallingViewController {
   typealias SectionType = ProfileSection
   typealias DataSource = UICollectionViewDiffableDataSource<SectionType, ModelType>
   typealias Snapshot = NSDiffableDataSourceSnapshot<SectionType, ModelType>
+  typealias DailyKeywordRegistration = UICollectionView.CellRegistration<UICollectionViewCell, TopicDailyKeyword>
   typealias ProfileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser>
   typealias NoticeCellRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action>
-
+  
   func initialSnapshot(_ items: [ModelType], animated: Bool) {
     var snapshot = Snapshot()
     snapshot.appendSections([.profile])
@@ -192,5 +212,11 @@ extension FallingViewController {
       self?.reactor?.action.onNext(.deleteAnimationComplete(user))
       TFLogger.ui.debug("delete animation did completed")
     }
+  }
+}
+
+extension FallingViewController: TopicActionDelegate {
+  func didTapStartButton(topic: Domain.DailyKeyword) {
+    // TODO: start 액션 처리
   }
 }
