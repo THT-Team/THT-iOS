@@ -9,7 +9,7 @@ import Foundation
 
 public struct TopicDailyKeyword {
   public let expirationUnixTime: Date // unixTime  1687744800,
-  public let type: TopicType //  "oneChoice",
+  public let type: TopicType
   public let introduction: String
   public let fallingTopicList: [DailyKeyword]
 
@@ -21,3 +21,6 @@ public struct TopicDailyKeyword {
   }
 }
 
+extension TopicDailyKeyword: Equatable, Hashable {
+  public var id: String { UUID().uuidString }
+}

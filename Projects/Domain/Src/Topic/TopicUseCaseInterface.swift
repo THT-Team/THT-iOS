@@ -1,15 +1,13 @@
 //
-//  TopicRepository.swift
+//  TopicUseCaseInterface.swift
 //  Domain
 //
-//  Created by Kanghos on 1/6/25.
+//  Created by SeungMin on 4/14/25.
 //
-
-import Foundation
 
 import RxSwift
 
-public protocol TopicRepositoryInterface {
+public protocol TopicUseCaseInterface {
   func getCheckIsChooseDailyTopic() -> Single<Bool>
   func getDailyKeyword() -> Single<TopicDailyKeyword>
   func postChoiceTopic(_ fallingIndex: String) -> Single<Void>

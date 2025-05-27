@@ -7,6 +7,6 @@
 
 import Foundation
 
-public enum TopicType: String, Decodable {
+public enum TopicType: String, Decodable, Equatable, Hashable {
   case oneChoice, twoChoice, fourChoice
 }

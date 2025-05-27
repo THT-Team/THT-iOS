@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct TopicKeyword {
+public struct TopicKeyword: Equatable, Hashable {
   public let index: Int
   public let keyword: String
   public let keywordImageIndex: Int
