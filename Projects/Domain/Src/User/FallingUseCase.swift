@@ -62,8 +62,9 @@ struct UserGenerator {
     UserGenerator.userDailyFallingCourserIdx = userDailyFallingCourserIdx + 1
 
     return FallingUserInfo(
-      selectDailyFallingIdx: 1,
-      topicExpirationUnixTime: 0, isLast: Bool.random(),
+      selectDailyFallingIndex: 1,
+      topicExpirationUnixTime: Date(timeIntervalSince1970: TimeInterval(1764550464)),
+      isLast: Bool.random(),
       userInfos: users(size: size))
   }
 
