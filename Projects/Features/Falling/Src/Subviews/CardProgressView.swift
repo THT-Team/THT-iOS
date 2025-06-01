@@ -53,7 +53,7 @@ final class CardProgressView: TFBaseView, Reusable {
   }
 
   private func addGradientLayer() {
-    if let likeLayer {
+    if let _ = likeLayer {
       return
     }
     let gradientLayer = createLikeLayer()

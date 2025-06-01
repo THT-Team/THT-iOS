@@ -107,7 +107,7 @@ final class CardCircleTimerView: TFBaseView {
   }
 
   private func addGradientLayer() {
-    if let layer = gradientLayer {
+    if let _ = gradientLayer {
       return
     } else {
       let circleLayer = createGradientLayer()
