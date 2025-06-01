@@ -143,7 +143,9 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     }
     
     let dailyKeywordRegistration = DailyKeywordRegistration { [weak self] cell, indexPath, item in
+      guard let self = self else { return }
       let viewModel = TopicViewModel(delegate: self, dailyTopicKeyword: item)
+      viewModel.delegate = self
       cell.contentConfiguration = UIHostingConfiguration {
         TopicView(viewModel: viewModel)
       }
@@ -209,14 +211,17 @@ extension FallingViewController {
     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
       cell.transform = cell.transform.rotated(by: -.pi / 6).concatenating(cell.transform.translatedBy(x: cell.frame.minX - self.homeView.collectionView.frame.width, y: 37.62))
     } completion: { [weak self] _ in
-      self?.reactor?.action.onNext(.deleteAnimationComplete(user))
+      guard let self = self else { return }
+      self.reactor?.action.onNext(.deleteAnimationComplete(user))
       TFLogger.ui.debug("delete animation did completed")
     }
   }
 }
 
+// MARK: TopicActionDelegate
+
 extension FallingViewController: TopicActionDelegate {
-  func didTapStartButton(topic: Domain.DailyKeyword) {
-    // TODO: start 액션 처리
+  func didTapStartButton(topic: DailyKeyword) {
+    reactor?.action.onNext(.tapTopicStart(topic))
   }
 }

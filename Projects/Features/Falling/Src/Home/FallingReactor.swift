@@ -27,8 +27,12 @@ extension FallingViewModel {
     case selectedFirstTap
 
     case userReportAlert(UserReportAction, FallingUser)
-
-    case fetchUser(currentIndex: Int)
+    
+    case tapTopicStart(DailyKeyword)
+    case checkIsChooseDailyTopic
+    case fetchDailyTopics
+    case reloadUser
+    case closeButtonTap
   }
 
   struct State: Equatable {
@@ -37,9 +41,8 @@ extension FallingViewModel {
     var topicIndex: String = ""
 
     var dailyUserCursorIndex = 0
-    var isAlreadyTopicSelected = false
 
-    var userInfo: FallingUserInfo = FallingUserInfo(selectDailyFallingIdx: 0, topicExpirationUnixTime: 0, isLast: false, userInfos: [])
+    var userInfo: FallingUserInfo?
     @Pulse var scrollAction: IndexPath? = nil // .pause
     @Pulse var toast: String? = nil
     @Pulse var timeState: TimeState = .none
@@ -72,16 +75,16 @@ extension FallingViewModel {
     case updateIndexPath(Int)
     case removeSnapshot(FallingUser)
 
+    // MARK: User
     case triggerFetchUser
     case applySnapshot
+    case setDailyUserCursorIndex(FallingUserInfo)
     case setRecentUserInfo(FallingUserInfo)
-    case addFirstMetNoticeCard
-
-    case addUser([FallingDataModel])
-    case setLoading(Bool)
+    case addTopicOrNotice(FallingDataModel)
 
     case selectAlert
     case toMatch(String, String)
+    
     case toast(String)
 
     // MARK: Timer
@@ -94,6 +97,8 @@ extension FallingViewModel {
     case hidePause
     case showPause
     case setHideUserInfo(Bool)
+    
+    case setLoading(Bool)
   }
 }
 

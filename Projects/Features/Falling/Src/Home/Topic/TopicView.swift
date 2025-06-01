@@ -10,49 +10,52 @@ import SwiftUI
 import DSKit
 
 struct TopicView: SwiftUI.View {
+  let viewModel: TopicViewModel
+  
   var body: some SwiftUI.View {
     VStack(spacing: 0) {
-      BubbleView(text: "무디와 같은 주제로 이야기할  수 있어요")
+      BubbleView(text: "무디와 같은 주제로 이야기할 수 있어요")
         .padding(.bottom, 6)
       
-      VStack(spacing: 0) {
-        headerView()
-        choiceTopicView()
-        bottomButtonView()
-      }
-      .frame(maxWidth: .infinity)
-      .padding(.top, 32)
-      .padding(.horizontal, 16)
-      .padding(.bottom, 17)
-      .background(
-        LinearGradient(
-          colors: [
-            Color(hex: "#1D1D1D"),
-            Color(hex: "#161616"),
-            Color(hex: "#1D1D1D"),
-          ],
-          startPoint: .top,
-          endPoint: .bottom
-        )
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 20))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20)
-          .inset(by: 1)
-          .stroke(
-            LinearGradient(
-              colors: [
-                Color(hex: "#414141").opacity(0.3),
-                Color(hex: "#1A1A1A").opacity(0.9)
-              ],
-              startPoint: .top,
-              endPoint: .bottom
-            ),
-            lineWidth: 1
+      ScrollView(showsIndicators: false) {
+        LazyVStack(spacing: 0) {
+          headerView()
+          choiceTopicView()
+          bottomButtonView()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 32)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 17)
+        .background(
+          LinearGradient(
+            colors: [
+              Color(hex: "#1D1D1D"),
+              Color(hex: "#161616"),
+              Color(hex: "#1D1D1D"),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
           )
-      )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+          RoundedRectangle(cornerRadius: 20)
+            .inset(by: 1)
+            .stroke(
+              LinearGradient(
+                colors: [
+                  Color(hex: "#414141").opacity(0.3),
+                  Color(hex: "#1A1A1A").opacity(0.9)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+              ),
+              lineWidth: 1
+            )
+        )
+      }
     }
-    .padding(.horizontal, 16)
   }
   
   @ViewBuilder
@@ -70,90 +73,101 @@ struct TopicView: SwiftUI.View {
   
   @ViewBuilder
   private func choiceTopicView() -> some SwiftUI.View {
-    // TODO: 데이터 반영해야 함
-    
-    Group {
-//      VStack(spacing: 12) {
-        //      ForEach(0..<4) { index in
-        //              fourMultipleChoiceTopicView(index: index)
-        //      }
-//      }
-      
-      //    HStack(spacing: 12) {
-      //      ForEach(0..<2) { index in
-      //        twoMultipleChoiceTopicView(
-      //          emoji: DSKitAsset.Image.Icons.mind.swiftUIImage,
-      //          title: "여행",
-      //          subtitle: "도심에서\n호텔 숙박"
-      //        )
-      //      }
-      //    }
-      //    .overlay(
-      //      Text("VS")
-      //        .font(weight: 700, size: 24, lineSpacingPercent: 130)
-      //        .foregroundStyle(Color.primary500)
-      //        .padding(.vertical, 10.5)
-      //        .padding(.horizontal, 12.5)
-      //        .background(Color.neutral700)
-      //        .clipShape(RoundedRectangle(cornerRadius: 56))
-      //    )
-      
-      oneChiceView()
-    }
-    .padding(.top, 24)
-    .padding(.bottom, 32)
-  }
-  
-  @ViewBuilder
-  private func oneChiceView() -> some SwiftUI.View {
-    VStack(spacing: 16) {
-      DSKitAsset.Image.Icons.topicCard.swiftUIImage
-        .resizable()
-        .scaledToFit()
-      
-      Text(
-        """
-        오늘은 토요일!
-        모두와 대화에 Falling!
-        """
-      )
-      .font(weight: 600, size: 17, lineSpacingPercent: 130)
-      .foregroundStyle(Color.neutral50)
-      .multilineTextAlignment(.center)
-    }
-    .padding(.horizontal, 31)
-    .padding(.vertical, 28)
-    .clipShape(RoundedRectangle(cornerRadius: 24))
-    .padding(0.5)
-    .overlay {
-      RoundedRectangle(cornerRadius: 24)
-        .inset(by: 1)
-        .stroke(Color.primary500, lineWidth: 1)
+    if let dailyTopicKeyword = viewModel.dailyTopicKeyword {
+      Group {
+        switch dailyTopicKeyword.type {
+        case .oneChoice:
+          oneChiceView(
+            topicDailyKeyword: dailyTopicKeyword
+          )
+        case .twoChoice:
+          twoMultipleChoiceTopicView(
+            topicDailyKeyword: dailyTopicKeyword
+          )
+        case .fourChoice:
+          fourMultipleChoiceTopicView(
+            topicDayilKeyword: dailyTopicKeyword
+          )
+        }
+      }
+      .padding(.top, 24)
+      .padding(.bottom, 32)
     }
   }
   
   @ViewBuilder
-  private func twoMultipleChoiceTopicView(
-    emoji: Image,
-    title: String,
-    subtitle: String
-  ) -> some SwiftUI.View {
+  private func oneChiceView(topicDailyKeyword: TopicDailyKeyword) -> some SwiftUI.View {
+    if let topic = topicDailyKeyword.fallingTopicList.first {
+      Button {
+        viewModel.didTapTopicKeyword(topic)
+      } label: {
+        VStack(spacing: 16) {
+          if let url = URL(string: topic.keywordImageURL) {
+            KFImage(url)
+              .loadDiskFileSynchronously()
+              .cacheMemoryOnly()
+              .resizable()
+              .scaledToFit()
+          }
+          
+          Text(topic.keyword)
+            .font(weight: 600, size: 17, lineSpacingPercent: 130)
+            .foregroundStyle(Color.neutral50)
+            .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 31)
+        .padding(.vertical, 28)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .padding(0.5)
+        .overlay {
+          RoundedRectangle(cornerRadius: 24)
+            .inset(by: 1)
+            .stroke(topic == viewModel.selectedTopic ? Color.primary500 : Color.neutral600, lineWidth: 1)
+        }
+      }
+    }
+  }
+  
+  @ViewBuilder
+  private func twoMultipleChoiceTopicView(topicDailyKeyword: TopicDailyKeyword) -> some SwiftUI.View {
+    HStack(spacing: 12) {
+      ForEach(topicDailyKeyword.fallingTopicList, id: \.index) { dailyKeyword in
+        twoMultipleChoiceTopicCell(topic: dailyKeyword)
+      }
+    }
+    .overlay(
+      Text("VS")
+        .font(weight: 700, size: 24, lineSpacingPercent: 130)
+        .foregroundStyle(Color.primary500)
+        .padding(.vertical, 10.5)
+        .padding(.horizontal, 12.5)
+        .background(Color.neutral700)
+        .clipShape(RoundedRectangle(cornerRadius: 56))
+    )
+  }
+  
+  @ViewBuilder
+  private func twoMultipleChoiceTopicCell(topic: DailyKeyword) -> some SwiftUI.View {
     Button {
-      
+      viewModel.didTapTopicKeyword(topic)
     } label: {
       VStack(spacing: 0) {
-        emoji
-          .resizable()
-          .scaledToFit()
-          .frame(width: 72, height: 72)
-          .padding(.bottom, 16)
+        if let url = URL(string: topic.keywordImageURL) {
+          KFImage(url)
+            .loadDiskFileSynchronously()
+            .cacheMemoryOnly()
+            .resizable()
+            .scaledToFit()
+            .frame(width: 72, height: 72)
+            .padding(.bottom, 16)
+        }
         
-        Text(title)
+        Text(topic.keyword)
           .font(weight: 400, size: 12, lineSpacingPercent: 140)
           .foregroundStyle(Color.neutral300)
           .multilineTextAlignment(.center)
         
-        Text(subtitle)
+        Text(topic.talkIssue)
           .font(weight: 600, size: 17, lineSpacingPercent: 130)
           .foregroundStyle(Color.neutral50)
           .multilineTextAlignment(.center)
@@ -164,32 +178,44 @@ struct TopicView: SwiftUI.View {
       .overlay(
         RoundedRectangle(cornerRadius: 24)
           .inset(by: 0.5)
-        // TODO: 선택 Stroke 색상 변경
-          .stroke(Color.neutral600, lineWidth: 1)
+          .stroke(viewModel.selectedTopic == topic ? Color.primary500 : Color.neutral600, lineWidth: 1)
       )
     }
   }
   
   @ViewBuilder
-  private func fourMultipleChoiceTopicView(index: Int) -> some SwiftUI.View {
+  private func fourMultipleChoiceTopicView(topicDayilKeyword: TopicDailyKeyword) -> some SwiftUI.View {
+    VStack(spacing: 12) {
+      ForEach(topicDayilKeyword.fallingTopicList, id: \.index) { dailyKeyword in
+        fourMultipleChoiceTopicCell(topic: dailyKeyword)
+      }
+    }
+  }
+  
+  @ViewBuilder
+  private func fourMultipleChoiceTopicCell(topic: DailyKeyword) -> some SwiftUI.View {
     Button {
-      
+      viewModel.didTapTopicKeyword(topic)
     } label: {
       VStack(spacing: 6) {
         HStack(spacing: 2) {
-          DSKitAsset.Image.Icons.mind.swiftUIImage
-            .resizable()
-            .scaledToFit()
-            .frame(width: 20, height: 20)
+          if let url = URL(string: topic.keywordImageURL) {
+            KFImage(url)
+              .loadDiskFileSynchronously()
+              .cacheMemoryOnly()
+              .resizable()
+              .scaledToFit()
+              .frame(width: 20, height: 20)
+          }
           
-          Text("휴식")
+          Text(topic.keyword)
             .font(weight: 400, size: 12, lineSpacingPercent: 140)
             .foregroundStyle(Color.neutral300)
         }
         
         HStack(spacing: 0) {
           Spacer(minLength: 0)
-          Text("좋았던 여행에 대해 이야기하고싶어")
+          Text(topic.talkIssue)
             .font(weight: 400, size: 14, lineSpacingPercent: 140)
             .foregroundStyle(Color.neutral50)
           Spacer(minLength: 0)
@@ -201,11 +227,8 @@ struct TopicView: SwiftUI.View {
       .overlay(
         RoundedRectangle(cornerRadius: 56)
           .inset(by: 0.5)
-        // TODO: 선택 Stroke 색상 변경
-          .stroke(Color.neutral600, lineWidth: 1)
-        //          .stroke(Color.primary500)
+          .stroke(topic == viewModel.selectedTopic ? Color.primary500 : Color.neutral600, lineWidth: 1)
       )
-      .padding(.bottom, 32)
     }
   }
   
@@ -213,9 +236,10 @@ struct TopicView: SwiftUI.View {
   private func bottomButtonView() -> some SwiftUI.View {
     VStack(spacing: 19) {
       Button("시작하기") {
-        
+        viewModel.didTapStartButton()
       }
       .buttonStyle(.submit)
+      .disabled(viewModel.selectedTopic == nil)
       
       HStack(spacing: 8) {
         Text("다음 주제어까지 ")
@@ -231,6 +255,7 @@ struct TopicView: SwiftUI.View {
 }
 
 #Preview {
-  let view = TopicView()
+  let viewModel = TopicViewModel()
+  let view = TopicView(viewModel: viewModel)
   view
 }
