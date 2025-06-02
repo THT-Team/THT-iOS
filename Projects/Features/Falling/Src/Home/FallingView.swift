@@ -133,6 +133,10 @@ extension NSCollectionLayoutSection {
 
 extension FallingView {
   func scrollto(_ indexPath: IndexPath) {
+    guard let _ = self.collectionView.cellForItem(at: indexPath) else {
+      TFLogger.ui.debug("Falied to scroll to item at: \(indexPath)")
+      return
+    }
     collectionView.scrollToItem(at: indexPath, at: .top, animated: true)
     TFLogger.ui.debug("scroll to Item at: \(indexPath)")
   }

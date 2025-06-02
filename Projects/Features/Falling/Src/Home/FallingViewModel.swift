@@ -40,14 +40,13 @@ final class FallingViewModel: Reactor {
       
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
       
-    case .selectedFirstTap: return .just(.updateIndexPath(currentState.index + 1))
+    case .selectedFirstTap: return .just(.incrementIndex)
       
-    case .allMetTap: return .from([
-      .addTopicOrNotice(.notice(.find, UUID())),
-      .triggerFetchUser,
-      .updateIndexPath(currentState.index + 1)])
+    case .allMetTap:
+      self.action.onNext(.fetchMoreUserIfAvailable)
+      return .empty()
       
-    case .findTap: return .from([.updateIndexPath(currentState.index + 1), .startTimer])
+    case .findTap: return .from([.incrementIndex, .startTimer])
       
     case let .likeTap(user):
       return self.fallingUseCase.like(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
@@ -56,14 +55,14 @@ final class FallingViewModel: Reactor {
           match.isMatched ? .from([
             .toMatch(user.userProfilePhotos[0].url, match.chatIndex),
             .stopTimer])
-          : .just(.updateIndexPath(1))
+          : .just(.incrementIndex)
         }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
       
     case let .rejectTap(user):
       return self.fallingUseCase.reject(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
         .asObservable()
-        .map { Mutation.updateIndexPath(1) }
+        .map { Mutation.incrementIndex }
         .catch { .just(.toast($0.localizedDescription)) }
       
     case .reportTap: return .from([.selectAlert, .stopTimer])
@@ -75,8 +74,8 @@ final class FallingViewModel: Reactor {
         .asObservable()
         .do(onNext: { [weak self] isChoose in
           guard let self = self else { return }
-          isChoose ? self.action.onNext(.reloadUser) :
-          self.action.onNext(.fetchDailyTopics)
+          isChoose ? self.action.onNext(.fetchUser)
+          : self.action.onNext(.fetchDailyTopics)
         })
         .flatMap { _ in Observable<Mutation>.empty() }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
@@ -86,12 +85,12 @@ final class FallingViewModel: Reactor {
         .asObservable()
         .do(onNext: { [weak self] _ in
           guard let self = self else { return }
-          self.action.onNext(.reloadUser)
+          self.action.onNext(.fetchUser)
         })
         .flatMap { _ in Observable<Mutation>.empty() }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
       
-    case .reloadUser:
+    case .fetchUser:
       let currentDailyIndex = currentState.dailyUserCursorIndex
       return .concat(
         .just(.setLoading(true)),
@@ -102,16 +101,44 @@ final class FallingViewModel: Reactor {
         .asObservable()
         .take(until: cancelFetchUserSubject)
         .flatMap({ page -> Observable<Mutation> in
-            .from([
-              .setDailyUserCursorIndex(page),
-              .setRecentUserInfo(page),
+          return .from([
+            .setDailyUserCursorIndex(page),
+            .setRecentUserInfo(page),
+            .setLoading(false),
+            .applySnapshot,
+            .startTimer
+          ])}))
+      .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case .fetchMoreUserIfAvailable:
+      let currentDailyIndex = currentState.dailyUserCursorIndex
+      return .concat(
+        .just(.setLoading(true)),
+        self.fallingUseCase.user(
+          alreadySeenUserUUIDList: [],
+          userDailyFallingCourserIdx: currentDailyIndex,
+          size: 10)
+        .asObservable()
+        .take(until: cancelFetchUserSubject)
+        .flatMap({ page -> Observable<Mutation> in
+          if page.isLast && page.cards.count < 10 {
+            return .from([
               .setLoading(false),
-              .applySnapshot
-            ])}))
+              .toast(
+                "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
+          }
+          return .from([
+            .setDailyUserCursorIndex(page),
+            .setRecentUserInfo(page),
+            .setLoading(false),
+            .addTopicOrNotice(.notice(.find, UUID())),
+            .applySnapshot,
+            .incrementIndex,
+          ])}))
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
     case let .deleteAnimationComplete(user):
-      return .from([.removeSnapshot(user), .updateIndexPath(1)])
+      return .from([.removeSnapshot(user), .incrementIndex])
       
     case let .userReportAlert(select, user):
       switch select {
@@ -165,12 +192,8 @@ final class FallingViewModel: Reactor {
       newState.snapshot.append(contentsOf: newState.userInfo?.cards ?? [])
       if newState.userInfo?.isLast ?? false {
         newState.snapshot.append(.notice(.allMet, UUID()))
+        return newState
       }
-      timer.start()
-      return newState
-      
-    case .triggerFetchUser:
-      self.action.onNext(.reloadUser)
       return newState
       
     case .addTopicOrNotice(let data):
@@ -178,7 +201,7 @@ final class FallingViewModel: Reactor {
       return newState
       
     case .setDailyUserCursorIndex(let userInfo):
-      guard let index = userInfo.userInfos[safe: userInfo.userInfos.count - 1]?.userDailyFallingCourserIdx else { return newState }
+      guard let index = userInfo.userInfos.last?.userDailyFallingCourserIdx else { return newState }
       newState.dailyUserCursorIndex = index
       return newState
       
@@ -186,19 +209,20 @@ final class FallingViewModel: Reactor {
       newState.userInfo = userInfo
       return newState
       
-    case let .updateIndexPath(offset):
-      guard newState.snapshot.count - 1 > newState.index else {
+    case .incrementIndex:
+      let nextIndex = newState.index + 1
+      guard let _ = newState.snapshot[safe: nextIndex] else {
         timer.pause()
         return newState
       }
-      newState.index += offset
+      newState.index = nextIndex
       newState.scrollAction = newState.indexPath
       timer.reset()
       
       guard newState.snapshot[safe: newState.index] == newState.snapshot.last,
             let _ = newState.snapshot.last?.user else { return newState }
       guard !(newState.userInfo?.isLast ?? true) else { return newState }
-      self.action.onNext(.reloadUser)
+      self.action.onNext(.fetchUser)
       return newState
       
     case .selectAlert:
@@ -262,7 +286,8 @@ final class FallingViewModel: Reactor {
     Observable.merge(
       mutation,
       timer.timeOut
-        .map { _ in Mutation.updateIndexPath(1) },
+        .map { _ in
+          Mutation.incrementIndex },
       timer.seconds
         .map { Mutation.setTimeState(TimeState(rawValue: $0)) }
     )

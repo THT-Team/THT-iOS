@@ -31,7 +31,8 @@ extension FallingViewModel {
     case tapTopicStart(DailyKeyword)
     case checkIsChooseDailyTopic
     case fetchDailyTopics
-    case reloadUser
+    case fetchUser
+    case fetchMoreUserIfAvailable
     case closeButtonTap
   }
 
@@ -72,11 +73,10 @@ extension FallingViewModel {
   enum Mutation {
 //    case setScrollEvent(ScrollActionType)
     case showDeleteAnimation(FallingUser)
-    case updateIndexPath(Int)
+    case incrementIndex
     case removeSnapshot(FallingUser)
 
     // MARK: User
-    case triggerFetchUser
     case applySnapshot
     case setDailyUserCursorIndex(FallingUserInfo)
     case setRecentUserInfo(FallingUserInfo)
