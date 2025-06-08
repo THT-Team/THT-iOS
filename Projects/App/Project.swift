@@ -44,7 +44,7 @@ let schemes: [Scheme] = [
 
 let targets: [Target] = [
     .target(name: ProductName.releaseApp,
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .app,
             productName: ProductName.releaseApp,
             bundleId: "com.tht.demo.fallingdemoapp",

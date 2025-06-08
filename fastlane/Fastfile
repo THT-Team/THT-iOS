@@ -2,7 +2,7 @@ default_platform(:ios)
 
 platform :ios do
   #------------- Config -------------------------
-  schemeName = "Falling"
+  schemeName = "Falling-iOS"
   projPath = "./Projects/Features/Falling/Falling.xcodeproj"
 
 
@@ -13,10 +13,10 @@ platform :ios do
       type: "development",
       readonly: true
     )
-#    match(
-#      type: "appstore",
-#      readonly: true
-#    )
+    match(
+      type: "appstore",
+      readonly: true
+    )
     app_store_connect_api_key(is_key_content_base64: true)
   end
 
@@ -34,7 +34,7 @@ platform :ios do
   #------------- BUILD --------------------------
   desc "build"
   lane :gym_app do
-    match(
+      match(
       type: "appstore",
       readonly: true
     )
@@ -62,13 +62,12 @@ platform :ios do
      match_certificate
      gym_app
      pilot_app
-     td
   end
   
   desc "test discord"
   lane :td do
     discord_notifier(
-    webhook_url:"https://discord.com/api/webhooks/1242348352973045801/9Y9OMT9AC5Uwpsj9PgckBTsCcYIYvkmvg5ygzqBiR1J9xiNK5UBHnHKlzCWnpdnKY4f6",
+    webhook_url:"",
     title: "title",
     description: "테스트플라이트 업로드",
     fields:[

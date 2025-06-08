@@ -10,6 +10,7 @@ import ProjectDescription
 public let infoPlistExtension = InfoPlist.dictionary([
   "CFBundleShortVersionString": "1.0",
   "CFBundleVersion": "1",
+  "CFBundlePackageType": "APPL",
   "CFBundleExecutable": "$(EXECUTABLE_NAME)",
   "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
   "CFBundleName": "$(PRODUCT_NAME)",
