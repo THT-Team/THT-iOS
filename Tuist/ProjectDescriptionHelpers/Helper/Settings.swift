@@ -13,7 +13,7 @@ public enum AppSettings {
   public static let deploymentTargets = DeploymentTargets.iOS("17.0")
 
   public static let baseSetting: SettingsDictionary = .init()
-    .manualCodeSigning()
+        .merging(signingSetting())
     .bitcodeEnabled(false)
     .otherLinkerFlags(["-ObjC"])
 
@@ -21,4 +21,13 @@ public enum AppSettings {
       "UIMainStoryboardFile": "",
       "UILaunchStoryboardName": "LaunchScreen",
   ]
+    
+  private static func signingSetting() -> SettingsDictionary {
+    [
+      "DEVELOPMENT_TEAM": "SJDR485DTV",
+      "CODE_SIGN_STYLE": "Manual",
+      "PROVISIONING_PROFILE_SPECIFIER": "match AppStore com.tht.demo.fallingdemoapp",
+      "CODE_SIGN_IDENTITY": "Apple Distribution: Kangho lee (UY52N5ZAAV)"
+    ]
+  }
 }
