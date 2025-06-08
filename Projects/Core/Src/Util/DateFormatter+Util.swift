@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension DateFormatter {
+public extension DateFormatter {
 
   static var unixDateFormatter: DateFormatter {
     let formatter = DateFormatter()
@@ -97,4 +97,15 @@ public extension Date {
          // 새로운 날짜를 생성하여 반환
          return calendar.date(from: dateComponents)
      }
+}
+
+public extension DateComponentsFormatter {
+  
+  static var timerFormatter: DateComponentsFormatter {
+    let formatter = DateComponentsFormatter()
+    formatter.allowedUnits = [.hour, .minute, .second]
+    formatter.unitsStyle = .positional
+    formatter.zeroFormattingBehavior = .pad
+    return formatter
+  }
 }
