@@ -16,6 +16,7 @@ import Domain
 
 protocol TopicActionDelegate: AnyObject {
   func didTapStartButton(topic: DailyKeyword)
+  func didFinishDailyTopic()
 }
 
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {

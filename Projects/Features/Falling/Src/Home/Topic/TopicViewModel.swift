@@ -9,8 +9,11 @@ import SwiftUI
 
 import Domain
 
-@Observable final class TopicViewModel {
+@Observable
+final class TopicViewModel {
   weak var delegate: TopicActionDelegate?
+  var timerViewModel = TimerViewModel()
+  
   var dailyTopicKeyword: TopicDailyKeyword?
   var selectedTopic: DailyKeyword?
   
@@ -21,6 +24,9 @@ import Domain
   init(delegate: TopicActionDelegate? = nil, dailyTopicKeyword: TopicDailyKeyword? = nil) {
     self.delegate = delegate
     self.dailyTopicKeyword = dailyTopicKeyword
+    
+    guard let tartetTimeStamp = dailyTopicKeyword?.expirationUnixTime else { return }
+    timerViewModel.start(to: tartetTimeStamp.timeIntervalSince1970)
   }
   
   func didTapTopicKeyword(_ topicKeyword: DailyKeyword?) {
@@ -30,5 +36,9 @@ import Domain
   func didTapStartButton() {
     guard let selectedTopic = selectedTopic else { return }
     delegate?.didTapStartButton(topic: selectedTopic)
+  }
+  
+  func didFinishDailyTopic() {
+    delegate?.didFinishDailyTopic()
   }
 }

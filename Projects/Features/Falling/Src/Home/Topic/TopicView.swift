@@ -64,7 +64,11 @@ struct TopicView: SwiftUI.View {
         )
       }
     }
-//    .containerRelativeFrame(.vertical)
+    .onChange(of: viewModel.timerViewModel.isFinished, { oldValue, newValue in
+      if oldValue != newValue && newValue {
+        viewModel.didFinishDailyTopic()
+      }
+    })
   }
   
   @ViewBuilder
@@ -178,11 +182,13 @@ struct TopicView: SwiftUI.View {
           .font(weight: 400, size: 12, lineSpacingPercent: 140)
           .foregroundStyle(Color.neutral300)
           .multilineTextAlignment(.center)
+          .lineLimit(1)
         
         Text(topic.talkIssue)
           .font(weight: 600, size: 17, lineSpacingPercent: 130)
           .foregroundStyle(Color.neutral50)
           .multilineTextAlignment(.center)
+          .lineLimit(2)
       }
       .frame(maxWidth: .infinity)
       .padding(.vertical, 94.5)
@@ -254,11 +260,11 @@ struct TopicView: SwiftUI.View {
       .disabled(viewModel.selectedTopic == nil)
       
       HStack(spacing: 8) {
-        Text("다음 주제어까지 ")
+        Text("다음 주제어까지")
           .font(weight: 400, size: 12, lineSpacingPercent: 140)
           .foregroundStyle(Color.neutral300)
         
-        Text("14:19:00")
+        Text(viewModel.timerViewModel.formattedTime)
           .font(weight: 500, size: 14, lineSpacingPercent: 140)
           .foregroundStyle(Color.neutral50)
       }

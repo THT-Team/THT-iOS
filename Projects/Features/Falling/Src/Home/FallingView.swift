@@ -44,7 +44,6 @@ extension UICollectionViewCompositionalLayout {
 
 extension NSCollectionLayoutSection {
   static func verticalListSection(withEstimatedHeight estimatedHeight: CGFloat = 110) -> NSCollectionLayoutSection {
-    let hasChosenDailyTopic = UserDefaultRepository.shared.fetch(for: .hasChosenDailyTopic, type: Bool.self) ?? false
     
     let itemSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
@@ -54,18 +53,12 @@ extension NSCollectionLayoutSection {
     
     let layoutGroupSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: hasChosenDailyTopic ? .fractionalHeight(586/(844 - 180)) : .fractionalHeight(1.0)
+      heightDimension: .fractionalHeight(586/(844 - 180))
     )
     
     let layoutGroup = NSCollectionLayoutGroup.vertical(
       layoutSize: layoutGroupSize,
       subitems: [layoutItem]
-    )
-    layoutGroup.contentInsets = NSDirectionalEdgeInsets(
-      top: 8,
-      leading: 16,
-      bottom: 8,
-      trailing: 16
     )
     
     let footerSize = NSCollectionLayoutSize(
@@ -78,13 +71,15 @@ extension NSCollectionLayoutSection {
     )
     
     let section = NSCollectionLayoutSection(group: layoutGroup)
+    section.contentInsets = NSDirectionalEdgeInsets(
+      top: 8,
+      leading: 16,
+      bottom: 8,
+      trailing: 16
+    )
     section.interGroupSpacing = 14
     
-    if hasChosenDailyTopic {
-      section.boundarySupplementaryItems = [sectionFooter]
-    } else {
-      section.boundarySupplementaryItems = []
-    }
+    section.boundarySupplementaryItems = [sectionFooter]
     
     section.visibleItemsInvalidationHandler = { item, offset, environment in
       
@@ -113,7 +108,6 @@ extension NSCollectionLayoutSection {
     section.orthogonalScrollingBehavior = .paging
 
     section.visibleItemsInvalidationHandler = { items, offset, environment in
-
     }
 
     return section

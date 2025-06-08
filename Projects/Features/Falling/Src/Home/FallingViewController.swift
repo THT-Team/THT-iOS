@@ -224,4 +224,8 @@ extension FallingViewController: TopicActionDelegate {
   func didTapStartButton(topic: DailyKeyword) {
     reactor?.action.onNext(.tapTopicStart(topic))
   }
+  
+  func didFinishDailyTopic() {
+    reactor?.action.onNext(.fetchDailyTopics)
+  }
 }
