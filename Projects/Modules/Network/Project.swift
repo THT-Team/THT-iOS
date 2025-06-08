@@ -15,6 +15,6 @@ let project = Project.makeModule(
     .core,
     .SPM.Moya,
     .SPM.RxMoya,
-    .SPM.ComposableArchitecture
+//    .SPM.ComposableArchitecture
   ]
 )
