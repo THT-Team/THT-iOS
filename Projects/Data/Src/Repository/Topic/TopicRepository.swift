@@ -19,27 +19,32 @@ public final class TopicRepository: ProviderProtocol {
   public typealias Target = TopicTarget
   public var provider: MoyaProvider<Target>
 
-  public init() {
-    provider = Self.makeProvider()
+  public init(_ environment: RepositoryEnvironment) {
+    switch environment {
+    case .debug:
+      self.provider = Self.makeStubProvider()
+    case .release(let session):
+      self.provider = Self.makeProvider(session: session)
+    }
   }
 }
 
 extension TopicRepository: TopicRepositoryInterface {
-  public func checkChooseTopic() -> RxSwift.Single<Bool> {
+  public func getCheckIsChooseDailyTopic() -> RxSwift.Single<Bool> {
     request(type: TopicChoose.self, target: .checkDailyTopic)
       .map { $0.isChoose }
   }
   
-  public func dailyKeyword() -> RxSwift.Single<[Domain.TopicDailyKeyword]> {
-    request(type: [TopicDailyKeyword.Res].self, target: .dailyKeyword)
-      .map { $0.map { $0.toDomain() } }
+  public func getDailyKeyword() -> RxSwift.Single<Domain.TopicDailyKeyword> {
+    request(type: TopicDailyKeyword.Res.self, target: .dailyKeyword)
+      .map { $0.toDomain() }
   }
   
-  public func choice(_ fallingIndex: String) -> RxSwift.Single<Void> {
+  public func postChoiceTopic(_ fallingIndex: String) -> RxSwift.Single<Void> {
     requestWithNoContent(target: .choice(fallingIndex))
   }
   
-  public func talkKeyword() -> Single<[TopicKeyword]> {
+  public func getTalkKeywords() -> Single<[TopicKeyword]> {
     request(type: [TopicKeyword.Res].self, target: .talkKeyword)
       .map { $0.map { $0.toDomain() } }
   }

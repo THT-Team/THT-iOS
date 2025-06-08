@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DailyKeyword {
+public struct DailyKeyword: Equatable, Hashable {
   public let index: Int
   public let keyword: String
   public let keywordIndex: Int

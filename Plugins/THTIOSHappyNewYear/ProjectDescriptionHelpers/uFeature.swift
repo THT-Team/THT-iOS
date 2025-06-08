@@ -76,6 +76,7 @@ public enum External: String {
 	case RxGesture
   case FirebaseMessaging
   case FirebaseStorage
+//  case ComposableArchitecture
 
   // MARK: OAuth
   case KakaoSDKAuth
@@ -108,6 +109,8 @@ public extension TargetDependency {
 
     public static let FirebaseMessaging = TargetDependency.external(name: External.FirebaseMessaging.rawValue)
     public static let FirebaseStorage = TargetDependency.external(name: External.FirebaseStorage.rawValue)
+    
+//    public static let ComposableArchitecture = TargetDependency.external(name: External.ComposableArchitecture.rawValue)
   }
 
   enum XCFramework {

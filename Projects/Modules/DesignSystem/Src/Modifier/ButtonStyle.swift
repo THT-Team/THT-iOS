@@ -19,7 +19,7 @@ public struct SubmitButtonStyle: ButtonStyle {
       .frame(height: 56)
       .background {
         RoundedRectangle(cornerRadius: 16)
-          .fill(isEnabled ? Color(hex: "#F9CC2E") : Color(hex: "#F9CC2E1A"))
+          .fill(isEnabled ? Color.primary500 : Color.primary500.opacity(0.1))
       }
       .opacity(configuration.isPressed ? 0.3 : 1)
   }

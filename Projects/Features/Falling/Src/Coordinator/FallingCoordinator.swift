@@ -14,7 +14,12 @@ import DSKit
 import ChatRoomInterface
 import Domain
 
+protocol TopicActionDelegate: AnyObject {
+  func didTapStartButton(topic: DailyKeyword)
+}
+
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
+  @Injected var topicUseCase: TopicUseCaseInterface
   @Injected var fallingUseCase: FallingUseCaseInterface
 
   private let chatRoomBuilder: ChatRoomBuildable
@@ -29,7 +34,7 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   }
 
   public func homeFlow() {
-    let viewModel = FallingViewModel(fallingUseCase: fallingUseCase)
+    let viewModel = FallingViewModel(topicUseCase: topicUseCase, fallingUseCase: fallingUseCase)
 
     viewModel.onReport = { [weak viewControllable] handler in
       guard let viewControllable else { return }

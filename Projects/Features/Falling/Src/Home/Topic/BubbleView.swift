@@ -11,9 +11,9 @@ import DSKit
 
 struct BubbleView: SwiftUI.View {
   var text: String
-  var horizontalPadding: CGFloat = 16
-  var verticalPadding: CGFloat = 10
-  var cornerRadius: CGFloat = 12
+  var horizontalPadding: CGFloat
+  var verticalPadding: CGFloat
+  var cornerRadius: CGFloat
   var tailWidth: CGFloat = 14
   var tailHeight: CGFloat = 8
   var tailRadius: CGFloat = 2
@@ -100,6 +100,11 @@ struct BubbleShape: Shape {
 }
 
 #Preview {
-  let view = BubbleView(text: "말풍선 뷰입니다")
+  let view = BubbleView(
+    text: "말풍선 뷰",
+    horizontalPadding: 15.5,
+    verticalPadding: 6,
+    cornerRadius: 24
+  )
   view
 }

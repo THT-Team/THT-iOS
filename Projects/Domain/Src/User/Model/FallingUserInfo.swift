@@ -8,13 +8,13 @@
 import Foundation
 
 public struct FallingUserInfo {
-  public let selectDailyFallingIdx: Int
-  public let topicExpirationUnixTime: Int
+  public let selectDailyFallingIndex: Int
+  public let topicExpirationUnixTime: Date
   public let isLast: Bool
   public let userInfos: [FallingUser]
 
-  public init(selectDailyFallingIdx: Int, topicExpirationUnixTime: Int, isLast: Bool, userInfos: [FallingUser]) {
-    self.selectDailyFallingIdx = selectDailyFallingIdx
+  public init(selectDailyFallingIndex: Int, topicExpirationUnixTime: Date, isLast: Bool, userInfos: [FallingUser]) {
+    self.selectDailyFallingIndex = selectDailyFallingIndex
     self.topicExpirationUnixTime = topicExpirationUnixTime
     self.isLast = isLast
     self.userInfos = userInfos

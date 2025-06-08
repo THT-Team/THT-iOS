@@ -44,5 +44,9 @@ extension AppDelegate {
       DefaultTalkUseCase(
         socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
         tokenService: provider.tokenService)}
+    
+    container.register(interface: TopicUseCaseInterface.self) {
+      TopicUseCase(
+        repository: TopicRepository(provider.environment))}
   }
 }

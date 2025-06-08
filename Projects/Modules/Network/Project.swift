@@ -11,7 +11,10 @@ import MyPlugin
 
 let project = Project.makeModule(
   name: Feature.Network.rawValue,
-  dependencies: [.core,
-                 .SPM.Moya,
-                 .SPM.RxMoya,
-                ])
+  dependencies: [
+    .core,
+    .SPM.Moya,
+    .SPM.RxMoya,
+//    .SPM.ComposableArchitecture
+  ]
+)

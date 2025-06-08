@@ -11,29 +11,41 @@ import Domain
 import ReactorKit
 
 final class FallingViewModel: Reactor {
-
+  
   // MARK: Coordinator
   var onReport: ((UserReportHandler?) -> Void)?
   var onMatch: ((String, String) -> Void)?
-
+  
+  // MARK: Properties
+  private let topicUseCase: TopicUseCaseInterface
   private let fallingUseCase: FallingUseCaseInterface
   private let timer = TFTimer(startTime: 15.0)
+  private let cancelFetchUserSubject = PublishSubject<Void>()
+  
   let initialState = State()
-
-  init(fallingUseCase: FallingUseCaseInterface) {
+  
+  init(
+    topicUseCase: TopicUseCaseInterface,
+    fallingUseCase: FallingUseCaseInterface
+  ) {
+    self.topicUseCase = topicUseCase
     self.fallingUseCase = fallingUseCase
   }
-
+  
   func mutate(action: Action) -> Observable<Mutation> {
     switch action {
-    case .viewDidLoad: return .just(.addFirstMetNoticeCard)
+    case .viewDidLoad:
+      self.action.onNext(.checkIsChooseDailyTopic)
+      return .empty()
+      
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
-    case .selectedFirstTap: return .from([.triggerFetchUser, .updateIndexPath(1)])
-    case .allMetTap: return .from([
-      .addUser([.notice(.find, UUID())]),
-      .triggerFetchUser,
-      .updateIndexPath(1)])
-    case .findTap: return .from([.startTimer, .updateIndexPath(1)])
+      
+    case .selectedFirstTap, .allMetTap:
+      self.action.onNext(.fetchMoreUserIfAvailable)
+      return .empty()
+      
+    case .findTap: return .from([.incrementIndex, .startTimer])
+      
     case let .likeTap(user):
       return self.fallingUseCase.like(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
         .asObservable()
@@ -41,32 +53,93 @@ final class FallingViewModel: Reactor {
           match.isMatched ? .from([
             .toMatch(user.userProfilePhotos[0].url, match.chatIndex),
             .stopTimer])
-          : .just(.updateIndexPath(1))
+          : .just(.incrementIndex)
         }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
     case let .rejectTap(user):
       return self.fallingUseCase.reject(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
         .asObservable()
-        .map{ Mutation.updateIndexPath(1) }
+        .map { Mutation.incrementIndex }
         .catch { .just(.toast($0.localizedDescription)) }
+      
     case .reportTap: return .from([.selectAlert, .stopTimer])
+      
     case .pauseTap(let isPause): return isPause ? .just(.stopTimer) : .just(.startTimer)
-    case let .fetchUser(currentDailyIndex):
+      
+    case .checkIsChooseDailyTopic:
+      return self.topicUseCase.getCheckIsChooseDailyTopic()
+        .asObservable()
+        .do(onNext: { [weak self] isChoose in
+          guard let self = self else { return }
+          isChoose ? self.action.onNext(.fetchUser)
+          : self.action.onNext(.fetchDailyTopics)
+        })
+        .flatMap { _ in Observable<Mutation>.empty() }
+        .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case .tapTopicStart(let topicKeyword):
+      return self.topicUseCase.postChoiceTopic(String(topicKeyword.index))
+        .asObservable()
+        .flatMap { _ -> Observable<Mutation> in
+          return .from([
+            .setHasChosenDailyTopic(true),
+            .addTopicOrNotice(.notice(.selectedFirst, UUID())),
+            .incrementIndex
+          ])
+        }
+        .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case .fetchUser:
+      let currentDailyIndex = currentState.dailyUserCursorIndex
       return .concat(
         .just(.setLoading(true)),
         self.fallingUseCase.user(
           alreadySeenUserUUIDList: [],
           userDailyFallingCourserIdx: currentDailyIndex,
-          size: 5)
+          size: 10)
         .asObservable()
+        .take(until: cancelFetchUserSubject)
         .flatMap({ page -> Observable<Mutation> in
-            .from([
-              .setRecentUserInfo(page),
+          return .from([
+            .setDailyUserCursorIndex(page),
+            .setRecentUserInfo(page),
+            .setLoading(false),
+            .applySnapshot,
+            .startTimer
+          ])}))
+      .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case .fetchMoreUserIfAvailable:
+      let currentDailyIndex = currentState.dailyUserCursorIndex
+      return .concat(
+        .just(.setLoading(true)),
+        self.fallingUseCase.user(
+          alreadySeenUserUUIDList: [],
+          userDailyFallingCourserIdx: currentDailyIndex,
+          size: 10)
+        .asObservable()
+        .take(until: cancelFetchUserSubject)
+        .flatMap({ page -> Observable<Mutation> in
+          if page.isLast && page.cards.count < 10 {
+            return .from([
               .setLoading(false),
-              .applySnapshot,
-            ])}))
+              .toast(
+                "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
+          }
+          return .from([
+            .setDailyUserCursorIndex(page),
+            .setRecentUserInfo(page),
+            .setLoading(false),
+            .addTopicOrNotice(.notice(.find, UUID())),
+            .applySnapshot,
+            .incrementIndex,
+          ])}))
+      .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
     case let .deleteAnimationComplete(user):
-      return .from([.removeSnapshot(user), .updateIndexPath(1)])
+      return .from([.removeSnapshot(user), .incrementIndex])
+      
     case let .userReportAlert(select, user):
       switch select {
       case .block:
@@ -75,128 +148,150 @@ final class FallingViewModel: Reactor {
           self.fallingUseCase.block(userUUID: user.userUUID)
             .asObservable()
             .catch { .just($0.localizedDescription) }
-            .map { Mutation.toast($0) },
+            .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
           .just(.resetTimer)
         )
+        
       case let .report(reason):
         return .concat(
           .just(.showDeleteAnimation(user)),
           self.fallingUseCase.report(userUUID: user.userUUID, reason: reason)
             .asObservable()
             .catch { .just($0.localizedDescription) }
-            .map { Mutation.toast($0) },
+            .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
           .just(.resetTimer)
         )
+        
       case .cancel:
         return .concat(
           .just(.hidePause),
           .just(.startTimer)
         )
       }
+      
+    case .closeButtonTap:
+      cancelFetchUserSubject.onNext(())
+      return .empty()
+      
+    case .fetchDailyTopics:
+      return self.topicUseCase.getDailyKeyword()
+        .asObservable()
+        .map { Mutation.addTopicOrNotice(FallingDataModel.dailyKeyword($0)) }
+        .catch({ .just(Mutation.toast($0.localizedDescription)) })
     }
   }
-
+  
   func reduce(state: State, mutation: Mutation) -> State {
     var newState = state
     switch mutation {
     case .applySnapshot:
-      newState.snapshot.append(contentsOf: newState.userInfo.cards)
-      if newState.userInfo.isLast { // Server값: 마지막 유저이면 미리 카드 넣어두기
+      newState.snapshot.append(contentsOf: newState.userInfo?.cards ?? [])
+      if newState.userInfo?.isLast ?? false {
         newState.snapshot.append(.notice(.allMet, UUID()))
+        return newState
       }
       return newState
-    case .triggerFetchUser:
-      self.action.onNext(.fetchUser(currentIndex: newState.dailyUserCursorIndex))
+      
+    case .addTopicOrNotice(let data):
+      newState.snapshot.append(data)
       return newState
-    case .addFirstMetNoticeCard: // TODO: 토픽 로직
-      if !newState.isAlreadyTopicSelected { // 처음
-        newState.snapshot = [.notice(.selectedFirst, UUID()),
-                             .notice(.find, UUID())]
-        newState.dailyUserCursorIndex = 0
-      }
+      
+    case .setHasChosenDailyTopic(let flag):
+      UserDefaultRepository.shared.save(flag, key: .hasChosenDailyTopic)
       return newState
-    case let .addUser(userInfos):
-      newState.snapshot += userInfos
-      timer.start()
+      
+    case .setDailyUserCursorIndex(let userInfo):
+      guard let index = userInfo.userInfos.last?.userDailyFallingCourserIdx else { return newState }
+      newState.dailyUserCursorIndex = index
       return newState
-    case let .setRecentUserInfo(userInfo):
-      let users = userInfo.userInfos
-      if users.count > 0 {
-        newState.dailyUserCursorIndex = users[users.count - 1].userDailyFallingCourserIdx
-      }
+      
+    case .setRecentUserInfo(let userInfo):
       newState.userInfo = userInfo
       return newState
-
-    case let .updateIndexPath(offset):
-      guard newState.snapshot.count - 1 > newState.index else {
+      
+    case .incrementIndex:
+      let nextIndex = newState.index + 1
+      guard let _ = newState.snapshot[safe: nextIndex] else {
         timer.pause()
         return newState
       }
-      newState.index += offset
+      newState.index = nextIndex
       newState.scrollAction = newState.indexPath
       timer.reset()
-
-      // 마지막 카드이면? 아래 조건식 이해 필요
-      if newState.index % newState.snapshot.count == newState.snapshot.count - 1 {
-        guard !newState.userInfo.isLast else { return newState }
-        timer.pause()
-        self.action.onNext(.fetchUser(currentIndex: newState.dailyUserCursorIndex))
-      }
+      
+      guard newState.snapshot[safe: newState.index] == newState.snapshot.last,
+            let _ = newState.snapshot.last?.user else { return newState }
+      guard !(newState.userInfo?.isLast ?? true) else { return newState }
+      self.action.onNext(.fetchUser)
       return newState
+      
     case .selectAlert:
       self.onReport? { [weak self] select in
         guard let user = newState.user else { return }
         self?.action.onNext(.userReportAlert(select, user))
       }
       return newState
+      
     case let .toMatch(url, index):
       self.onMatch?(url, index)
       return newState
+      
     case let .removeSnapshot(user):
       newState.snapshot.removeAll { $0.user == user }
       return newState
+      
     case let .toast(message):
       newState.toast = message
       return newState
+      
     case let .showDeleteAnimation(user):
       newState.deleteAnimationUser = user
       return newState
+      
     case .stopTimer:
       self.timer.pause()
       return newState
+      
     case .startTimer:
       self.timer.start()
       return newState
+      
     case .resetTimer:
       self.timer.reset()
       return newState
+      
     case .setTimeState(let timeState):
       newState.timeState = timeState
       return newState
+      
     case .setLoading(let isLoading):
       newState.isLoading = isLoading
       return newState
+      
     case .hidePause:
       newState.shouldShowPause = false
       return newState
+      
     case .showPause:
       newState.shouldShowPause = true
       return newState
+      
     case let .setHideUserInfo(show):
       newState.hideUserInfo = show
       return newState
     }
   }
-
+  
   func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
     Observable.merge(
       mutation,
       timer.timeOut
-        .map { _ in Mutation.updateIndexPath(1) },
+        .map { _ in
+          Mutation.incrementIndex },
       timer.seconds
         .map { Mutation.setTimeState(TimeState(rawValue: $0)) }
     )

@@ -19,6 +19,7 @@ let packageSettings = PackageSettings(
 //    "ReactorKit": .framework,
 //    "SwiftStomp": .framework,
 //    "RealmSwift": .framework,
+//    "ComposableArchitecture": .framework
   ]
 )
 #endif
@@ -42,5 +43,6 @@ let package = Package(
     .package(url: "https://github.com/Romixery/SwiftStomp.git",
       .upToNextMajor(from: "1.2.1")),
     .package(url: "https://github.com/realm/realm-swift", .upToNextMajor(from: "20.0.1")),
+//    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .upToNextMajor(from: "1.19.1"))
   ]
 )

@@ -12,7 +12,7 @@ import RxSwift
 public final class TFLoadingView: TFBaseView {
   var disposeBag = DisposeBag()
   
-  let closeButton: UIButton = {
+  public let closeButton: UIButton = {
     let button = UIButton()
     var config = UIButton.Configuration.plain()
     config.image = DSKitAsset.Image.Icons.close.image.withTintColor(
