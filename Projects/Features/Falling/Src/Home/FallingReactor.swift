@@ -81,6 +81,7 @@ extension FallingViewModel {
     case setDailyUserCursorIndex(FallingUserInfo)
     case setRecentUserInfo(FallingUserInfo)
     case addTopicOrNotice(FallingDataModel)
+    case setHasChosenDailyTopic(Bool)
 
     case selectAlert
     case toMatch(String, String)

@@ -14,6 +14,10 @@ import Domain
   var dailyTopicKeyword: TopicDailyKeyword?
   var selectedTopic: DailyKeyword?
   
+  var hasChosenDailyTopic: Bool {
+    UserDefaultRepository.shared.fetch(for: .hasChosenDailyTopic, type: Bool.self) ?? false
+  }
+  
   init(delegate: TopicActionDelegate? = nil, dailyTopicKeyword: TopicDailyKeyword? = nil) {
     self.delegate = delegate
     self.dailyTopicKeyword = dailyTopicKeyword

@@ -40,9 +40,7 @@ final class FallingViewModel: Reactor {
       
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
       
-    case .selectedFirstTap: return .just(.incrementIndex)
-      
-    case .allMetTap:
+    case .selectedFirstTap, .allMetTap:
       self.action.onNext(.fetchMoreUserIfAvailable)
       return .empty()
       
@@ -83,11 +81,13 @@ final class FallingViewModel: Reactor {
     case .tapTopicStart(let topicKeyword):
       return self.topicUseCase.postChoiceTopic(String(topicKeyword.index))
         .asObservable()
-        .do(onNext: { [weak self] _ in
-          guard let self = self else { return }
-          self.action.onNext(.fetchUser)
-        })
-        .flatMap { _ in Observable<Mutation>.empty() }
+        .flatMap { _ -> Observable<Mutation> in
+          return .from([
+            .setHasChosenDailyTopic(true),
+            .addTopicOrNotice(.notice(.selectedFirst, UUID())),
+            .incrementIndex
+          ])
+        }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
       
     case .fetchUser:
@@ -198,6 +198,10 @@ final class FallingViewModel: Reactor {
       
     case .addTopicOrNotice(let data):
       newState.snapshot.append(data)
+      return newState
+      
+    case .setHasChosenDailyTopic(let flag):
+      UserDefaultRepository.shared.save(flag, key: .hasChosenDailyTopic)
       return newState
       
     case .setDailyUserCursorIndex(let userInfo):

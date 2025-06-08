@@ -12,14 +12,6 @@ import Core
 import DSKit
 
 final class FallingView: TFBaseView {
-  let topicView: UIView = {
-    let vc = UIHostingController(rootView: TopicView(viewModel: TopicViewModel()))
-    guard let view = vc.view else { return UIView() }
-    view.isHidden = true
-    view.backgroundColor = DSKitAsset.Color.neutral700.color
-    return view
-  }()
-  
   let collectionView: UICollectionView = {
     let flowLayout = UICollectionViewCompositionalLayout.verticalListLayout(withEstimatedHeight: ((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64)
     let collectionView = UICollectionView(frame: .zero,
@@ -32,20 +24,10 @@ final class FallingView: TFBaseView {
   override func makeUI() {
     self.backgroundColor = DSKitAsset.Color.neutral700.color
     
-    
-    self.addSubview(topicView)
     self.addSubview(collectionView)
     
-//    collectionView.isHidden = true
-    
-    self.topicView.snp.makeConstraints {
-      $0.verticalEdges.equalToSuperview()
-      $0.horizontalEdges.equalToSuperview().inset(16)
-    }
-    
     self.collectionView.snp.makeConstraints {
-      $0.top.equalTo(self.safeAreaLayoutGuide).inset(8)
-      $0.leading.bottom.trailing.equalToSuperview()
+      $0.edges.equalToSuperview()
     }
   }
 }
@@ -62,6 +44,8 @@ extension UICollectionViewCompositionalLayout {
 
 extension NSCollectionLayoutSection {
   static func verticalListSection(withEstimatedHeight estimatedHeight: CGFloat = 110) -> NSCollectionLayoutSection {
+    let hasChosenDailyTopic = UserDefaultRepository.shared.fetch(for: .hasChosenDailyTopic, type: Bool.self) ?? false
+    
     let itemSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
       heightDimension: .fractionalHeight(1.0)
@@ -70,17 +54,23 @@ extension NSCollectionLayoutSection {
     
     let layoutGroupSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .fractionalHeight(586/(844 - 180))
+      heightDimension: hasChosenDailyTopic ? .fractionalHeight(586/(844 - 180)) : .fractionalHeight(1.0)
     )
     
     let layoutGroup = NSCollectionLayoutGroup.vertical(
       layoutSize: layoutGroupSize,
       subitems: [layoutItem]
     )
+    layoutGroup.contentInsets = NSDirectionalEdgeInsets(
+      top: 8,
+      leading: 16,
+      bottom: 8,
+      trailing: 16
+    )
     
     let footerSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .estimated(((UIWindow.keyWindow?.frame.width ?? 0) - 32) * 1.64))
+      heightDimension: .fractionalHeight(586/(844 - 180)))
     let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(
         layoutSize: footerSize,
         elementKind: UICollectionView.elementKindSectionFooter, 
@@ -88,14 +78,13 @@ extension NSCollectionLayoutSection {
     )
     
     let section = NSCollectionLayoutSection(group: layoutGroup)
-    section.contentInsets = NSDirectionalEdgeInsets(
-      top: 0,
-      leading: 16,
-      bottom: 16,
-      trailing: 16
-    )
     section.interGroupSpacing = 14
-    section.boundarySupplementaryItems = [sectionFooter]
+    
+    if hasChosenDailyTopic {
+      section.boundarySupplementaryItems = [sectionFooter]
+    } else {
+      section.boundarySupplementaryItems = []
+    }
     
     section.visibleItemsInvalidationHandler = { item, offset, environment in
       

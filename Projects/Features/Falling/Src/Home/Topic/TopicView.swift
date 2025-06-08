@@ -14,8 +14,16 @@ struct TopicView: SwiftUI.View {
   
   var body: some SwiftUI.View {
     VStack(spacing: 0) {
-      BubbleView(text: "무디와 같은 주제로 이야기할 수 있어요")
+      
+      if !viewModel.hasChosenDailyTopic {
+        BubbleView(
+          text: "무디와 같은 주제로 이야기할 수 있어요",
+          horizontalPadding: 16,
+          verticalPadding: 6,
+          cornerRadius: 16
+        )
         .padding(.bottom, 6)
+      }
       
       ScrollView(showsIndicators: false) {
         LazyVStack(spacing: 0) {
@@ -56,6 +64,7 @@ struct TopicView: SwiftUI.View {
         )
       }
     }
+//    .containerRelativeFrame(.vertical)
   }
   
   @ViewBuilder
@@ -65,9 +74,11 @@ struct TopicView: SwiftUI.View {
         .font(weight: 500, size: 16, lineSpacingPercent: 140)
         .foregroundStyle(Color.neutral400)
       
-      Text("오늘 나는 너랑...")
-        .font(weight: 600, size: 17, lineSpacingPercent: 130)
-        .foregroundStyle(Color.neutral50)
+      if let introduction = viewModel.dailyTopicKeyword?.introduction {
+        Text(introduction)
+          .font(weight: 600, size: 17, lineSpacingPercent: 130)
+          .foregroundStyle(Color.neutral50)
+      }
     }
   }
   
@@ -114,6 +125,7 @@ struct TopicView: SwiftUI.View {
             .font(weight: 600, size: 17, lineSpacingPercent: 130)
             .foregroundStyle(Color.neutral50)
             .multilineTextAlignment(.center)
+            .lineLimit(2)
         }
         .padding(.horizontal, 31)
         .padding(.vertical, 28)
