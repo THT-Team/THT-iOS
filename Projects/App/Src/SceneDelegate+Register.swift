@@ -62,8 +62,7 @@ extension AppDelegate {
       implement: {
         FallingUseCase(
           repository:
-            FallingRepository(provider.environment),
-          likeRepository: LikeRepository(provider.environment)
+            FallingRepository(provider.environment)
         )})
 
 

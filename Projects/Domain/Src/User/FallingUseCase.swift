@@ -12,15 +12,13 @@ import RxSwift
 public final class FallingUseCase: FallingUseCaseInterface {
 
   private let repository: FallingRepositoryInterface
-  private let likeRepository: LikeRepositoryInterface
 
-  public init(repository: FallingRepositoryInterface, likeRepository: LikeRepositoryInterface) {
+  public init(repository: FallingRepositoryInterface) {
     self.repository = repository
-    self.likeRepository = likeRepository
   }
   
   public func user(alreadySeenUserUUIDList: [String], userDailyFallingCourserIdx: Int, size: Int) -> Single<FallingUserInfo> {
-    self.repository.user(
+    repository.user(
       alreadySeenUserUUIDList: alreadySeenUserUUIDList,
       userDailyFallingCourserIdx: userDailyFallingCourserIdx,
       size: size
@@ -34,25 +32,6 @@ public final class FallingUseCase: FallingUseCaseInterface {
           : Observable.error(error)
         }
     })
-  }
-
-  public func block(userUUID: String) -> Single<String> {
-    .just("차단하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.")
-  }
-
-  public func report(userUUID: String, reason: String) -> Single<String> {
-    .just("신고하기가 완료되었습니다. 해당 사용자와\n서로 차단되며 설정에서 확인 가능합니다.")
-  }
-
-  public func like(userUUID: String, topicIndex: String) -> RxSwift.Single<MatchResponse> {
-    likeRepository.like(id: userUUID, topicID: topicIndex)
-      .map {
-        MatchResponse(isMatched: $0.isMatching, chatIndex: "\($0.chatRoomIdx ?? -1)")
-      }
-  }
-
-  public func reject(userUUID: String, topicIndex: String) -> RxSwift.Single<Void> {
-    return .just(())
   }
 }
 

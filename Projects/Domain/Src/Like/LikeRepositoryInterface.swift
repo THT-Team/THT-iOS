@@ -14,5 +14,5 @@ public protocol LikeRepositoryInterface {
   func user(id: String) -> Single<UserInfo>
   func reject(index: Int) -> Single<Void>
   func like(id: String, topicID: String) -> Single<LikeMatching>
-  func dontLike(id: String, topicID: String) -> Single<Void>
+  func dontLike(id: String, topicIndex: String) -> Single<Void>
 }
