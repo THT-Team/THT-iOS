@@ -39,7 +39,6 @@ extension FallingViewModel {
   struct State: Equatable {
     var index: Int = 0
     var snapshot: [FallingDataModel] = []
-    var topicIndex: String = ""
 
     var dailyUserCursorIndex = 0
 
@@ -61,6 +60,10 @@ extension FallingViewModel {
       case .fallingUser(let user): return user
       default: return nil
       }
+    }
+    
+    var topicIndex: Int {
+      userInfo?.selectDailyFallingIndex ?? -1
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {

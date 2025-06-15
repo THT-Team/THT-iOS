@@ -15,6 +15,7 @@ public protocol LikeUseCaseInterface {
   func user(id: String) -> Single<UserInfo>
   func reject(index: Int) -> Single<Void>
   func like(id: String, topicID: String) -> Single<LikeMatching>
+  func dontLike(id: String, topicIndex: String) -> Single<Void>
   func save(id: Int)
 }
 
@@ -52,6 +53,10 @@ public final class LikeUseCase: LikeUseCaseInterface {
 
   public func like(id: String, topicID: String) -> Single<LikeMatching> {
     repository.like(id: id, topicID: topicID)
+  }
+  
+  public func dontLike(id: String, topicIndex: String) -> Single<Void> {
+    repository.dontLike(id: id, topicIndex: topicIndex)
   }
 
   public func save(id: Int) {

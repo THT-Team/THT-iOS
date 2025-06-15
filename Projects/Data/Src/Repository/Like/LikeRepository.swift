@@ -42,7 +42,7 @@ extension LikeRepository: LikeRepositoryInterface {
       .map { $0.toDomain() }
   }
 
-  public func dontLike(id: String, topicID: String) -> Single<Void> {
-    requestWithNoContent(target: .dontLike(id: id, topic: topicID))
+  public func dontLike(id: String, topicIndex: String) -> Single<Void> {
+    requestWithNoContent(target: .dontLike(id: id, topic: topicIndex))
   }
 }

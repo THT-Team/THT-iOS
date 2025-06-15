@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 import FallingInterface
 import Domain
 import ReactorKit
@@ -16,9 +17,13 @@ final class FallingViewModel: Reactor {
   var onReport: ((UserReportHandler?) -> Void)?
   var onMatch: ((String, String) -> Void)?
   
-  // MARK: Properties
+  // MARK: UseCase
   private let topicUseCase: TopicUseCaseInterface
   private let fallingUseCase: FallingUseCaseInterface
+  private let userDomainUseCase: UserDomainUseCaseInterface
+  private let likeUseCase: LikeUseCaseInterface
+  
+  // MARK: Properties
   private let timer = TFTimer(startTime: 15.0)
   private let cancelFetchUserSubject = PublishSubject<Void>()
   
@@ -26,10 +31,14 @@ final class FallingViewModel: Reactor {
   
   init(
     topicUseCase: TopicUseCaseInterface,
-    fallingUseCase: FallingUseCaseInterface
+    fallingUseCase: FallingUseCaseInterface,
+    userDomainUseCase: UserDomainUseCaseInterface,
+    likeUseCase: LikeUseCaseInterface
   ) {
     self.topicUseCase = topicUseCase
     self.fallingUseCase = fallingUseCase
+    self.userDomainUseCase = userDomainUseCase
+    self.likeUseCase = likeUseCase
   }
   
   func mutate(action: Action) -> Observable<Mutation> {
@@ -39,33 +48,6 @@ final class FallingViewModel: Reactor {
       return .empty()
       
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
-      
-    case .selectedFirstTap, .allMetTap:
-      self.action.onNext(.fetchMoreUserIfAvailable)
-      return .empty()
-      
-    case .findTap: return .from([.incrementIndex, .startTimer])
-      
-    case let .likeTap(user):
-      return self.fallingUseCase.like(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
-        .asObservable()
-        .flatMap { match -> Observable<Mutation> in
-          match.isMatched ? .from([
-            .toMatch(user.userProfilePhotos[0].url, match.chatIndex),
-            .stopTimer])
-          : .just(.incrementIndex)
-        }
-        .catch { .just(Mutation.toast($0.localizedDescription)) }
-      
-    case let .rejectTap(user):
-      return self.fallingUseCase.reject(userUUID: user.userUUID, topicIndex: currentState.topicIndex)
-        .asObservable()
-        .map { Mutation.incrementIndex }
-        .catch { .just(.toast($0.localizedDescription)) }
-      
-    case .reportTap: return .from([.selectAlert, .stopTimer])
-      
-    case .pauseTap(let isPause): return isPause ? .just(.stopTimer) : .just(.startTimer)
       
     case .checkIsChooseDailyTopic:
       return self.topicUseCase.getCheckIsChooseDailyTopic()
@@ -137,6 +119,42 @@ final class FallingViewModel: Reactor {
           ])}))
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
+    case .selectedFirstTap, .allMetTap:
+      self.action.onNext(.fetchMoreUserIfAvailable)
+      return .empty()
+      
+    case .findTap: return .from([.incrementIndex, .startTimer])
+      
+    case let .likeTap(user):
+      return self.likeUseCase.like(
+        id: user.userUUID,
+        topicID: String(currentState.topicIndex)
+      )
+      .asObservable()
+      .flatMap { match -> Observable<Mutation> in
+        guard match.isMatching, let chatRoomIdx = match.chatRoomIdx else {
+          return .just(.incrementIndex)
+        }
+        return match.isMatching ? .from([
+          .toMatch(user.userProfilePhotos[0].url, String(chatRoomIdx)),
+          .stopTimer])
+        : .just(.incrementIndex)
+      }
+      .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case let .rejectTap(user):
+      return self.likeUseCase.dontLike(
+        id: user.userUUID,
+        topicIndex: String(currentState.topicIndex)
+      )
+      .asObservable()
+      .map { Mutation.incrementIndex }
+      .catch { .just(.toast($0.localizedDescription)) }
+      
+    case .reportTap: return .from([.selectAlert, .stopTimer])
+      
+    case .pauseTap(let isPause): return isPause ? .just(.stopTimer) : .just(.startTimer)
+      
     case let .deleteAnimationComplete(user):
       return .from([.removeSnapshot(user), .incrementIndex])
       
@@ -145,9 +163,8 @@ final class FallingViewModel: Reactor {
       case .block:
         return .concat(
           .just(.showDeleteAnimation(user)),
-          self.fallingUseCase.block(userUUID: user.userUUID)
+          self.userDomainUseCase.userReport(.block(user.userUUID))
             .asObservable()
-            .catch { .just($0.localizedDescription) }
             .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
@@ -157,9 +174,8 @@ final class FallingViewModel: Reactor {
       case let .report(reason):
         return .concat(
           .just(.showDeleteAnimation(user)),
-          self.fallingUseCase.report(userUUID: user.userUUID, reason: reason)
+          self.userDomainUseCase.userReport(.report(user.userUUID, reason))
             .asObservable()
-            .catch { .just($0.localizedDescription) }
             .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
