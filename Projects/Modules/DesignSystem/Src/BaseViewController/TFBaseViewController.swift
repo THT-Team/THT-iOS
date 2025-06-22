@@ -44,9 +44,19 @@ open class TFBaseViewController: UIViewController, ViewControllable {
     
     TFLogger.cycle(name: self)
 
+    hideKeyboardWhenTappedAround()
+    
     makeUI()
     bindViewModel()
     navigationSetting()
+  }
+  
+  open override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    
+    TFLogger.cycle(name: self)
+    
+    view.endEditing(true)
   }
 	
 	@available(*, unavailable)
