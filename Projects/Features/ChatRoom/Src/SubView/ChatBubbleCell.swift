@@ -20,7 +20,7 @@ final class IncomingBubbleCell: BaseBubbleCell {
     return imageView
   }()
 
-  lazy var hStackView: UIStackView = {
+  lazy var vStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
     stackView.spacing = 8
@@ -36,9 +36,9 @@ final class IncomingBubbleCell: BaseBubbleCell {
   }()
 
   override func makeUI() {
-    self.contentView.addSubviews(profileImageView, hStackView, dateLabel)
+    self.contentView.addSubviews(profileImageView, vStackView, dateLabel)
     self.contentView.backgroundColor = DSKitAsset.Color.neutral700.color
-    hStackView.addArrangedSubviews([ nickNameLabel, contentLabel])
+    vStackView.addArrangedSubviews([ nickNameLabel, contentLabel])
 
     contentLabel.backgroundColor = DSKitAsset.Color.neutral600.color
     contentLabel.textColor = DSKitAsset.Color.neutral50.color
@@ -51,7 +51,7 @@ final class IncomingBubbleCell: BaseBubbleCell {
       $0.size.equalTo(50)
     }
 
-    hStackView.snp.makeConstraints {
+    vStackView.snp.makeConstraints {
       $0.top.equalTo(profileImageView)
       $0.leading.equalTo(profileImageView.snp.trailing).offset(10)
       $0.bottom.equalToSuperview().offset(-13)
@@ -66,10 +66,10 @@ final class IncomingBubbleCell: BaseBubbleCell {
     }
 
     dateLabel.snp.makeConstraints {
-      $0.leading.equalTo(hStackView.snp.trailing).offset(8)
+      $0.leading.equalTo(vStackView.snp.trailing).offset(8)
       $0.height.equalTo(20)
       $0.trailing.equalToSuperview()
-      $0.bottom.equalTo(hStackView)
+      $0.bottom.equalTo(vStackView)
     }
   }
 
@@ -97,6 +97,18 @@ final class IncomingBubbleCell: BaseBubbleCell {
         owner.profileImageView.setImage(urlString: imageURL)
       }
       .disposed(by: disposeBag)
+    
+    reactor.state.map(\.isLinked)
+      .bind(to: dateLabel.rx.isHidden)
+      .disposed(by: disposeBag)
+//    
+//    reactor.state.map(\.isLinked)
+//      .bind(to: profileImageView.rx.isHidden)
+//      .disposed(by: disposeBag)
+//    
+//    reactor.state.map(\.isLinked)
+//      .bind(to: nickNameLabel.rx.isHidden)
+//      .disposed(by: disposeBag)
 
     setNeedsLayout()
     layoutIfNeeded()

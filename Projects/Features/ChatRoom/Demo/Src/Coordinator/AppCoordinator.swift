@@ -29,12 +29,12 @@ final class AppCoordinator: LaunchCoordinator {
 
   public override func start() {
 
-//    viewControllable.pushViewController(vc, animated: true)
+      runChatRoomFlow(UUID().uuidString)
   }
 
   // MARK: - public
   func runChatRoomFlow(_ id: String) {
-    var coordinator = self.chatRoomBuilder.build(rootViewControllable: viewControllable)
+    let coordinator = self.chatRoomBuilder.build(rootViewControllable: viewControllable)
 
     coordinator.finishFlow = { [weak self, weak coordinator] message in
       guard let coordinator else { return }

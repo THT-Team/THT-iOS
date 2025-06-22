@@ -27,7 +27,6 @@ let project = Project.makeModule(
     .SPM.KakaoSDKCommon,
     .SPM.FirebaseStorage,
     .SPM.SwiftStomp,
-    .SPM.RealmSwift,
   ],
   product: .staticFramework
 )

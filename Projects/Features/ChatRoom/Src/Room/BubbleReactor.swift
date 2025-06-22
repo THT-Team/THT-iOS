@@ -28,12 +28,13 @@ public final class BubbleReactor: Reactor {
     var senderUUID: String
     var imageURL: String
     var index: String
+    var isLinked: Bool
     @Pulse var showProfile: String?
   }
 
   public let initialState: State
 
-  public init(_ message: ChatMessageType) {
+  public init(_ message: ChatMessageType, shouldShowDate: Bool) {
     let message = message.message
     self.initialState = State(
       message: message.msg,
@@ -42,6 +43,7 @@ public final class BubbleReactor: Reactor {
       senderUUID: message.senderUuid,
       imageURL: message.imgUrl,
       index: message.chatIdx,
+      isLinked: shouldShowDate,
       showProfile: nil
     )
   }

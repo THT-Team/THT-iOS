@@ -43,7 +43,7 @@ public final class ChatRoomReactor: ChatRoomOutputType, Reactor {
     self.userUseCase = userUseCase
     self.chatUsecase = chatUseCase
     self.id = id
-    self.initialState = State(sections: [.init(items: [])])
+    self.initialState = State(sections: [])
     TFLogger.cycle(name: self)
   }
   deinit { TFLogger.cycle(name: self) }
@@ -176,31 +176,126 @@ extension ChatRoomReactor {
     case let .showProfile(id, handler):
       self.onProfile?(ProfileItem(id: id, topic: state.info.talkSubject, issue: state.info.talkIssue), handler)
     case let .addMessage(message):
-      state.sections[0].items.append(.create(from: message, actionSubject: self.action))
+      self.addMessage(to: &state.sections, type: message)
     case let .setInfo(info):
       state.info = info
     case let .changeBlurHidden(isHidden):
       state.isBlurHidden = isHidden
-    case let .insertMessage(messages): 
-      let items = messages.compactMap { [weak self] type -> ChatViewSectionItem? in
-        guard let self else { return nil }
-        return ChatViewSectionItem.create(from: type, actionSubject: self.action)
-      }
-      state.sections[0].items.insert(items)
+      
+    // history
+    case let .insertMessage(messageGroup):
+      addHistory(to: &state.sections, items: messageGroup, action: self.action)
     }
     return state
   }
 }
 
 extension ChatViewSectionItem {
-  static func create(from type: ChatMessageType, actionSubject: ActionSubject<ChatRoomReactor.Action>) -> Self {
-      let reactor = BubbleReactor(type)
+  static func create(from type: ChatMessageType, shouldShowDate: Bool,  actionSubject: ActionSubject<ChatRoomReactor.Action>) -> Self {
+      let reactor = BubbleReactor(type, shouldShowDate: shouldShowDate)
       reactor.pulse(\.$showProfile)
         .compactMap { $0 }
         .map(ChatRoomReactor.Action.onProfile)
         .bind(to: actionSubject)
         .disposed(by: reactor.disposeBag)
+    
+    switch type {
+    case .incoming: return ChatViewSectionItem.incoming(reactor)
+    case .outgoing: return ChatViewSectionItem.outgoing(reactor)
+    }
+  }
+}
 
-      return ChatViewSectionItem.transfrom(from: type, reactor: reactor)
+extension ChatRoomReactor {
+  struct CellViewModel {
+    var isLinked: Bool
+    let message: ChatMessageType
+  }
+  
+  private func addHistory(to section: inout [ChatViewSection], items: [Date: [ChatMessageType]], action: ActionSubject<ChatRoomReactor.Action>) {
+    
+    var result = items
+      .sorted { $0.key < $1.key }
+      .map { date, messagesList in
+        var mutable = [CellViewModel]()
+        for (index, messaeg) in messagesList.enumerated() {
+          var tuple = CellViewModel(isLinked: false, message: messaeg)
+          mutable.append(tuple)
+          
+          if index > 0 {
+            let prev = messagesList[index - 1]
+            if ChatMessageType.isLinked(lhs: prev, rhs: messaeg) {
+              mutable[index - 1].isLinked = true
+            }
+          }
+        }
+        return (date, mutable.map { dto in
+          ChatViewSectionItem.create(from: dto.message, shouldShowDate: dto.isLinked, actionSubject: action)
+        })
+      }
+      .map { date, dtos in
+      let items = dtos
+      return ChatViewSection(date: date, items: items)
+    }
+    
+    section.append(contentsOf: result)
+  }
+  
+  func appendNewMessage(
+    to sections: inout [ChatViewSection],
+    newMessage: ChatMessageType
+  ) {
+    
+    // 섹션이 존재하는 경우
+    if let lastIndex = sections.lastIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: newMessage.message.dateTime) }) {
+      var lastSection = sections[lastIndex]
+      
+      var vm = CellViewModel(isLinked: false, message: newMessage)
+      
+      if let prev = lastSection.items.last {
+        let sameSender = prev.sendType == newMessage.senderType
+        
+        let sameMinute = newMessage.message.dateTime.toTimeString() == prev.date
+        if sameSender && sameMinute {
+          var updatedPrev = prev
+//          updatedPrev
+        }
+      }
+      
+      lastSection.items.appendItem(ChatViewSectionItem.create(from: newMessage, shouldShowDate: true, actionSubject: self.action))
+      sections[lastIndex] = lastSection
+    } else {
+      // 새로운 날짜 섹션 생성
+      let newVM = CellViewModel(isLinked: false, message: newMessage)
+      let newSection = ChatViewSection(date: newMessage.message.dateTime, items: [ChatViewSectionItem.create(from: newMessage, shouldShowDate: newVM.isLinked, actionSubject: self.action)])
+      
+      sections.append(newSection)
+    }
+  }
+  
+  private func addMessage(to sections: inout [ChatViewSection], type message: ChatMessageType) {
+    
+    if var lastSection = sections.last, Calendar.current.isDate(lastSection.date, inSameDayAs: message.message.dateTime),
+       let prev = lastSection.items.last
+    {
+      let shouldShow: Bool = {
+        let prevIsIncoming = prev.sendType
+        let newIsIncomfing = message.senderType
+        
+        let sameSender = newIsIncomfing == prevIsIncoming
+        let prevDate = lastSection.date
+        let currentDate = message.message.dateTime
+        let sameDay = Calendar.current.isDate(prevDate, inSameDayAs: currentDate)
+        
+        let sameMinute = Calendar.current.compare(prevDate, to: currentDate, toGranularity: .minute) == .orderedSame
+        
+        return !(sameSender && sameDay && sameMinute)
+      }()
+      
+      lastSection.items.appendItem(ChatViewSectionItem.create(from: message, shouldShowDate: shouldShow, actionSubject: self.action))
+      sections[sections.count - 1] = lastSection
+    } else {
+      sections.append(ChatViewSection(date: message.message.dateTime, items: [ChatViewSectionItem.create(from: message, shouldShowDate: true, actionSubject: self.action)]))
+    }
   }
 }

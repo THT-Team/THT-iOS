@@ -10,3 +10,10 @@ import Core
 public protocol InquiryBuildable {
   func build(rootViewControllable: ViewControllable) -> InquiryCoordinating
 }
+
+public protocol InquiryCoordinating: Coordinator {
+  var finishFlow: (() -> Void)? { get set }
+
+  func homeFlow()
+}
+

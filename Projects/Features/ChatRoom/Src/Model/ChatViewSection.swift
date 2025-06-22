@@ -9,37 +9,52 @@ import Foundation
 import Domain
 
 public struct ChatViewSection: Hashable {
+  let date: Date
   var items: [ChatViewSectionItem]
 }
 
-public enum ChatViewSectionKind: Hashable {
-  case main
-}
-
-public enum ChatViewSectionItem: Hashable {
-  case incoming(BubbleReactor)
-  case outgoing(BubbleReactor)
-
-  var chatIndex: String {
-    switch self {
-    case .incoming(let bubbleReactor):
-      return bubbleReactor.currentState.index
-    case .outgoing(let bubbleReactor):
-      return bubbleReactor.currentState.index
-    }
-  }
-
-  static func transfrom(from messageType: ChatMessageType, reactor: BubbleReactor) -> Self {
-    switch messageType {
-    case let .incoming(message):
-      return .incoming(reactor)
-    case let .outgoing(messageType):
-      return .outgoing(reactor)
-    }
+public struct ChatViewSectionItem: Hashable {
+  var message: ChatMessageType
+  var isLinked: Bool
+  
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(message)
   }
 }
 
-extension ChatMessage: @retroactive Equatable {}
+extension ChatViewSectionItem: Equatable {
+  public static func == (lhs: ChatViewSectionItem, rhs: ChatViewSectionItem) -> Bool {
+    lhs.message == rhs.message &&
+    lhs.isLinked == rhs.isLinked
+  }
+}
+
+//public enum ChatViewSectionItem: Hashable {
+//  case incoming(BubbleReactor)
+//  case outgoing(BubbleReactor)
+//
+//  var chatIndex: String {
+//    switch self {
+//    case .incoming(let bubbleReactor), .outgoing(let bubbleReactor):
+//      return bubbleReactor.currentState.index
+//    }
+//  }
+//  
+//  var date: String {
+//    switch self {
+//    case .incoming(let reactor), .outgoing(let reactor):
+//      return reactor.currentState.dateText
+//    }
+//  }
+//  
+//  var sendType: MessageSendType {
+//    switch self {
+//    case .incoming: return .incoming
+//    case .outgoing: return .outgoing
+//    }
+//  }
+//}
+
 extension ChatMessage: @retroactive Hashable {
   public static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
     lhs.id == rhs.id
@@ -49,9 +64,5 @@ extension ChatMessage: @retroactive Hashable {
 
   public func hash(into hasher: inout Hasher) {
     hasher.combine(id)
-  }
-
-  var isMe: Bool {
-    return self.senderUuid == ""
   }
 }

@@ -38,7 +38,7 @@ extension ChatRoomReactor {
 
   public enum Mutation {
     case addMessage(ChatMessageType)
-    case insertMessage([ChatMessageType])
+    case insertMessage([Date: [ChatMessageType]])
     case setInfo(ChatRoomInfo)
     case changeBlurHidden(Bool)
     case showProfile(id: String, ProfileOutputHandler?)

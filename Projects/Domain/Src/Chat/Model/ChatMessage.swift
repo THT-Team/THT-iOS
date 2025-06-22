@@ -7,7 +7,12 @@
 
 import Foundation
 
-public enum ChatMessageType {
+public enum MessageSendType: Equatable {
+  case incoming
+  case outgoing
+}
+
+public enum ChatMessageType: Hashable {
   case incoming(ChatMessage)
   case outgoing(ChatMessage)
 
@@ -16,6 +21,20 @@ public enum ChatMessageType {
     case let .incoming(message): return message
     case let .outgoing(message): return message
     }
+  }
+  
+  public var senderType: MessageSendType {
+    switch self {
+    case .incoming: return .incoming
+    case .outgoing: return .outgoing
+    }
+  }
+  public static func == (lhs: ChatMessageType, rhs: ChatMessageType) -> Bool {
+    lhs.message == rhs.message
+  }
+  
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(message)
   }
 }
 
@@ -83,5 +102,15 @@ extension ChatMessage {
 
   public init(_ res: Response) {
     self.init(chatIdx: res.chatIndex, sender: res.sender, senderUuid: res.senderUUID, msg: res.message, imgUrl: res.imageURL, dataTime: res.dateTime)
+  }
+}
+
+extension ChatMessageType {
+  public static func isLinked(lhs: ChatMessageType, rhs: ChatMessageType) -> Bool {
+    let sender = lhs.senderType == rhs.senderType
+    let day = Calendar.current.isDate(lhs.message.dateTime, inSameDayAs: rhs.message.dateTime)
+    let minute = Calendar.current.isDate(lhs.message.dateTime, equalTo: rhs.message.dateTime, toGranularity: .minute)
+    
+    return sender && day && minute
   }
 }

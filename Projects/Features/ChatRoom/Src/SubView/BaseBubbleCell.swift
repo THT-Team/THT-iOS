@@ -66,6 +66,10 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
     reactor.state.map(\.dateText)
       .bind(to: dateLabel.rx.text)
       .disposed(by: disposeBag)
+    
+    reactor.state.map(\.isLinked)
+      .bind(to: dateLabel.rx.isHidden)
+      .disposed(by: disposeBag)
     setNeedsLayout()
     layoutIfNeeded()
   }

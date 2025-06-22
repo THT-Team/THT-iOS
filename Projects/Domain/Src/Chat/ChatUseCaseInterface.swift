@@ -12,7 +12,7 @@ import RxSwift
 
 public protocol ChatUseCaseInterface {
   func rooms() -> Observable<[ChatRoom]>
-  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[ChatMessageType]>
+  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[Date: [ChatMessageType]]>
   func room(_ roomIdx: String) -> Observable<ChatRoomInfo>
   func out(_ roomIdx: String) -> Observable<Void>
 }
@@ -31,8 +31,9 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
       .asObservable()
   }
   
-  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[ChatMessageType]> {
-    repository.history(roomIdx: roomIdx, chatIdx: chatIdx, size: size)
+  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[Date: [ChatMessageType]]> {
+    let calender = Calendar.current
+    return repository.history(roomIdx: roomIdx, chatIdx: chatIdx, size: size)
       .asObservable()
       .map { messages -> [ChatMessageType] in
         messages.map { message -> ChatMessageType in
@@ -40,7 +41,12 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
           return message.senderUuid == userUUID
           ? .outgoing(message) : .incoming(message)
         }
+      }.map {
+        Dictionary(grouping: $0) { messageType in
+          calender.startOfDay(for: messageType.message.dateTime)
+        }
       }
+      .debug()
   }
   
   public func room(_ roomIdx: String) -> RxSwift.Observable<ChatRoomInfo> {
