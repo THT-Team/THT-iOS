@@ -212,6 +212,7 @@ public final class PhoneNumberAuthVC: TFBaseViewController {
         owner.blurView.isHidden = !isCertificated
         owner.successPopup.isHidden = !isCertificated
         if isCertificated {
+          owner.codeInputTextField.resignFirstResponder()
           owner.successPopup.animationPlay {
             animationFinish.accept(())
           }

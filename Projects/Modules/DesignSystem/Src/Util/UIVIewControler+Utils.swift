@@ -26,7 +26,7 @@ extension UIViewController {
               bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
-
+  
   public func showAlert(contentView: UIView,
                         topActionTitle: String? = "확인",
                         bottomActionTitle: String = "취소",
@@ -36,7 +36,7 @@ extension UIViewController {
                         dimActionCompletion: (() -> Void)? = nil) {
     let alertViewController = TFAlertViewController(contentView: contentView,
                                                     dimColor: dimColor)
-
+    
     showAlert(alertViewController: alertViewController,
               topActionTitle: topActionTitle,
               bottomActionTitle: bottomActionTitle,
@@ -44,7 +44,7 @@ extension UIViewController {
               bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
-
+  
   public func showAlert(action: ReportAction,
                         dimColor: UIColor = DSKitAsset.Color.DimColor.default.color,
                         topActionCompletion: (() -> Void)? = nil,
@@ -53,7 +53,7 @@ extension UIViewController {
     let alertViewController = TFAlertViewController(titleText: action.title,
                                                     messageText: action.message,
                                                     dimColor: dimColor)
-
+    
     showAlert(alertViewController: alertViewController,
               topActionTitle: action.topActionTitle,
               bottomActionTitle: action.bottomActionTitle,
@@ -61,7 +61,7 @@ extension UIViewController {
               bottomActionCompletion: bottomActionCompletion,
               dimActionCompletion: dimActionCompletion)
   }
-
+  
   private func showAlert(alertViewController: TFAlertViewController,
                          topActionTitle: String?,
                          bottomActionTitle: String,
@@ -70,20 +70,39 @@ extension UIViewController {
                          dimActionCompletion: (() -> Void)?) {
     alertViewController.addActionToButton(title: topActionTitle) { [weak alertViewController] in
       alertViewController?.dismiss(animated: false,
-                                  completion: topActionCompletion)
+                                   completion: topActionCompletion)
     }
-
+    
     alertViewController.addActionToButton(title: bottomActionTitle,
                                           withSeparator: true) { [weak alertViewController] in
       alertViewController?.dismiss(animated: false,
-                                  completion: bottomActionCompletion)
+                                   completion: bottomActionCompletion)
     }
-
+    
     alertViewController.addActionToDim() { [weak alertViewController] in
       alertViewController?.dismiss(animated: false,
-                                  completion: dimActionCompletion)
+                                   completion: dimActionCompletion)
     }
-
+    
     present(alertViewController, animated: false, completion: nil)
+  }
+}
+
+extension UIViewController {
+  func hideKeyboardWhenTappedAround(exceptControls: Bool = true) {
+    let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+    tap.cancelsTouchesInView = false
+    view.addGestureRecognizer(tap)
+  }
+  
+  @objc private func handleTapGesture(_ sender: UITapGestureRecognizer) {
+    let location = sender.location(in: view)
+    let tappedView = view.hitTest(location, with: nil)
+    
+    if let _ = tappedView as? UIControl {
+      return
+    }
+    
+    view.endEditing(true)
   }
 }
