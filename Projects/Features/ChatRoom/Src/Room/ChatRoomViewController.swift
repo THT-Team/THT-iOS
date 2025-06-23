@@ -15,7 +15,7 @@ import ReactorKit
 final class ChatRoomViewController: TFBaseViewController, View {
   typealias Reactor = ChatRoomReactor
   private lazy var mainView = ChatRoomView()
-  private var dataSource: DataSource!
+  
 
   init(reactor: Reactor) {
     super.init(nibName: nil, bundle: nil)
@@ -34,7 +34,7 @@ final class ChatRoomViewController: TFBaseViewController, View {
   }
 
   func bind(reactor: Reactor) {
-    self.setupDataSource()
+    self.mainView.setupDataSource()
     // Action
     Observable<Reactor.Action>.merge(
       NotificationCenter.default.rx.notification(UIScene.didEnterBackgroundNotification)
@@ -63,13 +63,14 @@ final class ChatRoomViewController: TFBaseViewController, View {
       }
       .disposed(by: disposeBag)
 
-    reactor.state.compactMap(\.sections.first)
+    reactor.state.compactMap(\.sections)
       .subscribe(on: MainScheduler.instance)
-      .do(onNext: { [weak self] section in
-        self?.applySnapshot(items: section.items)
+      .filter { !$0.isEmpty }
+      .do(onNext: { [weak self] sections in
+          self?.mainView.applySnapshot(items: sections)
       })
-      .subscribe(with: self) { owner, section in
-        owner.mainView.collectionView.scrollToItem(at: IndexPath(item: section.items.count - 1, section: 0), at: .bottom, animated: true)
+      .subscribe(with: self) { owner, sections in
+        owner.mainView.scrollToBottom()
       }
       .disposed(by: disposeBag)
     reactor.state.compactMap(\.isBlurHidden)
@@ -80,51 +81,5 @@ final class ChatRoomViewController: TFBaseViewController, View {
       .compactMap { $0 }
       .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
-  }
-}
-
-extension ChatRoomViewController {
-  typealias Model = ChatViewSectionItem
-  typealias DataSource = UICollectionViewDiffableDataSource<ChatViewSectionKind, Model>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<ChatViewSectionKind, Model>
-  typealias OutgoingCellRegistration = UICollectionView.CellRegistration<BaseBubbleCell, BubbleReactor>
-  typealias IncomingCellRegistration = UICollectionView.CellRegistration<IncomingBubbleCell, BubbleReactor>
-  typealias DateReusableViewRegistration = UICollectionView.SupplementaryRegistration<DateReusableView>
-
-  func setupDataSource() {
-    let bubbleRegistration = OutgoingCellRegistration { cell, _, item in
-      cell.bind(reactor: item)
-    }
-
-    let myBubbleRegistration = IncomingCellRegistration { cell, _, item in
-      cell.bind(reactor: item)
-    }
-
-    let dateSupplementRegistration = DateReusableViewRegistration(elementKind: UICollectionView.elementKindSectionHeader) { supplementaryView, elementKind, _ in
-      supplementaryView.bind("헤더")
-    }
-
-    self.dataSource = DataSource(collectionView: self.mainView.collectionView) { collectionView, indexPath, item in
-      switch item {
-      case let .incoming(reactor):
-        collectionView.dequeueConfiguredReusableCell(using: myBubbleRegistration, for: indexPath, item: reactor)
-      case let .outgoing(reactor):
-        collectionView.dequeueConfiguredReusableCell(using: bubbleRegistration, for: indexPath, item: reactor)
-      }
-    }
-
-    self.dataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
-      collectionView.dequeueConfiguredReusableSupplementary(using: dateSupplementRegistration, for: indexPath)
-    }
-
-    applySnapshot(items: [])
-  }
-
-  func applySnapshot(items: [ChatViewSectionItem]) {
-    var snapshot = Snapshot()
-    snapshot.appendSections([.main])
-    snapshot.appendItems(items, toSection: .main)
-
-    dataSource.apply(snapshot)
   }
 }

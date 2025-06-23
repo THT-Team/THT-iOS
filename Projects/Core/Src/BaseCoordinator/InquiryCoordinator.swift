@@ -6,9 +6,3 @@
 //
 
 import Foundation
-
-public protocol InquiryCoordinating: Coordinator {
-  var finishFlow: (() -> Void)? { get set }
-
-  func homeFlow()
-}

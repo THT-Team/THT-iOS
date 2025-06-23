@@ -35,11 +35,27 @@ public final class MockTalkUseCase: @preconcurrency TalkUseCaseInterface {
 
   @MainActor
   public func send(destination: String, message: String, participant: [ChatRoomInfo.Participant]) {
-    messagePublisher.onNext(.message(.outgoing(Self.makeChatMessage(name: "me", message: message))))
+    let sender = Int.random(in: (1...30)).isMultiple(of: 2)
+    
+    messagePublisher.onNext(
+      .message(
+        sender
+        ? ChatMessageItem(message: Self.makeChatMessage(name: "echo", message: message), senderType: .incoming)
+        : ChatMessageItem(message: Self.makeChatMessage(name: "me", message: message), senderType: .outgoing)
+      )
+    )
 
     Task {
       try? await Task.sleep(nanoseconds: 300)
-      messagePublisher.onNext(.message(.incoming(Self.makeChatMessage(name: "echo", message: message))))
+      messagePublisher.onNext(.message(
+        sender
+        ? ChatMessageItem(message: Self.makeChatMessage(name: "echo", message: message), senderType: .incoming)
+        : ChatMessageItem(message: Self.makeChatMessage(name: "me", message: message), senderType: .outgoing)
+      ))
+      try? await Task.sleep(nanoseconds: 300)
+      messagePublisher.onNext(.message(
+ChatMessageItem(message: Self.makeChatMessage(name: "echo", message: message), senderType: .incoming)
+      ))
     }
   }
   

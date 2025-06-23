@@ -17,6 +17,22 @@ public extension UICollectionViewCompositionalLayout {
         return UICollectionViewCompositionalLayout(section:
             .listEstimatedHeightSection(withEstimatedHeight: estimatedHeight))
   }
+  
+  static func bubbleLayoutWithHeader(with estimateHeight: CGFloat = 110) -> UICollectionViewCompositionalLayout {
+    let section = NSCollectionLayoutSection.listEstimatedHeightSection()
+    let header = NSCollectionLayoutBoundarySupplementaryItem(
+      layoutSize: NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(40)
+      ),
+      elementKind: UICollectionView.elementKindSectionHeader,
+      alignment: .top
+    )
+    
+    section.boundarySupplementaryItems = [header]
+
+    return UICollectionViewCompositionalLayout(section: section)
+  }
 }
 
 public extension NSCollectionLayoutSection {
@@ -36,14 +52,14 @@ public extension NSCollectionLayoutSection {
 
   static func listEstimatedHeightSection(withEstimatedHeight estimatedHeight: CGFloat = 110) -> NSCollectionLayoutSection {
     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(estimatedHeight))
-    let layoutItem = NSCollectionLayoutItem(layoutSize: itemSize)
-//    layoutItem.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 15, bottom: 10, trailing: 15)
+    let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
-    let layoutGroupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(estimatedHeight))
+    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(estimatedHeight))
 
-    let layoutGroup = NSCollectionLayoutGroup.vertical(layoutSize: layoutGroupSize, subitems: [layoutItem])
-    layoutGroup.interItemSpacing = .fixed(10)
-
-    return NSCollectionLayoutSection(group: layoutGroup)
+    let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+    
+    group.interItemSpacing = .fixed(10)
+    
+    return NSCollectionLayoutSection(group: group)
   }
 }

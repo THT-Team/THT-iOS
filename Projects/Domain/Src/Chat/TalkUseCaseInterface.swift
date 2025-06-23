@@ -69,11 +69,8 @@ public final class DefaultTalkUseCase: TalkUseCaseInterface {
       .sink(receiveValue: { [weak self] signal in
         switch signal {
         case .message(let content):
-          if self?.tokenService.getToken()?.userUuid == content.senderUuid {
-            self?.messagePublisher.onNext(.message(.outgoing(content)))
-          } else {
-            self?.messagePublisher.onNext(.message(.incoming(content)))
-          }
+          let senderType: MessageSendType = self?.tokenService.getToken()?.userUuid == content.senderUuid ? .outgoing : .incoming
+          self?.messagePublisher.onNext(.message(ChatMessageItem(message: content, senderType: senderType)))
         case .stompConnected:
           self?.messagePublisher.onNext(.connected)
         case .stompDisconnected:

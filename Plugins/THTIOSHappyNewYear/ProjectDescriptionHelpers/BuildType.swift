@@ -17,6 +17,5 @@ public let buildType: BuildType = {
 }()
 
 public let defaultPackageType: ProjectDescription.Product = {
-  return .staticLibrary
-//    buildType == .release ? .staticFramework : .framework
+  return buildType == .release ? .staticFramework : .framework
 }()
