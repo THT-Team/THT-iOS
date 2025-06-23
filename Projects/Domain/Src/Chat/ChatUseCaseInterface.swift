@@ -12,7 +12,7 @@ import RxSwift
 
 public protocol ChatUseCaseInterface {
   func rooms() -> Observable<[ChatRoom]>
-  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[Date: [ChatMessageType]]>
+  func history(roomIdx: String, chatIdx: String?, size: Int) -> Observable<[Date: [ChatMessageItem]]>
   func room(_ roomIdx: String) -> Observable<ChatRoomInfo>
   func out(_ roomIdx: String) -> Observable<Void>
 }
@@ -31,15 +31,16 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
       .asObservable()
   }
   
-  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[Date: [ChatMessageType]]> {
+  public func history(roomIdx: String, chatIdx: String?, size: Int) -> RxSwift.Observable<[Date: [ChatMessageItem]]> {
     let calender = Calendar.current
     return repository.history(roomIdx: roomIdx, chatIdx: chatIdx, size: size)
       .asObservable()
-      .map { messages -> [ChatMessageType] in
-        messages.map { message -> ChatMessageType in
+      .map { messages -> [ChatMessageItem] in
+        messages.map { message -> ChatMessageItem in
           let userUUID = UserDefaultRepository.shared.fetchModel(for: .token, type: Token.self)?.userUuid
-          return message.senderUuid == userUUID
-          ? .outgoing(message) : .incoming(message)
+          return ChatMessageItem(
+            message: message,
+            senderType: message.senderUuid == userUUID ? .outgoing : .incoming)
         }
       }.map {
         Dictionary(grouping: $0) { messageType in

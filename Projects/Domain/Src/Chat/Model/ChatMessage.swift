@@ -7,30 +7,12 @@
 
 import Foundation
 
-public enum MessageSendType: Equatable {
-  case incoming
-  case outgoing
-}
-
-public enum ChatMessageType: Hashable {
-  case incoming(ChatMessage)
-  case outgoing(ChatMessage)
-
-  public var message: ChatMessage {
-    switch self {
-    case let .incoming(message): return message
-    case let .outgoing(message): return message
-    }
-  }
+public struct ChatMessageItem: Hashable {
+  public var message: ChatMessage
+  public let senderType: MessageSendType
   
-  public var senderType: MessageSendType {
-    switch self {
-    case .incoming: return .incoming
-    case .outgoing: return .outgoing
-    }
-  }
-  public static func == (lhs: ChatMessageType, rhs: ChatMessageType) -> Bool {
-    lhs.message == rhs.message
+  public static func == (lhs: ChatMessageItem, rhs: ChatMessageItem) -> Bool {
+    lhs.message.chatIdx == rhs.message.chatIdx
   }
   
   public func hash(into hasher: inout Hasher) {
@@ -38,7 +20,12 @@ public enum ChatMessageType: Hashable {
   }
 }
 
-public struct ChatMessage: Equatable {
+public enum MessageSendType: Equatable {
+  case incoming
+  case outgoing
+}
+
+public struct ChatMessage: Equatable, Hashable {
   public let chatIdx: String
   public let sender: String
   public let senderUuid: String
@@ -105,12 +92,12 @@ extension ChatMessage {
   }
 }
 
-extension ChatMessageType {
-  public static func isLinked(lhs: ChatMessageType, rhs: ChatMessageType) -> Bool {
-    let sender = lhs.senderType == rhs.senderType
-    let day = Calendar.current.isDate(lhs.message.dateTime, inSameDayAs: rhs.message.dateTime)
-    let minute = Calendar.current.isDate(lhs.message.dateTime, equalTo: rhs.message.dateTime, toGranularity: .minute)
-    
-    return sender && day && minute
-  }
-}
+//extension ChatMessageType {
+//  public static func isLinked(lhs: ChatMessageType, rhs: ChatMessageType) -> Bool {
+//    let sender = lhs.senderType == rhs.senderType
+//    let day = Calendar.current.isDate(lhs.message.dateTime, inSameDayAs: rhs.message.dateTime)
+//    let minute = Calendar.current.isDate(lhs.message.dateTime, equalTo: rhs.message.dateTime, toGranularity: .minute)
+//    
+//    return sender && day && minute
+//  }
+//}

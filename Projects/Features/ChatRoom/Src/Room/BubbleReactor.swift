@@ -15,44 +15,51 @@ public final class BubbleReactor: Reactor {
   
   public enum Action {
     case profileTap
+    case change(BubbleState)
   }
 
   public enum Mutation {
     case showProfile
+    case setBuuble(BubbleState)
   }
 
   public struct State {
-    var message: String?
-    var dateText: String
-    var sender: String
-    var senderUUID: String
-    var imageURL: String
-    var index: String
-    var isLinked: Bool
+    public var messageModel: ChatMessageItem
+    public var message: String {
+      messageModel.message.msg
+    }
+    public var dateText: String {
+      messageModel.message.dateTime.toTimeString()
+    }
+    public var sender: String {
+      messageModel.message.sender
+    }
+    public var senderUUID: String {
+      messageModel.message.senderUuid
+    }
+    public var imageURL: String {
+      messageModel.message.imgUrl
+    }
+    public var index: String {
+      messageModel.message.chatIdx
+    }
+    public var bubble: BubbleState
+    
     @Pulse var showProfile: String?
   }
 
   public let initialState: State
 
-  public init(_ message: ChatMessageType, shouldShowDate: Bool) {
-    let message = message.message
-    self.initialState = State(
-      message: message.msg,
-      dateText: message.dateTime.toTimeString(),
-      sender: message.sender,
-      senderUUID: message.senderUuid,
-      imageURL: message.imgUrl,
-      index: message.chatIdx,
-      isLinked: shouldShowDate,
-      showProfile: nil
-    )
+  public init(_ message: ChatMessageItem, bubble: BubbleState) {
+    self.initialState = State(messageModel: message, bubble: bubble, showProfile: nil)
   }
-
 
   public func mutate(action: Action) -> Observable<Mutation> {
     switch action {
     case .profileTap:
       return .just(.showProfile)
+    case let .change(bubble):
+      return .just(.setBuuble(bubble))
     }
   }
 
@@ -61,6 +68,8 @@ public final class BubbleReactor: Reactor {
     switch mutation {
     case .showProfile:
       newState.showProfile = state.senderUUID
+    case .setBuuble(let bubble):
+      newState.bubble = bubble
     }
     return newState
   }

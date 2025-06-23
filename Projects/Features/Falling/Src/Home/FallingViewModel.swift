@@ -82,11 +82,6 @@ final class FallingViewModel: Reactor {
     case .tapTopicStart(let topicKeyword):
       return self.topicUseCase.postChoiceTopic(String(topicKeyword.index))
         .asObservable()
-        .catch({ error in
-          if case let .withResponse(response) = error as? APIError {
-            
-          }
-        })
         .flatMap { _ -> Observable<Mutation> in
           return .from([
             .setHasChosenDailyTopic(true),

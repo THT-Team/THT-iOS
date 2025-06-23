@@ -17,22 +17,22 @@ import ChatRoomInterface
 
 public final class ChatRoomReactor: ChatRoomOutputType, Reactor {
   public var initialState: State
-
+  
   // MARK: Cooridnator
-
+  
   public var onExit: ((ConfirmHandler?) -> Void)?
   public var onReport: ((UserReportHandler?) -> Void)?
   public var onBack: ((String?) -> Void)?
   public var onProfile: ((ProfileItem, ProfileOutputHandler?) -> Void)?
-
+  
   // MARK: Domain
   private let chatUsecase: ChatUseCaseInterface
   private let userUseCase: UserDomainUseCaseInterface
   private let talkUseCase: TalkUseCaseInterface
   private let id: String
-
+  
   private var disposeBag = DisposeBag()
-
+  
   public init(
     chatUseCase: ChatUseCaseInterface,
     userUseCase: UserDomainUseCaseInterface,
@@ -145,7 +145,7 @@ extension ChatRoomReactor {
       return .empty()
     }
   }
-
+  
   public func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
     let chatEvent = talkUseCase.listen()
       .debug("ChatReactor:")
@@ -161,7 +161,7 @@ extension ChatRoomReactor {
       }
     return Observable.merge(mutation, chatEvent)
   }
-
+  
   public func reduce(state: State, mutation: Mutation) -> State {
     var state = state
     switch mutation {
@@ -176,13 +176,13 @@ extension ChatRoomReactor {
     case let .showProfile(id, handler):
       self.onProfile?(ProfileItem(id: id, topic: state.info.talkSubject, issue: state.info.talkIssue), handler)
     case let .addMessage(message):
-      self.addMessage(to: &state.sections, type: message)
+      self.appendNewMessage(to: &state.sections, newMessage: message)
     case let .setInfo(info):
       state.info = info
     case let .changeBlurHidden(isHidden):
       state.isBlurHidden = isHidden
       
-    // history
+      // history
     case let .insertMessage(messageGroup):
       addHistory(to: &state.sections, items: messageGroup, action: self.action)
     }
@@ -191,111 +191,144 @@ extension ChatRoomReactor {
 }
 
 extension ChatViewSectionItem {
-  static func create(from type: ChatMessageType, shouldShowDate: Bool,  actionSubject: ActionSubject<ChatRoomReactor.Action>) -> Self {
-      let reactor = BubbleReactor(type, shouldShowDate: shouldShowDate)
-      reactor.pulse(\.$showProfile)
-        .compactMap { $0 }
-        .map(ChatRoomReactor.Action.onProfile)
-        .bind(to: actionSubject)
-        .disposed(by: reactor.disposeBag)
+  static func create(from type: ChatMessageItem, bubble: BubbleState, actionSubject: ActionSubject<ChatRoomReactor.Action>) -> Self {
+    let reactor = BubbleReactor(type, bubble: bubble)
     
-    switch type {
-    case .incoming: return ChatViewSectionItem.incoming(reactor)
-    case .outgoing: return ChatViewSectionItem.outgoing(reactor)
-    }
+    reactor.pulse(\.$showProfile)
+      .compactMap { $0 }
+      .map(ChatRoomReactor.Action.onProfile)
+      .bind(to: actionSubject)
+      .disposed(by: reactor.disposeBag)
+    
+    return ChatViewSectionItem(message: type, reactor: reactor)
   }
 }
 
 extension ChatRoomReactor {
   struct CellViewModel {
     var isLinked: Bool
-    let message: ChatMessageType
+    let message: ChatMessageItem
   }
   
-  private func addHistory(to section: inout [ChatViewSection], items: [Date: [ChatMessageType]], action: ActionSubject<ChatRoomReactor.Action>) {
+  private func addHistory(to section: inout [ChatViewSection], items: [Date: [ChatMessageItem]], action: ActionSubject<ChatRoomReactor.Action>) {
     
-    var result = items
+    var calender = Calendar.current
+    calender.locale = Locale(identifier: "ko-kr")
+    let result = items
       .sorted { $0.key < $1.key }
       .map { date, messagesList in
-        var mutable = [CellViewModel]()
-        for (index, messaeg) in messagesList.enumerated() {
-          var tuple = CellViewModel(isLinked: false, message: messaeg)
-          mutable.append(tuple)
+        var mutable = [(item: ChatMessageItem, state: BubbleState)]()
+        for (index, current) in messagesList.enumerated() {
+          mutable.append((current, BubbleState.single))
           
           if index > 0 {
-            let prev = messagesList[index - 1]
-            if ChatMessageType.isLinked(lhs: prev, rhs: messaeg) {
-              mutable[index - 1].isLinked = true
+            let prev = mutable[index - 1].item
+            
+            let sameSender = prev.senderType == current.senderType
+            let sameTime = calender.isDate(prev.message.dateTime, equalTo: current.message.dateTime, toGranularity: .minute)
+            
+            let needUpdateBubble = sameSender && sameTime
+            
+            if needUpdateBubble {
+              if mutable[index - 1].state == .tail {
+                mutable[index - 1].state = .middle
+              } else {
+                mutable[index - 1].state = .head
+              }
+              
+              mutable[index].state = .tail
             }
           }
         }
-        return (date, mutable.map { dto in
-          ChatViewSectionItem.create(from: dto.message, shouldShowDate: dto.isLinked, actionSubject: action)
+        return (date, mutable.map { (item, state) in
+          ChatViewSectionItem.create(from: item, bubble: state, actionSubject: action)
         })
       }
       .map { date, dtos in
-      let items = dtos
-      return ChatViewSection(date: date, items: items)
-    }
+        let items = dtos
+        return ChatViewSection(date: date, items: items)
+      }
     
     section.append(contentsOf: result)
   }
   
   func appendNewMessage(
     to sections: inout [ChatViewSection],
-    newMessage: ChatMessageType
+    newMessage: ChatMessageItem
   ) {
     
     // 섹션이 존재하는 경우
     if let lastIndex = sections.lastIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: newMessage.message.dateTime) }) {
-      var lastSection = sections[lastIndex]
+      var mutable = sections[lastIndex]
       
-      var vm = CellViewModel(isLinked: false, message: newMessage)
+      var calender = Calendar.current
+      calender.locale = Locale(identifier: "ko-kr")
       
-      if let prev = lastSection.items.last {
-        let sameSender = prev.sendType == newMessage.senderType
+      if let prev = mutable.items.last {
         
-        let sameMinute = newMessage.message.dateTime.toTimeString() == prev.date
-        if sameSender && sameMinute {
-          var updatedPrev = prev
-//          updatedPrev
+        let sameSender = prev.message.senderType == newMessage.senderType
+        let sameMinute = calender.isDate(prev.message.message.dateTime, equalTo: newMessage.message.dateTime, toGranularity: .minute)
+        
+        let needUpdateBubble = sameSender && sameMinute
+        if needUpdateBubble {
+          if mutable.items[mutable.items.count - 1].reactor.currentState.bubble == .tail {
+            mutable.items[mutable.items.count - 1].reactor.action.onNext(.change(.middle))
+          } else {
+            mutable.items[mutable.items.count - 1].reactor.action.onNext(.change(.head))
+          }
+          mutable.items.appendItem(ChatViewSectionItem.create(from: newMessage, bubble: .tail, actionSubject: self.action))
+        } else {
+          mutable.items.appendItem(ChatViewSectionItem.create(from: newMessage, bubble: .single, actionSubject: self.action))
         }
+      } else {
+        mutable.items.appendItem(ChatViewSectionItem.create(from: newMessage, bubble: .single, actionSubject: self.action))
       }
       
-      lastSection.items.appendItem(ChatViewSectionItem.create(from: newMessage, shouldShowDate: true, actionSubject: self.action))
-      sections[lastIndex] = lastSection
+      sections[lastIndex] = mutable
     } else {
       // 새로운 날짜 섹션 생성
-      let newVM = CellViewModel(isLinked: false, message: newMessage)
-      let newSection = ChatViewSection(date: newMessage.message.dateTime, items: [ChatViewSectionItem.create(from: newMessage, shouldShowDate: newVM.isLinked, actionSubject: self.action)])
+      let newSection = ChatViewSection(
+        date: newMessage.message.dateTime,
+        items: [
+          ChatViewSectionItem.create(from: newMessage, bubble: .single, actionSubject: self.action)
+        ])
       
       sections.append(newSection)
     }
   }
-  
-  private func addMessage(to sections: inout [ChatViewSection], type message: ChatMessageType) {
-    
-    if var lastSection = sections.last, Calendar.current.isDate(lastSection.date, inSameDayAs: message.message.dateTime),
-       let prev = lastSection.items.last
-    {
-      let shouldShow: Bool = {
-        let prevIsIncoming = prev.sendType
-        let newIsIncomfing = message.senderType
-        
-        let sameSender = newIsIncomfing == prevIsIncoming
-        let prevDate = lastSection.date
-        let currentDate = message.message.dateTime
-        let sameDay = Calendar.current.isDate(prevDate, inSameDayAs: currentDate)
-        
-        let sameMinute = Calendar.current.compare(prevDate, to: currentDate, toGranularity: .minute) == .orderedSame
-        
-        return !(sameSender && sameDay && sameMinute)
-      }()
-      
-      lastSection.items.appendItem(ChatViewSectionItem.create(from: message, shouldShowDate: shouldShow, actionSubject: self.action))
-      sections[sections.count - 1] = lastSection
-    } else {
-      sections.append(ChatViewSection(date: message.message.dateTime, items: [ChatViewSectionItem.create(from: message, shouldShowDate: true, actionSubject: self.action)]))
-    }
-  }
 }
+//
+//  private func addMessage(to sections: inout [ChatViewSection], type message: ChatMessageItem) {
+//    
+//    if var lastSection = sections.last, Calendar.current.isDate(lastSection.date, inSameDayAs: message.message.dateTime),
+//       var prev = lastSection.items.last
+//    {
+//      let isLinked: Bool = {
+//        let prevIsIncoming = prev.message.senderType
+//        let newIsIncomfing = message.senderType
+//        
+//        let sameSender = newIsIncomfing == prevIsIncoming
+//        let prevDate = lastSection.date
+//        let currentDate = message.message.dateTime
+//        
+//        var calender  = Calendar.current
+//        calender.locale = Locale(identifier: "ko-kr")
+//        
+//        let sameMinute = Calendar.current.compare(prevDate, to: currentDate, toGranularity: .minute) == .orderedSame
+//        
+//        return !(sameSender && sameMinute)
+//      }()
+//      prev.isLinked = isLinked
+//      prev.reactor.action
+//      
+//      var currentSetion = lastSection.items
+//      currentSetion[currentSetion.count - 1] = prev
+//      currentSetion.append(ChatViewSectionItem.create(from: message, shouldShowDate: false, actionSubject: self.action))
+//      
+//      lastSection.items = currentSetion
+//      sections[sections.count - 1] = lastSection
+//    } else {
+//      sections.append(ChatViewSection(date: message.message.dateTime, items: [ChatViewSectionItem.create(from: message, shouldShowDate: true, actionSubject: self.action)]))
+//    }
+//  }
+//}

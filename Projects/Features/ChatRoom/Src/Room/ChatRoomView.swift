@@ -83,7 +83,7 @@ extension ChatRoomView {
   typealias Model = ChatViewSectionItem
   typealias DataSource = UICollectionViewDiffableDataSource<Date, Model>
   typealias Snapshot = NSDiffableDataSourceSnapshot<Date, Model>
-  typealias OutgoingCellRegistration = UICollectionView.CellRegistration<BaseBubbleCell, BubbleReactor>
+  typealias OutgoingCellRegistration = UICollectionView.CellRegistration<OutgoingBubbleCell, BubbleReactor>
   typealias IncomingCellRegistration = UICollectionView.CellRegistration<IncomingBubbleCell, BubbleReactor>
   typealias DateReusableViewRegistration = UICollectionView.SupplementaryRegistration<DateReusableView>
 
@@ -106,11 +106,11 @@ extension ChatRoomView {
     }
 
     self.dataSource = DataSource(collectionView: self.collectionView) { collectionView, indexPath, item in
-      switch item {
-      case let .incoming(reactor):
-        collectionView.dequeueConfiguredReusableCell(using: myBubbleRegistration, for: indexPath, item: reactor)
-      case let .outgoing(reactor):
-        collectionView.dequeueConfiguredReusableCell(using: bubbleRegistration, for: indexPath, item: reactor)
+      switch item.type {
+      case let .incoming:
+        collectionView.dequeueConfiguredReusableCell(using: myBubbleRegistration, for: indexPath, item: item.reactor)
+      case let .outgoing:
+        collectionView.dequeueConfiguredReusableCell(using: bubbleRegistration, for: indexPath, item: item.reactor)
       }
     }
 
