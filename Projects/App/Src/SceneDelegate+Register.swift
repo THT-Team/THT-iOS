@@ -95,9 +95,11 @@ extension AppDelegate {
         kakaoAPIService: KakaoAPIService(environment)) })
 
     container.register(interface: TalkUseCaseInterface.self) {
-      DefaultTalkUseCase(
-        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
-        tokenService: provider.tokenService)}
+      MockTalkUseCase()
+//      DefaultTalkUseCase(
+//        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
+//        tokenService: provider.tokenService)
+    }
     
     container.register(interface: TopicUseCaseInterface.self) {
       TopicUseCase(

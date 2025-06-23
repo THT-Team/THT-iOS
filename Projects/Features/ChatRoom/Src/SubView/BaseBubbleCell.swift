@@ -129,6 +129,7 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
     
     contentLabel.snp.remakeConstraints {
       $0.width.lessThanOrEqualTo(maxWidth)
+      $0.height.greaterThanOrEqualTo(35)
     }
   }
 
