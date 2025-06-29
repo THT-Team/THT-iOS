@@ -16,4 +16,5 @@ import Foundation
 @_exported import Lottie
 @_exported import Kingfisher
 @_exported import Domain
+@_exported import SVGView
 

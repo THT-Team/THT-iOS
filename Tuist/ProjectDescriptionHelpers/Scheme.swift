@@ -38,7 +38,7 @@ public extension Scheme {
            shared: true,
            buildAction: .buildAction(targets: ["\(name)"]),
            testAction: nil,
-           runAction: .runAction(configuration: target.configurationName),
+           runAction: .runAction(configuration: AppConfiguration.debug.configurationName),
            archiveAction: .archiveAction(configuration: target.configurationName),
            profileAction: .profileAction(configuration: target.configurationName),
            analyzeAction: .analyzeAction(configuration: target.configurationName))

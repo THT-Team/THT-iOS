@@ -29,6 +29,7 @@ let target = Target.target(
     .SPM.RxCocoa,
     .SPM.KingFisher,
     .SPM.Lottie,
+    .SPM.SVGView
   ]
 )
 

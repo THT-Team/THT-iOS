@@ -70,6 +70,7 @@ public enum External: String {
 	case Starscream
 	case Kingfisher
 	case Lottie
+  case SVGView
 	case Moya
 	case RxMoya
 	case Fierbase
@@ -101,6 +102,7 @@ public extension TargetDependency {
     public static let Then  = TargetDependency.external(name: External.Then.rawValue)
     public static let SnapKit  = TargetDependency.external(name: External.SnapKit.rawValue)
     public static let Lottie = TargetDependency.external(name: External.Lottie.rawValue)
+    public static let SVGView = TargetDependency.external(name: External.SVGView.rawValue)
 
     public static let KakaoSDKAuth = TargetDependency.external(name: External.KakaoSDKAuth.rawValue)
     public static let KakaoSDKUser = TargetDependency.external(name: External.KakaoSDKUser.rawValue)
