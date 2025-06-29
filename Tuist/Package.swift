@@ -16,7 +16,6 @@ let packageSettings = PackageSettings(
     "RxRelay": .framework,
     "RxCocoaRuntime": .framework,
     "Lottie": .framework,
-    "SVGView": .framework,
 //    "ReactorKit": .framework,
 //    "SwiftStomp": .framework,
 //    "RealmSwift": .framework,
@@ -44,7 +43,6 @@ let package = Package(
     .package(url: "https://github.com/Romixery/SwiftStomp.git",
       .upToNextMajor(from: "1.2.1")),
     .package(url: "https://github.com/realm/realm-swift", .upToNextMajor(from: "20.0.1")),
-    .package(url: "https://github.com/exyte/SVGView.git", branch: "main"),
 //    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .upToNextMajor(from: "1.19.1"))
   ]
 )
