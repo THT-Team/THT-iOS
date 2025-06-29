@@ -16,7 +16,7 @@ public extension UIButton {
   }
 }
 
-open class TFBaseViewController: UIViewController, ViewControllable {
+open class TFBaseViewController: UIViewController, ViewControllable, UIGestureRecognizerDelegate {
   public var disposeBag = DisposeBag()
   private let _backButton = UIButton.makeBackButton()
   open var backButton: UIButton {
@@ -43,6 +43,8 @@ open class TFBaseViewController: UIViewController, ViewControllable {
     super.viewDidLoad()
     
     TFLogger.cycle(name: self)
+    
+    self.navigationController?.interactivePopGestureRecognizer?.delegate = self
 
     hideKeyboardWhenTappedAround()
     
