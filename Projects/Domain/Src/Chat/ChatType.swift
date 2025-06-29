@@ -42,7 +42,7 @@ public enum ChatSignalType {
 public enum MessageType {
   case connected
   case disconnected
-  case message(ChatMessageType)
+  case message(ChatMessageItem)
 }
 
 extension ChatSignalType: Equatable {

@@ -18,11 +18,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     guard let windowScene = (scene as? UIWindowScene) else { return }
 
     let window = UIWindow(windowScene: windowScene)
-//
-////    let appCoordinator = AppRootBuilder().build()
-//
-//    self.launcher = appCoordinator
-//    self.launcher?.launch(window: window)
+
+    let appCoordinator = AppRootBuilder().build()
+
+    self.launcher = appCoordinator
+    self.launcher?.launch(window: window)
 
     self.window = window
   }

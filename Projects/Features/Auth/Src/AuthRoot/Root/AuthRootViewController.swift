@@ -64,21 +64,30 @@ final class AuthRootViewController: TFBaseViewController {
     signitureImageView.transform = CGAffineTransform(translationX: 0, y: 60)
 
     container.addSubview(buttonStackView)
-    self.buttonStackView.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.leading.trailing.equalToSuperview().inset(40)
-      $0.top.equalTo(signitureImageView.snp.bottom).offset(50).priority(.low)
-      $0.bottom.equalTo(container).offset(-20)
+    
+    let spacer = UIView()
+    
+    buttonStackView.addArrangedSubview(spacer)
+    
+    spacer.snp.makeConstraints {
+      $0.height.equalTo(52 * 3)
     }
-
-    [startPhoneBtn, startKakaoButton, startAppleBtn,
-    ]
-      .forEach {
+    
+    [
+      startPhoneBtn,
+    ].forEach {
         buttonStackView.addArrangedSubview($0)
         $0.snp.makeConstraints { make in
           make.height.equalTo(52)
         }
       }
+    
+    self.buttonStackView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(40)
+      $0.top.equalTo(signitureImageView.snp.bottom).offset(50)
+      $0.bottom.equalTo(container).offset(-20)
+    }
+    
     feedbackBtn.makeView(title: "계정에 문제가 있나요?", color: DSKitAsset.Color.neutral50.color)
     buttonStackView.addArrangedSubview(feedbackBtn)
     

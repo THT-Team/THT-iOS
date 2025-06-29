@@ -18,6 +18,30 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
     static let verticalSpacing: CGFloat = 8
     static let horizontalSpacing: CGFloat = 16
   }
+  
+  lazy var hStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.distribution = .fill
+    stackView.alignment = .top
+    stackView.spacing = 8
+    return stackView
+  }()
+  
+  lazy var vStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .vertical
+    stackView.spacing = 8
+    return stackView
+  }()
+  
+  lazy var contentStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.alignment = .bottom
+    stackView.spacing = 0
+    return stackView
+  }()
 
   lazy var contentLabel: TFPaddingLabel = {
     let padding = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -28,6 +52,7 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
     label.numberOfLines = 0
     label.layer.cornerRadius = 12
     label.clipsToBounds = true
+    label.lineBreakMode = .byWordWrapping
     return label
   }()
 
@@ -40,21 +65,31 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
   }()
 
   override func makeUI() {
-    self.contentView.addSubviews(contentLabel, dateLabel)
     self.contentView.backgroundColor = DSKitAsset.Color.neutral700.color
+    contentLabel.textAlignment = .left
+    dateLabel.textAlignment = .left
+    self.contentView.addSubviews(hStackView, dateLabel)
+    
+    hStackView.addArrangedSubviews([vStackView])
+    vStackView.addArrangedSubviews([ contentStackView])
+    contentStackView.addArrangedSubviews([contentLabel])
+    
+    hStackView.snp.makeConstraints {
+      $0.leading.equalToSuperview().inset(16)
+      $0.top.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(8)
+    }
 
     contentLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(Metric.verticalSpacing)
-      $0.trailing.equalToSuperview().offset(-Metric.horizontalSpacing)
       $0.height.greaterThanOrEqualTo(35)
-      $0.bottom.equalToSuperview().offset(-Metric.verticalSpacing)
+      $0.width.lessThanOrEqualToSuperview()
     }
 
     dateLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(Metric.verticalSpacing).priority(.low)
-      $0.trailing.equalTo(contentLabel.snp.leading).offset(-8)
+      $0.leading.equalTo(hStackView.snp.trailing).offset(8)
       $0.height.equalTo(20)
-      $0.bottom.equalTo(contentLabel)
+      $0.trailing.equalToSuperview().offset(Metric.verticalSpacing)
+      $0.bottom.equalTo(hStackView)
     }
   }
 
@@ -66,8 +101,36 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
     reactor.state.map(\.dateText)
       .bind(to: dateLabel.rx.text)
       .disposed(by: disposeBag)
+    
+    reactor.state.map(\.bubble)
+      .withUnretained(self)
+      .subscribe { owner, state in
+        switch state {
+        case .single:
+          owner.dateLabel.isHidden = false
+        case .head:
+          owner.dateLabel.isHidden = true
+        case .middle:
+          owner.dateLabel.isHidden = true
+        case .tail:
+          owner.dateLabel.isHidden = false
+        }
+      }
+      .disposed(by: disposeBag)
+    
     setNeedsLayout()
     layoutIfNeeded()
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    
+    let maxWidth = bounds.width * 0.6
+    
+    contentLabel.snp.remakeConstraints {
+      $0.width.lessThanOrEqualTo(maxWidth)
+      $0.height.greaterThanOrEqualTo(35)
+    }
   }
 
   override func prepareForReuse() {
