@@ -21,8 +21,9 @@ public extension DateFormatter {
     let formatter = DateFormatter()
     formatter.dateStyle = .none
     formatter.timeStyle = .short
-    formatter.dateFormat = "hh:MM a"
-//    formatter.locale = Locale(identifier: "ko-KR")
+      formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+//    formatter.dateFormat = "hh:mm a"
+    formatter.locale = Locale(identifier: "ko-KR")
     return formatter
   }
 

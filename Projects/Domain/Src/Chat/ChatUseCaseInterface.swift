@@ -43,7 +43,7 @@ extension DefaultChatUseCase: ChatUseCaseInterface {
             senderType: message.senderUuid == userUUID ? .outgoing : .incoming)
         }
       }.map {
-        Dictionary(grouping: $0) { messageType in
+          Dictionary(grouping: $0.reversed()) { messageType in
           calender.startOfDay(for: messageType.message.dateTime)
         }
       }

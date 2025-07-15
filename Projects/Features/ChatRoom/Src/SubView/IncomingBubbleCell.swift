@@ -92,7 +92,8 @@ final class IncomingBubbleCell: BaseBubbleCell {
       .bind(to: contentLabel.rx.text)
       .disposed(by: disposeBag)
 
-    reactor.state.map(\.dateText)
+      reactor.state.map(\.messageModel.message.dateTime)
+          .map(DateFormatter.timeFormatter.string(from:))
       .bind(to: dateLabel.rx.text)
       .disposed(by: disposeBag)
 
@@ -133,7 +134,6 @@ final class IncomingBubbleCell: BaseBubbleCell {
         }
       }
       .disposed(by: disposeBag)
-    
 
     setNeedsLayout()
     layoutIfNeeded()
