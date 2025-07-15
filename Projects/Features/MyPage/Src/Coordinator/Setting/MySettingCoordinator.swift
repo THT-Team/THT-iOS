@@ -74,7 +74,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func editPhoneInputFlow(phoneNumber: String) {
-    fatalError()
+//      var (vm, vc) = factory
   }
   
   public func editPhoneAuthFlow(phoneNumber: String) {

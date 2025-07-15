@@ -98,7 +98,8 @@ class BaseBubbleCell: TFBaseCollectionViewCell, View {
       .bind(to: contentLabel.rx.text)
       .disposed(by: disposeBag)
 
-    reactor.state.map(\.dateText)
+      reactor.state.map(\.messageModel.message.dateTime)
+          .map(DateFormatter.timeFormatter.string(from:))
       .bind(to: dateLabel.rx.text)
       .disposed(by: disposeBag)
     
