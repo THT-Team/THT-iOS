@@ -19,11 +19,7 @@ final class OAuthAuthenticator: Authenticator {
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
-    if let token = tokenService.getToken()?.accessToken {
-      urlRequest.headers.add(.authorization(bearerToken: token))
-    } else {
       urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
-    }
   }
 
   func refresh(_ credential: OAuthCredential,
@@ -43,7 +39,7 @@ final class OAuthAuthenticator: Authenticator {
         let token = try await tokenService.refreshToken()
         completion(.success(token.toAuthOCredential()))
       } catch {
-        completion(.failure(error))
+          completion(.failure(AuthenticationError.excessiveRefresh))
       }
     }
   }

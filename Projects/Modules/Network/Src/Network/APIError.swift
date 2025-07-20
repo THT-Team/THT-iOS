@@ -12,6 +12,7 @@ public enum APIError: Error, LocalizedError {
   case tokenRefreshFailed
   case withResponse(Response)
   case unknown(Error)
+  case decodingFailed(Error)
 
   public var errorDescription: String? {
     switch self {
@@ -21,7 +22,7 @@ public enum APIError: Error, LocalizedError {
       return "네트워크 응답 없음"
     case .withResponse(let response):
       return response.message
-    case .unknown(let error):
+    case .unknown(let error), .decodingFailed(let error):
       return "알 수 없는 오류 \(error.localizedDescription)"
     }
   }
@@ -29,7 +30,7 @@ public enum APIError: Error, LocalizedError {
 
 extension APIError {
   public struct Response: Decodable, CustomStringConvertible {
-    public let timestamp: Date
+    public let timestamp: String
     public let status: Int
     public let error: String
     public let path: String

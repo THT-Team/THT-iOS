@@ -41,7 +41,7 @@ final class AppCoordinator: LaunchCoordinator, AppCoordinating {
   }
 
   public func launchFlow() {
-    let vm = LauncherViewModel()
+    let vm = LauncherViewModel(useCase)
     let vc = TFAuthLauncherViewController(viewModel: vm)
     self.viewControllable = vc
     replaceWindowRootViewController(rootViewController: self.viewControllable)

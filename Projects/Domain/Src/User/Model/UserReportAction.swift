@@ -18,6 +18,8 @@ public enum UserReportAction {
 public enum UserReportType {
   case block(String)
   case report(String, String)
+  case blockUsers([String])
+  case reportUsers([String], String)
 }
 
 public typealias ConfirmHandler = ((ConfirmAction) -> Void)

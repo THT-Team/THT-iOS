@@ -101,6 +101,10 @@ public final class LikeProfileViewModel: ViewModelType {
             switch action {
             case .block: .toast(UserToast.block.message)
             case .report: .toast(UserToast.report.message)
+            case .blockUsers(_):
+                    .cancel
+            case .reportUsers(_, _):
+                    .cancel
             }
           }
           .asObservable()

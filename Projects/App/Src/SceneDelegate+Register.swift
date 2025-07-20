@@ -54,7 +54,9 @@ extension AppDelegate {
     container.register(
       interface: UserDomainUseCaseInterface.self,
       implement: { DefaultUserDomainUseCase(
-        repository: DefaultUserDomainRepository(environment))
+        repository: DefaultUserDomainRepository(environment),
+        tokenService: provider.tokenService
+      )
       })
 
     container.register(
@@ -94,10 +96,10 @@ extension AppDelegate {
         kakaoAPIService: KakaoAPIService(environment)) })
 
     container.register(interface: TalkUseCaseInterface.self) {
-//      MockTalkUseCase()
-      DefaultTalkUseCase(
-        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
-        tokenService: provider.tokenService)
+      MockTalkUseCase()
+//      DefaultTalkUseCase(
+//        socketInterface: SocketAuthDecorator.createAuthSocket(tokenService: provider.tokenService),
+//        tokenService: provider.tokenService)
     }
     
     container.register(interface: TopicUseCaseInterface.self) {
