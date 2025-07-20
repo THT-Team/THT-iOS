@@ -18,10 +18,16 @@ extension AppDelegate {
   }
 
   func registerDependencies() {
+    
+    let environment: AppEnvironment = .debug
+    let provider = ServiceProvider(environment)
+    
     container.register(
       interface: UserDomainUseCaseInterface.self,
       implement: {
-          DefaultUserDomainUseCase(repository: DefaultUserDomainRepository(.debug))
+        DefaultUserDomainUseCase(
+          repository: DefaultUserDomainRepository(.debug),
+          tokenService: provider.tokenService)
       })
 
     container.register(

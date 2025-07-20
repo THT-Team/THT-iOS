@@ -18,6 +18,7 @@ public protocol LaunchOutput {
   var onAuthResult: ((LaunchAction) -> Void)? { get set }
 }
 public final class LauncherViewModel: ViewModelType, LaunchOutput {
+  private let useCase: AuthUseCaseInterface
   private var disposeBag = DisposeBag()
   public var onAuthResult: ((LaunchAction) -> Void)?
 
@@ -29,7 +30,8 @@ public final class LauncherViewModel: ViewModelType, LaunchOutput {
     let toast: Signal<String>
   }
 
-  public init() {
+  public init(_ useCase: AuthUseCaseInterface) {
+    self.useCase = useCase
   }
 
   deinit {
@@ -39,15 +41,25 @@ public final class LauncherViewModel: ViewModelType, LaunchOutput {
   public func transform(input: Input) -> Output {
     let toast = PublishRelay<String>()
 
-    input.viewDidLoad.map {
-      let token = UserDefaultRepository.shared.fetchModel(for: .token, type: Token.self)
-      return (token != nil)
-    }
+    input.viewDidLoad
+      .asObservable()
+      .withUnretained(self)
+      .flatMapLatest { owner, _ in
+        owner.useCase.login()
+          .asObservable()
+          .map { _ in return true }
+          .catch { error in
+            TFLogger.domain.error("\(error.localizedDescription)")
+            return .just(false)
+          }
+      }
+      .asDriverOnErrorJustEmpty()
     .drive(with: self) { owner, hasToken in
       hasToken
       ? owner.onAuthResult?(.toMain)
       : owner.onAuthResult?(.needAuth)
-    }.disposed(by: disposeBag)
+    }
+    .disposed(by: disposeBag)
 
     return Output(
       toast: toast.asSignal()

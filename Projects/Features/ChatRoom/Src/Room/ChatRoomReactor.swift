@@ -103,14 +103,14 @@ extension ChatRoomReactor {
       talkUseCase.disconnect()
       return .concat([
         .just(.changeBlurHidden(true)),
-        userUseCase.userReport(.report(self.id, reason))
+        userUseCase.userReport(.reportUsers(self.currentState.info.participants.map(\.id), reason))
           .asObservable()
           .map(Mutation.dismiss)])
     case .blockTap:
       talkUseCase.disconnect()
       return .concat([
         .just(.changeBlurHidden(true)),
-        userUseCase.userReport(.block(self.id))
+        userUseCase.userReport(.blockUsers(self.currentState.info.participants.map(\.id)))
           .asObservable()
           .map(Mutation.dismiss)])
     case .onCancel:
@@ -297,38 +297,3 @@ extension ChatRoomReactor {
     }
   }
 }
-//
-//  private func addMessage(to sections: inout [ChatViewSection], type message: ChatMessageItem) {
-//    
-//    if var lastSection = sections.last, Calendar.current.isDate(lastSection.date, inSameDayAs: message.message.dateTime),
-//       var prev = lastSection.items.last
-//    {
-//      let isLinked: Bool = {
-//        let prevIsIncoming = prev.message.senderType
-//        let newIsIncomfing = message.senderType
-//        
-//        let sameSender = newIsIncomfing == prevIsIncoming
-//        let prevDate = lastSection.date
-//        let currentDate = message.message.dateTime
-//        
-//        var calender  = Calendar.current
-//        calender.locale = Locale(identifier: "ko-kr")
-//        
-//        let sameMinute = Calendar.current.compare(prevDate, to: currentDate, toGranularity: .minute) == .orderedSame
-//        
-//        return !(sameSender && sameMinute)
-//      }()
-//      prev.isLinked = isLinked
-//      prev.reactor.action
-//      
-//      var currentSetion = lastSection.items
-//      currentSetion[currentSetion.count - 1] = prev
-//      currentSetion.append(ChatViewSectionItem.create(from: message, shouldShowDate: false, actionSubject: self.action))
-//      
-//      lastSection.items = currentSetion
-//      sections[sections.count - 1] = lastSection
-//    } else {
-//      sections.append(ChatViewSection(date: message.message.dateTime, items: [ChatViewSectionItem.create(from: message, shouldShowDate: true, actionSubject: self.action)]))
-//    }
-//  }
-//}
