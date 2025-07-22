@@ -45,12 +45,6 @@ final class FallingViewModel: Reactor {
   func mutate(action: Action) -> Observable<Mutation> {
     switch action {
     case .viewDidLoad:
-      self.action.onNext(.checkIsChooseDailyTopic)
-      return .empty()
-      
-    case .viewWillDisappear: return .from([.stopTimer, .showPause])
-      
-    case .checkIsChooseDailyTopic:
       return self.topicUseCase.getCheckIsChooseDailyTopic()
         .asObservable()
         .do(onNext: { [weak self] isChoose in
@@ -60,6 +54,8 @@ final class FallingViewModel: Reactor {
         })
         .flatMap { _ in Observable<Mutation>.empty() }
         .catch { .just(Mutation.toast($0.localizedDescription)) }
+      
+    case .viewWillDisappear: return .from([.stopTimer, .showPause])
       
     case .tapTopicStart(let topicKeyword):
       return self.topicUseCase.postChoiceTopic(String(topicKeyword.index))
@@ -90,10 +86,11 @@ final class FallingViewModel: Reactor {
             .setLoading(false),
             .applySnapshot,
             .startTimer
-          ])}))
+          ])})
+      )
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
-    case .fetchMoreUserIfAvailable:
+    case .selectedFirstTap, .allMetTap:
       let currentDailyIndex = currentState.dailyUserCursorIndex
       return .concat(
         .just(.setLoading(true)),
@@ -119,10 +116,6 @@ final class FallingViewModel: Reactor {
             .incrementIndex,
           ])}))
       .catch { .just(Mutation.toast($0.localizedDescription)) }
-      
-    case .selectedFirstTap, .allMetTap:
-      self.action.onNext(.fetchMoreUserIfAvailable)
-      return .empty()
       
     case .findTap: return .from([.incrementIndex, .startTimer])
       

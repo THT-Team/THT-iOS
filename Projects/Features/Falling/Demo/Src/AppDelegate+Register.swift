@@ -48,5 +48,12 @@ extension AppDelegate {
     container.register(interface: TopicUseCaseInterface.self) {
       TopicUseCase(
         repository: TopicRepository(provider.environment))}
+    
+    container.register(
+      interface: LikeUseCaseInterface.self,
+      implement: {
+        LikeUseCase(
+          repository: LikeRepository(provider.environment))
+      })
   }
 }
