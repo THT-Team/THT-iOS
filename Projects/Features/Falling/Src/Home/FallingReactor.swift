@@ -29,10 +29,8 @@ extension FallingViewModel {
     case userReportAlert(UserReportAction, FallingUser)
     
     case tapTopicStart(DailyKeyword)
-    case checkIsChooseDailyTopic
     case fetchDailyTopics
     case fetchUser
-    case fetchMoreUserIfAvailable
     case closeButtonTap
   }
 
