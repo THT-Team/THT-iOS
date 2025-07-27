@@ -52,7 +52,8 @@ final class LocationInputViewModel: BasePenddingViewModel, ViewModelType {
       .asObservable()
       .withUnretained(self)
       .debug("fetch btn tap!")
-      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
+      .observe(on: MainScheduler.instance)
+//      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
       .flatMapLatest { owner, _ in
         return owner.locationUseCase.fetchLocation()
           .debug("location usecase")
