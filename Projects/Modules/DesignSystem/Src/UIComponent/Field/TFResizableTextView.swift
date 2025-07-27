@@ -97,7 +97,7 @@ public class TFResizableTextView: UIControl {
   lazy var descriptionView = TFOneLineDescriptionView(description: prop.description)
 
   lazy var countLabel = UILabel().then {
-    $0.text = "(0/\(prop.maxLength)"
+    $0.text = "(0/\(prop.maxLength))"
     $0.font = .thtCaption1R
     $0.textColor = DSKitAsset.Color.neutral400.color
     $0.textAlignment = .left
