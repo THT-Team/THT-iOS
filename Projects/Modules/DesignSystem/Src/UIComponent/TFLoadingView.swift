@@ -28,21 +28,28 @@ public final class TFLoadingView: TFBaseView {
   private let stackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
-//    stackView.spacing = 36
+    stackView.spacing = 36
     stackView.alignment = .center
     return stackView
   }()
   
-  let loadingLottieView: LottieAnimationView  = {
-    let view = LottieAnimationView(animation: AnimationAsset.mainLoading.animation)
-    view.contentMode = .scaleAspectFit
-    view.loopMode = .loop
-    return view
+//  let loadingLottieView: LottieAnimationView  = {
+//    let view = LottieAnimationView(animation: AnimationAsset.mainLoading.animation)
+//    view.contentMode = .scaleAspectFit
+//    view.loopMode = .loop
+//    return view
+//  }()
+  
+  private let loadingImageView: UIImageView = {
+    let imageView = UIImageView()
+    imageView.image = DSKitAsset.Image.Icons.mainLoading.image
+    imageView.contentMode = .scaleAspectFit
+    return imageView
   }()
   
   private let loadingLabel: UILabel = {
     let label = UILabel()
-    label.text = "주제 선택을 완료한\n 무디를 찾고있어요..."
+    label.text = "주제 선택을 완료한\n무디를 찾고있어요..."
     label.font = .thtSubTitle1R
     label.textAlignment = .center
     label.textColor = DSKitAsset.Color.neutral50.color
@@ -59,26 +66,26 @@ public final class TFLoadingView: TFBaseView {
     self.isHidden = true
     self.backgroundColor = DSKitAsset.Color.DimColor.loading.color
     
-    self.addSubviews([closeButton, stackView])
-    
-    closeButton.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(60)
-      $0.trailing.equalToSuperview().inset(24)
-      $0.width.height.equalTo(24)
-    }
+    self.addSubviews([stackView, closeButton])
     
     stackView.snp.makeConstraints {
-      $0.horizontalEdges.equalToSuperview()
       $0.center.equalToSuperview()
     }
     
     stackView.addArrangedSubviews([
-      loadingLottieView,
+//      loadingLottieView,
+      loadingImageView,
       loadingLabel
     ])
     
-    loadingLottieView.snp.makeConstraints {
-      $0.height.equalTo(100)
+    loadingImageView.snp.makeConstraints {
+      $0.width.height.equalTo(54)
+    }
+    
+    closeButton.snp.makeConstraints {
+      $0.bottom.equalToSuperview().inset(125)
+      $0.centerX.equalToSuperview()
+      $0.width.height.equalTo(24)
     }
   }
     
@@ -97,11 +104,11 @@ extension Reactive where Base: TFLoadingView {
     return Binder(base) { view, isLaoading in
       view.isHidden = !isLaoading
       
-      if isLaoading {
-        view.loadingLottieView.play()
-      } else {
-        view.loadingLottieView.stop()
-      }
+//      if isLaoading {
+//        view.loadingLottieView.play()
+//      } else {
+//        view.loadingLottieView.stop()
+//      }
     }
   }
 }
