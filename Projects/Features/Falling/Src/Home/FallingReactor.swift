@@ -31,7 +31,7 @@ extension FallingViewModel {
     case tapTopicStart(DailyKeyword)
     case fetchDailyTopics
     case fetchUserFirst(NoticeViewCell.Action)
-    case fetchNextUsers
+    case fetchNextUsers(NoticeViewCell.Action)
     case closeButtonTap
   }
 
