@@ -12,7 +12,7 @@ extension UIImageView {
   public func setImage(urlString: String, downsample: CGFloat = 50) {
     let url = URL(string: urlString)
     #if DEBUG
-    self.image = DSKitAsset.Image.Test.test1.image
+    self.image = DSKitAsset.Image.DummyUser.userCard1.image
     #else
     setImage(url: url, downsample: downsample)
     #endif

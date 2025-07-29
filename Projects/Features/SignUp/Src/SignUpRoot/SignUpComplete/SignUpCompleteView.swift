@@ -97,7 +97,7 @@ struct SignUpCompleteViewPreview: PreviewProvider {
   static var previews: some SwiftUI.View {
     UIViewPreview {
       let component = SignUpCompleteView()
-      component.imageView.image =  DSKitAsset.Image.Test.test1.image
+      component.imageView.image =  DSKitAsset.Image.DummyUser.userCard1.image
 
       return component
     }
