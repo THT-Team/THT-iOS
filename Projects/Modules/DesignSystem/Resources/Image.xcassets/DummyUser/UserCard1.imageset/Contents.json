@@ -1,7 +1,11 @@
 {
   "images" : [
     {
+<<<<<<<< HEAD:Projects/Modules/DesignSystem/Resources/Image.xcassets/Icons/Falling_icon/Bling.imageset/Contents.json
+      "filename" : "Bling.png",
+========
       "filename" : "UserCard1.png",
+>>>>>>>> b4ecbac5 (Add: 더미 이미지 및 mind 140x140 추가):Projects/Modules/DesignSystem/Resources/Image.xcassets/DummyUser/UserCard1.imageset/Contents.json
       "idiom" : "universal"
     }
   ],
