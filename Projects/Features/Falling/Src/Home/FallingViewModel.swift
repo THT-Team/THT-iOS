@@ -83,7 +83,9 @@ final class FallingViewModel: Reactor {
           size: 10)
         .asObservable()
         .take(until: cancelFetchUserSubject)
-        .flatMap({ page -> Observable<Mutation> in
+        .flatMap({ [weak self] page -> Observable<Mutation> in
+          guard let self = self else { return .empty() }
+          
           if page.cards.isEmpty {
             return .from([
               .setLoading(false),
@@ -97,8 +99,9 @@ final class FallingViewModel: Reactor {
             .setDailyUserCursorIndex(page),
             .setRecentUserInfo(page),
             .setLoading(false),
+            action != .selectedFirst ? .addTopicOrNotice(.dummyUser(self.currentState.dummyUserImage, UUID())) : .empty,
             .applySnapshot,
-            action == .selectedFirst ? .incrementIndex : .startTimer,
+            action == .selectedFirst ? .incrementIndex : .empty
           ].compactMap({ $0 }))
         })
       )
@@ -161,7 +164,7 @@ final class FallingViewModel: Reactor {
           ])}))
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
-    case .findTap: return .from([.incrementIndex, .startTimer])
+    case .findTap, .dummyUserStartTap: return .just(.incrementIndex)
       
     case let .likeTap(user):
       return self.likeUseCase.like(
@@ -271,10 +274,10 @@ final class FallingViewModel: Reactor {
       newState.scrollAction = newState.indexPath
       timer.reset()
       
-//      guard newState.snapshot[safe: newState.index] == newState.snapshot.last,
-//            let _ = newState.snapshot.last?.user else { return newState }
-//      guard !(newState.userInfo?.isLast ?? true) else { return newState }
-//      self.action.onNext(.fetchNextUsers(action))
+      //      guard newState.snapshot[safe: newState.index] == newState.snapshot.last,
+      //            let _ = newState.snapshot.last?.user else { return newState }
+      //      guard !(newState.userInfo?.isLast ?? true) else { return newState }
+      //      self.action.onNext(.fetchNextUsers(action))
       return newState
       
     case .selectAlert:
@@ -330,6 +333,9 @@ final class FallingViewModel: Reactor {
       
     case let .setHideUserInfo(show):
       newState.hideUserInfo = show
+      return newState
+      
+    case .empty:
       return newState
     }
   }

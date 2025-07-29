@@ -46,7 +46,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
     return view
   }()
   
-  let summitButton: UIButton = {
+  let submitButton: UIButton = {
     let button = UIButton()
 //    button.setTitleColor(DSKitAsset.Color.neutral600.color, for: .normal)
 //    button.setTitleColor(DSKitAsset.Color.neutral50.color, for: .selected)
@@ -83,7 +83,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
       cardTimeView,
       midView,
       contentStackView,
-      summitButton
+      submitButton
     ])
     
     contentStackView.addArrangedSubviews([
@@ -97,16 +97,15 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
       $0.height.equalTo(32)
     }
     
-    summitButton.snp.makeConstraints {
+    submitButton.snp.makeConstraints {
       $0.bottom.equalToSuperview().inset(66)
       $0.directionalHorizontalEdges.equalToSuperview().inset(39)
-      $0.centerX.equalToSuperview()
       $0.height.equalTo(52)
     }
   
     midView.snp.makeConstraints {
       $0.top.equalTo(cardTimeView.snp.bottom)
-      $0.bottom.equalTo(summitButton.snp.top)
+      $0.bottom.equalTo(submitButton.snp.top)
       $0.directionalHorizontalEdges.equalToSuperview()
     }
     
@@ -163,7 +162,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
     titleLabel.text = type.title
     
     subtitleLabel.text = type.subtitle
-    summitButton.setAttributedTitle(
+    submitButton.setAttributedTitle(
       NSAttributedString(
         string: type.buttonTitle,
         attributes: [
@@ -174,7 +173,7 @@ final class NoticeViewCell: TFBaseCollectionViewCell {
       for: .normal
     )
     
-    summitButton.setAttributedTitle(
+    submitButton.setAttributedTitle(
       NSAttributedString(
         string: type.buttonTitle,
         attributes: [

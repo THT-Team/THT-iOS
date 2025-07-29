@@ -137,18 +137,28 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     let noticeRegistration = NoticeCellRegistration { cell, indexPath, item in
       cell.configure(type: item)
       
-      cell.summitButton.rx.tap.map { item.toFallingAction() }
+      cell.submitButton.rx.tap
+        .map { item.toFallingAction() }
         .bind(to: reactor.action)
         .disposed(by: cell.disposeBag)
     }
     
-    let dailyKeywordRegistration = DailyKeywordRegistration { [weak self] cell, indexPath, item in
-      guard let self = self else { return }
+    let dailyKeywordRegistration = DailyKeywordRegistration { cell, indexPath, item in
       let viewModel = TopicViewModel(delegate: self, dailyTopicKeyword: item)
       viewModel.delegate = self
       cell.contentConfiguration = UIHostingConfiguration {
         TopicView(viewModel: viewModel)
       }
+    }
+    
+    let dummyUserRegistration = DummyUserRegistration { [weak self] cell, _, item  in
+      guard let self = self else { return }
+      cell.configure(dummyImage: item)
+      
+      cell.submitButton.rx.tap
+        .map { Reactor.Action.dummyUserStartTap }
+        .bind(to: reactor.action)
+        .disposed(by: disposeBag)
     }
     
     let footerRegistration = UICollectionView.SupplementaryRegistration
@@ -174,6 +184,12 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
           for: indexPath,
           item: type
         )
+      case .dummyUser(let image, _):
+        collectionView.dequeueConfiguredReusableCell(
+          using: dummyUserRegistration,
+          for: indexPath,
+          item: image
+        )
       }
     })
     
@@ -196,6 +212,7 @@ extension FallingViewController {
   typealias DailyKeywordRegistration = UICollectionView.CellRegistration<UICollectionViewCell, TopicDailyKeyword>
   typealias ProfileCellRegistration = UICollectionView.CellRegistration<FallingUserCollectionViewCell, FallingUser>
   typealias NoticeCellRegistration = UICollectionView.CellRegistration<NoticeViewCell, NoticeViewCell.Action>
+  typealias DummyUserRegistration = UICollectionView.CellRegistration<DummyUserViewCell, UIImage>
   
   func initialSnapshot(_ items: [ModelType], animated: Bool) {
     var snapshot = Snapshot()

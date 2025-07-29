@@ -24,7 +24,7 @@ final class TimerViewModel {
   
   func start(to timestamp: TimeInterval) {
     targetTimestamp = timestamp
-    stopTimer()
+    cancel()
     updateRemainingTime()
     
     timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -38,16 +38,16 @@ final class TimerViewModel {
     remainingTime = max(0, targetTimestamp - now)
     
     if remainingTime <= 0 {
-      stopTimer()
+      cancel()
     }
   }
   
-  func stopTimer() {
+  func cancel() {
     timer?.invalidate()
     timer = nil
   }
   
   deinit {
-    stopTimer()
+    cancel()
   }
 }

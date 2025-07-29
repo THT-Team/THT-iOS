@@ -42,6 +42,7 @@ open class PauseView: TFBaseView {
   private lazy var pauseImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = DSKitAsset.Image.Icons.pause.image
+    imageView.contentMode = .scaleAspectFit
     return imageView
   }()
   

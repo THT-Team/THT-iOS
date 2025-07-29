@@ -8,10 +8,13 @@
 import Foundation
 import Domain
 
+import UIKit
+
 enum FallingDataModel: Hashable, Equatable {
   case dailyKeyword(TopicDailyKeyword)
   case fallingUser(FallingUser)
   case notice(NoticeViewCell.Action, UUID)
+  case dummyUser(UIImage, UUID)
 
   func hash(into hasher: inout Hasher) {
     switch self {
@@ -20,6 +23,8 @@ enum FallingDataModel: Hashable, Equatable {
     case .fallingUser(let fallingUser):
       hasher.combine(fallingUser)
     case let .notice(_, id):
+      hasher.combine(id)
+    case let .dummyUser(_, id):
       hasher.combine(id)
     }
   }
