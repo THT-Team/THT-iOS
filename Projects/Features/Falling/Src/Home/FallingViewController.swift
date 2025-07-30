@@ -82,6 +82,16 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
       .bind(to: TFToast.shared.rx.makeToast)
       .disposed(by: disposeBag)
     
+    reactor.state.map(\.user)
+      .distinctUntilChanged()
+      .filter { user in
+        guard user != nil, user == reactor.currentState.userInfo?.userInfos.last else { return false }
+        return true
+      }
+      .map { _ in Reactor.Action.fetchNextUsers }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
+    
     loadingView.closeButton.rx.tap
       .map { Reactor.Action.closeButtonTap }
       .bind(to: reactor.action)
