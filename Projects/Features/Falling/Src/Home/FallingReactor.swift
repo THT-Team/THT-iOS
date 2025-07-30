@@ -34,7 +34,7 @@ extension FallingViewModel {
     case tapTopicStart(DailyKeyword)
     case fetchDailyTopics
     case fetchUserFirst(NoticeViewCell.Action)
-    case fetchNextUsers(NoticeViewCell.Action)
+    case fetchNextUsers
     case closeButtonTap
   }
   
@@ -67,6 +67,8 @@ extension FallingViewModel {
     var topicIndex: Int {
       userInfo?.selectDailyFallingIndex ?? -1
     }
+    
+    var currentAction: NoticeViewCell.Action = .selectedFirst
     
     var dummyUserImage: UIImage {
       [
@@ -102,6 +104,7 @@ extension FallingViewModel {
     case setRecentUserInfo(FallingUserInfo)
     case addTopicOrNotice(FallingDataModel)
     case setHasChosenDailyTopic(Bool)
+    case setCurrentAction(NoticeViewCell.Action)
     
     case selectAlert
     case toMatch(String, String)

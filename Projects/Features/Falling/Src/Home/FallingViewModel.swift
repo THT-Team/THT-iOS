@@ -47,12 +47,11 @@ final class FallingViewModel: Reactor {
     case .viewDidLoad:
       return self.topicUseCase.getCheckIsChooseDailyTopic()
         .asObservable()
-        .do(onNext: { [weak self] isChoose in
-          guard let self = self else { return }
+        .do(onNext: { isChoose in
           isChoose ? self.action.onNext(.fetchUserFirst(.allMet))
           : self.action.onNext(.fetchDailyTopics)
         })
-        .flatMap { _ in Observable<Mutation>.empty() }
+        .flatMap({ _ in return Observable<Mutation>.empty() })
         .catch { .just(Mutation.toast($0.localizedDescription)) }
       
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
@@ -75,6 +74,7 @@ final class FallingViewModel: Reactor {
       
     case .fetchUserFirst(let action):
       let currentDailyIndex = currentState.dailyUserCursorIndex
+      
       return .concat(
         .just(.setLoading(true)),
         self.fallingUseCase.user(
@@ -88,14 +88,15 @@ final class FallingViewModel: Reactor {
           
           if page.cards.isEmpty {
             return .from([
+              .setCurrentAction(action),
               .setLoading(false),
               .addTopicOrNotice(.notice(action, UUID())),
-              .applySnapshot,
-              .incrementIndex,
+              action == .selectedFirst ? .incrementIndex : .empty,
               .toast(
                 "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
           }
           return .from([
+            .setCurrentAction(action),
             .setDailyUserCursorIndex(page),
             .setRecentUserInfo(page),
             .setLoading(false),
@@ -107,8 +108,10 @@ final class FallingViewModel: Reactor {
       )
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
-    case .fetchNextUsers(let action):
+    case .fetchNextUsers:
+      let action = currentState.currentAction
       let currentDailyIndex = currentState.dailyUserCursorIndex
+      
       return .concat(
         .just(.setLoading(true)),
         self.fallingUseCase.user(
@@ -122,7 +125,6 @@ final class FallingViewModel: Reactor {
             return .from([
               .setLoading(false),
               .addTopicOrNotice(.notice(action, UUID())),
-              .applySnapshot,
               .incrementIndex,
               .toast(
                 "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
@@ -240,11 +242,8 @@ final class FallingViewModel: Reactor {
     var newState = state
     switch mutation {
     case .applySnapshot:
-      newState.snapshot.append(contentsOf: newState.userInfo?.cards ?? [])
-      //      if newState.userInfo?.isLast ?? false {
-      //        newState.snapshot.append(.notice(.allMet, UUID()))
-      //        return newState
-      //      }
+      guard let cards = newState.userInfo?.cards else { return newState }
+      newState.snapshot.append(contentsOf: cards)
       return newState
       
     case .addTopicOrNotice(let data):
@@ -253,6 +252,10 @@ final class FallingViewModel: Reactor {
       
     case .setHasChosenDailyTopic(let flag):
       UserDefaultRepository.shared.save(flag, key: .hasChosenDailyTopic)
+      return newState
+      
+    case .setCurrentAction(let action):
+      newState.currentAction = action
       return newState
       
     case .setDailyUserCursorIndex(let userInfo):
@@ -274,10 +277,11 @@ final class FallingViewModel: Reactor {
       newState.scrollAction = newState.indexPath
       timer.reset()
       
-      //      guard newState.snapshot[safe: newState.index] == newState.snapshot.last,
-      //            let _ = newState.snapshot.last?.user else { return newState }
-      //      guard !(newState.userInfo?.isLast ?? true) else { return newState }
-      //      self.action.onNext(.fetchNextUsers(action))
+      guard currentState.user == currentState.userInfo?.userInfos.last else { return newState }
+      guard !(currentState.userInfo?.isLast ?? true) else {
+        newState.snapshot.append(FallingDataModel.notice(currentState.currentAction, UUID()))
+        return newState }
+      
       return newState
       
     case .selectAlert:
