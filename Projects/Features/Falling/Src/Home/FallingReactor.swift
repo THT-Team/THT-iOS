@@ -17,6 +17,8 @@ extension FallingViewModel {
   enum Action {
     case viewDidLoad
     case viewWillDisappear
+    case navigationLeftBarButtonItemTap
+    
     case deleteAnimationComplete(FallingUser)
     
     case likeTap(FallingUser)
@@ -64,6 +66,8 @@ extension FallingViewModel {
       }
     }
     
+    var topicExpirationUnixTime: Date?
+    
     var topicIndex: Int {
       userInfo?.selectDailyFallingIndex ?? -1
     }
@@ -102,12 +106,17 @@ extension FallingViewModel {
     case applySnapshot
     case setDailyUserCursorIndex(FallingUserInfo)
     case setRecentUserInfo(FallingUserInfo)
-    case addTopicOrNotice(FallingDataModel)
-    case setHasChosenDailyTopic(Bool)
     case setCurrentAction(NoticeViewCell.Action)
     
+    // MARK: Topic
+    case addTopicOrNotice(FallingDataModel)
+    case setHasChosenDailyTopic(Bool)
+    case setTopicExpirationUnixTime(Date)
+    
+    // MARK: Condinator
     case selectAlert
     case toMatch(String, String)
+    case toTopicBottomSheet(Date)
     
     case toast(String)
     
