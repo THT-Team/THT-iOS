@@ -17,6 +17,7 @@ final class FallingViewModel: Reactor {
   // MARK: Coordinator
   var onReport: ((UserReportHandler?) -> Void)?
   var onMatch: ((String, String) -> Void)?
+  var onTopicBottomSheet: ((Date) -> Void)?
   
   // MARK: UseCase
   private let topicUseCase: TopicUseCaseInterface
@@ -56,10 +57,19 @@ final class FallingViewModel: Reactor {
       
     case .viewWillDisappear: return .from([.stopTimer, .showPause])
       
+    case .navigationLeftBarButtonItemTap:
+      guard let topicExpirationUnixTime = currentState.topicExpirationUnixTime else { return Observable<Mutation>.empty() }
+      return .just(.toTopicBottomSheet(topicExpirationUnixTime))
+      
     case .fetchDailyTopics:
       return self.topicUseCase.getDailyKeyword()
         .asObservable()
-        .map { Mutation.addTopicOrNotice(FallingDataModel.dailyKeyword($0)) }
+        .flatMap { topicDailyKeyword -> Observable<Mutation> in
+          return .from([
+            .setTopicExpirationUnixTime(topicDailyKeyword.expirationUnixTime),
+            .addTopicOrNotice(FallingDataModel.dailyKeyword(topicDailyKeyword))
+          ])
+        }
         .catch({ .just(Mutation.toast($0.localizedDescription)) })
       
     case .tapTopicStart(let topicKeyword):
@@ -88,6 +98,7 @@ final class FallingViewModel: Reactor {
           
           if page.cards.isEmpty {
             return .from([
+              .setTopicExpirationUnixTime(page.topicExpirationUnixTime),
               .setCurrentAction(action),
               .setLoading(false),
               .addTopicOrNotice(.notice(action, UUID())),
@@ -96,6 +107,7 @@ final class FallingViewModel: Reactor {
                 "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
           }
           return .from([
+            .setTopicExpirationUnixTime(page.topicExpirationUnixTime),
             .setCurrentAction(action),
             .setDailyUserCursorIndex(page),
             .setRecentUserInfo(page),
@@ -254,6 +266,10 @@ final class FallingViewModel: Reactor {
       UserDefaultRepository.shared.save(flag, key: .hasChosenDailyTopic)
       return newState
       
+    case .setTopicExpirationUnixTime(let date):
+      newState.topicExpirationUnixTime = date
+      return newState
+      
     case .setCurrentAction(let action):
       newState.currentAction = action
       return newState
@@ -293,6 +309,10 @@ final class FallingViewModel: Reactor {
       
     case let .toMatch(url, index):
       self.onMatch?(url, index)
+      return newState
+      
+    case .toTopicBottomSheet(let topicExpirationUnixTime):
+      self.onTopicBottomSheet?(topicExpirationUnixTime)
       return newState
       
     case let .removeSnapshot(user):

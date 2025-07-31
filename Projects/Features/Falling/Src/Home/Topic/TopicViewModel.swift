@@ -25,8 +25,8 @@ final class TopicViewModel {
     self.delegate = delegate
     self.dailyTopicKeyword = dailyTopicKeyword
     
-    guard let tartetTimeStamp = dailyTopicKeyword?.expirationUnixTime else { return }
-    timerViewModel.start(to: tartetTimeStamp.timeIntervalSince1970)
+    guard let targetTimeStamp = dailyTopicKeyword?.expirationUnixTime else { return }
+    timerViewModel.start(to: targetTimeStamp.timeIntervalSince1970)
   }
   
   func didTapTopicKeyword(_ topicKeyword: DailyKeyword?) {

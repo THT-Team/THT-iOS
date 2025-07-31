@@ -24,18 +24,18 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   @Injected var fallingUseCase: FallingUseCaseInterface
   @Injected var userDomainUseCase: UserDomainUseCaseInterface
   @Injected var likeUseCase: LikeUseCaseInterface
-
+  
   private let chatRoomBuilder: ChatRoomBuildable
-
+  
   public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {
     self.chatRoomBuilder = chatRoomBuilder
     super.init(viewControllable: viewControllable)
   }
-
+  
   public override func start() {
     homeFlow()
   }
-
+  
   public func homeFlow() {
     let viewModel = FallingViewModel(
       topicUseCase: topicUseCase,
@@ -43,25 +43,29 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
       userDomainUseCase: userDomainUseCase,
       likeUseCase: likeUseCase
     )
-
+    
     viewModel.onReport = { [weak viewControllable] handler in
       guard let viewControllable else { return }
       AlertHelper.userReportAlert(viewControllable, handler)
     }
-
+    
     viewModel.onMatch = { [weak self] url, index in
       self?.toMatchFlow(url, index: index)
     }
-
+    
+    viewModel.onTopicBottomSheet = { [weak self] topicExpirationUnixTime in
+      self?.toTopicBottomSheetFlow(topicExpirationUnixTime: topicExpirationUnixTime)
+    }
+    
     let viewController = FallingViewController(viewModel: viewModel)
-
+    
     self.viewControllable.setViewControllers([viewController])
   }
-
+  
   public func chatRoomFlow(_ index: String) {
-        TFLogger.dataLogger.info("ChatRoom!")
+    TFLogger.dataLogger.info("ChatRoom!")
     let coordinator = chatRoomBuilder.build(rootViewControllable: viewControllable)
-
+    
     coordinator.finishFlow = { [weak self, weak coordinator] message in
       guard let self, let coordinator else { return }
       coordinator.childCoordinators.removeAll()
@@ -70,21 +74,37 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     attachChild(coordinator)
     coordinator.chatRoomFlow(index)
   }
-
+  
   public func toMatchFlow(_ imageURL: String, index: String) {
     let vc = MatchViewController(imageURL, index: index)
-
+    
     vc.onCancel = { [weak self] in
       self?.viewControllable.dismiss()
     }
-
+    
     vc.onClick = { [weak self] index in
       self?.viewControllable.dismiss()
       self?.chatRoomFlow(index)
     }
-
+    
     vc.uiController.modalTransitionStyle = .crossDissolve
     vc.uiController.modalPresentationStyle = .overFullScreen
+    viewControllable.present(vc, animated: true)
+  }
+  
+  public func toTopicBottomSheetFlow(topicExpirationUnixTime: Date) {
+    let viewModel = TopicBottomSheetViewModel(topicExpirationUnixTime: topicExpirationUnixTime)
+    let vc = TFBaseHostingController(rootView: TopicBottomSheetView(viewModel: viewModel))
+    vc.uiController.modalPresentationStyle = .pageSheet
+    
+    if let sheet = vc.sheetPresentationController {
+      sheet.detents = [
+        .custom(identifier: .init("fixed-396")) { _ in 396 },
+      ]
+      sheet.prefersGrabberVisible = false
+      sheet.preferredCornerRadius = 20
+    }
+    
     viewControllable.present(vc, animated: true)
   }
 }
