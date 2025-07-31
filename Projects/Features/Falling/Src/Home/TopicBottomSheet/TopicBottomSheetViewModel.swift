@@ -5,8 +5,7 @@
 //  Created by SeungMin on 7/31/25.
 //
 
-import Foundation
-import Observation
+import SwiftUI
 
 import Domain
 

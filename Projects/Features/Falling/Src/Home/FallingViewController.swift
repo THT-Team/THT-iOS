@@ -6,18 +6,41 @@
 //
 
 import UIKit
+import SwiftUI
+import ReactorKit
 
 import DSKit
 import FallingInterface
 import Domain
-import ReactorKit
-import SwiftUI
 
 final class FallingViewController: TFBaseViewController, ReactorKit.View {
   private var dataSource: DataSource!
   
   private let homeView = FallingView()
   private let loadingView = TFLoadingView()
+  
+  private let navigationLeftBarStackView: UIStackView = {
+    let view = UIStackView()
+    view.axis = .horizontal
+    view.spacing = 12
+    return view
+  }()
+  
+  private let mindImageView: UIImageView = {
+    let view = UIImageView()
+    view.image = DSKitAsset.Image.Icons.mind.image
+    view.contentMode = .scaleAspectFit
+    return view
+  }()
+  
+  private let navigationTitle: UILabel = {
+    let label = UILabel()
+    label.text = "가치관"
+    label.font = UIFont.thtH4Sb
+    label.textAlignment = .center
+    label.textColor = DSKitAsset.Color.neutral50.color
+    return label
+  }()
   
   init(viewModel: FallingViewModel) {
     defer { self.reactor = viewModel }
@@ -38,15 +61,20 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
   override func navigationSetting() {
     super.navigationSetting()
     
-    navigationItem.title = "가치관"
-    let mindImageView = UIImageView(image: DSKitAsset.Image.Icons.mind.image)
+    navigationLeftBarStackView.addArrangedSubviews([mindImageView, navigationTitle])
     
-    navigationItem.leftBarButtonItem = UIBarButtonItem(customView: mindImageView)
+    navigationItem.leftBarButtonItem = UIBarButtonItem(customView: navigationLeftBarStackView)
     navigationItem.rightBarButtonItem = UIBarButtonItem.noti
   }
   
   func bind(reactor: FallingViewModel) {
     setUpCellResitration(reactor)
+
+    navigationLeftBarStackView.rx
+      .tapGesture()
+      .map { _ in .navigationLeftBarButtonItemTap }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
     
     Observable<Reactor.Action>.merge(
       rx.viewDidLoad.map { .viewDidLoad },
