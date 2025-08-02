@@ -69,16 +69,15 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
   
   func bind(reactor: FallingViewModel) {
     setUpCellResitration(reactor)
-
-    navigationLeftBarStackView.rx
-      .tapGesture()
-      .map { _ in .navigationLeftBarButtonItemTap }
-      .bind(to: reactor.action)
-      .disposed(by: disposeBag)
     
     Observable<Reactor.Action>.merge(
       rx.viewDidLoad.map { .viewDidLoad },
-      rx.viewWillDisAppear.mapToVoid().map { .viewWillDisappear }
+      rx.viewWillDisAppear.mapToVoid().map { .viewWillDisappear },
+      loadingView.closeButton.rx.tap
+        .map { Reactor.Action.closeButtonTap },
+      navigationLeftBarStackView.rx
+        .tapGesture()
+        .map { _ in .navigationLeftBarButtonItemTap }
     )
     .bind(to: reactor.action)
     .disposed(by: disposeBag)
@@ -89,11 +88,13 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     
     reactor.state.map(\.snapshot)
       .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
       .subscribe(with: self) { $0.initialSnapshot($1, animated: true) }
       .disposed(by: disposeBag)
     
     reactor.pulse(\.$scrollAction)
       .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
       .compactMap { $0 }
       .asDriverOnErrorJustEmpty()
       .drive(with: self) { $0.homeView.scrollto($1) }
@@ -112,33 +113,32 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     
     reactor.state.map(\.user)
       .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
       .filter { user in
-        guard user != nil, user == reactor.currentState.userInfo?.userInfos.last else { return false }
+        let currentState = reactor.currentState
+        guard user != nil, user == currentState.userInfo?.userInfos.last,
+              !(currentState.userInfo?.isLast ?? true)
+        else { return false }
         return true
       }
       .map { _ in Reactor.Action.fetchNextUsers }
       .bind(to: reactor.action)
       .disposed(by: disposeBag)
-    
-    loadingView.closeButton.rx.tap
-      .map { Reactor.Action.closeButtonTap }
-      .bind(to: reactor.action)
-      .disposed(by: disposeBag)
   }
   
   func setUpCellResitration(_ reactor: FallingViewModel) {
-    let userCardRegistration = ProfileCellRegistration { cell, indexPath, item in
+    let userCardRegistration = ProfileCellRegistration { cell,
+      indexPath, item in
       
       cell.bind(item)
       
       let timerActiveTrigger = reactor.state
         .distinctUntilChanged(\.scrollAction)
         .compactMap(\.user?.id)
-        .debug("indexPath: ")
         .map { $0 == item.id }
       
       timerActiveTrigger
-        .debug("\(indexPath) active")
+        .debug("\(reactor.currentState.indexPath) active")
         .bind(to: cell.activateCardSubject)
         .disposed(by: cell.disposeBag)
       
@@ -268,7 +268,6 @@ extension FallingViewController {
     } completion: { [weak self] _ in
       guard let self = self else { return }
       self.reactor?.action.onNext(.deleteAnimationComplete(user))
-      TFLogger.ui.debug("delete animation did completed")
     }
   }
 }
