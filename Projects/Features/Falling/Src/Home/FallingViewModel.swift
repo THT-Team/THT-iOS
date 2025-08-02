@@ -125,7 +125,6 @@ final class FallingViewModel: Reactor {
       let currentDailyIndex = currentState.dailyUserCursorIndex
       
       return .concat(
-        .just(.setLoading(true)),
         self.fallingUseCase.user(
           alreadySeenUserUUIDList: [],
           userDailyFallingCourserIdx: currentDailyIndex,
@@ -134,19 +133,12 @@ final class FallingViewModel: Reactor {
         .take(until: cancelFetchUserSubject)
         .flatMap({ page -> Observable<Mutation> in
           if page.cards.isEmpty {
-            return .from([
-              .setLoading(false),
-              .addTopicOrNotice(.notice(action, UUID())),
-              .incrementIndex,
-              .toast(
-                "기다리는 무디가 아직 들어오고 있어요.\n조금 더 기다려볼까요?")])
+            return .just(.addTopicOrNotice(.notice(action, UUID())))
           }
           return .from([
             .setDailyUserCursorIndex(page),
             .setRecentUserInfo(page),
-            .setLoading(false),
-            .applySnapshot,
-            .incrementIndex
+            .applySnapshot
           ])})
       )
       .catch { .just(Mutation.toast($0.localizedDescription)) }
@@ -211,7 +203,7 @@ final class FallingViewModel: Reactor {
     case .pauseTap(let isPause): return isPause ? .just(.stopTimer) : .just(.startTimer)
       
     case let .deleteAnimationComplete(user):
-      return .from([.removeSnapshot(user), .incrementIndex])
+      return .from([.incrementIndex, .removeSnapshot(by: user)])
       
     case let .userReportAlert(select, user):
       switch select {
@@ -293,11 +285,22 @@ final class FallingViewModel: Reactor {
       newState.scrollAction = newState.indexPath
       timer.reset()
       
-      guard currentState.user == currentState.userInfo?.userInfos.last else { return newState }
-      guard !(currentState.userInfo?.isLast ?? true) else {
-        newState.snapshot.append(FallingDataModel.notice(currentState.currentAction, UUID()))
-        return newState }
+      if newState.user != nil,
+         newState.user == newState.userInfo?.userInfos.last,
+         newState.userInfo?.isLast ?? false {
+        newState.snapshot.append(FallingDataModel.notice(newState.currentAction, UUID()))
+      }
       
+      return newState
+      
+    case let .removeSnapshot(user):
+      let subtractIndex = newState.snapshot.filter { $0.user == user }.count
+      newState.snapshot.removeAll { $0.user == user }
+      
+      let newIndex = newState.index - subtractIndex
+      guard newIndex >= 0 else { return newState }
+      newState.index = subtractIndex
+      newState.scrollAction = newState.indexPath
       return newState
       
     case .selectAlert:
@@ -313,10 +316,6 @@ final class FallingViewModel: Reactor {
       
     case .toTopicBottomSheet(let topicExpirationUnixTime):
       self.onTopicBottomSheet?(topicExpirationUnixTime)
-      return newState
-      
-    case let .removeSnapshot(user):
-      newState.snapshot.removeAll { $0.user == user }
       return newState
       
     case let .toast(message):

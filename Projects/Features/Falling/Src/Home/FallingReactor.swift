@@ -100,7 +100,7 @@ extension FallingViewModel {
     //    case setScrollEvent(ScrollActionType)
     case showDeleteAnimation(FallingUser)
     case incrementIndex
-    case removeSnapshot(FallingUser)
+    case removeSnapshot(by: FallingUser)
     
     // MARK: User
     case applySnapshot
