@@ -31,7 +31,7 @@ public extension UIFont {
   static let thtH2M = DSKitFontFamily.Pretendard.medium.font(size: 26)
   /// SemiBold - size : 26 weight : 600
   static let thtH2Sb = DSKitFontFamily.Pretendard.semiBold.font(size: 26)
-  /// Bold - size : 26 weight: 600
+  /// Bold - size : 26 weight: 700
   static let thtH2B = DSKitFontFamily.Pretendard.bold.font(size: 26)
   /// ExtraBold - size : 26 weight : 800
   static let thtH2Eb = DSKitFontFamily.Pretendard.extraBold.font(size: 26)

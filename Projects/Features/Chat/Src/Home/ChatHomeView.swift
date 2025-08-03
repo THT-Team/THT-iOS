@@ -12,7 +12,7 @@ import Core
 import DSKit
 
 final class ChatHomeView: TFBaseView {
-  lazy var notiButton: UIBarButtonItem = .noti
+  lazy var notiButton: UIBarButtonItem = .bling
   lazy var backgroundView = TFEmptyView(
     image: DSKitAsset.Bx.noMudy.image,
     title: "진행중인 대화가 없어요.",
