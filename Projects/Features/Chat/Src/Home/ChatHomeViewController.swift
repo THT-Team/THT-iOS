@@ -33,7 +33,7 @@ final class ChatHomeViewController: TFBaseViewController {
     super.navigationSetting()
 
     navigationItem.title = "채팅"
-    navigationItem.rightBarButtonItem = self.mainView.notiButton
+//    navigationItem.rightBarButtonItem = self.mainView.notiButton
   }
 
   override func bindViewModel() {

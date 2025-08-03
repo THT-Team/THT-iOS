@@ -64,7 +64,7 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     navigationLeftBarStackView.addArrangedSubviews([mindImageView, navigationTitle])
     
     navigationItem.leftBarButtonItem = UIBarButtonItem(customView: navigationLeftBarStackView)
-    navigationItem.rightBarButtonItem = UIBarButtonItem.noti
+//    navigationItem.rightBarButtonItem = UIBarButtonItem.bling
   }
   
   func bind(reactor: FallingViewModel) {

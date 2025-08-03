@@ -8,7 +8,13 @@
 import UIKit
 
 public extension UIBarButtonItem {
-  static let noti = UIBarButtonItem(image: DSKitAsset.Image.Icons.bell.image, style: .plain, target: nil, action: nil)
+  static let bling: UIBarButtonItem = {
+    let imageView = UIImageView()
+    imageView.contentMode = .scaleAspectFit
+    imageView.image = DSKitAsset.Image.Icons.bling.image.resized(to: CGSize(width: 28, height: 28))
+    return UIBarButtonItem(customView: imageView)
+  }()
+  
   static let backButton = UIBarButtonItem(image: DSKitAsset.Image.Icons.chevron.image, style: .plain, target: nil, action: nil)
   static let report = UIBarButtonItem(
     image: DSKitAsset.Image.Icons.report.image,
@@ -19,4 +25,3 @@ public extension UIBarButtonItem {
       style: .plain,
       target: nil, action: nil)
 }
-
