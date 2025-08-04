@@ -74,7 +74,7 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
       rx.viewDidLoad.map { .viewDidLoad },
       rx.viewWillDisAppear.mapToVoid().map { .viewWillDisappear },
       loadingView.closeButton.rx.tap
-        .map { Reactor.Action.closeButtonTap },
+        .map { Reactor.Action.loadingCloseButtonTap },
       navigationLeftBarStackView.rx
         .tapGesture()
         .map { _ in .navigationLeftBarButtonItemTap }
@@ -281,5 +281,11 @@ extension FallingViewController: TopicActionDelegate {
   
   func didFinishDailyTopic() {
     reactor?.action.onNext(.fetchDailyTopics)
+  }
+}
+
+extension FallingViewController: MatchActionDelegate {
+  func closeButtonTap() {
+    reactor?.action.onNext(.matchCloseButtonTap)
   }
 }

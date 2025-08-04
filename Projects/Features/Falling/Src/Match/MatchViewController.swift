@@ -10,115 +10,147 @@ import UIKit
 import DSKit
 
 final class MatchViewController: TFBaseViewController {
-
+  
   var onClick: ((String) -> Void)?
   var onCancel: (() -> Void)?
-
+    
   private let chatRoomIndex: String
-
+  
+  let containerLabelStackView: UIStackView = {
+    let view = UIStackView()
+    view.axis = .vertical
+    view.spacing = 0
+    view.alignment = .center
+    return view
+  }()
+  
+  let labelStackView: UIStackView = {
+    let view = UIStackView()
+    view.axis = .horizontal
+    view.spacing = 2
+    view.alignment = .center
+    return view
+  }()
+  
+  let buttonStackView: UIStackView = {
+    let view = UIStackView()
+    view.axis = .vertical
+    view.spacing = 16
+    view.alignment = .center
+    return view
+  }()
+  
   let imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
     return imageView
   }()
-
-  let titleLabel = {
+  
+  let nicknameLabel = {
     let label = UILabel()
-    label.textColor = DSKitAsset.Color.neutral50.color
     label.font = .thtH2B
     label.textAlignment = .center
-    label.text = "무디와 매칭되었어요!"
+    label.textColor = DSKitAsset.Color.neutral50.color
     return label
   }()
-
+  
+  let nicknameWithSuffixLabel = {
+    let label = UILabel()
+    label.text = "님과"
+    label.font = .thtH2R
+    label.textAlignment = .center
+    label.textColor = DSKitAsset.Color.neutral50.color
+    return label
+  }()
+  
+  let titleLabel = {
+    let label = UILabel()
+    label.text = "작은 공감이 연결되었어요."
+    label.font = .thtH2R
+    label.textAlignment = .center
+    label.textColor = DSKitAsset.Color.neutral50.color
+    return label
+  }()
+  
   let subTitleLabel = {
     let label = UILabel()
-    label.textColor = DSKitAsset.Color.neutral50.color
+    label.text = "선택한 주제어를 꺼내 대화를 열어보세요."
     label.font = .thtSubTitle1Sb
     label.textAlignment = .center
-    label.text = "대화를 시작해 서로를 알아가보세요"
+    label.textColor = DSKitAsset.Color.neutral50.color
     return label
   }()
-
-  lazy var primaryButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    config.cornerStyle = .fixed
-
-    var titleAttribute = AttributedString("대화 시작하기")
-    titleAttribute.font = UIFont.thtH5Sb
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral600.color
-    config.baseBackgroundColor = DSKitAsset.Color.primary500.color
-    config.attributedTitle = titleAttribute
-    config.background.cornerRadius = 16
-    button.configuration = config
-    button.addAction(.init(handler: { [weak self] _ in
-      guard let self else { return }
+  
+  
+  lazy var submitButton = SubmitButton(
+    title: "대화 시작하기") { [weak self] in
+      guard let self = self else { return }
       self.onClick?(self.chatRoomIndex)
-    }), for: .touchUpInside)
-    return button
-  }()
-
-  lazy var closeButton = {
-    let button = UIButton()
-    var config = UIButton.Configuration.filled()
-
-    var titleAttribute = AttributedString("대화 시작하기")
-    titleAttribute.font = UIFont.thtSubTitle2M
-    titleAttribute.foregroundColor = DSKitAsset.Color.neutral50.color
-    config.baseBackgroundColor = .clear
-    config.attributedTitle = titleAttribute
-    button.configuration = config
-    button.addAction(.init(handler: { [weak self] _ in
-      self?.onCancel?()
-    }), for: .touchUpInside)
-    return button
-  }()
-
-  init(_ imageURL: String, index: String) {
+    }
+  
+  lazy var closeButton = SubmitButton(
+    title: "닫기",
+    foreground: DSKitAsset.Color.neutral50.color,
+    background: .clear,
+    font: UIFont.thtSubTitle2M,
+    cornerRadius: 0) { [weak self] in
+      guard let self = self else { return }
+      self.onCancel?()
+    }
+  
+  init(_ imageURL: String, nickname: String, index: String) {
     self.chatRoomIndex = index
     super.init(nibName: nil, bundle: nil)
-
-    bind(imageURL)
+    
+    bind(imageURL, nickname)
   }
-
-  func bind(_ imageURL: String) {
+  
+  func bind(_ imageURL: String, _ nickname: String) {
     imageView.setImage(urlString: imageURL)
+    nicknameLabel.text = nickname
   }
-
+  
   override func makeUI() {
     self.view.addSubviews(
       imageView,
-      titleLabel,
-      subTitleLabel,
-      primaryButton,
-      closeButton
+      containerLabelStackView,
+      buttonStackView
     )
-
+    
+    containerLabelStackView.addArrangedSubviews([
+      labelStackView,
+      titleLabel,
+      subTitleLabel
+    ])
+    
+    containerLabelStackView.setCustomSpacing(10, after: titleLabel)
+    
+    labelStackView.addArrangedSubviews([
+      nicknameLabel, nicknameWithSuffixLabel
+    ])
+    
+    buttonStackView.addArrangedSubviews([
+      submitButton,
+      closeButton
+    ])
+    
     imageView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-
-    titleLabel.snp.makeConstraints {
+    
+    containerLabelStackView.snp.makeConstraints {
+      $0.top.equalTo(128)
+      $0.directionalHorizontalEdges.equalToSuperview().inset(38)
+    }
+    
+    buttonStackView.snp.makeConstraints {
+      $0.bottom.equalToSuperview().inset(70)
       $0.centerX.equalToSuperview()
-      $0.top.equalToSuperview().offset(172.f)
     }
-    subTitleLabel.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.top.equalTo(titleLabel.snp.bottom)
-    }
-
-    closeButton.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(39)
-      $0.height.equalTo(30)
-      $0.bottom.equalToSuperview().offset(-100)
-    }
-
-    primaryButton.snp.makeConstraints {
-      $0.leading.trailing.equalTo(closeButton)
-      $0.height.equalTo(80)
-      $0.bottom.equalTo(closeButton.snp.top).offset(-16)
+    
+    submitButton.snp.makeConstraints {
+      $0.width.equalTo(312)
+      $0.height.equalTo(54)
     }
   }
 }

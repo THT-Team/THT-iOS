@@ -13,5 +13,5 @@ import Domain
 public protocol FallingCoordinating: Coordinator {
   func homeFlow()
   func chatRoomFlow(_ index: String)
-  func toMatchFlow(_ imageURL: String, index: String)
+  func toMatchFlow(_ imageURL: String, nickname: String, index: String)
 }
