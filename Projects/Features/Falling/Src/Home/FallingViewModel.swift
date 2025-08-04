@@ -16,7 +16,7 @@ final class FallingViewModel: Reactor {
   
   // MARK: Coordinator
   var onReport: ((UserReportHandler?) -> Void)?
-  var onMatch: ((String, String) -> Void)?
+  var onMatch: ((String, String, String) -> Void)?
   var onTopicBottomSheet: ((Date) -> Void)?
   
   // MARK: UseCase
@@ -170,7 +170,7 @@ final class FallingViewModel: Reactor {
           ])}))
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
-    case .findTap, .dummyUserStartTap: return .just(.incrementIndex)
+    case .findTap, .dummyUserStartTap, .matchCloseButtonTap: return .just(.incrementIndex)
       
     case let .likeTap(user):
       return self.likeUseCase.like(
@@ -178,12 +178,16 @@ final class FallingViewModel: Reactor {
         topicID: String(currentState.topicIndex)
       )
       .asObservable()
-      .flatMap { match -> Observable<Mutation> in
-        guard match.isMatching, let chatRoomIdx = match.chatRoomIdx else {
+      .flatMap { [weak self] match -> Observable<Mutation> in
+        guard let self = self else { return .just(.empty) }
+        guard
+          match.isMatching,
+          let chatRoomIdx = match.chatRoomIdx,
+          let userName = self.currentState.user?.username else {
           return .just(.incrementIndex)
         }
         return match.isMatching ? .from([
-          .toMatch(user.userProfilePhotos[0].url, String(chatRoomIdx)),
+          .toMatch(user.userProfilePhotos[0].url, userName, String(chatRoomIdx)),
           .stopTimer])
         : .just(.incrementIndex)
       }
@@ -236,7 +240,7 @@ final class FallingViewModel: Reactor {
         )
       }
       
-    case .closeButtonTap:
+    case .loadingCloseButtonTap:
       cancelFetchUserSubject.onNext(())
       return .empty()
     }
@@ -299,7 +303,7 @@ final class FallingViewModel: Reactor {
       
       let newIndex = newState.index - subtractIndex
       guard newIndex >= 0 else { return newState }
-      newState.index = subtractIndex
+      newState.index = newIndex
       newState.scrollAction = newState.indexPath
       return newState
       
@@ -310,8 +314,8 @@ final class FallingViewModel: Reactor {
       }
       return newState
       
-    case let .toMatch(url, index):
-      self.onMatch?(url, index)
+    case let .toMatch(url, nickname, index):
+      self.onMatch?(url, nickname, index)
       return newState
       
     case .toTopicBottomSheet(let topicExpirationUnixTime):

@@ -37,7 +37,8 @@ extension FallingViewModel {
     case fetchDailyTopics
     case fetchUserFirst(NoticeViewCell.Action)
     case fetchNextUsers
-    case closeButtonTap
+    case loadingCloseButtonTap
+    case matchCloseButtonTap
   }
   
   struct State: Equatable {
@@ -115,7 +116,7 @@ extension FallingViewModel {
     
     // MARK: Condinator
     case selectAlert
-    case toMatch(String, String)
+    case toMatch(String, String, String)
     case toTopicBottomSheet(Date)
     
     case toast(String)
