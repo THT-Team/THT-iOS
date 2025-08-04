@@ -19,6 +19,10 @@ protocol TopicActionDelegate: AnyObject {
   func didFinishDailyTopic()
 }
 
+protocol MatchActionDelegate: AnyObject {
+  func closeButtonTap()
+}
+
 public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   @Injected var topicUseCase: TopicUseCaseInterface
   @Injected var fallingUseCase: FallingUseCaseInterface
@@ -27,6 +31,8 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
   
   private let chatRoomBuilder: ChatRoomBuildable
   
+  private weak var matchActionDelegate: MatchActionDelegate?
+    
   public init(chatRoomBuilder: ChatRoomBuildable, viewControllable: ViewControllable) {
     self.chatRoomBuilder = chatRoomBuilder
     super.init(viewControllable: viewControllable)
@@ -49,8 +55,8 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
       AlertHelper.userReportAlert(viewControllable, handler)
     }
     
-    viewModel.onMatch = { [weak self] url, index in
-      self?.toMatchFlow(url, index: index)
+    viewModel.onMatch = { [weak self] url, nickname, index in
+      self?.toMatchFlow(url, nickname: nickname, index: index)
     }
     
     viewModel.onTopicBottomSheet = { [weak self] topicExpirationUnixTime in
@@ -58,6 +64,7 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     }
     
     let viewController = FallingViewController(viewModel: viewModel)
+    matchActionDelegate = viewController as any MatchActionDelegate
     
     self.viewControllable.setViewControllers([viewController])
   }
@@ -75,16 +82,24 @@ public final class FallingCoordinator: BaseCoordinator, FallingCoordinating {
     coordinator.chatRoomFlow(index)
   }
   
-  public func toMatchFlow(_ imageURL: String, index: String) {
-    let vc = MatchViewController(imageURL, index: index)
+  public func toMatchFlow(_ imageURL: String, nickname: String, index: String) {
+    let vc = MatchViewController(
+      imageURL,
+      nickname: nickname,
+      index: index
+    )
     
     vc.onCancel = { [weak self] in
-      self?.viewControllable.dismiss()
+      guard let self = self else { return }
+      self.viewControllable.dismiss()
+      self.matchActionDelegate?.closeButtonTap()
     }
     
     vc.onClick = { [weak self] index in
-      self?.viewControllable.dismiss()
-      self?.chatRoomFlow(index)
+      guard let self = self else { return }
+      self.viewControllable.dismiss()
+      self.matchActionDelegate?.closeButtonTap()
+      self.chatRoomFlow(index)
     }
     
     vc.uiController.modalTransitionStyle = .crossDissolve
