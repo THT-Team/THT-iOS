@@ -58,7 +58,7 @@ final class ChatRoomViewController: TFBaseViewController, View {
     // State
     reactor.state.compactMap(\.info)
       .subscribe(with: self) { owner, info in
-        owner.title = info.title ?? "Partner's name"
+        owner.title = info.title
         owner.mainView.topicBind(info.talkSubject, info.talkIssue)
       }
       .disposed(by: disposeBag)
