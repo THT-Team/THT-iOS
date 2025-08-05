@@ -19,8 +19,6 @@ final class WithdrawalCollectionViewCell: TFBaseCollectionViewCell {
     }
   }
 
-  var animation: UIViewPropertyAnimator?
-
   override var isHighlighted: Bool {
     didSet {
       if self.isHighlighted {
@@ -43,11 +41,11 @@ final class WithdrawalCollectionViewCell: TFBaseCollectionViewCell {
       }
     }
   }
-
+  
   private let hStackView = UIStackView().then {
     $0.axis = .vertical
     $0.spacing = 10
-    $0.distribution = .fillEqually
+    $0.distribution = .fill
     $0.isUserInteractionEnabled = false
   }
 
@@ -60,7 +58,7 @@ final class WithdrawalCollectionViewCell: TFBaseCollectionViewCell {
     $0.font = .thtSubTitle2R
     $0.textColor = DSKitAsset.Color.neutral50.color
     $0.textAlignment = .center
-    $0.numberOfLines = 2
+    $0.numberOfLines = 0
   }
 
   override func makeUI() {
@@ -70,9 +68,13 @@ final class WithdrawalCollectionViewCell: TFBaseCollectionViewCell {
     contentView.backgroundColor = DSKitAsset.Color.neutral600.color
 
     hStackView.addArrangedSubviews([emojiLabel, reasonLabel])
+    
+    reasonLabel.snp.makeConstraints {
+      $0.height.greaterThanOrEqualTo(20).priority(.low)
+    }
 
     hStackView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(30)
+      $0.leading.trailing.equalToSuperview().inset(15)
       $0.top.bottom.equalToSuperview().inset(20)
     }
   }

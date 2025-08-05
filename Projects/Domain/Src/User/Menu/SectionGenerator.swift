@@ -46,11 +46,11 @@ public struct SectionGenerator {
   }
 
   private static func createAccountMenus(list: [SNSType], user: User) -> [MySetting.MenuItem] {
+    return [
+      .item(MySetting.Item(title: "핸드폰 번호", content: user.phoneNumber)),
+      .item(MySetting.Item(title: "이메일", content: user.email)),
+    ]
     guard !list.isEmpty else {
-      return [
-        .item(MySetting.Item(title: "핸드폰 번호", content: user.phoneNumber)),
-        .item(MySetting.Item(title: "이메일", content: user.email)),
-      ]
     }
 
     return list

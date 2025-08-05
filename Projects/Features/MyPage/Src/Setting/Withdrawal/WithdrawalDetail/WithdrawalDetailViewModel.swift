@@ -83,13 +83,19 @@ public final class WithdrawalDetailViewModel: ViewModelType {
 
     selectedSignal
       .asObservable()
-      .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
-      .withLatestFrom(reasonArray) { index, array -> [ReasonModel] in
-        array.enumerated().map {
-          ReasonModel($1.description, isSelected: $0 == index)
+      .withLatestFrom(reasonArray) { selected, array -> [ReasonModel] in
+        let result = array.enumerated().map { index, item in
+//          print("index, item", index, item)
+//          print("selected", selected)
+//          print("equal test", selected == index )
+          let value = selected == index
+          return ReasonModel(item.description, isSelected: value)
         }
+        return result
       }
-      .subscribe(reasonArray)
+      .subscribe(with: self, onNext: { owner, array in
+        reasonArray.onNext(array)
+      })
       .disposed(by: disposeBag)
 
     return Output(

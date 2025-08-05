@@ -118,4 +118,8 @@ extension UserRepository: UserRepositoryInterface {
   public func updateDeviceToken(_ token: String) -> Single<Void> {
     return requestWithNoContent(target: .updateDeviceToken(deviceKey: token))
   }
+  
+  public func inquiry(email: String, content: String, isEmailAgree: Bool) -> Single<Void> {
+    requestWithNoContent(target: .inquiry(email: email, content: content, isEmailAgree: isEmailAgree))
+  }
 }

@@ -31,4 +31,6 @@ public protocol UserRepositoryInterface {
   func updatePhoneNumber(_ phoneNumber: String) -> Single<Void>
   func updateEmail(_ email: String) -> Single<Void>
   func updateDeviceToken(_ deviceKey: String) -> Single<Void>
+  
+  func inquiry(email: String, content: String, isEmailAgree: Bool) -> Single<Void>
 }

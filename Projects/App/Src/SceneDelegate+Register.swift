@@ -67,7 +67,6 @@ extension AppDelegate {
             FallingRepository(provider.environment)
         )})
 
-
     container.register(
       interface: LikeUseCaseInterface.self,
       implement: {

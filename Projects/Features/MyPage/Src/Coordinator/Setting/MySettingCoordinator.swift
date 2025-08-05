@@ -56,7 +56,7 @@ extension MySettingCoordinator: MySettingCoordinating {
       self.alarmSettingFlow()
     case .support, .law:
       guard let url = item.url else {
-        self.runFeedbackFlow()
+        self.inquiryFlow()
         return
       }
       self.webViewFlow(item.title, url)
@@ -66,7 +66,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
 
   public func editPhoneNumberRootFlow(phoneNumber: String) {
-    var (vm, vc) = factory.makePhoneNumberRootFlow(phoneNumber: phoneNumber)
+    let (vm, vc) = factory.makePhoneNumberRootFlow(phoneNumber: phoneNumber)
     vm.onUpdate = { [weak self] phoneNumber in
       self?.editPhoneInputFlow(phoneNumber: phoneNumber)
     }
@@ -82,7 +82,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func editEmailRootFlow(email: String) {
-    var (vm, vc) = factory.makeEmailRootView(email: email)
+    let (vm, vc) = factory.makeEmailRootView(email: email)
     vm.onUpdate = { [weak self] email in
       self?.editEmailFlow(email: email)
     }
@@ -90,7 +90,7 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func editEmailFlow(email: String) {
-    var (vm, vc) = factory.makeEmailView(email: email)
+    let (vm, vc) = factory.makeEmailView(email: email)
     vm.onComplete = { [weak self] email in
       self?.viewControllable.popViewController(animated: true)
     }
@@ -98,12 +98,12 @@ extension MySettingCoordinator: MySettingCoordinating {
   }
   
   public func editUserContactsFlow() {
-    let (vm, vc) = factory.makeEditUserContacts()
+    let (_, vc) = factory.makeEditUserContacts()
     self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func alarmSettingFlow() {
-    let (vm, vc) = factory.makeAlarmSetting()
+    let (_, vc) = factory.makeAlarmSetting()
 
     self.viewControllable.pushViewController(vc, animated: true)
   }
@@ -140,14 +140,15 @@ extension MySettingCoordinator: MySettingCoordinating {
     attachChild(coordinator)
     coordinator.showAlert(handler, alertType: type)
   }
-
-  public func runFeedbackFlow() {
-    var coordinator = factory.buildInquiryCoordinator(rootViewControllable: self.viewControllable)
-    coordinator.finishFlow = { [weak self, weak coordinator] in
-      self?.detachChild(coordinator)
+  
+  public func inquiryFlow() {
+    let (vm, vc) = factory.makeUserInquiry()
+    
+    vm.onBackButtonTap = { [weak self] in
+      self?.viewControllable.popViewController(animated: true)
     }
-    attachChild(coordinator)
-    coordinator.start()
+    
+    self.viewControllable.pushViewController(vc, animated: true)
   }
   
   public func webViewFlow(_ title: String?, _ url: URL) {

@@ -36,6 +36,7 @@ final class TFHeaderField: UICollectionReusableView {
 
   func makeUI() {
     let container = UIView()
+    
     let topLine = UIView()
     topLine.backgroundColor = DSKitAsset.Color.neutral500.color
 
@@ -43,6 +44,7 @@ final class TFHeaderField: UICollectionReusableView {
     bottomLine.backgroundColor = DSKitAsset.Color.neutral500.color
     addSubview(container)
     container.addSubviews(otherLabel, otherTextField, topLine, bottomLine)
+    
     container.backgroundColor = DSKitAsset.Color.neutral700.color
     container.snp.makeConstraints {
       $0.top.equalToSuperview().offset(42).priority(.high)
@@ -51,7 +53,7 @@ final class TFHeaderField: UICollectionReusableView {
 
     topLine.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
-      $0.top.equalTo(otherLabel.snp.bottom)
+      $0.top.equalTo(otherLabel.snp.bottom).offset(10)
       $0.height.equalTo(0.5)
     }
 
@@ -67,7 +69,7 @@ final class TFHeaderField: UICollectionReusableView {
 
     otherTextField.snp.makeConstraints {
       $0.leading.trailing.equalTo(otherLabel)
-      $0.top.equalTo(otherLabel.snp.bottom)
+      $0.top.equalTo(otherLabel.snp.bottom).offset(10)
       $0.height.equalTo(46)
       $0.bottom.equalToSuperview()
     }

@@ -23,15 +23,7 @@ final class WithdrawalDetailCollectionViewCell: TFBaseCollectionViewCell {
 
   override func makeUI() {
     contentView.addSubviews(titleLabel, checkImageView)
-    contentView.backgroundColor = DSKitAsset.Color.neutral700.color
-    let topLine = UIView().then {
-      $0.backgroundColor = DSKitAsset.Color.neutral500.color
-    }
-    let bottomLine = UIView().then {
-      $0.backgroundColor = DSKitAsset.Color.neutral500.color
-    }
     
-    contentView.addSubviews(topLine, bottomLine)
     titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
     titleLabel.snp.makeConstraints {
       $0.top.equalToSuperview().offset(16)
@@ -45,16 +37,6 @@ final class WithdrawalDetailCollectionViewCell: TFBaseCollectionViewCell {
       $0.trailing.equalToSuperview().inset(20)
       $0.centerY.equalToSuperview()
     }
-
-    topLine.snp.makeConstraints {
-      $0.leading.trailing.top.equalToSuperview()
-      $0.height.equalTo(0.5)
-    }
-
-    bottomLine.snp.makeConstraints {
-      $0.leading.trailing.bottom.equalToSuperview()
-      $0.height.equalTo(0.5)
-    }
   }
 
   override func prepareForReuse() {
@@ -65,5 +47,6 @@ final class WithdrawalDetailCollectionViewCell: TFBaseCollectionViewCell {
   func bind(_ model: ReasonModel) {
     titleLabel.text = model.description
     self.checkImageView.isHidden = model.isSelected == false
+    self.checkImageView.setNeedsDisplay()
   }
 }

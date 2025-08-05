@@ -148,6 +148,10 @@ extension MyPageUseCase {
   public func updateProfilePhoto(_ photos: [UserProfilePhoto]) -> Single<Void> {
     repository.updateProfilePhotos(photos)
   }
+  
+  public func inquiry(email: String, content: String, isEmailAgree: Bool) -> Single<Void> {
+    repository.inquiry(email: email, content: content, isEmailAgree: isEmailAgree)
+  }
 }
 
 extension MyPageUseCase {

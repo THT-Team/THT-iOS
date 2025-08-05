@@ -57,35 +57,16 @@ public final class MySettingViewModel: ViewModelType {
         let menu = sections[indexPath.section].items[indexPath.item]
         return (section: section, item: menu)
       }
-      .asObservable()
 
     selectedItem
       .filter { $0.0 == .location }
-      .withLatestFrom(user.map { $0.address })
-      .withUnretained(self)
-      .flatMap { owner, address in
-        owner.locationUseCase.fetchLocation()
-          .asObservable()
-          .catch({ error in
-            toast.accept(error.localizedDescription)
-            return .empty()
-          })
+      .mapToVoid()
+      .drive(with: self) { owner, _ in
+        owner.userStore.send(action: .updateLocation)
       }
-      .withUnretained(self)
-      .flatMap { owner, request in
-        owner.useCase.updateLocation(request)
-          .asObservable()
-          .catch({ error in
-            toast.accept(error.localizedDescription)
-            return .empty()
-          })
-      }
-      .map { _ in "현재 위치가 업데이트 되었습니다." }
-      .bind(to: toast)
       .disposed(by: disposeBag)
 
     selectedItem
-      .asDriverOnErrorJustEmpty()
       .drive(with: self) { owner, component -> Void in
         owner.onMenuItem?(component.section, component.item)
       }.disposed(by: disposeBag)

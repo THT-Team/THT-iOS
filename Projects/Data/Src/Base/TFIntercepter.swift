@@ -19,13 +19,13 @@ final class OAuthAuthenticator: Authenticator {
   }
 
   func apply(_ credential: OAuthCredential, to urlRequest: inout URLRequest) {
+    
       urlRequest.headers.add(.authorization(bearerToken: credential.accessToken))
   }
 
   func refresh(_ credential: OAuthCredential,
                for session: Session,
                completion: @escaping (Result<OAuthCredential, Error>) -> Void) {
-
 
     // Refresh the credential using the refresh token...then call completion with the new credential.
     //

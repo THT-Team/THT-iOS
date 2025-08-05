@@ -47,15 +47,17 @@ final class WithdrawalDetailView: TFBaseView {
 extension WithdrawalDetailView {
 
   private func createLayout() -> UICollectionViewLayout {
-    var config = UICollectionLayoutListConfiguration(appearance: .plain)
+    var config = UICollectionLayoutListConfiguration(appearance: .grouped)
+    config.separatorConfiguration.color = DSKitAsset.Color.neutral500.color
+    config.separatorConfiguration.topSeparatorInsets = .zero
+    config.separatorConfiguration.bottomSeparatorInsets = .zero
     config.backgroundColor = DSKitAsset.Color.neutral700.color
     config.headerMode = .supplementary
-        config.footerMode = .supplementary
+    config.footerMode = .supplementary
 
     let layout = UICollectionViewCompositionalLayout { section, layoutEnvironment in
 
       let layoutSection = NSCollectionLayoutSection.list(using: config, layoutEnvironment: layoutEnvironment)
-      layoutSection.interGroupSpacing = 5
 
       return layoutSection
     }

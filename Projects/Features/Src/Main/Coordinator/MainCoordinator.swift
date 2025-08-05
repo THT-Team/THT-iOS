@@ -85,7 +85,7 @@ public final class MainCoordinator: BaseCoordinator, MainCoordinating {
 
     let myPage = MyPageBuilder(
       factory: MyPageFactory(
-        userStore: UserStore(myPageUseCase),
+        userStore: UserStore(myPageUseCase, locationUseCase: locationUseCase),
         myPageUseCase: myPageUseCase,
         userDomainUseCase: userdomainUseCase,
         locationUseCase: locationUseCase,

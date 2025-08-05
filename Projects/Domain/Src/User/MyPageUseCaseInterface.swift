@@ -42,4 +42,6 @@ public protocol MyPageUseCaseInterface {
   // MARK: ImageService
   func updateImage(_ data: Data, priority: Int) -> Single<UserProfilePhoto>
   func processImage(_ result: PhotoItem) -> Single<Data>
+  
+  func inquiry(email: String, content: String, isEmailAgree: Bool) -> Single<Void>
 }

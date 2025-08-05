@@ -106,6 +106,7 @@ public struct ReasonModel {
 
   public init(_ description: String, isSelected: Bool = false) {
     self.description = description
+    self.isSelected = isSelected
   }
 }
 

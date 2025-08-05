@@ -33,6 +33,8 @@ public enum MyPageTarget {
   case email(String)
   case phoneNumber(String)
   case preferGender(String)
+  
+  case inquiry(email: String, content: String, isEmailAgree: Bool)
 }
 
 extension MyPageTarget: BaseTargetType {
@@ -71,6 +73,8 @@ extension MyPageTarget: BaseTargetType {
       return "user/phone-number/\(phoneNumber)"
     case .preferGender(let gender):
       return "user/preferred-gender/\(gender)"
+    case .inquiry:
+      return "user/inquiry"
     }
   }
   
@@ -80,7 +84,7 @@ extension MyPageTarget: BaseTargetType {
       return .get
     case .updateAlarmSetting, .location, .introduction, .profilePhoto, .nickname, .email, .phoneNumber, .preferGender, .updateDeviceToken:
       return .patch
-    case .updateUserContacts, .logout:
+    case .updateUserContacts, .logout, .inquiry:
       return .post
     case .withdrawal:
       return .delete
@@ -98,18 +102,22 @@ extension MyPageTarget: BaseTargetType {
       return .requestJSONEncodable(contacts)
     case .updateAlarmSetting(let settings):
       return .requestJSONEncodable(settings)
-
     case let .location(location):
       return .requestJSONEncodable(location)
     case let .introduction(introduction): return
-        .requestJSONEncodable(IntroductionReq(introduction: introduction)) /*.requestParameters(parameters: ["introduction": introduction], encoding: JSONEncoding.default)*/
+        .requestJSONEncodable(IntroductionReq(introduction: introduction))
     case .updateDeviceToken(let deviceKey):
       return .requestParameters(parameters: ["deviceKey": deviceKey], encoding: JSONEncoding.default)
-    case let .idealType(emojies): return .requestParameters(parameters: ["idealTypeList": emojies], encoding: JSONEncoding.default)
-    case let .interests(emojies): return .requestParameters(parameters: ["interestList": emojies], encoding: JSONEncoding.default)
-    case let .profilePhoto(photos): return .requestJSONEncodable(PhotoReq(photos))
+    case let .idealType(emojies):
+      return .requestParameters(parameters: ["idealTypeList": emojies], encoding: JSONEncoding.default)
+    case let .interests(emojies):
+      return .requestParameters(parameters: ["interestList": emojies], encoding: JSONEncoding.default)
+    case let .profilePhoto(photos):
+      return .requestJSONEncodable(PhotoReq(photos))
     case .nickname, .phoneNumber, .email, .preferGender, .logout:
       return .requestPlain
+    case let .inquiry(email, content, isEmailAgree):
+      return .requestParameters(parameters: ["userEmail": email, "contents": content, "isEmailAgree": isEmailAgree], encoding: JSONEncoding.default)
     }
   }
 }

@@ -47,10 +47,10 @@ extension MyPageCoordinator: MyPageCoordinating {
       alert.modalTransitionStyle = .crossDissolve
       self?.viewControllable.present(alert, animated: true)
     }
+    let picker = PHPickerControllable()
+    
     vm.onPhotoCell = { [weak self] index, handler in
-      let picker = PHPickerControllable { item in
-        handler?(item)
-      }
+      picker.handelr = handler
       self?.viewControllable.present(picker, animated: true)
     }
     self.viewControllable.setViewControllers([vc])

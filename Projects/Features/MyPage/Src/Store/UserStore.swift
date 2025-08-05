@@ -14,6 +14,7 @@ import MyPageInterface
 
 public final class UserStore {
   private let myPageUseCase: MyPageUseCaseInterface
+  private let locationUseCase: LocationUseCaseInterface
 
   var disposeBag = DisposeBag()
 
@@ -29,6 +30,7 @@ public final class UserStore {
     case introduce(String)
     case nickname(String)
     case photos([UserProfilePhoto])
+    case updateLocation
   }
 
   public enum Mutation {
@@ -45,6 +47,7 @@ public final class UserStore {
     case introduce(String)
     case nickname(String)
     case photos([UserProfilePhoto])
+    case address(String)
   }
 
   var state: User? = nil
@@ -60,8 +63,12 @@ public final class UserStore {
     toastPublisher.asObservable()
   }
 
-  public init(_ myPageUseCase: MyPageUseCaseInterface) {
+  public init(
+    _ myPageUseCase: MyPageUseCaseInterface,
+    locationUseCase: LocationUseCaseInterface
+  ) {
     self.myPageUseCase = myPageUseCase
+    self.locationUseCase = locationUseCase
     bind()
   }
 
@@ -140,6 +147,22 @@ public final class UserStore {
           .catch { error in
             return .just(Mutation.error(error))
           }
+      case .updateLocation:
+        return locationUseCase.fetchLocation()
+          .asObservable()
+          .withUnretained(self)
+          .flatMapLatest { owner, request -> Observable<Mutation> in
+            owner.myPageUseCase.updateLocation(request)
+              .asObservable()
+              .map { _ in request.address }
+              .flatMap({ address -> Observable<Mutation> in
+                return .from([
+                  .toast("현재 위치가 업데이트 되었습니다."),
+                  .address(address)
+                ])
+              })
+          }
+          .catch { .just(Mutation.error($0)) }
       }
     }
   }
@@ -174,6 +197,8 @@ public final class UserStore {
       newState?.username = name
     case .photos(let photos):
       newState?.userProfilePhotos = photos
+    case .address(let address):
+      newState?.address = address
     }
     return newState
   }
