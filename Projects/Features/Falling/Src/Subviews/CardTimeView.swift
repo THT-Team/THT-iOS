@@ -23,6 +23,8 @@ final class CardTimeView: TFBaseView {
   lazy var progressView = CardProgressView()
   
   override func makeUI() {
+    isUserInteractionEnabled = false
+    
     self.addSubview(containerView)
     containerView.addSubviews([timerView, progressView])
     

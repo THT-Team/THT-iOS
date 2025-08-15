@@ -11,7 +11,7 @@ import Core
 import DSKit
 
 final class CardProgressView: TFBaseView, Reusable {
-  private var likeLayer: CAGradientLayer?
+  private var gradientLayer: CAGradientLayer?
 
   var progress: CGFloat = 0 {
     didSet {
@@ -49,15 +49,15 @@ final class CardProgressView: TFBaseView, Reusable {
 
   func toggleGradientLayer(_ isHidden: Bool) {
     addGradientLayer()
-    self.likeLayer?.isHidden = isHidden
+    self.gradientLayer?.isHidden = isHidden
   }
 
   private func addGradientLayer() {
-    if let _ = likeLayer {
+    if let _ = gradientLayer {
       return
     }
     let gradientLayer = createLikeLayer()
-    self.likeLayer = gradientLayer
+    self.gradientLayer = gradientLayer
     layer.addSublayer(gradientLayer)
   }
 
