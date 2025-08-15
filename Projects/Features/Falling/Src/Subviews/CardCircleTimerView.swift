@@ -102,7 +102,9 @@ final class CardCircleTimerView: TFBaseView {
 
   func toggleCircleLayer(_ isHidden: Bool) {
     addGradientLayer()
-
+    
+    self.dotLayer.isHidden = !isHidden
+    self.strokeLayer.isHidden = !isHidden
     self.gradientLayer?.isHidden = isHidden
     self.likeImageView.isHidden = isHidden
   }
@@ -113,8 +115,6 @@ final class CardCircleTimerView: TFBaseView {
     } else {
       let circleLayer = createGradientLayer()
       self.gradientLayer = circleLayer
-      dotLayer.removeFromSuperlayer()
-      strokeLayer.removeFromSuperlayer()
       layer.insertSublayer(circleLayer, above: trackLayer)
     }
   }
