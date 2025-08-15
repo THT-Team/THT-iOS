@@ -64,7 +64,7 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     navigationLeftBarStackView.addArrangedSubviews([mindImageView, navigationTitle])
     
     navigationItem.leftBarButtonItem = UIBarButtonItem(customView: navigationLeftBarStackView)
-//    navigationItem.rightBarButtonItem = UIBarButtonItem.bling
+    //    navigationItem.rightBarButtonItem = UIBarButtonItem.bling
   }
   
   func bind(reactor: FallingViewModel) {
@@ -130,7 +130,7 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
     let userCardRegistration = ProfileCellRegistration { cell,
       indexPath, item in
       
-      cell.bind(item)
+      cell.bind(item, timer: reactor.timer)
       
       let timerActiveTrigger = reactor.state
         .distinctUntilChanged(\.scrollAction)

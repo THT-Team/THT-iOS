@@ -12,21 +12,21 @@ import RxCocoa
 
 final class TFTimer {
   private var disposable: Disposable? = nil
-
+  
   let currentTime = BehaviorRelay<Double>(value: 15.0)
-
+  
   private var startTime: Double
   private let duration: Double
-
-  init(startTime: Double) {
-    self.duration = startTime
+  
+  init(duration: Double) {
+    self.duration = duration
     self.startTime = duration
   }
-
+  
   func start() {
     guard disposable == nil else { return }
     if startTime < 0 { startTime = 15.0 }
-
+    
     disposable = Observable<Int>.interval(.milliseconds(10),
                                           scheduler: MainScheduler.instance)
     .take(Int(startTime * 100) + 1)
@@ -36,18 +36,20 @@ final class TFTimer {
     }
     .bind(to: currentTime)
   }
-
+  
   func pause() {
     startTime = currentTime.value
-    disposable?.dispose()
-    disposable = nil
+    cancel()
   }
-
+  
   func reset() {
+    startTime = duration
+    cancel()
+  }
+  
+  func cancel() {
     disposable?.dispose()
     disposable = nil
-    startTime = duration
-    start()
   }
 }
 

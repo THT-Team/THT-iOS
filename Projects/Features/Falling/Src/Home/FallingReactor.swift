@@ -15,29 +15,41 @@ import Domain
 extension FallingViewModel {
   
   enum Action {
+    // MARK: LifeCycle
     case viewDidLoad
     case viewWillDisappear
     case navigationLeftBarButtonItemTap
     
+    // MARK: Custom Scroll Animation
     case deleteAnimationComplete(FallingUser)
     
+    // MARK: User Card Actions
     case likeTap(FallingUser)
     case rejectTap(FallingUser)
     case pauseTap(Bool)
     case reportTap(FallingUser)
     
+    // MARK: NoticeView Actions
     case allMetTap
     case findTap
     case selectedFirstTap
     case dummyUserStartTap
     
+    // MARK: ReportAlert Actions
     case userReportAlert(UserReportAction, FallingUser)
     
+    // MARK: TopicView Action
     case tapTopicStart(DailyKeyword)
+    
+    // MARK: Fetch Action
     case fetchDailyTopics
     case fetchUserFirst(NoticeViewCell.Action)
     case fetchNextUsers
+    
+    // MARK: LoadingView Action
     case loadingCloseButtonTap
+    
+    // MARK: MacthView Action
     case matchCloseButtonTap
   }
   
@@ -124,7 +136,7 @@ extension FallingViewModel {
     // MARK: Timer
     case stopTimer
     case startTimer
-    case resetTimer
+    case restartTimer
     case setTimeState(TimeState)
     
     // MARK: Cell

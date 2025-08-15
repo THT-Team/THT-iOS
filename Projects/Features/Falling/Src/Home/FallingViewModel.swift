@@ -26,7 +26,7 @@ final class FallingViewModel: Reactor {
   private let likeUseCase: LikeUseCaseInterface
   
   // MARK: Properties
-  private let timer = TFTimer(startTime: 15.0)
+  let timer = TFTimer(duration: 15.0)
   private let cancelFetchUserSubject = PublishSubject<Void>()
   
   let initialState = State()
@@ -186,10 +186,7 @@ final class FallingViewModel: Reactor {
           let userName = self.currentState.user?.username else {
           return .just(.incrementIndex)
         }
-        return match.isMatching ? .from([
-          .toMatch(user.userProfilePhotos[0].url, userName, String(chatRoomIdx)),
-          .stopTimer])
-        : .just(.incrementIndex)
+        return .just(.toMatch(user.userProfilePhotos[0].url, userName, String(chatRoomIdx)))
       }
       .catch { .just(Mutation.toast($0.localizedDescription)) }
       
@@ -219,7 +216,7 @@ final class FallingViewModel: Reactor {
             .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
-          .just(.resetTimer)
+          .just(.restartTimer)
         )
         
       case let .report(reason):
@@ -230,7 +227,7 @@ final class FallingViewModel: Reactor {
             .map(Mutation.toast),
           .just(.hidePause),
           .just(.setHideUserInfo(true)),
-          .just(.resetTimer)
+          .just(.restartTimer)
         )
         
       case .cancel:
@@ -288,6 +285,7 @@ final class FallingViewModel: Reactor {
       newState.index = nextIndex
       newState.scrollAction = newState.indexPath
       timer.reset()
+      timer.start()
       
       if newState.user != nil,
          newState.user == newState.userInfo?.userInfos.last,
@@ -338,8 +336,9 @@ final class FallingViewModel: Reactor {
       self.timer.start()
       return newState
       
-    case .resetTimer:
+    case .restartTimer:
       self.timer.reset()
+      self.timer.start()
       return newState
       
     case .setTimeState(let timeState):

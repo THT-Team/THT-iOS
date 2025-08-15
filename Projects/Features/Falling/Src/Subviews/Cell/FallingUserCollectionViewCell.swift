@@ -237,12 +237,20 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       .bind(to: userDetailInfoRelay)
       .disposed(by: disposeBag)
   }
-  func bind(_ item: FallingUser) {
-    userInfoBoxView.bind(item)
+  
+  func bind(_ item: FallingUser, timer: TFTimer) {
+    self.timer = timer
+    bind(user: item)
     userInfoView.sections = item.toUserCardSection()
     bind(userProfilePhotos: item.userProfilePhotos)
   }
-
+  
+  private func bind(user: FallingUser) {
+    self.nicknameLabel.text = "\(user.username),"
+    self.ageLabel.text = "\(user.age)"
+    self.addressLabel.text = "\(user.address), \(user.distance.formatDistance())"
+  }
+  
   private func bind(userProfilePhotos: [UserProfilePhoto]) {
     var snapshot = Snapshot()
     snapshot.appendSections([.profile])
@@ -299,6 +307,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         : .empty()
       }
       .do { [weak base = self.base] _ in
+        base?.timer?.cancel()
         base?.lottieRelay.accept(.likeHeart)
         base?.cardTimeView.bind(.none)
         base?.cardTimeView.showTimerGradient()
@@ -317,6 +326,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         : .empty()
       }
       .do { [weak base = self.base] _ in
+        base?.timer?.cancel()
         base?.lottieRelay.accept(.unlike)
         base?.cardTimeView.bind(.none)
         base?.cardTimeView.hideTimerGradient()
@@ -335,12 +345,14 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         : .empty()
       }
       .do(onNext: { [weak base = self.base] _ in
+        base?.timer?.cancel()
+        base?.cardTimeView.bind(.none)
         base?.pauseView.showBlurView()
       })
-
+    
     return ControlEvent(events: source)
   }
-
+  
   var cardDoubleTap: ControlEvent<Void> {
     let source = self.base.carouselView.carouselView.rx
       .tapGesture(configuration: { gestureRecognizer, delegate in
