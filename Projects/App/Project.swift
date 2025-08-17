@@ -10,7 +10,7 @@ import ProjectDescriptionHelpers
 import MyPlugin
 
 enum ProductName {
-  static let releaseApp = "Falling-iOS"
+  static let releaseApp = "Falling_Prod"
   static let devApp = "Falling_Dev"
   static let unitTest = "iOS_UnitTests"
 }
@@ -51,9 +51,9 @@ let targets: [Target] = [
     destinations: [.iPhone],
     product: .app,
     productName: ProductName.releaseApp,
-    bundleId: "com.tht.demo.fallingdemoapp",
+    bundleId: "com.tht.falling",
     deploymentTargets: basicDeployment,
-    infoPlist: infoPlistExtension, // .extendingDefault(with: app),
+    infoPlist: infoPlistExtension(name: "Falling"),
     sources: [.glob("src/**/*.swift",
                     excluding: "src/Dev/**")],
     resources: [.glob(pattern: "Resources/**",
@@ -69,7 +69,7 @@ let targets: [Target] = [
     destinations: .iOS,
     product: .app,
     productName: ProductName.releaseApp,
-    bundleId: "com.tht.demo.fallingdemoapp",
+    bundleId: "com.tht.falling.dev",
     deploymentTargets: basicDeployment,
     infoPlist: .extendingDefault(with: app),
     sources: ["src/**"],

@@ -33,6 +33,32 @@ public extension XCConfig {
 }
 
 public extension Configuration {
-  static let debug: Self = .debug(name: .debug, xcconfig: XCConfig.Application.app(.debug))
-  static let release: Self = .release(name: .release, xcconfig: XCConfig.Application.app(.release))
+  static let debug: Self = .debug(name: .debug, settings: .provisioning(buildMode: .debug),  xcconfig: XCConfig.Application.app(.debug))
+  static let release: Self = .release(name: .release, settings: .provisioning(buildMode: .release), xcconfig: XCConfig.Application.app(.release))
+}
+
+
+extension ProjectDescription.SettingsDictionary {
+  enum BuildMode {
+    case debug
+    case release
+    
+    var provisioningName: String {
+      switch self {
+      case .debug:
+        return "Dev"
+      case .release:
+        return "Prod"
+      }
+    }
+  }
+  
+  static func provisioning(buildMode: BuildMode) -> SettingsDictionary {
+    [
+      "DEVELOPMENT_TEAM": "3KZP62644C",
+      "CODE_SIGN_STYLE": "Manual",
+      "PROVISIONING_PROFILE_SPECIFIER": "Falling \(buildMode.provisioningName)",
+      "CODE_SIGN_IDENTITY": "iPhone Distribution: Lee Seungmin (3KZP62644C)"
+    ]
+  }
 }
