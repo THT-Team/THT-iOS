@@ -32,6 +32,15 @@ final class CardCircleTimerView: TFBaseView {
     return layer
   }()
   
+  let maskLayer: CAShapeLayer = {
+    let layer = CAShapeLayer()
+    layer.lineWidth = 2
+    layer.fillColor = DSKitAsset.Color.clear.color.cgColor
+    layer.strokeColor = DSKitAsset.Color.neutral300.color.cgColor
+    layer.strokeEnd = 1
+    return layer
+  }()
+  
   let strokeLayer: CAShapeLayer = {
     let layer = CAShapeLayer()
     layer.lineWidth = 2
@@ -89,6 +98,7 @@ final class CardCircleTimerView: TFBaseView {
                                     startAngle: -CGFloat.pi / 2,
                                     endAngle: 3 * CGFloat.pi / 2,
                                     clockwise: true)
+    maskLayer.path = circularPath.cgPath
     trackLayer.path = circularPath.cgPath
     strokeLayer.path = circularPath.cgPath
     
@@ -103,8 +113,6 @@ final class CardCircleTimerView: TFBaseView {
   func toggleCircleLayer(_ isHidden: Bool) {
     addGradientLayer()
     
-    self.dotLayer.isHidden = !isHidden
-    self.strokeLayer.isHidden = !isHidden
     self.gradientLayer?.isHidden = isHidden
     self.likeImageView.isHidden = isHidden
   }
@@ -135,7 +143,7 @@ final class CardCircleTimerView: TFBaseView {
     gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
     gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
 
-    gradientLayer.mask = trackLayer
+    gradientLayer.mask = maskLayer
 
     return gradientLayer
   }
