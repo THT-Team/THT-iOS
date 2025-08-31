@@ -152,7 +152,7 @@ final class FallingViewController: TFBaseViewController, ReactorKit.View {
       reactor.pulse(\.$shouldShowPause)
         .withLatestFrom(timerActiveTrigger) { ($0, $1) }
         .filter { _, isActive in isActive }
-        .map { shouldSHowPause, _ in !shouldSHowPause }
+        .map { shouldShowPause, _ in !shouldShowPause }
         .bind(to: cell.pauseViewRelay)
         .disposed(by: cell.disposeBag)
       

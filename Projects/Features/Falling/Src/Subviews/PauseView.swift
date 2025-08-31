@@ -10,18 +10,6 @@ import UIKit
 import DSKit
 
 open class PauseView: TFBaseView {
-  private lazy var blurView: UIVisualEffectView = {
-    let effect = UIBlurEffect(style: .dark)
-    
-    let visualEffectView = UIVisualEffectView(effect: effect)
-    visualEffectView.frame = bounds
-    visualEffectView.layer.cornerRadius = 20
-    visualEffectView.clipsToBounds = true
-    visualEffectView.backgroundColor = DSKitAsset.Color.blur.color
-    // TODO: alpha값은 더 투명하게 보이게 하기 위해 임의로 설정
-    visualEffectView.alpha = 0.95
-    return visualEffectView
-  }()
   
   private lazy var stackView: UIStackView = {
     let stackView = UIStackView()
@@ -61,18 +49,18 @@ open class PauseView: TFBaseView {
     
   open override func makeUI() {
     self.isHidden = true
+    self.backgroundColor = DSKitAsset.Color.DimColor.pauseDim.color
     
-    self.addSubview(blurView)
-    self.blurView.contentView.addSubview(stackView)
+    self.addSubview(stackView)
+    
+    stackView.snp.makeConstraints {
+      $0.center.equalToSuperview().inset(5)
+    }
     
     stackView.addArrangedSubviews([
       ImageContainerView,
       titleLabel
     ])
-
-    blurView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
 
     ImageContainerView.addSubview(pauseImageView)
     
@@ -108,12 +96,6 @@ extension Reactive where Base: PauseView {
   var isDimViewHidden: Binder<Bool> {
     return Binder(self.base) { (base, isHidden) in
       isHidden ? base.hide() : base.showBlurView()
-    }
-  }
-
-  var isPauseViewHidden: Binder<Bool> {
-    return Binder(self.base) { (base, isHidden) in
-      isHidden ? base.hide() : base.showPauseView()
     }
   }
 }

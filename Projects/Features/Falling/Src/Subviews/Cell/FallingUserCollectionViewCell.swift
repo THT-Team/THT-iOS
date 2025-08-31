@@ -16,6 +16,11 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
   private var dataSource: DataSource!
   var timer: TFTimer?
   
+  lazy var containerView: UIView = {
+    let view = UIView(frame: bounds)
+    return view
+  }()
+  
   let carouselView = TFCarouselView().then {
     $0.backgroundColor = DSKitAsset.Color.DimColor.default.color
     $0.layer.cornerRadius = 20
@@ -121,7 +126,9 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     self.layer.cornerRadius = 20
     self.layer.masksToBounds = true
     
-    self.contentView.addSubviews([carouselView, cardTimeView, labelContainerStackView, infoButton, bottomRightButtonStackView, userInfoView, lottieView, pauseView])
+    self.contentView.addSubviews([containerView, pauseView])
+    
+    self.containerView.addSubviews([carouselView, cardTimeView, labelContainerStackView, infoButton, bottomRightButtonStackView, userInfoView, lottieView])
     
     labelContainerStackView.addArrangedSubviews([nicknameWithAgeStackView, addressStackView])
     
@@ -130,6 +137,14 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     addressStackView.addArrangedSubviews([pinImageView, addressLabel])
     
     bottomRightButtonStackView.addArrangedSubviews([rejectButton, likeButton])
+    
+//    containerView.snp.makeConstraints {
+//      $0.edges.equalToSuperview()
+//    }
+    
+    self.pauseView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
     
     carouselView.snp.makeConstraints {
       $0.edges.equalToSuperview()
@@ -172,10 +187,6 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
       $0.bottom.equalTo(labelContainerStackView.snp.top).offset(-8)
     }
     
-    self.pauseView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
-    
     self.lottieView.snp.makeConstraints {
       $0.center.equalToSuperview()
       $0.width.height.equalTo(188) // TODO: 사이즈 수정 예정
@@ -204,7 +215,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     let dimViewSignal = dimViewRelay.asSignal()
     
     pauseViewSignal
-      .emit(to: pauseView.rx.isPauseViewHidden)
+      .emit(to: rx.isPauseViewHidden)
       .disposed(by: disposeBag)
     
     dimViewSignal
@@ -405,6 +416,18 @@ extension Reactive where Base: FallingUserCollectionViewCell {
   var isDimViewHidden: Binder<Bool> {
     return Binder(self.base) { (base, isHidden) in
       isHidden ? base.carouselView.hiddenDimView() : base.carouselView.showDimView()
+    }
+  }
+  
+  var isPauseViewHidden: Binder<Bool> {
+    return Binder(self.base) { (base, isHidden) in
+      if isHidden {
+        base.pauseView.hide()
+        base.containerView.unBlur()
+      } else {
+        base.pauseView.showPauseView()
+        base.containerView.blur(blurRadius: 10)
+      }
     }
   }
 }
