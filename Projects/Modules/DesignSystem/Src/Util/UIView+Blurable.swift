@@ -72,8 +72,8 @@ public extension Blurable {
       removeFromSuperview()
       superview.insertArrangedSubview(blurOverlay, at: index)
     } else {
-//      blurOverlay.frame.origin = frame.origin
-            
+      blurOverlay.frame.origin = frame.origin
+      
       UIView.transition(
         from: this,
         to: blurOverlay,
@@ -102,7 +102,7 @@ public extension Blurable {
       blurOverlay.removeFromSuperview()
       superview.insertArrangedSubview(this, at: index)
     } else {
-//      this.frame.origin = frame.origin
+      this.frame.origin = frame.origin
       
       UIView.transition(
         from: blurOverlay,

@@ -293,6 +293,11 @@ extension FallingUserCollectionViewCell {
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
   }
+  
+  func applyBlur() {
+    containerView.blur(blurRadius: 8)
+    contentView.bringSubviewToFront(pauseView)
+  }
 }
 
 extension FallingUserCollectionViewCell {
@@ -359,6 +364,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         base?.timer?.cancel()
         base?.cardTimeView.bind(.none)
         base?.pauseView.showBlurView()
+        base?.applyBlur()
       })
     
     return ControlEvent(events: source)
@@ -426,7 +432,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
         base.containerView.unBlur()
       } else {
         base.pauseView.showPauseView()
-        base.containerView.blur(blurRadius: 10)
+        base.applyBlur()
       }
     }
   }
