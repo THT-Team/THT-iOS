@@ -25,7 +25,7 @@ final class FallingUserCollectionViewCell: TFBaseCollectionViewCell {
     $0.backgroundColor = DSKitAsset.Color.DimColor.default.color
     $0.layer.cornerRadius = 20
     $0.layer.masksToBounds = true
-    $0.carouselView.isScrollEnabled = false
+    $0.collectionView.isScrollEnabled = false
   }
   
   let cardTimeView = CardTimeView()
@@ -289,7 +289,7 @@ extension FallingUserCollectionViewCell {
       cell.bind(imageURL: item.url)
     }
     
-    self.dataSource = UICollectionViewDiffableDataSource(collectionView: carouselView.carouselView, cellProvider: { collectionView, indexPath, itemIdentifier in
+    self.dataSource = UICollectionViewDiffableDataSource(collectionView: carouselView.collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
       return collectionView.dequeueConfiguredReusableCell(using: profileCellRegistration, for: indexPath, item: itemIdentifier)
     })
   }
@@ -371,7 +371,7 @@ extension Reactive where Base: FallingUserCollectionViewCell {
   }
   
   var cardDoubleTap: ControlEvent<Void> {
-    let source = self.base.carouselView.carouselView.rx
+    let source = self.base.carouselView.collectionView.rx
       .tapGesture(configuration: { gestureRecognizer, delegate in
         gestureRecognizer.numberOfTapsRequired = 2
       })

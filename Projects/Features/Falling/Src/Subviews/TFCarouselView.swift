@@ -7,18 +7,20 @@
 
 import Foundation
 
-import UIKit
+import UIKit  
 
 import DSKit
 
 final class TFCarouselView: TFBaseView {
   
-  lazy var carouselView = TFBaseCollectionView(frame: .zero, collectionViewLayout: createLayout())
+  lazy var collectionView = TFBaseCollectionView(frame: .zero, collectionViewLayout: createLayout())
   
   lazy var pageControl = UIPageControl().then {
     let normalDot = circleImage(diameter: 6, color: DSKitAsset.Color.neutral50.color)
     let currentDot = circleImage(diameter: 6, color: DSKitAsset.Color.neutral300.color)
     
+    $0.backgroundStyle = .minimal
+    $0.allowsContinuousInteraction = false
     $0.preferredIndicatorImage = normalDot
     
     guard $0.numberOfPages > 0 else { return }
@@ -30,15 +32,15 @@ final class TFCarouselView: TFBaseView {
   }
   
   func register<T: UICollectionViewCell>(cellType: T.Type) {
-    carouselView.register(cellType: cellType.self)
+    collectionView.register(cellType: cellType.self)
   }
   
   override func makeUI() {
-    carouselView.isScrollEnabled = false
+    collectionView.isScrollEnabled = false
     
-    addSubviews(carouselView, pageControl)
+    addSubviews(collectionView, pageControl)
     
-    carouselView.snp.makeConstraints {
+    collectionView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
     
@@ -54,8 +56,16 @@ final class TFCarouselView: TFBaseView {
     let sectionLayout: NSCollectionLayoutSection = .horizontalListSection()
     sectionLayout.visibleItemsInvalidationHandler = { [weak self] (items, offset, environment) in
       guard let self = self else { return }
-      let index = Int(offset.x / self.carouselView.frame.width)
-      self.pageControl.currentPage = index
+      let containerWidth = self.collectionView.bounds.width
+      let midX = offset.x + containerWidth / 2
+      
+      let target = items.min(by: {
+        abs($0.frame.midX - midX) < abs($1.frame.midX - midX)
+      })
+      
+      if let index = target?.indexPath.item, self.pageControl.currentPage != index {
+        self.pageControl.currentPage = index
+      }
     }
     return UICollectionViewCompositionalLayout(section: sectionLayout)
   }
