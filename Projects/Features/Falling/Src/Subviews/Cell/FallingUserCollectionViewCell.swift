@@ -295,7 +295,7 @@ extension FallingUserCollectionViewCell {
   }
   
   func applyBlur() {
-    containerView.blur(blurRadius: 8)
+    containerView.blur(blurRadius: 16)
     contentView.bringSubviewToFront(pauseView)
   }
 }
